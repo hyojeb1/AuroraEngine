@@ -12,7 +12,7 @@ int main()
 
 	while (windowManager.ProcessMessages())
 	{
-		renderer.BeginFrame({ 0.1f, 0.1f, 0.1f, 1.0f });
+		renderer.BeginFrame({ 0.5f, 0.5f, 0.5f, 1.0f });
 		renderer.EndFrame();
 	};
 }

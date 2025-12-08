@@ -3,6 +3,7 @@ SamplerState sceneSampler : register(s0);
 
 struct PixelInput
 {
+    float4 Position : SV_POSITION;
     float2 UV : TEXCOORD;
 };
 

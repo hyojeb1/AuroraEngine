@@ -38,11 +38,15 @@ void Renderer::EndFrame()
 {
 	HRESULT hr = S_OK;
 
+	// ÇÈ¼¿ ¼ÎÀÌ´õÀÇ ¼ÎÀÌ´õ ¸®¼Ò½º ºä ÇØÁ¦
+	constexpr ID3D11ShaderResourceView* nullSRV = nullptr;
+	m_deviceContext->PSSetShaderResources(0, 1, &nullSRV);
+
 	// ¹é ¹öÆÛ ·»´õ Å¸°ÙÀ¸·Î ¼³Á¤
-	m_deviceContext->OMSetRenderTargets(1, m_backBuffer.renderTargetView.GetAddressOf(), m_sceneBuffer.depthStencilView.Get());
+	m_deviceContext->OMSetRenderTargets(1, m_backBuffer.renderTargetView.GetAddressOf(), m_backBuffer.depthStencilView.Get());
 
 	// ¹é ¹öÆÛ Å¬¸®¾î
-	constexpr array<FLOAT, 4> clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+	constexpr array<FLOAT, 4> clearColor = { 1.0f, 0.0f, 0.0f, 1.0f };
 	ClearRenderTarget(m_backBuffer, clearColor);
 
 	// ÀüÃ¼ È­¸é »ï°¢Çü ·»´õ¸µ
@@ -275,8 +279,10 @@ void Renderer::CreateSceneRenderTarget()
 	{
 		.Width = m_swapChainDesc.Width,
 		.Height = m_swapChainDesc.Height,
+		.MipLevels = 1,
+		.ArraySize = 1,
 		.Format = DXGI_FORMAT_R8G8B8A8_UNORM, // °¨¸¶ º¸Á¤ ¾ÈÇÔ
-		.SampleDesc = { .Count = 4, .Quality = 0 },
+		.SampleDesc = { .Count = 4, .Quality = 0 }, // 4x MSAA
 		.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE,
 	};
 	hr = m_device->CreateTexture2D(&textureDesc, nullptr, m_sceneBuffer.renderTarget.GetAddressOf());
@@ -286,7 +292,7 @@ void Renderer::CreateSceneRenderTarget()
 	const D3D11_RENDER_TARGET_VIEW_DESC rtvDesc =
 	{
 		.Format = textureDesc.Format,
-		.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D
+		.ViewDimension = textureDesc.SampleDesc.Count > 1 ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D
 	};
 	hr = m_device->CreateRenderTargetView(m_sceneBuffer.renderTarget.Get(), &rtvDesc, m_sceneBuffer.renderTargetView.GetAddressOf());
 	CheckResult(hr, "¾À ·»´õ Å¸°Ù ºä »ý¼º ½ÇÆÐ.");
@@ -296,6 +302,8 @@ void Renderer::CreateSceneRenderTarget()
 	{
 		.Width = m_swapChainDesc.Width,
 		.Height = m_swapChainDesc.Height,
+		.MipLevels = 1,
+		.ArraySize = 1,
 		.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT, // ±íÀÌ: 32ºñÆ® ½Ç¼ö, ½ºÅÙ½Ç: 8ºñÆ® Á¤¼ö
 		.SampleDesc = textureDesc.SampleDesc,
 		.BindFlags = D3D11_BIND_DEPTH_STENCIL,
@@ -316,7 +324,7 @@ void Renderer::CreateSceneRenderTarget()
 	const D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc =
 	{
 		.Format = textureDesc.Format,
-		.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D,
+		.ViewDimension = textureDesc.SampleDesc.Count > 1 ? D3D11_SRV_DIMENSION_TEXTURE2DMS : D3D11_SRV_DIMENSION_TEXTURE2D,
 		.Texture2D = { .MostDetailedMip = 0, .MipLevels = 1 }
 	};
 	hr = m_device->CreateShaderResourceView(m_sceneBuffer.renderTarget.Get(), &srvDesc, m_sceneShaderResourceView.GetAddressOf());
@@ -389,6 +397,11 @@ void Renderer::CreateSamplerStates()
 		// SSBackBuffer
 		D3D11_SAMPLER_DESC
 		{
+			.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR,
+			.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP,
+			.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP,
+			.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP,
+			.ComparisonFunc = D3D11_COMPARISON_NEVER,
 			.MinLOD = 0,
 			.MaxLOD = D3D11_FLOAT32_MAX
 		},
@@ -431,7 +444,7 @@ HRESULT Renderer::CompileShader(filesystem::path shaderName, _Out_ ID3DBlob** sh
 {
 	HRESULT hr = S_OK;
 
-	const filesystem::path shaderPath = L"../Assets/Shaders/" / shaderName;
+	const filesystem::path shaderPath = L"../Asset/Shader/" / shaderName;
 	com_ptr<ID3DBlob> errorBlob = nullptr;
 
 	hr = D3DCompileFromFile
