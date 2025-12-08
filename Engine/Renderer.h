@@ -13,7 +13,8 @@ class Renderer
 	{
 		.Width = 1280,
 		.Height = 720,
-		.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, // 감마 보정
+		.Format = DXGI_FORMAT_R8G8B8A8_UNORM, // 감마 보정
+		.SampleDesc = { .Count = 1, .Quality = 0 },
 		.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
 		.BufferCount = 2,
 		.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
