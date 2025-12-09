@@ -20,15 +20,10 @@ void Renderer::Initialize(HWND hWnd)
 	CreateSamplerStates();
 }
 
-void Renderer::BeginFrame(const std::array<FLOAT, 4>& clearColor)
+void Renderer::BeginFrame(const array<FLOAT, 4>& clearColor)
 {
 	// ¾À ·»´õ Å¸°ÙÀ¸·Î ¼³Á¤
-	m_deviceContext->OMSetRenderTargets
-	(
-		1,
-		m_sceneBuffer.renderTargetView.GetAddressOf(),
-		m_sceneBuffer.depthStencilView.Get()
-	);
+	m_deviceContext->OMSetRenderTargets(1, m_sceneBuffer.renderTargetView.GetAddressOf(), m_sceneBuffer.depthStencilView.Get());
 
 	// ¾À ·»´õ Å¸°Ù Å¬¸®¾î
 	ClearRenderTarget(m_sceneBuffer, clearColor);
@@ -38,32 +33,11 @@ void Renderer::EndFrame()
 {
 	HRESULT hr = S_OK;
 
-	// ÇÈ¼¿ ¼ÎÀÌ´õÀÇ ¼ÎÀÌ´õ ¸®¼Ò½º ºä ÇØÁ¦
-	constexpr ID3D11ShaderResourceView* nullSRV = nullptr;
-	m_deviceContext->PSSetShaderResources(0, 1, &nullSRV);
+	// ¾À ·»´õ Å¸°Ù MSAA ÇØÁ¦ ¹× °á°ú ÅØ½ºÃ³ º¹»ç
+	ResolveSceneMSAA();
 
-	// ¹é ¹öÆÛ ·»´õ Å¸°ÙÀ¸·Î ¼³Á¤
-	m_deviceContext->OMSetRenderTargets(1, m_backBuffer.renderTargetView.GetAddressOf(), m_backBuffer.depthStencilView.Get());
-
-	// ¹é ¹öÆÛ Å¬¸®¾î
-	constexpr array<FLOAT, 4> clearColor = { 1.0f, 0.0f, 0.0f, 1.0f };
-	ClearRenderTarget(m_backBuffer, clearColor);
-
-	// ÀüÃ¼ È­¸é »ï°¢Çü ·»´õ¸µ
-	constexpr UINT stride = sizeof(BackBufferVertex);
-	constexpr UINT offset = 0;
-
-	m_deviceContext->IASetVertexBuffers(0, 1, m_backBufferVertexBuffer.GetAddressOf(), &stride, &offset);
-	m_deviceContext->IASetInputLayout(m_backBufferInputLayout.Get());
-	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	m_deviceContext->VSSetShader(m_backBufferVertexShader.Get(), nullptr, 0);
-	m_deviceContext->PSSetShader(m_backBufferPixelShader.Get(), nullptr, 0);
-
-	m_deviceContext->PSSetShaderResources(0, 1, m_sceneShaderResourceView.GetAddressOf());
-	m_deviceContext->PSSetSamplers(0, 1, m_samplerStates[SSBackBuffer].GetAddressOf());
-
-	m_deviceContext->Draw(3, 0);
+	// ¹é ¹öÆÛ·Î ¾À ·»´õ¸µ
+	RenderSceneToBackBuffer();
 
 	// ½º¿Ò Ã¼ÀÎ ÇÁ·¹Á¨Æ®
 	hr = m_swapChain->Present(1, 0);
@@ -282,7 +256,7 @@ void Renderer::CreateSceneRenderTarget()
 		.MipLevels = 1,
 		.ArraySize = 1,
 		.Format = DXGI_FORMAT_R8G8B8A8_UNORM, // °¨¸¶ º¸Á¤ ¾ÈÇÔ
-		.SampleDesc = { .Count = 4, .Quality = 0 }, // 4x MSAA
+		.SampleDesc = m_sceneBufferSampleDesc,
 		.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE,
 	};
 	hr = m_device->CreateTexture2D(&textureDesc, nullptr, m_sceneBuffer.renderTarget.GetAddressOf());
@@ -320,14 +294,27 @@ void Renderer::CreateSceneRenderTarget()
 	hr = m_device->CreateDepthStencilView(m_sceneBuffer.depthStencilTexture.Get(), &dsvDesc, m_sceneBuffer.depthStencilView.GetAddressOf());
 	CheckResult(hr, "¾À ±íÀÌ-½ºÅÙ½Ç ºä »ý¼º ½ÇÆÐ.");
 
+	const D3D11_TEXTURE2D_DESC sceneResultDesc =
+	{
+		.Width = m_swapChainDesc.Width,
+		.Height = m_swapChainDesc.Height,
+		.MipLevels = 1,
+		.ArraySize = 1,
+		.Format = textureDesc.Format,
+		.SampleDesc = { 1, 0 }, // °á°ú ÅØ½ºÃ³´Â ´ÜÀÏ »ùÇÃ¸µ
+		.BindFlags = D3D11_BIND_SHADER_RESOURCE,
+	};
+	hr = m_device->CreateTexture2D(&sceneResultDesc, nullptr, m_sceneResultTexture.GetAddressOf());
+	CheckResult(hr, "¾À °á°ú ÅØ½ºÃ³ »ý¼º ½ÇÆÐ.");
+
 	// ¾À ·»´õ Å¸°ÙÀÇ ¼ÎÀÌ´õ ¸®¼Ò½º ºä »ý¼º
 	const D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc =
 	{
 		.Format = textureDesc.Format,
-		.ViewDimension = textureDesc.SampleDesc.Count > 1 ? D3D11_SRV_DIMENSION_TEXTURE2DMS : D3D11_SRV_DIMENSION_TEXTURE2D,
+		.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D,
 		.Texture2D = { .MostDetailedMip = 0, .MipLevels = 1 }
 	};
-	hr = m_device->CreateShaderResourceView(m_sceneBuffer.renderTarget.Get(), &srvDesc, m_sceneShaderResourceView.GetAddressOf());
+	hr = m_device->CreateShaderResourceView(m_sceneResultTexture.Get(), &srvDesc, m_sceneShaderResourceView.GetAddressOf());
 	CheckResult(hr, "¾À ¼ÎÀÌ´õ ¸®¼Ò½º ºä »ý¼º ½ÇÆÐ.");
 }
 
@@ -427,6 +414,48 @@ void Renderer::CreateSamplerStates()
 	}
 }
 
+void Renderer::ClearRenderTarget(RenderTarget& target, const array<FLOAT, 4>& clearColor)
+{
+	m_deviceContext->ClearRenderTargetView(target.renderTargetView.Get(), clearColor.data());
+	if (target.depthStencilView) m_deviceContext->ClearDepthStencilView(target.depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+}
+
+void Renderer::ResolveSceneMSAA()
+{
+	if (m_sceneBufferSampleDesc.Count > 1) m_deviceContext->ResolveSubresource(m_sceneResultTexture.Get(), 0, m_sceneBuffer.renderTarget.Get(), 0, m_swapChainDesc.Format);
+	else m_deviceContext->CopyResource(m_sceneResultTexture.Get(), m_sceneBuffer.renderTarget.Get());
+}
+
+void Renderer::RenderSceneToBackBuffer()
+{
+	// ÇÈ¼¿ ¼ÎÀÌ´õÀÇ ¼ÎÀÌ´õ ¸®¼Ò½º ºä ÇØÁ¦
+	constexpr ID3D11ShaderResourceView* nullSRV = nullptr;
+	m_deviceContext->PSSetShaderResources(0, 1, &nullSRV);
+
+	// ¹é ¹öÆÛ ·»´õ Å¸°ÙÀ¸·Î ¼³Á¤
+	m_deviceContext->OMSetRenderTargets(1, m_backBuffer.renderTargetView.GetAddressOf(), m_backBuffer.depthStencilView.Get());
+
+	// ¹é ¹öÆÛ Å¬¸®¾î
+	constexpr array<FLOAT, 4> clearColor = { 1.0f, 0.0f, 0.0f, 1.0f };
+	ClearRenderTarget(m_backBuffer, clearColor);
+
+	// ÀüÃ¼ È­¸é »ï°¢Çü ·»´õ¸µ
+	constexpr UINT stride = sizeof(BackBufferVertex);
+	constexpr UINT offset = 0;
+
+	m_deviceContext->IASetVertexBuffers(0, 1, m_backBufferVertexBuffer.GetAddressOf(), &stride, &offset);
+	m_deviceContext->IASetInputLayout(m_backBufferInputLayout.Get());
+	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	m_deviceContext->VSSetShader(m_backBufferVertexShader.Get(), nullptr, 0);
+	m_deviceContext->PSSetShader(m_backBufferPixelShader.Get(), nullptr, 0);
+
+	m_deviceContext->PSSetShaderResources(0, 1, m_sceneShaderResourceView.GetAddressOf());
+	m_deviceContext->PSSetSamplers(0, 1, m_samplerStates[SSBackBuffer].GetAddressOf());
+
+	m_deviceContext->Draw(3, 0);
+}
+
 void Renderer::CheckResult(HRESULT hr, const char* msg) const
 {
 	if (FAILED(hr))
@@ -466,10 +495,4 @@ HRESULT Renderer::CompileShader(filesystem::path shaderName, _Out_ ID3DBlob** sh
 	if (errorBlob) cerr << shaderName.string() << " ¼ÎÀÌ´õ ÄÄÆÄÀÏ ¿À·ù: " << static_cast<const char*>(errorBlob->GetBufferPointer()) << endl;
 
 	return hr;
-}
-
-void Renderer::ClearRenderTarget(RenderTarget& target, const array<FLOAT, 4>& clearColor)
-{
-	m_deviceContext->ClearRenderTargetView(target.renderTargetView.Get(), clearColor.data());
-	if (target.depthStencilView) m_deviceContext->ClearDepthStencilView(target.depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }

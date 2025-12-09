@@ -46,7 +46,9 @@ class Renderer
 	com_ptr<ID3D11InputLayout> m_backBufferInputLayout = nullptr; // 백 버퍼용 입력 레이아웃
 	com_ptr<ID3D11PixelShader> m_backBufferPixelShader = nullptr; // 백 버퍼용 후처리 픽셀 셰이더
 
+	DXGI_SAMPLE_DESC m_sceneBufferSampleDesc = { 4, 0 }; // 백 버퍼 샘플링 설정 // count <=1: FXAA, count>1: MSAA // FXAA는 아직 없음
 	RenderTarget m_sceneBuffer; // 씬 렌더 타겟 // 실제 게임 씬을 랜더링하는 버퍼
+	com_ptr<ID3D11Texture2D> m_sceneResultTexture = nullptr; // 씬 렌더 타겟의 결과 텍스처 // MSAA 다운샘플링 후 결과 저장
 	com_ptr<ID3D11ShaderResourceView> m_sceneShaderResourceView = nullptr; // 씬 렌더 타겟의 셰이더 리소스 뷰 // 백 버퍼에 적용하면서 후처리됨
 
 	enum RasterState
@@ -111,11 +113,17 @@ private:
 	// 샘플러 상태 생성
 	void CreateSamplerStates();
 
+	// 랜더링 파이프라인 함수
+	// 렌더 타겟 클리어
+	void ClearRenderTarget(RenderTarget& target, const std::array<FLOAT, 4>& clearColor);
+	// 씬 렌더 타겟 MSAA 다운샘플링 // MSAA 미적용시 그냥 복사
+	void ResolveSceneMSAA();
+	// 백 버퍼 랜더링
+	void RenderSceneToBackBuffer();
+
 	// 헬퍼 함수
 	// HRESULT 결과 확인
 	void CheckResult(HRESULT hr, const char* msg) const;
 	// 셰이더 컴파일
 	HRESULT CompileShader(std::filesystem::path shaderName, _Out_ ID3DBlob** shaderCode, const char* shaderModel);
-
-	void ClearRenderTarget(RenderTarget& target, const std::array<FLOAT, 4>& clearColor);
 };
