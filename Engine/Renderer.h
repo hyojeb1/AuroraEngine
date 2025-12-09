@@ -13,12 +13,15 @@ class Renderer
 	{
 		.Width = 1280,
 		.Height = 720,
-		.Format = DXGI_FORMAT_R8G8B8A8_UNORM, // 감마 보정
-		.SampleDesc = { .Count = 1, .Quality = 0 },
-		.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-		.BufferCount = 2,
-		.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
-		.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
+		.Format = DXGI_FORMAT_R8G8B8A8_UNORM,
+		.Stereo = FALSE, // VR용 입체 영상용 // 사용 안함
+		.SampleDesc = { .Count = 1, .Quality = 0 }, // 멀티샘플링 설정 // 스왑 체인 자체에는 멀티샘플링 적용 못함
+		.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT, // 렌더 타겟으로 사용
+		.BufferCount = 2, // 더블 버퍼링
+		.Scaling = DXGI_SCALING_STRETCH, // 창 크기에 맞게 스트레칭
+		.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD, // 플립 모드 // 잘 모르겠는데 이게 빠르다 함
+		.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED, // 알파 블렌딩 없음
+		.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH // 전체 화면 전환 허용
 	};
 	// TODO: 나중에 전체 화면 설정도 멤버 변수로 추가 DXGI_SWAP_CHAIN_FULLSCREEN_DESC
 

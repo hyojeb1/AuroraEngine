@@ -169,13 +169,16 @@ void Renderer::CreateBackBufferVertexBufferAndShaders()
 	{
 		BackBufferVertex{ .position = { -1.0f, -1.0f, 0.0f, 0.0f }, .UV = { 0.0f, 1.0f } },
 		BackBufferVertex{ .position = { -1.0f, 3.0f, 0.0f, 0.0f }, .UV = { 0.0f, -1.0f } },
-		BackBufferVertex{ .position = { 3.0f, -1.0f, 0.0f, 0.0f }, .UV = { 2.0f, 1.0f } },
+		BackBufferVertex{ .position = { 3.0f, -1.0f, 0.0f, 0.0f }, .UV = { 2.0f, 1.0f } }
 	};
 	constexpr D3D11_BUFFER_DESC bufferDesc =
 	{
 		.ByteWidth = sizeof(backBufferVertices),
 		.Usage = D3D11_USAGE_IMMUTABLE,
 		.BindFlags = D3D11_BIND_VERTEX_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
 	};
 	const D3D11_SUBRESOURCE_DATA initialData = { .pSysMem = backBufferVertices.data() };
 
@@ -201,17 +204,23 @@ void Renderer::CreateBackBufferVertexBufferAndShaders()
 	{
 		D3D11_INPUT_ELEMENT_DESC
 		{
-			.SemanticName = "POSITION",
-			.Format = DXGI_FORMAT_R32G32B32A32_FLOAT,
-			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
-			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.SemanticName = "POSITION", // 이름
+			.SemanticIndex = 0, // 인덱스 // 같은 이름의 여러 요소 구분용 // 일반적으로 쓸일 없음
+			.Format = DXGI_FORMAT_R32G32B32A32_FLOAT, // 형식 // float4
+			.InputSlot = 0, // 입력 슬롯 // 여러 버텍스 버퍼 사용할 때 구분용
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT, // 오프셋 자동 계산
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA, // 입력 슬롯 클래스
+			.InstanceDataStepRate = 0 // D3D11_INPUT_PER_VERTEX_DATA 일시 무조건 0
 		},
 		D3D11_INPUT_ELEMENT_DESC
 		{
 			.SemanticName = "TEXCOORD",
-			.Format = DXGI_FORMAT_R32G32_FLOAT,
+			.SemanticIndex = 0,
+			.Format = DXGI_FORMAT_R32G32_FLOAT, // float2
+			.InputSlot = 0,
 			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
 		}
 	};
 	hr = m_device->CreateInputLayout
@@ -253,11 +262,14 @@ void Renderer::CreateSceneRenderTarget()
 	{
 		.Width = m_swapChainDesc.Width,
 		.Height = m_swapChainDesc.Height,
-		.MipLevels = 1,
-		.ArraySize = 1,
+		.MipLevels = 1, // 단일 밉맵
+		.ArraySize = 1, // 단일 텍스처
 		.Format = DXGI_FORMAT_R8G8B8A8_UNORM, // 감마 보정 안함
 		.SampleDesc = m_sceneBufferSampleDesc,
-		.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE,
+		.Usage = D3D11_USAGE_DEFAULT, // GPU 읽기/쓰기
+		.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, // 렌더 타겟 및 셰이더 리소스
+		.CPUAccessFlags = 0, // CPU 접근 없음
+		.MiscFlags = 0 // 기타 플래그 없음
 	};
 	hr = m_device->CreateTexture2D(&textureDesc, nullptr, m_sceneBuffer.renderTarget.GetAddressOf());
 	CheckResult(hr, "씬 렌더 타겟 텍스처 생성 실패.");
@@ -266,7 +278,7 @@ void Renderer::CreateSceneRenderTarget()
 	const D3D11_RENDER_TARGET_VIEW_DESC rtvDesc =
 	{
 		.Format = textureDesc.Format,
-		.ViewDimension = textureDesc.SampleDesc.Count > 1 ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D
+		.ViewDimension = textureDesc.SampleDesc.Count > 1 ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D // 멀티샘플링 여부에 따른 뷰 차원
 	};
 	hr = m_device->CreateRenderTargetView(m_sceneBuffer.renderTarget.Get(), &rtvDesc, m_sceneBuffer.renderTargetView.GetAddressOf());
 	CheckResult(hr, "씬 렌더 타겟 뷰 생성 실패.");
@@ -280,7 +292,10 @@ void Renderer::CreateSceneRenderTarget()
 		.ArraySize = 1,
 		.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT, // 깊이: 32비트 실수, 스텐실: 8비트 정수
 		.SampleDesc = textureDesc.SampleDesc,
+		.Usage = D3D11_USAGE_DEFAULT,
 		.BindFlags = D3D11_BIND_DEPTH_STENCIL,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0
 	};
 	hr = m_device->CreateTexture2D(&depthStencilDesc, nullptr, m_sceneBuffer.depthStencilTexture.GetAddressOf());
 	CheckResult(hr, "씬 깊이-스텐실 텍스처 생성 실패.");
@@ -289,7 +304,8 @@ void Renderer::CreateSceneRenderTarget()
 	const D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc =
 	{
 		.Format = depthStencilDesc.Format,
-		.ViewDimension = depthStencilDesc.SampleDesc.Count > 1 ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D
+		.ViewDimension = depthStencilDesc.SampleDesc.Count > 1 ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D,
+		.Flags = 0
 	};
 	hr = m_device->CreateDepthStencilView(m_sceneBuffer.depthStencilTexture.Get(), &dsvDesc, m_sceneBuffer.depthStencilView.GetAddressOf());
 	CheckResult(hr, "씬 깊이-스텐실 뷰 생성 실패.");
@@ -302,7 +318,10 @@ void Renderer::CreateSceneRenderTarget()
 		.ArraySize = 1,
 		.Format = textureDesc.Format,
 		.SampleDesc = { 1, 0 }, // 결과 텍스처는 단일 샘플링
-		.BindFlags = D3D11_BIND_SHADER_RESOURCE,
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_SHADER_RESOURCE, // 셰이더 리소스 용도
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0
 	};
 	hr = m_device->CreateTexture2D(&sceneResultDesc, nullptr, m_sceneResultTexture.GetAddressOf());
 	CheckResult(hr, "씬 결과 텍스처 생성 실패.");
@@ -320,7 +339,7 @@ void Renderer::CreateSceneRenderTarget()
 
 void Renderer::SetViewport()
 {
-	D3D11_VIEWPORT viewport =
+	const D3D11_VIEWPORT viewport =
 	{
 		.TopLeftX = 0.0f,
 		.TopLeftY = 0.0f,
@@ -341,9 +360,16 @@ void Renderer::CreateRasterStates()
 		// RSBackBuffer
 		D3D11_RASTERIZER_DESC
 		{
-			.FillMode = D3D11_FILL_SOLID,
-			.CullMode = D3D11_CULL_NONE
-			// 백 버퍼용은 멀티샘플링 비활성화
+			.FillMode = D3D11_FILL_SOLID, // 실선 채우기
+			.CullMode = D3D11_CULL_NONE, // 면 컬링 없음
+			.FrontCounterClockwise = FALSE, // 시계방향이 앞면
+			.DepthBias = 0, // 깊이 바이어스 없음
+			.DepthBiasClamp = 0.0f, // 깊이 바이어스 클램프 없음
+			.SlopeScaledDepthBias = 0.0f, // 기울기 기반 깊이 바이어스 없음
+			.DepthClipEnable = TRUE, // 깊이 클리핑 활성화
+			.ScissorEnable = FALSE, // 가위 영역 비활성화
+			.MultisampleEnable = FALSE, // 멀티샘플링 비활성화
+			.AntialiasedLineEnable = FALSE // 앤티앨리어싱 선 비활성화
 		},
 
 		// RSSolid
@@ -351,6 +377,12 @@ void Renderer::CreateRasterStates()
 		{
 			.FillMode = D3D11_FILL_SOLID,
 			.CullMode = D3D11_CULL_BACK,
+			.FrontCounterClockwise = FALSE,
+			.DepthBias = 0,
+			.DepthBiasClamp = 0.0f,
+			.SlopeScaledDepthBias = 0.0f,
+			.DepthClipEnable = TRUE,
+			.ScissorEnable = FALSE,
 			.MultisampleEnable = TRUE,
 			.AntialiasedLineEnable = TRUE
 		},
@@ -360,6 +392,12 @@ void Renderer::CreateRasterStates()
 		{
 			.FillMode = D3D11_FILL_WIREFRAME,
 			.CullMode = D3D11_CULL_BACK,
+			.FrontCounterClockwise = FALSE,
+			.DepthBias = 0,
+			.DepthBiasClamp = 0.0f,
+			.SlopeScaledDepthBias = 0.0f,
+			.DepthClipEnable = TRUE,
+			.ScissorEnable = FALSE,
 			.MultisampleEnable = TRUE,
 			.AntialiasedLineEnable = TRUE
 		}
@@ -384,24 +422,29 @@ void Renderer::CreateSamplerStates()
 		// SSBackBuffer
 		D3D11_SAMPLER_DESC
 		{
-			.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR,
-			.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP,
-			.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP,
-			.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP,
-			.ComparisonFunc = D3D11_COMPARISON_NEVER,
-			.MinLOD = 0,
-			.MaxLOD = D3D11_FLOAT32_MAX
+			.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR, // 선형 필터링
+			.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP, // U 좌표 클램핑
+			.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP, // V 좌표 클램핑
+			.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP, // W 좌표 클램핑
+			.MipLODBias = 0.0f, // 밉 LOD 바이어스 없음
+			.MaxAnisotropy = 1, // 이방성 필터링 없음
+			.ComparisonFunc = D3D11_COMPARISON_NEVER, // 비교 함수 없음
+			.BorderColor = { 0.0f, 0.0f, 0.0f, 0.0f }, // 테두리 색상 (사용 안 함)
+			.MinLOD = 0, // 최소 LOD
+			.MaxLOD = D3D11_FLOAT32_MAX // 최대 LOD
 		},
 
 		// SSScene
 		D3D11_SAMPLER_DESC
 		{
-			.Filter = D3D11_FILTER_ANISOTROPIC,
-			.AddressU = D3D11_TEXTURE_ADDRESS_WRAP,
-			.AddressV = D3D11_TEXTURE_ADDRESS_WRAP,
-			.AddressW = D3D11_TEXTURE_ADDRESS_WRAP,
-			.MaxAnisotropy = 8,
+			.Filter = D3D11_FILTER_ANISOTROPIC, // 이방성 필터링
+			.AddressU = D3D11_TEXTURE_ADDRESS_WRAP, // U 좌표 래핑
+			.AddressV = D3D11_TEXTURE_ADDRESS_WRAP, // V 좌표 래핑
+			.AddressW = D3D11_TEXTURE_ADDRESS_WRAP, // W 좌표 래핑
+			.MipLODBias = 0.0f,
+			.MaxAnisotropy = 8, // 최대 이방성 필터링
 			.ComparisonFunc = D3D11_COMPARISON_NEVER,
+			.BorderColor = { 0.0f, 0.0f, 0.0f, 0.0f },
 			.MinLOD = 0,
 			.MaxLOD = D3D11_FLOAT32_MAX
 		}
