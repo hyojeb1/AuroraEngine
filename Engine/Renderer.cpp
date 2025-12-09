@@ -22,6 +22,12 @@ void Renderer::Initialize(HWND hWnd)
 
 void Renderer::BeginFrame(const array<FLOAT, 4>& clearColor)
 {
+	HRESULT hr = S_OK;
+
+	// 래스터 상태 변경
+	hr = SetRasterState(RSSolid);
+	CheckResult(hr, "래스터 상태 설정 실패.");
+
 	// 씬 렌더 타겟으로 설정
 	m_deviceContext->OMSetRenderTargets(1, m_sceneBuffer.renderTargetView.GetAddressOf(), m_sceneBuffer.depthStencilView.Get());
 
@@ -35,6 +41,9 @@ void Renderer::EndFrame()
 
 	// 씬 렌더 타겟 MSAA 해제 및 결과 텍스처 복사
 	ResolveSceneMSAA();
+
+	// 래스터 상태 변경
+	hr = SetRasterState(RSBackBuffer);
 
 	// 백 버퍼로 씬 렌더링
 	RenderSceneToBackBuffer();
@@ -89,9 +98,51 @@ HRESULT Renderer::SetRasterState(RasterState state)
 	return S_OK;
 }
 
+void Renderer::CheckResult(HRESULT hr, const char* msg) const
+{
+	if (FAILED(hr))
+	{
+		#ifdef _DEBUG
+		cerr << msg << " 렌더러 에러 코드: " << hex << hr << endl;
+		#else
+		MessageBoxA(nullptr, msg, "렌더러 오류", MB_OK | MB_ICONERROR);
+		#endif
+		exit(EXIT_FAILURE);
+	}
+}
+
+HRESULT Renderer::CompileShader(filesystem::path shaderName, _Out_ ID3DBlob** shaderCode, const char* shaderModel)
+{
+	HRESULT hr = S_OK;
+
+	const filesystem::path shaderPath = L"../Asset/Shader/" / shaderName;
+	com_ptr<ID3DBlob> errorBlob = nullptr;
+
+	hr = D3DCompileFromFile
+	(
+		shaderPath.wstring().c_str(),
+		nullptr,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"main",
+		shaderModel,
+		#ifdef _DEBUG
+		D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+		#else
+		D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR | D3DCOMPILE_OPTIMIZATION_LEVEL3,
+		#endif
+		0,
+		shaderCode,
+		errorBlob.GetAddressOf()
+	);
+	if (errorBlob) cerr << shaderName.string() << " 셰이더 컴파일 오류: " << static_cast<const char*>(errorBlob->GetBufferPointer()) << endl;
+
+	return hr;
+}
+
 void Renderer::CreateDeviceAndContext()
 {
 	HRESULT hr = S_OK;
+
 	hr = D3D11CreateDevice
 	(
 		nullptr,
@@ -185,19 +236,10 @@ void Renderer::CreateBackBufferVertexBufferAndShaders()
 	hr = m_device->CreateBuffer(&bufferDesc, &initialData, m_backBufferVertexBuffer.GetAddressOf());
 	CheckResult(hr, "백 버퍼 버텍스 버퍼 생성 실패.");
 
-	// 버텍스 셰이더 컴파일 및 생성
+	// 버텍스 셰이더 컴파일
 	com_ptr<ID3DBlob> VSCode = nullptr;
 	hr = CompileShader("VSPostProcessing.hlsl", VSCode.GetAddressOf(), "vs_5_0");
 	CheckResult(hr, "백 버퍼 버텍스 셰이더 컴파일 실패.");
-
-	hr = m_device->CreateVertexShader
-	(
-		VSCode->GetBufferPointer(),
-		VSCode->GetBufferSize(),
-		nullptr,
-		m_backBufferVertexShader.GetAddressOf()
-	);
-	CheckResult(hr, "백 버퍼 버텍스 셰이더 생성 실패.");
 
 	// 입력 레이아웃 생성
 	constexpr array<D3D11_INPUT_ELEMENT_DESC, 2> inputElementDescs = // 입력 레이아웃 정의
@@ -232,6 +274,17 @@ void Renderer::CreateBackBufferVertexBufferAndShaders()
 		m_backBufferInputLayout.GetAddressOf()
 	);
 	CheckResult(hr, "백 버퍼 입력 레이아웃 생성 실패.");
+
+	// 버텍스 셰이더 생성
+	hr = m_device->CreateVertexShader
+	(
+		VSCode->GetBufferPointer(),
+		VSCode->GetBufferSize(),
+		nullptr,
+		m_backBufferVertexShader.GetAddressOf()
+	);
+	CheckResult(hr, "백 버퍼 버텍스 셰이더 생성 실패.");
+
 
 	// 픽셀 셰이더 컴파일 및 생성
 	com_ptr<ID3DBlob> PSCode = nullptr;
@@ -497,45 +550,4 @@ void Renderer::RenderSceneToBackBuffer()
 	m_deviceContext->PSSetSamplers(0, 1, m_samplerStates[SSBackBuffer].GetAddressOf());
 
 	m_deviceContext->Draw(3, 0);
-}
-
-void Renderer::CheckResult(HRESULT hr, const char* msg) const
-{
-	if (FAILED(hr))
-	{
-		#ifdef _DEBUG
-		cerr << msg << " 렌더러 에러 코드: " << hex << hr << endl;
-		#else
-		MessageBoxA(nullptr, msg, "렌더러 오류", MB_OK | MB_ICONERROR);
-		#endif
-		exit(EXIT_FAILURE);
-	}
-}
-
-HRESULT Renderer::CompileShader(filesystem::path shaderName, _Out_ ID3DBlob** shaderCode, const char* shaderModel)
-{
-	HRESULT hr = S_OK;
-
-	const filesystem::path shaderPath = L"../Asset/Shader/" / shaderName;
-	com_ptr<ID3DBlob> errorBlob = nullptr;
-
-	hr = D3DCompileFromFile
-	(
-		shaderPath.wstring().c_str(),
-		nullptr,
-		D3D_COMPILE_STANDARD_FILE_INCLUDE,
-		"main",
-		shaderModel,
-		#ifdef _DEBUG
-		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
-		#else
-		D3DCOMPILE_OPTIMIZATION_LEVEL3,
-		#endif
-		0,
-		shaderCode,
-		errorBlob.GetAddressOf()
-	);
-	if (errorBlob) cerr << shaderName.string() << " 셰이더 컴파일 오류: " << static_cast<const char*>(errorBlob->GetBufferPointer()) << endl;
-
-	return hr;
 }

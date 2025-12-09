@@ -45,8 +45,8 @@ class Renderer
 		DirectX::XMFLOAT2 UV = {};
 	};
 	com_ptr<ID3D11Buffer> m_backBufferVertexBuffer = nullptr; // 백 버퍼용 버텍스 버퍼
-	com_ptr<ID3D11VertexShader> m_backBufferVertexShader = nullptr; // 백 버퍼용 버텍스 셰이더
 	com_ptr<ID3D11InputLayout> m_backBufferInputLayout = nullptr; // 백 버퍼용 입력 레이아웃
+	com_ptr<ID3D11VertexShader> m_backBufferVertexShader = nullptr; // 백 버퍼용 버텍스 셰이더
 	com_ptr<ID3D11PixelShader> m_backBufferPixelShader = nullptr; // 백 버퍼용 후처리 픽셀 셰이더
 
 	DXGI_SAMPLE_DESC m_sceneBufferSampleDesc = { 4, 0 }; // 백 버퍼 샘플링 설정 // count <=1: FXAA, count>1: MSAA // FXAA는 아직 없음
@@ -85,20 +85,35 @@ public:
 	// 렌더러 초기화 // 렌더러 사용 전 반드시 호출해야 함
 	void Initialize(HWND hWnd);
 
+	// 프레임 시작
 	void BeginFrame(const std::array<FLOAT, 4>& clearColor);
+	// 프레임 종료 // 화면에 내용 출력
 	void EndFrame();
+
+	// 디바이스 조회
+	com_ptr<ID3D11Device> GetDevice() const { return m_device; }
+	// 디바이스 컨텍스트 조회
+	com_ptr<ID3D11DeviceContext> GetDeviceContext() const { return m_deviceContext; }
 
 	// 화면 크기 조정
 	HRESULT Resize(UINT width, UINT height);
 
-	// 스왑 체인 설정 조회 및 편집
+	// 스왑 체인 설정 조회
+	void SetSwapChainDesc(const DXGI_SWAP_CHAIN_DESC1& desc) { m_swapChainDesc = desc; }
 	void GetSwapChainDesc(_Out_ DXGI_SWAP_CHAIN_DESC1& desc) const { desc = m_swapChainDesc; }
 
 	// 레스터 상태 설정 및 조회
 	HRESULT SetRasterState(RasterState state);
 	RasterState GetRasterState() const { return m_rasterState; }
 
+	// 헬퍼 함수
+	// HRESULT 결과 확인
+	void CheckResult(HRESULT hr, const char* msg) const;
+	// 셰이더 컴파일
+	HRESULT CompileShader(std::filesystem::path shaderName, _Out_ ID3DBlob** shaderCode, const char* shaderModel);
+
 private:
+	// 초기화 함수
 	// 디바이스 및 디바이스 컨텍스트 생성
 	void CreateDeviceAndContext();
 	// 스왑 체인 생성
@@ -123,10 +138,4 @@ private:
 	void ResolveSceneMSAA();
 	// 백 버퍼 랜더링
 	void RenderSceneToBackBuffer();
-
-	// 헬퍼 함수
-	// HRESULT 결과 확인
-	void CheckResult(HRESULT hr, const char* msg) const;
-	// 셰이더 컴파일
-	HRESULT CompileShader(std::filesystem::path shaderName, _Out_ ID3DBlob** shaderCode, const char* shaderModel);
 };
