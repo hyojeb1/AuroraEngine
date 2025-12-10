@@ -36,7 +36,7 @@ void SceneBase::Render()
 	deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
 	deviceContext->VSSetConstantBuffers(0, 1, m_viewProjectionConstantBuffer.GetAddressOf());
 
-	for (auto& gameObject : m_gameObjects) gameObject->Render(m_viewProjectionData.projectionMatrix, m_viewProjectionData.projectionMatrix);
+	for (auto& gameObject : m_gameObjects) gameObject->Render(m_viewProjectionData.viewMatrix, m_viewProjectionData.projectionMatrix);
 
 	renderer.EndFrame();
 }
