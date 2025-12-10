@@ -1,12 +1,9 @@
 #include "stdafx.h"
 #include "TestObject.h"
 
-using namespace DirectX;
+#include "ModelComponent.h"
 
-void TestObject::Begin()
-{
-	CreateRenderResources();
-}
+using namespace DirectX;
 
 void TestObject::Update(float deltaTime)
 {
@@ -14,4 +11,9 @@ void TestObject::Update(float deltaTime)
 	XMVECTOR rotation = GetRotation();
 	rotation = XMVectorAdd(rotation, XMVectorSet(0.0f, deltaTime * 0.5f, 0.0f, 0.0f));
 	SetRotation(rotation);
+}
+
+void TestObject::Begin()
+{
+	AddComponent<ModelComponent>();
 }

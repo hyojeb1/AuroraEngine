@@ -1,11 +1,18 @@
 #include "stdafx.h"
 #include "SceneBase.h"
 
-#include "GameObject.h"
+#include "GameObjectBase.h"
 #include "Renderer.h"
 
 using namespace std;
 using namespace DirectX;
+
+void SceneBase::Initialize()
+{
+	m_viewProjectionConstantBuffer = Renderer::GetInstance().GetConstantBuffer(sizeof(ViewProjectionBuffer));
+
+	Begin();
+}
 
 void SceneBase::Update(float deltaTime)
 {
@@ -19,19 +26,23 @@ void SceneBase::TransformGameObjects()
 
 void SceneBase::Render()
 {
-	m_renderer->BeginFrame(m_clearColor);
+	Renderer& renderer = Renderer::GetInstance();
+	com_ptr<ID3D11DeviceContext> deviceContext = renderer.GetDeviceContext();
 
-	XMMATRIX viewMatrix = m_mainCamera.GetViewMatrix();
-	XMMATRIX projectionMatrix = m_mainCamera.GetProjectionMatrix();
+	renderer.BeginFrame(m_clearColor);
 
-	for (auto& gameObject : m_gameObjects) gameObject->Render(viewMatrix, projectionMatrix);
+	m_viewProjectionData.viewMatrix = XMMatrixTranspose(m_mainCamera.GetViewMatrix());
+	m_viewProjectionData.projectionMatrix = XMMatrixTranspose(m_mainCamera.GetProjectionMatrix());
+	deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
+	deviceContext->VSSetConstantBuffers(0, 1, m_viewProjectionConstantBuffer.GetAddressOf());
 
-	m_renderer->EndFrame();
+	for (auto& gameObject : m_gameObjects) gameObject->Render(m_viewProjectionData.viewMatrix, m_viewProjectionData.projectionMatrix);
+
+	renderer.EndFrame();
 }
 
-void SceneBase::AddGameObject(unique_ptr<GameObject> gameObject)
+void SceneBase::AddGameObject(unique_ptr<GameObjectBase> gameObject)
 {
-	gameObject->Initialize(m_renderer);
-	gameObject->Begin();
+	gameObject->Initialize();
 	m_gameObjects.push_back(move(gameObject));
 }
