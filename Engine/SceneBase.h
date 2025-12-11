@@ -31,7 +31,6 @@ public:
 	void TransformGameObjects();
 	void Render();
 
-protected:
 	virtual void Begin() {}
 	virtual void End() {}
 

@@ -6,7 +6,7 @@ using namespace DirectX;
 XMMATRIX Camera::GetViewMatrix() const
 {
 	const XMVECTOR eyePosition = GetPosition();
-	const XMVECTOR forwardVector = XMVector4Normalize({ 0.0f, -0.5f, 1.0f, 0.0f });
+	const XMVECTOR forwardVector = GetDirectionVector(Direction::Forward);
 	constexpr XMVECTOR upVector = { 0.0f, 1.0f, 0.0f, 0.0f };
 
 	return XMMatrixLookAtLH(eyePosition, XMVectorAdd(eyePosition, forwardVector), upVector);
