@@ -11,6 +11,7 @@ public:
 	TestScene(TestScene&&) = delete;
 	TestScene& operator=(TestScene&&) = delete;
 
-protected:
+private:
+	GameObjectBase* CreateCameraObject() override;
 	void Begin() override;
 };

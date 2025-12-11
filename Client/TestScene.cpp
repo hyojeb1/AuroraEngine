@@ -2,12 +2,22 @@
 #include "TestScene.h"
 
 #include "TestObject.h"
+#include "TestCameraObject.h"
 
 using namespace std;
 
+GameObjectBase* TestScene::CreateCameraObject()
+{
+	return AddGameObject(make_unique<TestCameraObject>());
+}
+
 void TestScene::Begin()
 {
-	m_mainCamera.SetPosition({ 0.0f, 5.0f, -10.0f, 1.0f });
-
 	AddGameObject(make_unique<TestObject>());
+	AddGameObject(make_unique<TestObject>())->SetPosition({ 3.0f, 0.0f, 0.0f, 1.0f });
+	AddGameObject(make_unique<TestObject>())->SetPosition({ -3.0f, 0.0f, 0.0f, 1.0f });
+	AddGameObject(make_unique<TestObject>())->SetPosition({ 0.0f, 3.0f, 0.0f, 1.0f });
+	AddGameObject(make_unique<TestObject>())->SetPosition({ 0.0f, -3.0f, 0.0f, 1.0f });
+	AddGameObject(make_unique<TestObject>())->SetPosition({ 0.0f, 0.0f, 3.0f, 1.0f });
+	AddGameObject(make_unique<TestObject>())->SetPosition({ 0.0f, 0.0f, -3.0f, 1.0f });
 }
