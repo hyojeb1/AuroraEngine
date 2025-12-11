@@ -12,5 +12,4 @@ void TestObject::Begin()
 
 void TestObject::Update(float deltaTime)
 {
-	Rotate({ 0.0f, deltaTime, 0.0f, 0.0f });
 }

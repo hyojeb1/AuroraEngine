@@ -3,7 +3,7 @@
 
 void TestCameraObject::Begin()
 {
-	SetPosition({ 0.0f, 5.0f, -10.0f, 1.0f });
+	SetPosition({ 0.0f, 10.0f, -20.0f, 1.0f });
 	LookAt({ 0.0f, 0.0f, 0.0f, 1.0f });
 }
 
