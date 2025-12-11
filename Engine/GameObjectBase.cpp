@@ -97,10 +97,10 @@ void GameObjectBase::Rotate(const XMVECTOR& deltaRotation)
 	SetDirty();
 }
 
-void GameObjectBase::LookAt(const XMVECTOR& targetPosition, const XMVECTOR& upVector)
+void GameObjectBase::LookAt(const XMVECTOR& targetPosition)
 {
 	XMVECTOR direction = XMVector3Normalize(XMVectorSubtract(targetPosition, m_position));
-	XMVECTOR right = XMVector3Normalize(XMVector3Cross(upVector, direction));
+	XMVECTOR right = XMVector3Normalize(XMVector3Cross(GetDirectionVector(Direction::Up), direction));
 	XMVECTOR up = XMVector3Cross(direction, right);
 
 	XMMATRIX lookAtMatrix = XMMATRIX

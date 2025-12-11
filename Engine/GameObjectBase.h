@@ -75,7 +75,7 @@ public:
 	// 회전 이동 // 라디안 단위
 	void Rotate(const DirectX::XMVECTOR& deltaRotation);
 	// 특정 위치 바라보기
-	void LookAt(const DirectX::XMVECTOR& targetPosition, const DirectX::XMVECTOR& upVector = { 0.0f, 1.0f, 0.0f, 0.0f });
+	void LookAt(const DirectX::XMVECTOR& targetPosition);
 	// 정규화된 방향 벡터 가져오기
 	DirectX::XMVECTOR GetDirectionVector(Direction direction) const;
 
