@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "SceneBase.h"
 
+#include "CameraComponent.h"
 #include "Renderer.h"
 
 using namespace std;

@@ -1,5 +1,4 @@
 #pragma once
-#include "SingletonBase.h"
 
 class Renderer : public SingletonBase<Renderer>
 {
@@ -82,7 +81,7 @@ class Renderer : public SingletonBase<Renderer>
 
 public:
 	Renderer() = default;
-	~Renderer();
+	~Renderer() = default;
 	Renderer(const Renderer&) = delete;
 	Renderer& operator=(const Renderer&) = delete;
 	Renderer(Renderer&&) = delete;

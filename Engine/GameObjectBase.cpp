@@ -9,9 +9,11 @@
 using namespace std;
 using namespace DirectX;
 
-static UINT s_idIndex = 0;
-
-GameObjectBase::GameObjectBase() { m_id = s_idIndex++; }
+GameObjectBase::GameObjectBase()
+{
+	static UINT idIndex = 0;
+	m_id = idIndex++;
+}
 
 void GameObjectBase::Initialize()
 {

@@ -4,10 +4,6 @@
 using namespace std;
 using namespace DirectX;
 
-Renderer::~Renderer()
-{
-}
-
 void Renderer::Initialize(HWND hWnd)
 {
 	CreateDeviceAndContext();
