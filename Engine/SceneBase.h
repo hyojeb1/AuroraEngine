@@ -30,7 +30,8 @@ public:
 	virtual void Begin() {}
 	virtual void End() {}
 
-	GameObjectBase* AddGameObject(std::unique_ptr<GameObjectBase> gameObject);
+	GameObjectBase* AddGameObject(std::unique_ptr<GameObjectBase> gameObject); // TODO: 일관성 있는 생성 및 관리 시스템이 필요함
+	void RemoveGameObject(GameObjectBase* gameObject); // TODO: 뭔가 좀 부족함
 
 private:
 	friend class SceneManager;

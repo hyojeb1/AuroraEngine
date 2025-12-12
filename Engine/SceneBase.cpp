@@ -25,6 +25,15 @@ GameObjectBase* SceneBase::AddGameObject(unique_ptr<GameObjectBase> gameObject)
 	return gameObjectPtr;
 }
 
+void SceneBase::RemoveGameObject(GameObjectBase* gameObject)
+{
+	auto it = find_if(m_gameObjects.begin(), m_gameObjects.end(), [gameObject](const unique_ptr<GameObjectBase>& obj) { return obj.get() == gameObject; });
+	if (it == m_gameObjects.end()) return;
+
+	it->get()->Finalize();
+	m_gameObjects.erase(it);
+}
+
 void SceneBase::Initialize()
 {
 	m_viewProjectionConstantBuffer = Renderer::GetInstance().GetConstantBuffer(sizeof(ViewProjectionBuffer));
