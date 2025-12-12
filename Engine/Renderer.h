@@ -118,8 +118,6 @@ public:
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> GetVertexShaderAndInputLayout(std::wstring shaderName, const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElementDescs);
 	// 픽셀 셰이더 얻기
 	com_ptr<ID3D11PixelShader> GetPixelShader(std::wstring shaderName);
-	// 셰이더 컴파일 함수
-	com_ptr<ID3DBlob> CompileShader(std::filesystem::path shaderName, const char* shaderModel);
 	// HRESULT 결과 확인
 	void CheckResult(HRESULT hr, const char* msg) const;
 
@@ -149,4 +147,8 @@ private:
 	void ResolveSceneMSAA();
 	// 백 버퍼 랜더링
 	void RenderSceneToBackBuffer();
+
+	// 헬퍼 함수
+	// 셰이더 컴파일 함수
+	com_ptr<ID3DBlob> CompileShader(std::filesystem::path shaderName, const char* shaderModel);
 };
