@@ -3,6 +3,8 @@
 
 class SceneBase
 {
+	friend class SceneManager;
+
 	std::vector<std::unique_ptr<GameObjectBase>> m_gameObjects = {}; // 게임 오브젝트 배열
 
 	struct ViewProjectionBuffer // 뷰-투영 상수 버퍼 구조체
@@ -18,12 +20,12 @@ protected:
 	std::array<FLOAT, 4> m_clearColor = { 0.5f, 0.5f, 0.5f, 1.0f }; // 씬 클리어 색상
 
 public:
-	SceneBase() = default;
+	SceneBase() = default; // SceneManager만이 생성 가능함
 	virtual ~SceneBase() = default;
-	SceneBase(const SceneBase&) = delete;
-	SceneBase& operator=(const SceneBase&) = delete;
-	SceneBase(SceneBase&&) = delete;
-	SceneBase& operator=(SceneBase&&) = delete;
+	SceneBase(const SceneBase&) = delete; // 복사 금지
+	SceneBase& operator=(const SceneBase&) = delete; // 복사 대입 금지
+	SceneBase(SceneBase&&) = delete; // 이동 금지
+	SceneBase& operator=(SceneBase&&) = delete; // 이동 대입 금지
 
 	template<typename T, typename... Args>
 	T* AddGameObject(Args&&... args);
@@ -36,7 +38,6 @@ protected:
 	virtual void End() {}
 
 private:
-	friend class SceneManager;
 	// 씬 초기화 // 씬 사용 전 반드시 호출해야 함
 	void Initialize();
 	// 씬 업데이트 // 매 프레임 씬 매니저가 호출
