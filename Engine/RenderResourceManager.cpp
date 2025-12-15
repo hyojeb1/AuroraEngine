@@ -37,7 +37,7 @@ com_ptr<ID3D11Buffer> RenderResourceManager::GetConstantBuffer(UINT bufferSize)
 	return constantBuffer;
 }
 
-pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> RenderResourceManager::GetVertexShaderAndInputLayout(wstring shaderName, const vector<D3D11_INPUT_ELEMENT_DESC>& inputElementDescs)
+pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> RenderResourceManager::GetVertexShaderAndInputLayout(string shaderName, const vector<D3D11_INPUT_ELEMENT_DESC>& inputElementDescs)
 {
 	// 기존에 생성된 셰이더 및 입력 레이아웃이 있으면 재사용
 	auto it = m_vertexShadersAndInputLayouts.find(shaderName);
@@ -46,7 +46,7 @@ pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> RenderResourceMana
 	HRESULT hr = S_OK;
 
 	// 버텍스 셰이더 컴파일
-	com_ptr<ID3DBlob> VSCode = CompileShader(filesystem::path(shaderName), "vs_5_0");
+	com_ptr<ID3DBlob> VSCode = CompileShader(shaderName, "vs_5_0");
 	hr = m_device->CreateVertexShader
 	(
 		VSCode->GetBufferPointer(),
@@ -70,7 +70,7 @@ pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> RenderResourceMana
 	return m_vertexShadersAndInputLayouts[shaderName];
 }
 
-com_ptr<ID3D11PixelShader> RenderResourceManager::GetPixelShader(wstring shaderName)
+com_ptr<ID3D11PixelShader> RenderResourceManager::GetPixelShader(string shaderName)
 {
 	// 기존에 생성된 픽셀 셰이더가 있으면 재사용
 	auto it = m_pixelShaders.find(shaderName);
@@ -79,7 +79,7 @@ com_ptr<ID3D11PixelShader> RenderResourceManager::GetPixelShader(wstring shaderN
 	HRESULT hr = S_OK;
 
 	// 픽셀 셰이더 컴파일
-	com_ptr<ID3DBlob> PSCode = CompileShader(filesystem::path(shaderName), "ps_5_0");
+	com_ptr<ID3DBlob> PSCode = CompileShader(shaderName, "ps_5_0");
 	hr = m_device->CreatePixelShader
 	(
 		PSCode->GetBufferPointer(),
@@ -92,16 +92,11 @@ com_ptr<ID3D11PixelShader> RenderResourceManager::GetPixelShader(wstring shaderN
 	return m_pixelShaders[shaderName];
 }
 
-unique_ptr<Model> RenderResourceManager::LoadModelFromFile(const wstring& modelFileName)
-{
-	return std::unique_ptr<Model>();
-}
-
-com_ptr<ID3DBlob> RenderResourceManager::CompileShader(filesystem::path shaderName, const char* shaderModel)
+com_ptr<ID3DBlob> RenderResourceManager::CompileShader(string shaderName, const char* shaderModel)
 {
 	HRESULT hr = S_OK;
 
-	const filesystem::path shaderPath = L"../Asset/Shader/" / shaderName;
+	const filesystem::path shaderPath = "../Asset/Shader/" + shaderName;
 	com_ptr<ID3DBlob> shaderCode = nullptr;
 	com_ptr<ID3DBlob> errorBlob = nullptr;
 
@@ -121,7 +116,7 @@ com_ptr<ID3DBlob> RenderResourceManager::CompileShader(filesystem::path shaderNa
 		shaderCode.GetAddressOf(),
 		errorBlob.GetAddressOf()
 	);
-	if (errorBlob) cerr << shaderName.string() << " 셰이더 컴파일 오류: " << static_cast<const char*>(errorBlob->GetBufferPointer()) << endl;
+	if (errorBlob) cerr << shaderName << " 셰이더 컴파일 오류: " << static_cast<const char*>(errorBlob->GetBufferPointer()) << endl;
 
 	return shaderCode;
 }

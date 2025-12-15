@@ -104,55 +104,16 @@ struct Vertex
 	DirectX::XMFLOAT2 UV = {};
 };
 
-struct Texture
-{
-	std::wstring name = {}; // 텍스처 이름 (파일 이름)
-
-	com_ptr<ID3D11ShaderResourceView> shaderResourceView = nullptr; // 셰이더 리소스 뷰
-	com_ptr<ID3D11SamplerState> samplerState = nullptr; // 샘플러 상태
-};
-
-struct Material
-{
-	DirectX::XMFLOAT4 ambient = { 0.2f, 0.2f, 0.2f, 1.0f };
-	DirectX::XMFLOAT4 diffuse = { 0.8f, 0.8f, 0.8f, 1.0f };
-	DirectX::XMFLOAT4 specular = { 1.0f, 1.0f, 1.0f, 1.0f };
-	DirectX::XMFLOAT4 emissive = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-	float shininess = 32.0f;
-	float opacity = 1.0f;
-
-	std::shared_ptr<Texture> diffuseTexture = nullptr;
-	std::shared_ptr<Texture> normalTexture = nullptr;
-	std::shared_ptr<Texture> specularTexture = nullptr;
-
-	com_ptr<ID3D11Buffer> materialConstantBuffer = nullptr;
-};
-
 struct Mesh
 {
-	std::wstring name = {}; // 메쉬 이름
+	std::vector<Vertex> vertices = {};
+	std::vector<UINT> indices = {};
 
-	std::vector<Vertex> vertices = {}; // 버텍스 데이터
-	std::vector<UINT> indices = {}; // 인덱스 데이터
-
-	std::shared_ptr<Material> material = nullptr; // 메쉬의 재질
-
-	com_ptr<ID3D11Buffer> vertexBuffer = nullptr; // 버텍스 버퍼
-	com_ptr<ID3D11Buffer> indexBuffer = nullptr; // 인덱스 버퍼
-
-	DirectX::XMFLOAT3 boundingBoxMin = {}; // 경계 박스 최소 좌표
-	DirectX::XMFLOAT3 boundingBoxMax = {}; // 경계 박스 최대 좌표
+	com_ptr<ID3D11Buffer> vertexBuffer = nullptr;
+	com_ptr<ID3D11Buffer> indexBuffer = nullptr;
 };
 
 struct Model
 {
-	std::wstring name = {}; // 모델 이름
-
-	std::vector<std::shared_ptr<Mesh>> meshes = {}; // 모델이 포함하는 메쉬들
-	std::vector<std::shared_ptr<Material>> materials; // 모델이 포함하는 재질들
-	std::vector<std::shared_ptr<Texture>> textures; // 모델이 포함하는 텍스처들
-
-	DirectX::XMFLOAT3 boundingBoxMin = {}; // 경계 박스 최소 좌표
-	DirectX::XMFLOAT3 boundingBoxMax = {}; // 경계 박스 최대 좌표
+	std::vector<Mesh> meshes = {};
 };

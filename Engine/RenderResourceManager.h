@@ -12,8 +12,8 @@ class RenderResourceManager : public SingletonBase<RenderResourceManager>
 
 	std::unordered_map<UINT, com_ptr<ID3D11Buffer>> m_constantBuffers = {}; // 상수 버퍼 맵 // 키: 버퍼 크기
 
-	std::unordered_map<std::wstring, std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>>> m_vertexShadersAndInputLayouts = {}; // 버텍스 셰이더 및 입력 레이아웃 맵 // 키: 셰이더 파일 이름
-	std::unordered_map<std::wstring, com_ptr<ID3D11PixelShader>> m_pixelShaders = {}; // 픽셀 셰이더 맵 // 키: 셰이더 파일 이름
+	std::unordered_map<std::string, std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>>> m_vertexShadersAndInputLayouts = {}; // 버텍스 셰이더 및 입력 레이아웃 맵 // 키: 셰이더 파일 이름
+	std::unordered_map<std::string, com_ptr<ID3D11PixelShader>> m_pixelShaders = {}; // 픽셀 셰이더 맵 // 키: 셰이더 파일 이름
 
 public:
 	RenderResourceManager() = default;
@@ -34,11 +34,10 @@ public:
 	// 상수 버퍼 얻기 // 이미 생성된 버퍼가 있으면 재사용 // 없으면 새로 생성
 	com_ptr<ID3D11Buffer> GetConstantBuffer(UINT bufferSize);
 	// 버텍스 셰이더 및 입력 레이아웃 얻기
-	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> GetVertexShaderAndInputLayout(std::wstring shaderName, const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElementDescs);
+	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> GetVertexShaderAndInputLayout(std::string shaderName, const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElementDescs);
 	// 픽셀 셰이더 얻기
-	com_ptr<ID3D11PixelShader> GetPixelShader(std::wstring shaderName);
+	com_ptr<ID3D11PixelShader> GetPixelShader(std::string shaderName);
 	// 모델 파일로부터 모델 로드
-	std::unique_ptr<Model> LoadModelFromFile(const std::wstring& modelFileName);
 
 private:
 	// 래스터 상태 생성 함수
@@ -49,5 +48,5 @@ private:
 	// FBX 파일 로드 함수
 
 	// 셰이더 컴파일 함수
-	com_ptr<ID3DBlob> CompileShader(std::filesystem::path shaderName, const char* shaderModel);
+	com_ptr<ID3DBlob> CompileShader(std::string shaderName, const char* shaderModel);
 };

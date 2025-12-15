@@ -19,10 +19,12 @@
 #pragma comment(lib, "dxgi.lib")
 
 // DirectX 툴킷 헤더
-#include <SimpleMath.h>
-#pragma comment(lib, "DirectXTK.lib")
+#include <directxtk/SimpleMath.h>
 
 // Assimp 헤더
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 
 // 기타 사용자 정의 헤더
 #include "SingletonBase.h"

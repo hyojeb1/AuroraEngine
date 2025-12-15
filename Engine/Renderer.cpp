@@ -213,9 +213,9 @@ void Renderer::CreateBackBufferResources()
 	// 샘플러 상태 생성
 	m_backBufferSamplerState = resourceManager.GetSamplerState(SSBackBuffer);
 	// 버텍스 셰이더 및 입력 레이아웃 생성
-	m_backBufferVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout(L"VSPostProcessing.hlsl", inputElementDescs);
+	m_backBufferVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSPostProcessing.hlsl", inputElementDescs);
 	// 픽셀 셰이더 컴파일 및 생성
-	m_backBufferPixelShader = resourceManager.GetPixelShader(L"PSPostProcessing.hlsl");
+	m_backBufferPixelShader = resourceManager.GetPixelShader("PSPostProcessing.hlsl");
 }
 
 void Renderer::CreateSceneRenderTarget()
