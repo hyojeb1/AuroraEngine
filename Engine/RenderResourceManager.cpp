@@ -124,7 +124,6 @@ const Model* RenderResourceManager::LoadModel(const string& fileName)
 		aiProcess_OptimizeGraph | // 씬 그래프 최적화 // 애니메이션이나 본이 없는 노드 병합 // 좀 위험할 수 있으니 유의
 		aiProcess_SplitByBoneCount | // 본 개수로 메쉬 분할 // 한 메쉬에 본이 너무 많으면 여러 메쉬로 나눔 // 뭐하는건지 모르겠음
 		aiProcess_Debone | // 사용하지 않는 더미 본 제거
-		aiProcess_GlobalScale | // 모델 전체 스케일링 // 꼭 필요한지는 모르겠음
 		aiProcess_DropNormals | // aiProcess_JoinIdenticalVertices 와 같이 사용 // 정점 노말 제거
 		aiProcess_GenBoundingBoxes | // 바운딩 박스 생성
 		aiProcess_ConvertToLeftHanded // DirectX 좌표계(왼손 좌표계)로 변환

@@ -28,7 +28,7 @@ void ModelComponent::Render()
 
 void ModelComponent::Begin()
 {
-	m_model = RenderResourceManager::GetInstance().LoadModel("box.FBX");
+	m_model = RenderResourceManager::GetInstance().LoadModel("Aurora.fbx");
 
 	CreateShaders();
 }

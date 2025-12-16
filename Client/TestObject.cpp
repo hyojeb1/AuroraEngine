@@ -11,7 +11,7 @@ void TestObject::Begin()
 	//AddComponent<ModelComponent>();
 	ModelComponent modelComp;
 	AddComponent<ModelComponent>(modelComp); // 복사 생성
-	SetScale({ 0.025f, 0.025f, 0.025f });
+	SetScale({ 1.0f, 1.0f, 1.0f });
 }
 
 void TestObject::Update(float deltaTime)
