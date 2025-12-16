@@ -30,7 +30,7 @@ class ModelComponent : public ComponentBase
 			1, 5, 6, 1, 6, 2,       // 오른쪽 면
 			4, 0, 3, 4, 3, 7        // 왼쪽 면
 		};
-		std::string vsShaderName = "VSVertexColor.hlsl"; // 기본 버텍스 셰이더
+		std::string vsShaderName = "VSVertexColor.hlsl"; // 기본 정점 셰이더
 		std::vector<D3D11_INPUT_ELEMENT_DESC> m_inputElementDescs = // 입력 레이아웃 배열 // 기본값: Vertex 구조체에 맞춤
 		{
 			D3D11_INPUT_ELEMENT_DESC
@@ -59,10 +59,10 @@ class ModelComponent : public ComponentBase
 
 	// 렌더링 관련 멤버 변수
 	RenderData m_renderData = {}; // 렌더 정보 // 이걸로 리소스 생성
-	com_ptr<ID3D11Buffer> m_vertexBuffer = nullptr; // 버텍스 버퍼
+	com_ptr<ID3D11Buffer> m_vertexBuffer = nullptr; // 정점 버퍼
 	com_ptr<ID3D11Buffer> m_indexBuffer = nullptr; // 인덱스 버퍼
 	UINT m_indexCount = 0; // 인덱스 개수
-	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_vertexShaderAndInputLayout = {}; // 버텍스 셰이더 및 입력 레이아웃
+	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_vertexShaderAndInputLayout = {}; // 정점 셰이더 및 입력 레이아웃
 	com_ptr<ID3D11PixelShader> m_pixelShader = nullptr; // 픽셀 셰이더
 
 public:
@@ -82,7 +82,7 @@ protected:
 	void Begin() override;
 
 private:
-	// 버텍스 버퍼 생성
+	// 정점 버퍼 생성
 	void CreateVertexBuffer();
 	// 인덱스 버퍼 생성
 	void CreateIndexBuffer();

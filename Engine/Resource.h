@@ -29,7 +29,7 @@ constexpr std::array<D3D11_RASTERIZER_DESC, RSCount> RASTERIZER_DESC_TEMPLATES =
 	D3D11_RASTERIZER_DESC
 	{
 		.FillMode = D3D11_FILL_SOLID,
-		.CullMode = D3D11_CULL_BACK,
+		.CullMode = D3D11_CULL_BACK, // µÞ¸é ÄÃ¸µ(CCW)
 		.FrontCounterClockwise = FALSE,
 		.DepthBias = 0,
 		.DepthBiasClamp = 0.0f,
@@ -104,10 +104,18 @@ struct Vertex
 	DirectX::XMFLOAT2 UV = {};
 };
 
+struct BoundingBox
+{
+	DirectX::XMFLOAT3 min = {};
+	DirectX::XMFLOAT3 max = {};
+};
+
 struct Mesh
 {
 	std::vector<Vertex> vertices = {};
 	std::vector<UINT> indices = {};
+
+	BoundingBox boundingBox = {};
 
 	com_ptr<ID3D11Buffer> vertexBuffer = nullptr;
 	com_ptr<ID3D11Buffer> indexBuffer = nullptr;

@@ -48,8 +48,8 @@ class Renderer : public SingletonBase<Renderer>
 		DirectX::XMFLOAT4 position = {};
 		DirectX::XMFLOAT2 UV = {};
 	};
-	com_ptr<ID3D11Buffer> m_backBufferVertexBuffer = nullptr; // 백 버퍼용 버텍스 버퍼
-	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_backBufferVertexShaderAndInputLayout = {}; // 백 버퍼용 버텍스 셰이더 및 입력 레이아웃
+	com_ptr<ID3D11Buffer> m_backBufferVertexBuffer = nullptr; // 백 버퍼용 정점 버퍼
+	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_backBufferVertexShaderAndInputLayout = {}; // 백 버퍼용 정점 셰이더 및 입력 레이아웃
 	com_ptr<ID3D11PixelShader> m_backBufferPixelShader = nullptr; // 백 버퍼용 후처리 픽셀 셰이더
 
 	DXGI_SAMPLE_DESC m_sceneBufferSampleDesc = { 4, 0 }; // 씬 렌더 타겟용 샘플 설명 // 멀티샘플링 설정

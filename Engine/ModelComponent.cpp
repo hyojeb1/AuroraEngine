@@ -52,7 +52,7 @@ void ModelComponent::CreateVertexBuffer()
 		.SysMemSlicePitch = 0
 	};
 	hr = device->CreateBuffer(&bufferDesc, &initialData, m_vertexBuffer.GetAddressOf());
-	CheckResult(hr, "버텍스 버퍼 생성 실패" + static_cast<char>(m_owner->GetID()));
+	CheckResult(hr, "정점 버퍼 생성 실패" + static_cast<char>(m_owner->GetID()));
 }
 
 void ModelComponent::CreateIndexBuffer()

@@ -163,7 +163,7 @@ void Renderer::CreateBackBufferResources()
 {
 	HRESULT hr = S_OK;
 
-	constexpr array<BackBufferVertex, 3> backBufferVertices = // 전체 화면 삼각형 버텍스 데이터
+	constexpr array<BackBufferVertex, 3> backBufferVertices = // 전체 화면 삼각형 정점 데이터
 	{
 		BackBufferVertex{ .position = { -1.0f, -1.0f, 0.0f, 1.0f }, .UV = { 0.0f, 1.0f } },
 		BackBufferVertex{ .position = { -1.0f, 3.0f, 0.0f, 1.0f }, .UV = { 0.0f, -1.0f } },
@@ -178,10 +178,15 @@ void Renderer::CreateBackBufferResources()
 		.MiscFlags = 0,
 		.StructureByteStride = 0
 	};
-	const D3D11_SUBRESOURCE_DATA initialData = { .pSysMem = backBufferVertices.data() };
+	const D3D11_SUBRESOURCE_DATA initialData =
+	{
+		.pSysMem = backBufferVertices.data(),
+		.SysMemPitch = 0,
+		.SysMemSlicePitch = 0
+	};
 
 	hr = m_device->CreateBuffer(&bufferDesc, &initialData, m_backBufferVertexBuffer.GetAddressOf());
-	CheckResult(hr, "백 버퍼 버텍스 버퍼 생성 실패.");
+	CheckResult(hr, "백 버퍼 정점 버퍼 생성 실패.");
 
 	const vector<D3D11_INPUT_ELEMENT_DESC> inputElementDescs =
 	{
@@ -190,7 +195,7 @@ void Renderer::CreateBackBufferResources()
 			.SemanticName = "POSITION", // 이름
 			.SemanticIndex = 0, // 인덱스 // 같은 이름의 여러 요소 구분용 // 일반적으로 쓸일 없음
 			.Format = DXGI_FORMAT_R32G32B32A32_FLOAT, // 형식 // float4
-			.InputSlot = 0, // 입력 슬롯 // 여러 버텍스 버퍼 사용할 때 구분용
+			.InputSlot = 0, // 입력 슬롯 // 여러 정점 버퍼 사용할 때 구분용
 			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT, // 오프셋 자동 계산
 			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA, // 입력 슬롯 클래스
 			.InstanceDataStepRate = 0 // D3D11_INPUT_PER_VERTEX_DATA 일시 무조건 0
@@ -212,7 +217,7 @@ void Renderer::CreateBackBufferResources()
 	m_backBufferRasterState = resourceManager.GetRasterState(RSBackBuffer);
 	// 샘플러 상태 생성
 	m_backBufferSamplerState = resourceManager.GetSamplerState(SSBackBuffer);
-	// 버텍스 셰이더 및 입력 레이아웃 생성
+	// 정점 셰이더 및 입력 레이아웃 생성
 	m_backBufferVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSPostProcessing.hlsl", inputElementDescs);
 	// 픽셀 셰이더 컴파일 및 생성
 	m_backBufferPixelShader = resourceManager.GetPixelShader("PSPostProcessing.hlsl");
