@@ -26,11 +26,33 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
+// ImGui 헤더
+#include <imgui.h>
+#include <imgui_impl_win32.h>
+#include <imgui_impl_dx11.h>
+
 // 기타 사용자 정의 헤더
 #include "SingletonBase.h"
 
 // 메크로 정의
 #define com_ptr Microsoft::WRL::ComPtr
 
+constexpr float PI = 3.14159265359f; // 원주율
+// 라디안-도 변환 함수
+constexpr float ToDegree(float radian) { return radian * (180.0f / PI); }
+// 도-라디안 변환 함수
+constexpr float ToRadian(float degree) { return degree * (PI / 180.0f); }
+
 // HRESULT 결과 확인
-void CheckResult(HRESULT hr, const char* msg);
+constexpr void CheckResult(HRESULT hr, const char* msg)
+{
+	if (FAILED(hr))
+	{
+		#ifdef _DEBUG
+		std::cerr << msg << " 에러 코드: " << std::hex << hr << std::endl;
+		#else
+		MessageBoxA(nullptr, msg, "오류", MB_OK | MB_ICONERROR);
+		#endif
+		exit(EXIT_FAILURE);
+	}
+}

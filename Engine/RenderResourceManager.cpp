@@ -37,7 +37,7 @@ com_ptr<ID3D11Buffer> RenderResourceManager::GetConstantBuffer(UINT bufferSize)
 	return constantBuffer;
 }
 
-pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> RenderResourceManager::GetVertexShaderAndInputLayout(string shaderName, const vector<D3D11_INPUT_ELEMENT_DESC>& inputElementDescs)
+pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> RenderResourceManager::GetVertexShaderAndInputLayout(const string& shaderName, const vector<InputElement>& inputElements)
 {
 	// 기존에 생성된 셰이더 및 입력 레이아웃이 있으면 재사용
 	auto it = m_vertexShadersAndInputLayouts.find(shaderName);
@@ -45,7 +45,7 @@ pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> RenderResourceMana
 
 	HRESULT hr = S_OK;
 
-	// 버텍스 셰이더 컴파일
+	// 정점 셰이더 컴파일
 	com_ptr<ID3DBlob> VSCode = CompileShader(shaderName, "vs_5_0");
 	hr = m_device->CreateVertexShader
 	(
@@ -54,9 +54,12 @@ pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> RenderResourceMana
 		nullptr,
 		m_vertexShadersAndInputLayouts[shaderName].first.GetAddressOf()
 	);
-	CheckResult(hr, "버텍스 셰이더 생성 실패.");
+	CheckResult(hr, "정점 셰이더 생성 실패.");
 
 	// 입력 레이아웃 생성
+	vector<D3D11_INPUT_ELEMENT_DESC> inputElementDescs;
+	for (const auto& element : inputElements) inputElementDescs.push_back(INPUT_ELEMENT_DESC_TEMPLATES[element]);
+
 	hr = m_device->CreateInputLayout
 	(
 		inputElementDescs.data(),
@@ -70,7 +73,7 @@ pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> RenderResourceMana
 	return m_vertexShadersAndInputLayouts[shaderName];
 }
 
-com_ptr<ID3D11PixelShader> RenderResourceManager::GetPixelShader(string shaderName)
+com_ptr<ID3D11PixelShader> RenderResourceManager::GetPixelShader(const string& shaderName)
 {
 	// 기존에 생성된 픽셀 셰이더가 있으면 재사용
 	auto it = m_pixelShaders.find(shaderName);
@@ -92,7 +95,178 @@ com_ptr<ID3D11PixelShader> RenderResourceManager::GetPixelShader(string shaderNa
 	return m_pixelShaders[shaderName];
 }
 
-com_ptr<ID3DBlob> RenderResourceManager::CompileShader(string shaderName, const char* shaderModel)
+const Model* RenderResourceManager::LoadModel(const string& fileName)
+{
+	auto it = m_models.find(fileName);
+	if (it != m_models.end()) return &it->second;
+
+	Assimp::Importer importer;
+
+	const string fullPath = "../Asset/Model/" + fileName;
+
+	const aiScene* scene = importer.ReadFile
+	(
+		fullPath,
+		aiProcess_CalcTangentSpace | // 접선 공간 계산
+		aiProcess_JoinIdenticalVertices | // 동일한 정점 결합 // 메모리 절약 // 좀 위험함
+		aiProcess_Triangulate | // 삼각형화
+		aiProcess_GenSmoothNormals | // 부드러운 법선 생성 // 조금 느릴 수 있다고 하니까 유의
+		aiProcess_SplitLargeMeshes | // 큰 메쉬 분할 // 드로우 콜 최대치를 넘는 메쉬 방지 // 이 옵션이 쓸일이 생기면 뭔가 크게 잘못된거임
+		aiProcess_ValidateDataStructure | // 데이터 구조 검증 // 큰 문제가 아니여도 경고는 남김
+		aiProcess_ImproveCacheLocality | // 정점 캐시 지역성 향상
+		aiProcess_RemoveRedundantMaterials | // 사용되지 않는 재질 제거
+		aiProcess_FixInfacingNormals | // 뒤집힌 법선(내부를 향한 법선) 수정 // 만약 의도한 것이라면 이 옵션을 빼야함
+		aiProcess_PopulateArmatureData | // 본 정보 채우기 // 애니메이션이 있는 모델에 필요 // 사실 뭐하는건지 잘 모르겠음
+		aiProcess_SortByPType | // 프리미티브 타입별로 메쉬 정렬 // 삼각형, 선, 점 등으로 나눔 // 삼각형만 필요하면 나머지는 무시 가능
+		aiProcess_FindDegenerates | // 엄청 작은(사실상 안보이는) 삼각형 제거
+		aiProcess_FindInvalidData | // 잘못된 데이터(노말 값 = 0 같은거) 찾기 및 수정
+		aiProcess_GenUVCoords | // 비UV 맵핑(구면, 원통 등)을 UV 좌표 채널로 변환
+		aiProcess_TransformUVCoords | // UV 좌표 변환 적용 // 뭐하는건지 모르겠음
+		aiProcess_FindInstances | // 중복 메쉬 찾기
+		aiProcess_OptimizeMeshes | // 메쉬 최적화
+		aiProcess_OptimizeGraph | // 씬 그래프 최적화 // 애니메이션이나 본이 없는 노드 병합 // 좀 위험할 수 있으니 유의
+		aiProcess_SplitByBoneCount | // 본 개수로 메쉬 분할 // 한 메쉬에 본이 너무 많으면 여러 메쉬로 나눔 // 뭐하는건지 모르겠음
+		aiProcess_Debone | // 사용하지 않는 더미 본 제거
+		aiProcess_DropNormals | // aiProcess_JoinIdenticalVertices 와 같이 사용 // 정점 노말 제거
+		aiProcess_GenBoundingBoxes | // 바운딩 박스 생성
+		aiProcess_ConvertToLeftHanded // DirectX 좌표계(왼손 좌표계)로 변환
+	);
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+	{
+		cerr << "모델 로드 실패: " << importer.GetErrorString() << endl;
+		return nullptr;
+	}
+
+	ProcessNode(scene->mRootNode, scene, m_models[fileName]);
+
+	return &m_models[fileName];
+}
+
+void RenderResourceManager::CreateRasterStates()
+{
+	HRESULT hr = S_OK;
+
+	for (size_t i = 0; i < RSCount; ++i)
+	{
+		hr = m_device->CreateRasterizerState(&RASTERIZER_DESC_TEMPLATES[i], m_rasterStates[i].GetAddressOf());
+		CheckResult(hr, "래스터 상태 생성 실패.");
+	}
+}
+
+void RenderResourceManager::CreateSamplerStates()
+{
+	HRESULT hr = S_OK;
+
+	for (size_t i = 0; i < SSCount; ++i)
+	{
+		hr = m_device->CreateSamplerState(&SAMPLER_DESC_TEMPLATES[i], m_samplerStates[i].GetAddressOf());
+		CheckResult(hr, "샘플러 상태 생성 실패.");
+	}
+}
+
+void RenderResourceManager::ProcessNode(const aiNode* node, const aiScene* scene, Model& model)
+{
+	// 노드의 메쉬 처리
+	for (UINT i = 0; i < node->mNumMeshes; ++i)
+	{
+		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+		model.meshes.push_back(ProcessMesh(mesh));
+	}
+
+	// 자식 노드 재귀 처리
+	for (UINT i = 0; i < node->mNumChildren; ++i) ProcessNode(node->mChildren[i], scene, model);
+}
+
+Mesh RenderResourceManager::ProcessMesh(const aiMesh* mesh)
+{
+	Mesh resultMesh;
+
+	// 정점 처리
+	for (UINT i = 0; i < mesh->mNumVertices; ++i)
+	{
+		Vertex vertex;
+
+		// 위치
+		vertex.position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z, 1.0f };
+
+		// 법선
+		if (mesh->HasNormals()) vertex.normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+
+		// 접선
+		if (mesh->HasTangentsAndBitangents()) vertex.tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
+
+		// UV // 첫 번째 UV 채널만 사용
+		if (mesh->mTextureCoords[0]) vertex.UV = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
+
+		resultMesh.vertices.push_back(vertex);
+	}
+
+	// 인덱스 처리
+	for (UINT i = 0; i < mesh->mNumFaces; ++i)
+	{
+		const aiFace& face = mesh->mFaces[i];
+		for (UINT j = 0; j < face.mNumIndices; ++j) resultMesh.indices.push_back(face.mIndices[j]);
+	}
+	resultMesh.indexCount = static_cast<UINT>(resultMesh.indices.size());
+
+	// 바운딩 박스 처리
+	resultMesh.boundingBox =
+	{
+		{ mesh->mAABB.mMin.x, mesh->mAABB.mMin.y, mesh->mAABB.mMin.z },
+		{ mesh->mAABB.mMax.x, mesh->mAABB.mMax.y, mesh->mAABB.mMax.z }
+	};
+
+	CreateMeshBuffers(resultMesh);
+
+	return resultMesh;
+}
+
+void RenderResourceManager::CreateMeshBuffers(Mesh& mesh)
+{
+	HRESULT hr = S_OK;
+
+	// 정점 버퍼 생성
+	if (mesh.vertices.empty()) return;
+	const D3D11_BUFFER_DESC vertexBufferDesc =
+	{
+		.ByteWidth = static_cast<UINT>(sizeof(Vertex) * mesh.vertices.size()),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_VERTEX_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	};
+	const D3D11_SUBRESOURCE_DATA vertexInitialData =
+	{
+		.pSysMem = mesh.vertices.data(),
+		.SysMemPitch = 0,
+		.SysMemSlicePitch = 0
+	};
+	hr = m_device->CreateBuffer(&vertexBufferDesc, &vertexInitialData, mesh.vertexBuffer.GetAddressOf());
+	CheckResult(hr, "메쉬 정점 버퍼 생성 실패.");
+
+	// 인덱스 버퍼 생성
+	if (mesh.indices.empty()) return;
+	const D3D11_BUFFER_DESC indexBufferDesc =
+	{
+		.ByteWidth = static_cast<UINT>(sizeof(UINT) * mesh.indices.size()),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_INDEX_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	};
+	const D3D11_SUBRESOURCE_DATA indexInitialData =
+	{
+		.pSysMem = mesh.indices.data(),
+		.SysMemPitch = 0,
+		.SysMemSlicePitch = 0
+	};
+	hr = m_device->CreateBuffer(&indexBufferDesc, &indexInitialData, mesh.indexBuffer.GetAddressOf());
+	CheckResult(hr, "메쉬 인덱스 버퍼 생성 실패.");
+}
+
+com_ptr<ID3DBlob> RenderResourceManager::CompileShader(const string& shaderName, const char* shaderModel)
 {
 	HRESULT hr = S_OK;
 
@@ -119,26 +293,4 @@ com_ptr<ID3DBlob> RenderResourceManager::CompileShader(string shaderName, const 
 	if (errorBlob) cerr << shaderName << " 셰이더 컴파일 오류: " << static_cast<const char*>(errorBlob->GetBufferPointer()) << endl;
 
 	return shaderCode;
-}
-
-void RenderResourceManager::CreateRasterStates()
-{
-	HRESULT hr = S_OK;
-
-	for (size_t i = 0; i < RSCount; ++i)
-	{
-		hr = m_device->CreateRasterizerState(&RASTERIZER_DESC_TEMPLATES[i], m_rasterStates[i].GetAddressOf());
-		CheckResult(hr, "래스터 상태 생성 실패.");
-	}
-}
-
-void RenderResourceManager::CreateSamplerStates()
-{
-	HRESULT hr = S_OK;
-
-	for (size_t i = 0; i < SSCount; ++i)
-	{
-		hr = m_device->CreateSamplerState(&SAMPLER_DESC_TEMPLATES[i], m_samplerStates[i].GetAddressOf());
-		CheckResult(hr, "샘플러 상태 생성 실패.");
-	}
 }

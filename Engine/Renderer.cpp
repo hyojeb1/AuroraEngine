@@ -20,6 +20,10 @@ void Renderer::BeginFrame(const array<FLOAT, 4>& clearColor)
 {
 	HRESULT hr = S_OK;
 
+	// ImGui 새 프레임 시작
+	ImGui_ImplDX11_NewFrame();
+	ImGui::NewFrame();
+
 	// 래스터 상태 변경
 	m_deviceContext->RSSetState(m_sceneRasterState.Get());
 
@@ -43,9 +47,21 @@ void Renderer::EndFrame()
 	// 백 버퍼로 씬 렌더링
 	RenderSceneToBackBuffer();
 
+	// ImGui 렌더링
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
 	// 스왑 체인 프레젠트
 	hr = m_swapChain->Present(1, 0);
 	CheckResult(hr, "스왑 체인 프레젠트 실패.");
+}
+
+void Renderer::Finalize()
+{
+	// ImGui DirectX11 종료
+	ImGui_ImplDX11_Shutdown();
+
+	// RenderResourceManager 종료는 따로 필요 없음
 }
 
 HRESULT Renderer::Resize(UINT width, UINT height)
@@ -106,6 +122,8 @@ void Renderer::CreateDeviceAndContext()
 	);
 	CheckResult(hr, "디바이스 및 디바이스 컨텍스트 생성 실패.");
 
+	// ImGui DirectX11 초기화
+	ImGui_ImplDX11_Init(m_device.Get(), m_deviceContext.Get());
 	// RenderResourceManager 초기화
 	RenderResourceManager::GetInstance().Initialize(m_device);
 }
@@ -163,7 +181,7 @@ void Renderer::CreateBackBufferResources()
 {
 	HRESULT hr = S_OK;
 
-	constexpr array<BackBufferVertex, 3> backBufferVertices = // 전체 화면 삼각형 버텍스 데이터
+	constexpr array<BackBufferVertex, 3> backBufferVertices = // 전체 화면 삼각형 정점 데이터
 	{
 		BackBufferVertex{ .position = { -1.0f, -1.0f, 0.0f, 1.0f }, .UV = { 0.0f, 1.0f } },
 		BackBufferVertex{ .position = { -1.0f, 3.0f, 0.0f, 1.0f }, .UV = { 0.0f, -1.0f } },
@@ -178,42 +196,24 @@ void Renderer::CreateBackBufferResources()
 		.MiscFlags = 0,
 		.StructureByteStride = 0
 	};
-	const D3D11_SUBRESOURCE_DATA initialData = { .pSysMem = backBufferVertices.data() };
+	const D3D11_SUBRESOURCE_DATA initialData =
+	{
+		.pSysMem = backBufferVertices.data(),
+		.SysMemPitch = 0,
+		.SysMemSlicePitch = 0
+	};
 
 	hr = m_device->CreateBuffer(&bufferDesc, &initialData, m_backBufferVertexBuffer.GetAddressOf());
-	CheckResult(hr, "백 버퍼 버텍스 버퍼 생성 실패.");
-
-	const vector<D3D11_INPUT_ELEMENT_DESC> inputElementDescs =
-	{
-		D3D11_INPUT_ELEMENT_DESC
-		{
-			.SemanticName = "POSITION", // 이름
-			.SemanticIndex = 0, // 인덱스 // 같은 이름의 여러 요소 구분용 // 일반적으로 쓸일 없음
-			.Format = DXGI_FORMAT_R32G32B32A32_FLOAT, // 형식 // float4
-			.InputSlot = 0, // 입력 슬롯 // 여러 버텍스 버퍼 사용할 때 구분용
-			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT, // 오프셋 자동 계산
-			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA, // 입력 슬롯 클래스
-			.InstanceDataStepRate = 0 // D3D11_INPUT_PER_VERTEX_DATA 일시 무조건 0
-		},
-		D3D11_INPUT_ELEMENT_DESC
-		{
-			.SemanticName = "TEXCOORD",
-			.SemanticIndex = 0,
-			.Format = DXGI_FORMAT_R32G32_FLOAT, // float2
-			.InputSlot = 0,
-			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
-			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
-			.InstanceDataStepRate = 0
-		}
-	};
+	CheckResult(hr, "백 버퍼 정점 버퍼 생성 실패.");
 
 	RenderResourceManager& resourceManager = RenderResourceManager::GetInstance();
 	// 래스터 상태 생성
 	m_backBufferRasterState = resourceManager.GetRasterState(RSBackBuffer);
 	// 샘플러 상태 생성
 	m_backBufferSamplerState = resourceManager.GetSamplerState(SSBackBuffer);
-	// 버텍스 셰이더 및 입력 레이아웃 생성
-	m_backBufferVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSPostProcessing.hlsl", inputElementDescs);
+	// 정점 셰이더 및 입력 레이아웃 생성
+	vector<InputElement> inputElements = { InputElement::Position, InputElement::UV };
+	m_backBufferVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSPostProcessing.hlsl", inputElements);
 	// 픽셀 셰이더 컴파일 및 생성
 	m_backBufferPixelShader = resourceManager.GetPixelShader("PSPostProcessing.hlsl");
 }
