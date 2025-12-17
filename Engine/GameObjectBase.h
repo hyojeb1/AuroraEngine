@@ -46,7 +46,7 @@ public:
 	// 위치 가져오기
 	DirectX::XMVECTOR GetPosition() const { return m_position; }
 	// 위치 이동
-	void MovePosition(const DirectX::XMVECTOR& deltaPosition) { DirectX::XMVectorAdd(m_position, deltaPosition); SetDirty(); }
+	void MovePosition(const DirectX::XMVECTOR& deltaPosition) { m_position = DirectX::XMVectorAdd(m_position, deltaPosition); SetDirty(); }
 	enum class Direction // 방향 열거형
 	{
 		Forward, Backward,
@@ -61,7 +61,7 @@ public:
 	// 회전 가져오기 // 라디안 단위
 	DirectX::XMVECTOR GetRotation() const { return m_euler; }
 	// 회전 이동 // 라디안 단위
-	void Rotate(const DirectX::XMVECTOR& deltaRotation) { DirectX::XMVectorAdd(m_euler, deltaRotation); SetDirty(); }
+	void Rotate(const DirectX::XMVECTOR& deltaRotation) { m_euler = DirectX::XMVectorAdd(m_euler, deltaRotation); SetDirty(); }
 	// 특정 위치 바라보기
 	void LookAt(const DirectX::XMVECTOR& targetPosition);
 	// 정규화된 방향 벡터 가져오기
@@ -72,7 +72,7 @@ public:
 	// 크기 가져오기
 	DirectX::XMVECTOR GetScale() const { return m_scale; }
 	// 크기 변경
-	void Scale(const DirectX::XMVECTOR& deltaScale) { DirectX::XMVectorMultiply(m_scale, deltaScale); SetDirty(); }
+	void Scale(const DirectX::XMVECTOR& deltaScale) { m_scale = DirectX::XMVectorMultiply(m_scale, deltaScale); SetDirty(); }
 
 	DirectX::XMMATRIX GetWorldMatrix() const { return m_worldMatrix; }
 
