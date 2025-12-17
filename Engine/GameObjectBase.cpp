@@ -90,11 +90,8 @@ void GameObjectBase::Render(XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
 	{
 		// Position (위치)
 		if (ImGui::DragFloat3("Position", &m_position.m128_f32[0], 0.1f))  SetDirty();
-
 		// Rotation (회전)
 		if (ImGui::DragFloat3("Rotation", &m_euler.m128_f32[0], 0.1f)) SetDirty();
-		//ImGui::Text("%.3f, %.3f, %.3f", XMConvertToDegrees(m_euler.m128_f32[0]), XMConvertToDegrees(m_euler.m128_f32[1]), XMConvertToDegrees(m_euler.m128_f32[2]));
-
 		// Scale (크기)
 		if (ImGui::DragFloat3("Scale", &m_scale.m128_f32[0], 0.1f)) SetDirty();
 
