@@ -6,14 +6,12 @@
 using namespace std;
 using namespace DirectX;
 
-void Renderer::Initialize(HWND hWnd)
+void Renderer::Initialize(HWND hWnd, UINT width, UINT height)
 {
 	CreateDeviceAndContext();
 	CreateSwapChain(hWnd);
-	CreateBackBufferRenderTarget();
+	Resize(width, height);
 	CreateBackBufferResources();
-	CreateSceneRenderTarget();
-	SetViewport();
 }
 
 void Renderer::BeginFrame(const array<FLOAT, 4>& clearColor)
@@ -70,10 +68,24 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 
 	HRESULT hr = S_OK;
 
-	// 렌더 타겟 해제 및 플러시
+	// 렌더 타겟 및 셰이더 리소스 해제
 	constexpr ID3D11RenderTargetView* nullRTV = nullptr;
+	constexpr ID3D11ShaderResourceView* nullSRV = nullptr;
 	m_deviceContext->OMSetRenderTargets(1, &nullRTV, nullptr);
+	m_deviceContext->PSSetShaderResources(0, 1, &nullSRV);
 	m_deviceContext->Flush();
+
+	// 백 버퍼 리소스 해제
+	m_backBuffer.renderTarget.Reset();
+	m_backBuffer.renderTargetView.Reset();
+
+	// 씬 버퍼 리소스 해제
+	m_sceneBuffer.renderTarget.Reset();
+	m_sceneBuffer.renderTargetView.Reset();
+	m_sceneBuffer.depthStencilTexture.Reset();
+	m_sceneBuffer.depthStencilView.Reset();
+	m_sceneResultTexture.Reset();
+	m_sceneShaderResourceView.Reset();
 
 	m_swapChainDesc.Width = width;
 	m_swapChainDesc.Height = height;
@@ -208,9 +220,9 @@ void Renderer::CreateBackBufferResources()
 
 	RenderResourceManager& resourceManager = RenderResourceManager::GetInstance();
 	// 래스터 상태 생성
-	m_backBufferRasterState = resourceManager.GetRasterState(RSBackBuffer);
+	m_backBufferRasterState = resourceManager.GetRasterState(RasterState::BackBuffer);
 	// 샘플러 상태 생성
-	m_backBufferSamplerState = resourceManager.GetSamplerState(SSBackBuffer);
+	m_backBufferSamplerState = resourceManager.GetSamplerState(SamplerState::BackBuffer);
 	// 정점 셰이더 및 입력 레이아웃 생성
 	vector<InputElement> inputElements = { InputElement::Position, InputElement::UV };
 	m_backBufferVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSPostProcessing.hlsl", inputElements);
@@ -308,7 +320,7 @@ void Renderer::CreateSceneRenderTarget()
 
 	RenderResourceManager& resourceManager = RenderResourceManager::GetInstance();
 	// 래스터 상태 생성
-	m_sceneRasterState = resourceManager.GetRasterState(RSSolid);
+	m_sceneRasterState = resourceManager.GetRasterState(RasterState::Solid);
 }
 
 void Renderer::SetViewport()

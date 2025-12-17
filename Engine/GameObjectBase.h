@@ -16,8 +16,9 @@ class GameObjectBase // TODO: 부모-자식 관계 구현
 	DirectX::XMMATRIX m_scaleMatrix = DirectX::XMMatrixIdentity(); // 스케일 행렬
 
 	DirectX::XMVECTOR m_position = DirectX::XMVectorZero(); // 위치
-	DirectX::XMVECTOR m_quaternion = DirectX::XMQuaternionIdentity(); // 쿼터니언 각 // 실제 회전 계산용
-	DirectX::XMFLOAT3 m_scale = { 1.0f, 1.0f, 1.0f }; // 크기
+	DirectX::XMVECTOR m_quaternion = DirectX::XMQuaternionIdentity(); // 쿼터니언
+	DirectX::XMVECTOR m_euler = DirectX::XMVectorZero(); // 오일러 각도 // 라디안 단위
+	DirectX::XMVECTOR m_scale = DirectX::XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f); // 크기
 	bool m_isDirty = true; // 위치 갱신 필요 여부
 
 	struct WorldWVPBuffer // 월드 및 WVP 행렬 상수 버퍼 구조체
@@ -29,6 +30,9 @@ class GameObjectBase // TODO: 부모-자식 관계 구현
 	com_ptr<ID3D11Buffer> m_worldWVPConstantBuffer = nullptr; // 월드, WVP 행렬 상수 버퍼
 
 	std::unordered_map<std::type_index, std::unique_ptr<ComponentBase>> m_components = {}; // 컴포넌트 맵
+
+protected:
+	std::string m_name = "GameObject"; // 게임 오브젝트 이름
 
 public:
 	GameObjectBase(); // 무조건 CreateGameObject로 생성
@@ -56,22 +60,22 @@ public:
 	void MoveDirection(float distance, Direction direction);
 
 	// 회전 지정 // 라디안 단위
-	void SetRotation(const DirectX::XMVECTOR& rotation);
-	// 회전 가져오기 // 도 단위
-	DirectX::XMFLOAT3 GetRotation() const;
+	void SetRotation(const DirectX::XMVECTOR& rotation) { m_euler = rotation; SetDirty(); }
+	// 회전 가져오기 // 라디안 단위
+	DirectX::XMVECTOR GetRotation() const { return m_euler; }
 	// 회전 이동 // 라디안 단위
-	void Rotate(const DirectX::XMVECTOR& deltaRotation);
+	void Rotate(const DirectX::XMVECTOR& deltaRotation) { m_euler = DirectX::XMVectorAdd(m_euler, deltaRotation); SetDirty(); }
 	// 특정 위치 바라보기
 	void LookAt(const DirectX::XMVECTOR& targetPosition);
 	// 정규화된 방향 벡터 가져오기
-	DirectX::XMVECTOR GetDirectionVector(Direction direction) const;
+	DirectX::XMVECTOR GetDirectionVector(Direction direction);
 
 	// 크기 지정
-	void SetScale(const DirectX::XMFLOAT3& scale) { m_scale = scale; SetDirty(); }
+	void SetScale(const DirectX::XMVECTOR& scale) { m_scale = scale; SetDirty(); }
 	// 크기 가져오기
-	DirectX::XMFLOAT3 GetScale() const { return m_scale; }
+	DirectX::XMVECTOR GetScale() const { return m_scale; }
 	// 크기 변경
-	void Scale(const DirectX::XMFLOAT3& deltaScale);
+	void Scale(const DirectX::XMVECTOR& deltaScale) { m_scale = DirectX::XMVectorMultiply(m_scale, deltaScale); SetDirty(); }
 
 	DirectX::XMMATRIX GetWorldMatrix() const { return m_worldMatrix; }
 
@@ -87,6 +91,8 @@ protected:
 	virtual void Begin() {}
 	// 매 프레임 씬 Render에서 호출
 	virtual void Update(float deltaTime) {}
+	// 매 프레임 RenderImGui에서 호출
+	virtual void SerializeImGui() {}
 	// 게임 오브젝트 소멸자가 호출
 	virtual void End() {}
 
@@ -100,6 +106,8 @@ private:
 	void UpdateWorldMatrix();
 	// 렌더링 // 씬이 Render에서 호출
 	void Render(DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix);
+	// ImGui 렌더링 // 씬이 RenderImGui에서 호출
+	void RenderImGui();
 
 	// 게임 오브젝트 종료 // 씬이 호출
 	void Finalize();

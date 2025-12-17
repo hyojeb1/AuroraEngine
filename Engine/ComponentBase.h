@@ -20,9 +20,14 @@ public:
 protected:
 	// 컴포넌트 초기화 // ComponentBase의 Initialize에서 호출
 	virtual void Begin() {};
+	// 매 프레임 RenderImGui에서 호출
+	virtual void SerializeImGui() {};
+	// 컴포넌트 Finalize에서 호출
 	virtual void End() {};
 
 private:
 	void Initialize(GameObjectBase* owner) { m_owner = owner; Begin(); }
+	// ImGui 렌더링 // GameObjectBase의 RenderImGui에서 호출
+	void RenderImGui();
 	void Finalize() { End(); }
 };

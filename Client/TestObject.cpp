@@ -8,12 +8,17 @@ using namespace DirectX;
 
 void TestObject::Begin()
 {
-	//AddComponent<ModelComponent>(); // 扁夯 积己
-	ModelComponent modelComp;
-	AddComponent<ModelComponent>(modelComp); // 汗荤 积己
+	m_name = "TestObject";
+	AddComponent<ModelComponent>(); // 扁夯 积己
 	SetScale({ 1.0f, 1.0f, 1.0f });
 }
 
 void TestObject::Update(float deltaTime)
 {
+	if (GetAsyncKeyState('W') & 0x8000) Rotate({ -deltaTime * 2.0f, 0.0f, 0.0f });
+	if (GetAsyncKeyState('S') & 0x8000) Rotate({ deltaTime * 2.0f, 0.0f, 0.0f });
+	if (GetAsyncKeyState('A') & 0x8000) Rotate({ 0.0f, -deltaTime * 2.0f, 0.0f });
+	if (GetAsyncKeyState('D') & 0x8000) Rotate({ 0.0f, deltaTime * 2.0f, 0.0f });
+	if (GetAsyncKeyState('Q') & 0x8000) Rotate({ 0.0f, 0.0f, -deltaTime * 2.0f });
+	if (GetAsyncKeyState('E') & 0x8000) Rotate({ 0.0f, 0.0f, deltaTime * 2.0f });
 }

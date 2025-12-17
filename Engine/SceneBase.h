@@ -16,6 +16,7 @@ class SceneBase
 	com_ptr<ID3D11Buffer> m_viewProjectionConstantBuffer = nullptr; // 뷰-투영 상수 버퍼
 
 protected:
+	std::string m_name = "Scene"; // 씬 이름
 	class CameraComponent* m_mainCamera = nullptr; // 메인 카메라 컴포넌트 포인터
 	std::array<FLOAT, 4> m_clearColor = { 0.5f, 0.5f, 0.5f, 1.0f }; // 씬 클리어 색상
 
@@ -35,6 +36,8 @@ protected:
 	// 메인 카메라 게임 오브젝트 설정
 	virtual GameObjectBase* CreateCameraObject();
 	virtual void Begin() {}
+	// 매 프레임 RenderImGui에서 호출
+	virtual void SerializeImGui() {}
 	virtual void End() {}
 
 private:
@@ -47,6 +50,8 @@ private:
 	void TransformGameObjects();
 	// 씬 렌더링 // 매 프레임 씬 매니저가 호출
 	void Render();
+	// ImGui 렌더링
+	void RenderImGui();
 
 	// 씬 종료 // 씬 매니저가 씬을 교체할 때 호출
 	void Finalize();

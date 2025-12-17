@@ -11,8 +11,8 @@ using namespace DirectX;
 GameObjectBase* SceneBase::CreateCameraObject()
 {
 	GameObjectBase* cameraGameObject = CreateGameObject<GameObjectBase>();
-	cameraGameObject->SetPosition({ 0.0f, 5.0f, -10.0f, 1.0f });
-	cameraGameObject->LookAt({ 0.0f, 0.0f, 0.0f, 1.0f });
+	cameraGameObject->SetPosition({ 0.0f, 5.0f, -10.0f });
+	cameraGameObject->LookAt({ 0.0f, 0.0f, 0.0f });
 
 	return cameraGameObject;
 }
@@ -48,10 +48,6 @@ void SceneBase::Render()
 {
 	Renderer& renderer = Renderer::GetInstance();
 	renderer.BeginFrame(m_clearColor);
-	ImGui::Begin("Scene");
-
-	ImGui::Text("Total Objects: %zu", m_gameObjects.size());
-	ImGui::Separator();
 
 	// 뷰-투영 상수 버퍼 업데이트 및 셰이더에 설정
 	com_ptr<ID3D11DeviceContext> deviceContext = renderer.GetDeviceContext();
@@ -63,8 +59,23 @@ void SceneBase::Render()
 	// 게임 오브젝트 렌더링
 	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->Render(m_viewProjectionData.viewMatrix, m_viewProjectionData.projectionMatrix);
 
-	ImGui::End();
+	// ImGui 렌더링
+	RenderImGui();
+
 	renderer.EndFrame();
+}
+
+void SceneBase::RenderImGui()
+{
+	ImGui::Begin(typeid(*this).name());
+
+	if (ImGui::ColorEdit3("Clear Color", m_clearColor.data())) {}
+
+	ImGui::Separator();
+	ImGui::Text("Game Objects:");
+	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->RenderImGui();
+
+	ImGui::End();
 }
 
 void SceneBase::Finalize()
