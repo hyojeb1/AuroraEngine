@@ -86,7 +86,7 @@ void GameObjectBase::UpdateWorldMatrix()
 
 void GameObjectBase::Render(XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
 {
-	if (ImGui::TreeNode((void*)(intptr_t)m_id, "GameObject #%u", m_id))
+	if (ImGui::TreeNode(m_name.c_str()))
 	{
 		// Position (À§Ä¡)
 		if (ImGui::DragFloat3("Position", &m_position.m128_f32[0], 0.1f))  SetDirty();

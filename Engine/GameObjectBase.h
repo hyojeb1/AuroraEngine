@@ -31,6 +31,9 @@ class GameObjectBase // TODO: 부모-자식 관계 구현
 
 	std::unordered_map<std::type_index, std::unique_ptr<ComponentBase>> m_components = {}; // 컴포넌트 맵
 
+protected:
+	std::string m_name = "GameObject"; // 게임 오브젝트 이름
+
 public:
 	GameObjectBase(); // 무조건 CreateGameObject로 생성
 	virtual ~GameObjectBase() = default;

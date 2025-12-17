@@ -16,6 +16,7 @@ class SceneBase
 	com_ptr<ID3D11Buffer> m_viewProjectionConstantBuffer = nullptr; // 뷰-투영 상수 버퍼
 
 protected:
+	std::string m_name = "Scene"; // 씬 이름
 	class CameraComponent* m_mainCamera = nullptr; // 메인 카메라 컴포넌트 포인터
 	std::array<FLOAT, 4> m_clearColor = { 0.5f, 0.5f, 0.5f, 1.0f }; // 씬 클리어 색상
 
