@@ -57,15 +57,15 @@ public:
 	void MoveDirection(float distance, Direction direction);
 
 	// 회전 지정 // 라디안 단위
-	void SetRotation(const DirectX::XMVECTOR& rotation);
+	void SetRotation(const DirectX::XMVECTOR& rotation) { m_euler = rotation; SetDirty(); }
 	// 회전 가져오기 // 라디안 단위
 	DirectX::XMVECTOR GetRotation() const { return m_euler; }
 	// 회전 이동 // 라디안 단위
-	void Rotate(const DirectX::XMVECTOR& deltaRotation);
+	void Rotate(const DirectX::XMVECTOR& deltaRotation) { DirectX::XMVectorAdd(m_euler, deltaRotation); SetDirty(); }
 	// 특정 위치 바라보기
 	void LookAt(const DirectX::XMVECTOR& targetPosition);
 	// 정규화된 방향 벡터 가져오기
-	DirectX::XMVECTOR GetDirectionVector(Direction direction) const;
+	DirectX::XMVECTOR GetDirectionVector(Direction direction);
 
 	// 크기 지정
 	void SetScale(const DirectX::XMVECTOR& scale) { m_scale = scale; SetDirty(); }

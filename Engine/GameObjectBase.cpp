@@ -22,26 +22,6 @@ void GameObjectBase::MoveDirection(float distance, Direction direction)
 	MovePosition(deltaPosition);
 }
 
-void GameObjectBase::SetRotation(const XMVECTOR& rotation)
-{
-	// 오일러 각도 저장
-	m_euler = rotation;
-	// 쿼터니언 업데이트
-	m_quaternion = XMQuaternionRotationRollPitchYawFromVector(m_euler);
-
-	SetDirty();
-}
-
-void GameObjectBase::Rotate(const XMVECTOR& deltaRotation)
-{
-	// 오일러 각도 업데이트
-	m_euler += deltaRotation;
-	// 쿼터니언 업데이트
-	m_quaternion = XMQuaternionRotationRollPitchYawFromVector(m_euler);
-
-	SetDirty();
-}
-
 void GameObjectBase::LookAt(const XMVECTOR& targetPosition)
 {
 	XMVECTOR direction = XMVector3Normalize(XMVectorSubtract(targetPosition, m_position));
@@ -54,8 +34,10 @@ void GameObjectBase::LookAt(const XMVECTOR& targetPosition)
 	SetDirty();
 }
 
-XMVECTOR GameObjectBase::GetDirectionVector(Direction direction) const
+XMVECTOR GameObjectBase::GetDirectionVector(Direction direction)
 {
+	m_quaternion = XMQuaternionRotationRollPitchYawFromVector(m_euler);
+
 	switch (direction)
 	{
 	case Direction::Forward:
@@ -90,7 +72,7 @@ void GameObjectBase::UpdateWorldMatrix()
 	if (!m_isDirty) return;
 
 	m_positionMatrix = XMMatrixTranslationFromVector(m_position);
-	m_rotationMatrix = XMMatrixRotationQuaternion(m_quaternion);
+	m_rotationMatrix = XMMatrixRotationRollPitchYawFromVector(m_euler);
 	m_scaleMatrix = XMMatrixScalingFromVector(m_scale);
 
 	m_worldMatrix = m_scaleMatrix * m_rotationMatrix * m_positionMatrix;
@@ -109,14 +91,9 @@ void GameObjectBase::Render(XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
 		// Position (위치)
 		if (ImGui::DragFloat3("Position", &m_position.m128_f32[0], 0.1f))  SetDirty();
 
-		// Rotation (회전 - 라디안을 도(degree)로 변환하여 표시)
-		XMFLOAT3 rotationDegrees = {};
-		XMStoreFloat3(&rotationDegrees, XMVectorScale(m_euler, 180.0f / XM_PI));
-		if (ImGui::DragFloat3("Rotation", &rotationDegrees.x, 0.5f))
-		{
-			XMVECTOR rotationRadians = XMVectorScale(XMLoadFloat3(&rotationDegrees), XM_PI / 180.0f);
-			SetRotation(rotationRadians);
-		}
+		// Rotation (회전)
+		if (ImGui::DragFloat3("Rotation", &m_euler.m128_f32[0], 0.1f)) SetDirty();
+		//ImGui::Text("%.3f, %.3f, %.3f", XMConvertToDegrees(m_euler.m128_f32[0]), XMConvertToDegrees(m_euler.m128_f32[1]), XMConvertToDegrees(m_euler.m128_f32[2]));
 
 		// Scale (크기)
 		if (ImGui::DragFloat3("Scale", &m_scale.m128_f32[0], 0.1f)) SetDirty();
