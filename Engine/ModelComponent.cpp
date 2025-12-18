@@ -23,7 +23,7 @@ void ModelComponent::Render()
 		deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 		// 재질 상수 버퍼 셰이더에 설정
-		deviceContext->UpdateSubresource(m_materialConstantBuffer.Get(), 0, nullptr, &mesh.material, 0, 0);
+		deviceContext->UpdateSubresource(m_materialConstantBuffer.Get(), 0, nullptr, &mesh.materialFactor, 0, 0);
 		deviceContext->PSSetConstantBuffers(0, 1, m_materialConstantBuffer.GetAddressOf());
 
 		deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
@@ -34,7 +34,7 @@ void ModelComponent::Begin()
 {
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(Material));
+	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(MaterialFactor));
 	m_model = resourceManager.LoadModel(m_modelFileName);
 
 	CreateShaders();

@@ -303,6 +303,7 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::LoadMaterialTexture(aiMateria
 
 		return LoadTexture(fileName);
 	}
+	return nullptr;
 }
 
 void ResourceManager::CreateMeshBuffers(Mesh& mesh)
