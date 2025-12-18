@@ -1,9 +1,9 @@
 #pragma once
 #include "Resource.h"
 
-class RenderResourceManager : public SingletonBase<RenderResourceManager>
+class ResourceManager : public SingletonBase<ResourceManager>
 {
-	friend class SingletonBase<RenderResourceManager>;
+	friend class SingletonBase<ResourceManager>;
 
 	com_ptr<ID3D11Device> m_device = nullptr; // 디바이스
 
@@ -16,14 +16,15 @@ class RenderResourceManager : public SingletonBase<RenderResourceManager>
 	std::unordered_map<std::string, com_ptr<ID3D11PixelShader>> m_pixelShaders = {}; // 픽셀 셰이더 맵 // 키: 셰이더 파일 이름
 
 	std::unordered_map<std::string, Model> m_models = {}; // 모델 맵 // 키: 모델 파일 경로
+	std::unordered_map<std::string, com_ptr<ID3D11ShaderResourceView>> m_textures = {}; // 텍스처 맵 // 키: 텍스처 파일 이름
 
 public:
-	RenderResourceManager() = default;
-	~RenderResourceManager() = default;
-	RenderResourceManager(const RenderResourceManager&) = delete;
-	RenderResourceManager& operator=(const RenderResourceManager&) = delete;
-	RenderResourceManager(RenderResourceManager&&) = delete;
-	RenderResourceManager& operator=(RenderResourceManager&&) = delete;
+	ResourceManager() = default;
+	~ResourceManager() = default;
+	ResourceManager(const ResourceManager&) = delete;
+	ResourceManager& operator=(const ResourceManager&) = delete;
+	ResourceManager(ResourceManager&&) = delete;
+	ResourceManager& operator=(ResourceManager&&) = delete;
 
 	// 생성자 Renderer에서 호출
 	void Initialize(com_ptr<ID3D11Device> device);
@@ -41,6 +42,8 @@ public:
 	com_ptr<ID3D11PixelShader> GetPixelShader(const std::string& shaderName);
 	// 모델 파일로부터 모델 로드
 	const Model* LoadModel(const std::string& fileName);
+	// 텍스처 파일로부터 텍스처 로드
+	com_ptr<ID3D11ShaderResourceView> LoadTexture(const std::string& fileName);
 
 private:
 	// 래스터 상태 생성 함수
@@ -52,7 +55,11 @@ private:
 	// 노드 처리 함수
 	void ProcessNode(const aiNode* node, const aiScene* scene, Model& model);
 	// 메쉬 처리 함수
-	Mesh ProcessMesh(const aiMesh* mesh);
+	Mesh ProcessMesh(const aiMesh* mesh, const aiScene* scene);
+	// 재질 처리 함수
+	MaterialFactor ProcessMaterialFactor(aiMaterial* material);
+	// 재질 텍스처 로드 함수
+	com_ptr<ID3D11ShaderResourceView> LoadMaterialTexture(aiMaterial* material, aiTextureType type);
 	// 메쉬 버퍼(GPU) 생성 함수
 	void CreateMeshBuffers(Mesh& mesh);
 

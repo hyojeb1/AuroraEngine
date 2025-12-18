@@ -3,6 +3,7 @@ cbuffer ViewProjection : register(b0)
     matrix ViewMatrix;
     matrix ProjectionMatrix;
 }
+
 cbuffer WorldWVP : register(b1)
 {
     matrix WorldMatrix;
@@ -29,7 +30,8 @@ VertexOutput main(VertexInput input)
     
     input.Position.w = 1.0f;
     output.Position = mul(input.Position, WVP);
-    output.Color = float4(input.UV, 0.0f, 1.0f);
+    
+    output.Color = float4(input.Normal, 1.0f);
     
     return output;
 }

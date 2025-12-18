@@ -69,8 +69,6 @@ public:
 	// 렌더러 종료 // WindowManager에서 윈도우 종료 전 호출
 	void Finalize();
 
-	// 디바이스 조회
-	com_ptr<ID3D11Device> GetDevice() const { return m_device; }
 	// 디바이스 컨텍스트 조회
 	com_ptr<ID3D11DeviceContext> GetDeviceContext() const { return m_deviceContext; }
 

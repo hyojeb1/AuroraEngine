@@ -3,7 +3,7 @@
 
 #include "GameObjectBase.h"
 #include "Renderer.h"
-#include "RenderResourceManager.h"
+#include "ResourceManager.h"
 
 void ModelComponent::Render()
 {
@@ -22,13 +22,20 @@ void ModelComponent::Render()
 		deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
 		deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
+		// 재질 상수 버퍼 셰이더에 설정
+		deviceContext->UpdateSubresource(m_materialConstantBuffer.Get(), 0, nullptr, &mesh.material, 0, 0);
+		deviceContext->PSSetConstantBuffers(0, 1, m_materialConstantBuffer.GetAddressOf());
+
 		deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
 	}
 }
 
 void ModelComponent::Begin()
 {
-	m_model = RenderResourceManager::GetInstance().LoadModel(m_modelFileName);
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
+
+	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(Material));
+	m_model = resourceManager.LoadModel(m_modelFileName);
 
 	CreateShaders();
 }
@@ -50,14 +57,14 @@ void ModelComponent::SerializeImGui()
 
 	if (ImGui::Button("Load"))
 	{
-		m_model = RenderResourceManager::GetInstance().LoadModel(m_modelFileName);
+		m_model = ResourceManager::GetInstance().LoadModel(m_modelFileName);
 		CreateShaders();
 	}
 }
 
 void ModelComponent::CreateShaders()
 {
-	RenderResourceManager& resourceManager = RenderResourceManager::GetInstance();
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_vertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout(m_vsShaderName, m_inputElements);
 	m_pixelShader = resourceManager.GetPixelShader(m_psShaderName);
 }

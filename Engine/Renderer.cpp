@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Renderer.h"
 
-#include "RenderResourceManager.h"
+#include "ResourceManager.h"
 
 using namespace std;
 using namespace DirectX;
@@ -138,7 +138,7 @@ void Renderer::CreateDeviceAndContext()
 	// ImGui DirectX11 초기화
 	ImGui_ImplDX11_Init(m_device.Get(), m_deviceContext.Get());
 	// RenderResourceManager 초기화
-	RenderResourceManager::GetInstance().Initialize(m_device);
+	ResourceManager::GetInstance().Initialize(m_device);
 }
 
 void Renderer::CreateSwapChain(HWND hWnd)
@@ -215,7 +215,7 @@ void Renderer::CreateBackBufferResources()
 	hr = m_device->CreateBuffer(&bufferDesc, &initialData, m_backBufferVertexBuffer.GetAddressOf());
 	CheckResult(hr, "백 버퍼 정점 버퍼 생성 실패.");
 
-	RenderResourceManager& resourceManager = RenderResourceManager::GetInstance();
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	// 래스터 상태 생성
 	m_backBufferRasterState = resourceManager.GetRasterState(RasterState::BackBuffer);
 	// 샘플러 상태 생성
@@ -310,7 +310,7 @@ void Renderer::CreateSceneRenderTarget()
 	hr = m_device->CreateShaderResourceView(m_sceneResultTexture.Get(), &srvDesc, m_sceneShaderResourceView.GetAddressOf());
 	CheckResult(hr, "씬 셰이더 리소스 뷰 생성 실패.");
 
-	RenderResourceManager& resourceManager = RenderResourceManager::GetInstance();
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	// 래스터 상태 생성
 	m_sceneRasterState = resourceManager.GetRasterState(RasterState::Solid);
 }

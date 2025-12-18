@@ -1,9 +1,10 @@
 #include "stdafx.h"
-#include "RenderResourceManager.h"
+#include "ResourceManager.h"
 
 using namespace std;
+using namespace DirectX;
 
-void RenderResourceManager::Initialize(com_ptr<ID3D11Device> device)
+void ResourceManager::Initialize(com_ptr<ID3D11Device> device)
 {
 	m_device = device;
 
@@ -11,7 +12,7 @@ void RenderResourceManager::Initialize(com_ptr<ID3D11Device> device)
 	CreateSamplerStates();
 }
 
-com_ptr<ID3D11Buffer> RenderResourceManager::GetConstantBuffer(UINT bufferSize)
+com_ptr<ID3D11Buffer> ResourceManager::GetConstantBuffer(UINT bufferSize)
 {
 	// 기존에 생성된 상수 버퍼가 있으면 재사용
 	auto it = m_constantBuffers.find(bufferSize);
@@ -37,7 +38,7 @@ com_ptr<ID3D11Buffer> RenderResourceManager::GetConstantBuffer(UINT bufferSize)
 	return constantBuffer;
 }
 
-pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> RenderResourceManager::GetVertexShaderAndInputLayout(const string& shaderName, const vector<InputElement>& inputElements)
+pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> ResourceManager::GetVertexShaderAndInputLayout(const string& shaderName, const vector<InputElement>& inputElements)
 {
 	// 기존에 생성된 셰이더 및 입력 레이아웃이 있으면 재사용
 	auto it = m_vertexShadersAndInputLayouts.find(shaderName);
@@ -73,7 +74,7 @@ pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> RenderResourceMana
 	return m_vertexShadersAndInputLayouts[shaderName];
 }
 
-com_ptr<ID3D11PixelShader> RenderResourceManager::GetPixelShader(const string& shaderName)
+com_ptr<ID3D11PixelShader> ResourceManager::GetPixelShader(const string& shaderName)
 {
 	// 기존에 생성된 픽셀 셰이더가 있으면 재사용
 	auto it = m_pixelShaders.find(shaderName);
@@ -95,7 +96,7 @@ com_ptr<ID3D11PixelShader> RenderResourceManager::GetPixelShader(const string& s
 	return m_pixelShaders[shaderName];
 }
 
-const Model* RenderResourceManager::LoadModel(const string& fileName)
+const Model* ResourceManager::LoadModel(const string& fileName)
 {
 	auto it = m_models.find(fileName);
 	if (it != m_models.end()) return &it->second;
@@ -142,7 +143,32 @@ const Model* RenderResourceManager::LoadModel(const string& fileName)
 	return &m_models[fileName];
 }
 
-void RenderResourceManager::CreateRasterStates()
+com_ptr<ID3D11ShaderResourceView> ResourceManager::LoadTexture(const std::string& fileName)
+{
+	// 기존에 생성된 텍스처가 있으면 재사용
+	auto it = m_textures.find(fileName);
+	if (it != m_textures.end()) return it->second;
+
+	HRESULT hr = S_OK;
+
+	const string fullPath = "../Asset/Texture/" + fileName;
+
+	com_ptr<ID3D11ShaderResourceView> textureSRV = nullptr;
+	hr = CreateWICTextureFromFile
+	(
+		m_device.Get(),
+		wstring(fullPath.begin(), fullPath.end()).c_str(),
+		nullptr,
+		textureSRV.GetAddressOf()
+	);
+	CheckResult(hr, "텍스처 로드 실패.");
+
+	m_textures[fileName] = textureSRV;
+
+	return textureSRV;
+}
+
+void ResourceManager::CreateRasterStates()
 {
 	HRESULT hr = S_OK;
 
@@ -153,7 +179,7 @@ void RenderResourceManager::CreateRasterStates()
 	}
 }
 
-void RenderResourceManager::CreateSamplerStates()
+void ResourceManager::CreateSamplerStates()
 {
 	HRESULT hr = S_OK;
 
@@ -164,20 +190,20 @@ void RenderResourceManager::CreateSamplerStates()
 	}
 }
 
-void RenderResourceManager::ProcessNode(const aiNode* node, const aiScene* scene, Model& model)
+void ResourceManager::ProcessNode(const aiNode* node, const aiScene* scene, Model& model)
 {
 	// 노드의 메쉬 처리
 	for (UINT i = 0; i < node->mNumMeshes; ++i)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		model.meshes.push_back(ProcessMesh(mesh));
+		model.meshes.push_back(ProcessMesh(mesh, scene));
 	}
 
 	// 자식 노드 재귀 처리
 	for (UINT i = 0; i < node->mNumChildren; ++i) ProcessNode(node->mChildren[i], scene, model);
 }
 
-Mesh RenderResourceManager::ProcessMesh(const aiMesh* mesh)
+Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene)
 {
 	Mesh resultMesh;
 
@@ -185,7 +211,6 @@ Mesh RenderResourceManager::ProcessMesh(const aiMesh* mesh)
 	for (UINT i = 0; i < mesh->mNumVertices; ++i)
 	{
 		Vertex vertex;
-
 		// 위치
 		vertex.position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z, 1.0f };
 
@@ -212,16 +237,75 @@ Mesh RenderResourceManager::ProcessMesh(const aiMesh* mesh)
 	// 바운딩 박스 처리
 	resultMesh.boundingBox =
 	{
-		{ mesh->mAABB.mMin.x, mesh->mAABB.mMin.y, mesh->mAABB.mMin.z },
-		{ mesh->mAABB.mMax.x, mesh->mAABB.mMax.y, mesh->mAABB.mMax.z }
+		// 중심
+		{
+			(mesh->mAABB.mMin.x + mesh->mAABB.mMax.x) * 0.5f,
+			(mesh->mAABB.mMin.y + mesh->mAABB.mMax.y) * 0.5f,
+			(mesh->mAABB.mMin.z + mesh->mAABB.mMax.z) * 0.5f
+		},
+		// 꼭짓점까지의 거리
+		{
+			(mesh->mAABB.mMax.x - mesh->mAABB.mMin.x) * 0.5f,
+			(mesh->mAABB.mMax.y - mesh->mAABB.mMin.y) * 0.5f,
+			(mesh->mAABB.mMax.z - mesh->mAABB.mMin.z) * 0.5f
+		}
 	};
+
+	// 재질 처리
+	if (mesh->mMaterialIndex >= 0)
+	{
+		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+		resultMesh.materialFactor = ProcessMaterialFactor(material);
+
+		resultMesh.materialTexture.albedoTextureSRV = LoadMaterialTexture(material, aiTextureType_DIFFUSE);
+		resultMesh.materialTexture.normalTextureSRV = LoadMaterialTexture(material, aiTextureType_NORMALS);
+		resultMesh.materialTexture.metallicTextureSRV = LoadMaterialTexture(material, aiTextureType_METALNESS);
+		resultMesh.materialTexture.roughnessTextureSRV = LoadMaterialTexture(material, aiTextureType_DIFFUSE_ROUGHNESS);
+	}
 
 	CreateMeshBuffers(resultMesh);
 
 	return resultMesh;
 }
 
-void RenderResourceManager::CreateMeshBuffers(Mesh& mesh)
+MaterialFactor ResourceManager::ProcessMaterialFactor(aiMaterial* material)
+{
+	MaterialFactor resultMaterialFactor;
+
+	// Albedo/Diffuse 색상 팩터
+	aiColor4D albedoColor;
+	if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_DIFFUSE, albedoColor)) resultMaterialFactor.albedoFactor = { albedoColor.r, albedoColor.g, albedoColor.b, albedoColor.a };
+
+	// PBR 메탈릭 팩터
+	float metallicFactor = 1.0f;
+	if (AI_SUCCESS == material->Get(AI_MATKEY_METALLIC_FACTOR, metallicFactor)) resultMaterialFactor.metallicFactor = metallicFactor;
+
+	// PBR 러프니스 팩터
+	float roughnessFactor = 1.0f;
+	if (AI_SUCCESS == material->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughnessFactor)) resultMaterialFactor.roughnessFactor = roughnessFactor;
+
+	return resultMaterialFactor;
+}
+
+com_ptr<ID3D11ShaderResourceView> ResourceManager::LoadMaterialTexture(aiMaterial* material, aiTextureType type)
+{
+	if (material->GetTextureCount(type) > 0)
+	{
+		aiString texturePath;
+		material->GetTexture(type, 0, &texturePath);
+
+		// 외부 파일 텍스처 처리
+		string fileName = texturePath.C_Str();
+
+		// 파일 경로에서 파일 이름만 추출 (경로 구분자 처리)
+		size_t lastSlash = fileName.find_last_of("/\\");
+		if (lastSlash != string::npos) fileName = fileName.substr(lastSlash + 1);
+
+		return LoadTexture(fileName);
+	}
+}
+
+void ResourceManager::CreateMeshBuffers(Mesh& mesh)
 {
 	HRESULT hr = S_OK;
 
@@ -266,7 +350,7 @@ void RenderResourceManager::CreateMeshBuffers(Mesh& mesh)
 	CheckResult(hr, "메쉬 인덱스 버퍼 생성 실패.");
 }
 
-com_ptr<ID3DBlob> RenderResourceManager::CompileShader(const string& shaderName, const char* shaderModel)
+com_ptr<ID3DBlob> ResourceManager::CompileShader(const string& shaderName, const char* shaderModel)
 {
 	HRESULT hr = S_OK;
 

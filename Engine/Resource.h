@@ -19,7 +19,7 @@ enum class RasterState
 };
 constexpr std::array<D3D11_RASTERIZER_DESC, static_cast<size_t>(RasterState::Count)> RASTERIZER_DESC_TEMPLATES =
 {
-	// RSBackBuffer
+	// BackBuffer
 	D3D11_RASTERIZER_DESC
 	{
 		.FillMode = D3D11_FILL_SOLID, // 실선 채우기
@@ -34,7 +34,7 @@ constexpr std::array<D3D11_RASTERIZER_DESC, static_cast<size_t>(RasterState::Cou
 		.AntialiasedLineEnable = FALSE // 앤티앨리어싱 선 비활성화
 	},
 
-	// RSSolid
+	// Solid
 	D3D11_RASTERIZER_DESC
 	{
 		.FillMode = D3D11_FILL_SOLID,
@@ -49,7 +49,7 @@ constexpr std::array<D3D11_RASTERIZER_DESC, static_cast<size_t>(RasterState::Cou
 		.AntialiasedLineEnable = TRUE
 	},
 
-	// RSWireframe
+	// Wireframe
 	D3D11_RASTERIZER_DESC
 	{
 		.FillMode = D3D11_FILL_WIREFRAME,
@@ -74,7 +74,7 @@ enum class SamplerState
 };
 constexpr std::array<D3D11_SAMPLER_DESC, static_cast<size_t>(SamplerState::Count)> SAMPLER_DESC_TEMPLATES =
 {
-	// SSBackBuffer
+	// BackBuffer
 	D3D11_SAMPLER_DESC
 	{
 		.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR, // 선형 필터링
@@ -89,7 +89,7 @@ constexpr std::array<D3D11_SAMPLER_DESC, static_cast<size_t>(SamplerState::Count
 		.MaxLOD = D3D11_FLOAT32_MAX // 최대 LOD
 	},
 
-	// SSScene
+	// Scene
 	D3D11_SAMPLER_DESC
 	{
 		.Filter = D3D11_FILTER_ANISOTROPIC, // 이방성 필터링
@@ -173,10 +173,21 @@ struct Vertex
 	DirectX::XMFLOAT2 UV = {};
 };
 
-struct MeshBoundingBox
+struct MaterialFactor
 {
-	DirectX::XMFLOAT3 min = {};
-	DirectX::XMFLOAT3 max = {};
+	DirectX::XMFLOAT4 albedoFactor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 텍스처 색상이 얼마나 적용되는지
+	float metallicFactor = 1.0f; // 금속성 텍스처가 얼마나 적용되는지
+	float roughnessFactor = 1.0f; // 거칠기 텍스처가 얼마나 적용되는지
+	float lightFactor = 1.0f; // 조명 영향도 // 일반적으로 1.0f 여야 함
+	float ambient = 1.0f; // 자체적인 밝기 // 일반적으로 0.0f 이여야 함
+};
+
+struct MaterialTexture
+{
+	com_ptr<ID3D11ShaderResourceView> albedoTextureSRV = nullptr;
+	com_ptr<ID3D11ShaderResourceView> normalTextureSRV = nullptr;
+	com_ptr<ID3D11ShaderResourceView> metallicTextureSRV = nullptr;
+	com_ptr<ID3D11ShaderResourceView> roughnessTextureSRV = nullptr;
 };
 
 struct Mesh
@@ -185,10 +196,13 @@ struct Mesh
 	std::vector<UINT> indices = {};
 	UINT indexCount = 0;
 
-	MeshBoundingBox boundingBox = {};
+	DirectX::BoundingBox boundingBox = {};
 
 	com_ptr<ID3D11Buffer> vertexBuffer = nullptr;
 	com_ptr<ID3D11Buffer> indexBuffer = nullptr;
+
+	MaterialFactor materialFactor = {};
+	MaterialTexture materialTexture = {};
 };
 
 struct Model

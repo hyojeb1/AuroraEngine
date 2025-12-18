@@ -4,7 +4,7 @@
 #include "CameraComponent.h"
 #include "ModelComponent.h"
 #include "Renderer.h"
-#include "RenderResourceManager.h"
+#include "ResourceManager.h"
 
 using namespace std;
 using namespace DirectX;
@@ -72,7 +72,7 @@ void GameObjectBase::Initialize(SceneBase* parentScene)
 
 	m_parentScene = parentScene;
 
-	m_worldWVPConstantBuffer = RenderResourceManager::GetInstance().GetConstantBuffer(sizeof(WorldWVPBuffer));
+	m_worldWVPConstantBuffer = ResourceManager::GetInstance().GetConstantBuffer(sizeof(WorldWVPBuffer));
 
 	Begin();
 }
@@ -115,7 +115,7 @@ void GameObjectBase::RenderImGui()
 	if (ImGui::TreeNode(m_typeName.c_str()))
 	{
 		// Position (위치)
-		if (ImGui::DragFloat3("Position", &m_position.m128_f32[0], 0.01f))  SetDirty();
+		if (ImGui::DragFloat3("Position", &m_position.m128_f32[0], 0.05f))  SetDirty();
 		// Rotation (회전)
 		if (ImGui::DragFloat3("Rotation", &m_euler.m128_f32[0], 0.01f)) SetDirty();
 		// Scale (크기)

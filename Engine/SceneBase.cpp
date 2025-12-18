@@ -3,7 +3,7 @@
 
 #include "CameraComponent.h"
 #include "Renderer.h"
-#include "RenderResourceManager.h"
+#include "ResourceManager.h"
 
 using namespace std;
 using namespace DirectX;
@@ -22,7 +22,7 @@ void SceneBase::Initialize()
 	m_typeName = typeid(*this).name();
 	if (m_typeName.find("class ") == 0) m_typeName = m_typeName.substr(6);
 
-	m_viewProjectionConstantBuffer = RenderResourceManager::GetInstance().GetConstantBuffer(sizeof(ViewProjectionBuffer));
+	m_viewProjectionConstantBuffer = ResourceManager::GetInstance().GetConstantBuffer(sizeof(ViewProjectionBuffer));
 	m_mainCamera = CreateCameraObject()->AddComponent<CameraComponent>();
 
 	Begin();
