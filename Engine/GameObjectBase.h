@@ -3,7 +3,7 @@
 
 class Renderer;
 
-class GameObjectBase // TODO: 부모-자식 관계 구현
+class GameObjectBase
 {
 	friend class SceneBase;
 
@@ -35,7 +35,9 @@ class GameObjectBase // TODO: 부모-자식 관계 구현
 	std::unordered_map<std::type_index, std::unique_ptr<ComponentBase>> m_components = {}; // 컴포넌트 맵
 
 protected:
-	SceneBase* m_parentScene = nullptr; // 소유 씬 포인터
+	SceneBase* m_scene = nullptr; // 소유 씬 포인터
+	GameObjectBase* m_parent = nullptr; // 부모 게임 오브젝트 포인터
+	std::vector<GameObjectBase*> m_children = {}; // 자식 게임 오브젝트 배열
 
 public:
 	GameObjectBase(); // 무조건 CreateGameObject로 생성
@@ -104,7 +106,7 @@ private:
 	void SetDirty() { m_isDirty = true; } // 위치 갱신 필요로 설정
 
 	// 게임 오브젝트 초기화 // 씬이 CreateGameObject에서 호출
-	void Initialize(SceneBase* parentScene);
+	void Initialize(SceneBase* scene);
 
 	// 월드 행렬 갱신 // 씬이 TransformGameObjects에서 호출
 	void UpdateWorldMatrix();
