@@ -3,17 +3,19 @@
 
 class Renderer;
 
-class GameObjectBase // TODO: 부모-자식 관계 구현
+class GameObjectBase
 {
 	friend class SceneBase;
 
-	UINT m_id = 0; // 디버깅용 고유 ID
+	UINT m_id = 0; // 고유 ID
+	std::string m_typeName = "GameObjectBase"; // 게임 오브젝트 타입 이름
 
 	// 변환 관련 멤버 뱐수
 	DirectX::XMMATRIX m_worldMatrix = DirectX::XMMatrixIdentity(); // 월드 행렬
 	DirectX::XMMATRIX m_positionMatrix = DirectX::XMMatrixIdentity(); // 위치 행렬
 	DirectX::XMMATRIX m_rotationMatrix = DirectX::XMMatrixIdentity(); // 회전 행렬
 	DirectX::XMMATRIX m_scaleMatrix = DirectX::XMMatrixIdentity(); // 스케일 행렬
+	DirectX::XMMATRIX m_inverseScaleSquareMatrix = DirectX::XMMatrixIdentity(); // 스케일 역행렬 제곱 (법선 행렬 계산용)
 
 	DirectX::XMVECTOR m_position = DirectX::XMVectorZero(); // 위치
 	DirectX::XMVECTOR m_quaternion = DirectX::XMQuaternionIdentity(); // 쿼터니언
@@ -21,28 +23,32 @@ class GameObjectBase // TODO: 부모-자식 관계 구현
 	DirectX::XMVECTOR m_scale = DirectX::XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f); // 크기
 	bool m_isDirty = true; // 위치 갱신 필요 여부
 
-	struct WorldWVPBuffer // 월드 및 WVP 행렬 상수 버퍼 구조체
+	struct WorldBuffer // 월드 및 WVP 행렬 상수 버퍼 구조체
 	{
 		DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity(); // 월드 행렬
+		DirectX::XMMATRIX normalMatrix = DirectX::XMMatrixIdentity(); // 스케일 역행렬을 적용한 월드 행렬
 		DirectX::XMMATRIX WVPMatrix = DirectX::XMMatrixIdentity(); // WVP 행렬
 	};
-	WorldWVPBuffer m_worldWVPData = {}; // 월드 및 WVP 행렬 상수 버퍼 데이터
+	WorldBuffer m_worldData = {}; // 월드 및 WVP 행렬 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_worldWVPConstantBuffer = nullptr; // 월드, WVP 행렬 상수 버퍼
 
 	std::unordered_map<std::type_index, std::unique_ptr<ComponentBase>> m_components = {}; // 컴포넌트 맵
 
 protected:
-	std::string m_name = "GameObject"; // 게임 오브젝트 이름
+	SceneBase* m_scene = nullptr; // 소유 씬 포인터
+	GameObjectBase* m_parent = nullptr; // 부모 게임 오브젝트 포인터
+	std::vector<GameObjectBase*> m_children = {}; // 자식 게임 오브젝트 배열
 
 public:
 	GameObjectBase(); // 무조건 CreateGameObject로 생성
-	virtual ~GameObjectBase() = default;
+	virtual ~GameObjectBase(); // 컴포넌트 제거
 	GameObjectBase(const GameObjectBase&) = default; // 복사
 	GameObjectBase& operator=(const GameObjectBase&) = default; // 복사 대입
 	GameObjectBase(GameObjectBase&&) = default; // 이동
 	GameObjectBase& operator=(GameObjectBase&&) = default; // 이동 대입
 
 	UINT GetID() const { return m_id; }
+
 	// 변환 관련 함수
 	// 위치 지정
 	void SetPosition(const DirectX::XMVECTOR& position) { m_position = position; SetDirty(); }
@@ -100,7 +106,7 @@ private:
 	void SetDirty() { m_isDirty = true; } // 위치 갱신 필요로 설정
 
 	// 게임 오브젝트 초기화 // 씬이 CreateGameObject에서 호출
-	void Initialize();
+	void Initialize(SceneBase* scene);
 
 	// 월드 행렬 갱신 // 씬이 TransformGameObjects에서 호출
 	void UpdateWorldMatrix();
@@ -138,5 +144,9 @@ template<typename T>
 inline void GameObjectBase::RemoveComponent()
 {
 	auto it = m_components.find(std::type_index(typeid(T)));
-	if (it != m_components.end()) m_components.erase(it);
+	if (it != m_components.end())
+	{
+		it->second->Finalize();
+		m_components.erase(it);
+	}
 }

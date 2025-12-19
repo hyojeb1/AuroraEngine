@@ -9,18 +9,20 @@ class ModelComponent : public ComponentBase
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_vertexShaderAndInputLayout = {}; // 정점 셰이더 및 입력 레이아웃
 	com_ptr<ID3D11PixelShader> m_pixelShader = nullptr; // 픽셀 셰이더
 
+	com_ptr<ID3D11Buffer> m_materialConstantBuffer = nullptr; // 재질 상수 버퍼
+
 	std::string m_modelFileName = "box.fbx"; // 기본 모델 파일 이름
 
 	std::string m_vsShaderName = "VSModel.hlsl"; // 기본 모델 정점 셰이더
 	std::string m_psShaderName = "PSModel.hlsl"; // 기본 모델 픽셀 셰이더
 
-	// 입력 요소 배열 // 위치, 법선, 접선, UV
+	// 입력 요소 배열 // 위치, UV, 법선, 접선
 	std::vector<InputElement> m_inputElements =
 	{
 		InputElement::Position,
+		InputElement::UV,
 		InputElement::Normal,
-		InputElement::Tangent,
-		InputElement::UV
+		InputElement::Tangent
 	};
 
 public:
@@ -32,6 +34,14 @@ public:
 	ModelComponent& operator=(ModelComponent&&) = default;
 
 	void Render();
+
+	const std::string& GetModelFileName() const { return m_modelFileName; }
+	void SetModelFileName(const std::string& modelFileName) { m_modelFileName = modelFileName; }
+
+	const std::string& GetVertexShaderName() const { return m_vsShaderName; }
+	void SetVertexShaderName(const std::string& vsShaderName) { m_vsShaderName = vsShaderName; }
+	const std::string& GetPixelShaderName() const { return m_psShaderName; }
+	void SetPixelShaderName(const std::string& psShaderName) { m_psShaderName = psShaderName; }
 
 protected:
 	void Begin() override;

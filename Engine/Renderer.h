@@ -1,4 +1,5 @@
 #pragma once
+#include "Resource.h"
 
 class Renderer : public SingletonBase<Renderer>
 {
@@ -30,15 +31,6 @@ class Renderer : public SingletonBase<Renderer>
 	com_ptr<ID3D11Device> m_device = nullptr; // 디바이스
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
 	com_ptr<IDXGISwapChain1> m_swapChain = nullptr; // 스왑 체인
-
-	struct RenderTarget
-	{
-		com_ptr<ID3D11Texture2D> renderTarget = nullptr; // 렌더 타겟 텍스처
-		com_ptr<ID3D11RenderTargetView> renderTargetView = nullptr; // 렌더 타겟 뷰
-
-		com_ptr<ID3D11Texture2D> depthStencilTexture = nullptr; // 깊이-스텐실 텍스처
-		com_ptr<ID3D11DepthStencilView> depthStencilView = nullptr; // 깊이-스텐실 뷰
-	};
 
 	RenderTarget m_backBuffer; // 백 버퍼 렌더 타겟 // 화면에 출력되는 버퍼 // UI만을 직접적으로 랜더
 	com_ptr<ID3D11RasterizerState> m_backBufferRasterState = nullptr; // 백 버퍼용 래스터 상태
@@ -77,8 +69,6 @@ public:
 	// 렌더러 종료 // WindowManager에서 윈도우 종료 전 호출
 	void Finalize();
 
-	// 디바이스 조회
-	com_ptr<ID3D11Device> GetDevice() const { return m_device; }
 	// 디바이스 컨텍스트 조회
 	com_ptr<ID3D11DeviceContext> GetDeviceContext() const { return m_deviceContext; }
 

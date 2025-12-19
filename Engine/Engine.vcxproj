@@ -139,7 +139,7 @@
     <ClInclude Include="GameObjectBase.h" />
     <ClInclude Include="ModelComponent.h" />
     <ClInclude Include="Renderer.h" />
-    <ClInclude Include="RenderResourceManager.h" />
+    <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SceneBase.h" />
     <ClInclude Include="SceneManager.h" />
@@ -153,7 +153,7 @@
     <ClCompile Include="GameObjectBase.cpp" />
     <ClCompile Include="ModelComponent.cpp" />
     <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="RenderResourceManager.cpp" />
+    <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="SceneBase.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="WindowManager.cpp" />

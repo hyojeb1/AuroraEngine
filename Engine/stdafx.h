@@ -22,6 +22,7 @@
 
 // DirectX 툴킷 헤더
 #include <directxtk/SimpleMath.h>
+#include <directxtk/WICTextureLoader.h>
 
 // Assimp 헤더
 #include <assimp/Importer.hpp>

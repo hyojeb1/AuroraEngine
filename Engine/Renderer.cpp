@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Renderer.h"
 
-#include "RenderResourceManager.h"
+#include "ResourceManager.h"
 
 using namespace std;
 using namespace DirectX;
@@ -21,6 +21,7 @@ void Renderer::BeginFrame(const array<FLOAT, 4>& clearColor)
 	// ImGui 새 프레임 시작
 	ImGui_ImplDX11_NewFrame();
 	ImGui::NewFrame();
+	ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
 	// 래스터 상태 변경
 	m_deviceContext->RSSetState(m_sceneRasterState.Get());
@@ -137,7 +138,7 @@ void Renderer::CreateDeviceAndContext()
 	// ImGui DirectX11 초기화
 	ImGui_ImplDX11_Init(m_device.Get(), m_deviceContext.Get());
 	// RenderResourceManager 초기화
-	RenderResourceManager::GetInstance().Initialize(m_device);
+	ResourceManager::GetInstance().Initialize(m_device);
 }
 
 void Renderer::CreateSwapChain(HWND hWnd)
@@ -171,10 +172,6 @@ void Renderer::CreateSwapChain(HWND hWnd)
 void Renderer::CreateBackBufferRenderTarget()
 {
 	HRESULT hr = S_OK;
-
-	// 기존 렌더 타겟 해제
-	m_backBuffer.renderTarget.Reset();
-	m_backBuffer.renderTargetView.Reset();
 
 	hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(&m_backBuffer.renderTarget));
 	CheckResult(hr, "스왑 체인 버퍼 얻기 실패.");
@@ -218,7 +215,7 @@ void Renderer::CreateBackBufferResources()
 	hr = m_device->CreateBuffer(&bufferDesc, &initialData, m_backBufferVertexBuffer.GetAddressOf());
 	CheckResult(hr, "백 버퍼 정점 버퍼 생성 실패.");
 
-	RenderResourceManager& resourceManager = RenderResourceManager::GetInstance();
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	// 래스터 상태 생성
 	m_backBufferRasterState = resourceManager.GetRasterState(RasterState::BackBuffer);
 	// 샘플러 상태 생성
@@ -233,11 +230,6 @@ void Renderer::CreateBackBufferResources()
 void Renderer::CreateSceneRenderTarget()
 {
 	HRESULT hr = S_OK;
-
-	m_sceneBuffer.renderTarget.Reset();
-	m_sceneBuffer.renderTargetView.Reset();
-	m_sceneBuffer.depthStencilTexture.Reset();
-	m_sceneBuffer.depthStencilView.Reset();
 
 	// 렌더 타겟 텍스처 생성
 	const D3D11_TEXTURE2D_DESC textureDesc =
@@ -318,7 +310,7 @@ void Renderer::CreateSceneRenderTarget()
 	hr = m_device->CreateShaderResourceView(m_sceneResultTexture.Get(), &srvDesc, m_sceneShaderResourceView.GetAddressOf());
 	CheckResult(hr, "씬 셰이더 리소스 뷰 생성 실패.");
 
-	RenderResourceManager& resourceManager = RenderResourceManager::GetInstance();
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	// 래스터 상태 생성
 	m_sceneRasterState = resourceManager.GetRasterState(RasterState::Solid);
 }
