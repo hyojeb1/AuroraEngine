@@ -4,9 +4,10 @@ cbuffer ViewProjection : register(b0)
     matrix ProjectionMatrix;
 }
 
-cbuffer WorldWVP : register(b1)
+cbuffer World : register(b1)
 {
     matrix WorldMatrix;
+    matrix NormalMatrix; // 스케일 역행렬을 적용한 월드 행렬
     matrix WVP;
 }
 
@@ -34,6 +35,9 @@ VertexOutput main(VertexInput input)
     output.Position = mul(input.Position, WVP);
     
     output.UV = input.UV;
+    
+    output.Normal = normalize(mul(float4(input.Normal, 0.0f), NormalMatrix).xyz); // 이거 normalize 꼭 필요하나?
+    output.Tangent = normalize(mul(float4(input.Tangent, 0.0f), NormalMatrix).xyz);
     
     return output;
 }
