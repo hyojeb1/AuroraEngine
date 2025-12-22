@@ -39,8 +39,9 @@ public:
 	// 씬 종료 // 씬 매니저가 씬을 교체할 때 호출
 	void Finalize() { FinalizeScene(); }
 
-	template<typename T, typename... Args>
-	T* CreateNodeGameObject(Args&&... args);
+	template<typename T, typename... Args> requires std::derived_from<T, GameObjectBase>
+	T* CreateRootGameObject(Args&&... args);
+	// 루트 게임 오브젝트 제거 // 제거 배열에 추가
 	void RemoveGameObject(GameObjectBase* gameObject) { m_gameObjectsToRemove.push_back(gameObject); }
 
 protected:
@@ -57,9 +58,8 @@ private:
 	void RemovePendingGameObjects();
 };
 
-// TODO: concept 쓰기
-template<typename T, typename ...Args>
-inline T* SceneBase::CreateNodeGameObject(Args && ...args)
+template<typename T, typename ...Args> requires std::derived_from<T, GameObjectBase>
+inline T* SceneBase::CreateRootGameObject(Args && ...args)
 {
 	auto gameObject = std::make_unique<T>(std::forward<Args>(args)...);
 

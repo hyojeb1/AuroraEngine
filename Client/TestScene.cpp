@@ -8,11 +8,10 @@ using namespace std;
 
 void TestScene::InitializeScene()
 {
-	CreateNodeGameObject<TestObject>();
-	CreateNodeGameObject<TestObject>()->SetPosition({ 3.0f, 0.0f, 0.0f });
+	CreateRootGameObject<TestObject>()->CreateChildGameObject<TestObject>()->SetPosition({ 2.0f, 0.0f, 0.0f });
 }
 
 GameObjectBase* TestScene::CreateCameraObject()
 {
-	return CreateNodeGameObject<TestCameraObject>();
+	return CreateRootGameObject<TestCameraObject>();
 }

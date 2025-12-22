@@ -36,12 +36,13 @@ void GameObjectBase::Update(float deltaTime)
 	UpdateGameObject(deltaTime);
 	UpdateWorldMatrix();
 
-	// 컴포넌트 업데이트?
-
+	// 제거할 자식 게임 오브젝트 제거
+	RemovePendingChildGameObjects();
 	// 자식 게임 오브젝트 업데이트
+	for (auto& child : m_childrens) child->Update(deltaTime);
 }
 
-void GameObjectBase::Render(XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
+void GameObjectBase::Render(const XMMATRIX& VPMatrix)
 {
 	ModelComponent* model = GetComponent<ModelComponent>();
 	if (model)
@@ -49,7 +50,7 @@ void GameObjectBase::Render(XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
 		// 월드 및 WVP 행렬 상수 버퍼 업데이트 및 셰이더에 설정
 		m_worldData.worldMatrix = XMMatrixTranspose(m_worldMatrix);
 		m_worldData.normalMatrix = XMMatrixTranspose(m_worldMatrix * m_inverseScaleSquareMatrix);
-		m_worldData.WVPMatrix = projectionMatrix * viewMatrix * m_worldData.worldMatrix;
+		m_worldData.WVPMatrix = VPMatrix * m_worldData.worldMatrix;
 
 		const com_ptr<ID3D11DeviceContext> deviceContext = Renderer::GetInstance().GetDeviceContext();
 		deviceContext->UpdateSubresource(m_worldWVPConstantBuffer.Get(), 0, nullptr, &m_worldData, 0, 0);
@@ -60,6 +61,7 @@ void GameObjectBase::Render(XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
 	}
 
 	// 자식 게임 오브젝트 렌더링
+	for (auto& child : m_childrens) child->Render(VPMatrix);
 }
 
 void GameObjectBase::RenderImGui()
@@ -75,11 +77,21 @@ void GameObjectBase::RenderImGui()
 
 		RenderImGuiGameObject();
 
-		ImGui::Separator();
-		ImGui::Text("Components:");
-		for (auto& [typeIndex, component] : m_components) component->RenderImGui();
+		// 컴포넌트 ImGui 렌더링
+		if (!m_components.empty())
+		{
+			ImGui::Separator();
+			ImGui::Text("Components:");
+			for (auto& [typeIndex, component] : m_components) component->RenderImGui();
+		}
 
 		// 자식 게임 오브젝트 ImGui 렌더링
+		if (!m_childrens.empty())
+		{
+			ImGui::Separator();
+			ImGui::Text("Children:");
+			for (auto& child : m_childrens) child->RenderImGui();
+		}
 
 		ImGui::TreePop();
 	}
@@ -89,9 +101,11 @@ void GameObjectBase::Finalize()
 {
 	FinalizeGameObject();
 
+	// 컴포넌트 종료
 	for (auto& [typeIndex, component] : m_components) component->Finalize();
 
 	// 자식 게임 오브젝트 종료
+	for (auto& child : m_childrens) child->Finalize();
 }
 
 void GameObjectBase::MoveDirection(float distance, Direction direction)
@@ -140,6 +154,32 @@ XMVECTOR GameObjectBase::GetDirectionVector(Direction direction)
 	}
 }
 
+void GameObjectBase::SetDirty()
+{
+	m_isDirty = true;
+	for (auto& child : m_childrens) child->SetDirty();
+}
+
+void GameObjectBase::RemovePendingChildGameObjects()
+{
+	for (GameObjectBase* childToRemove : m_childrenToRemove)
+	{
+		erase_if
+		(
+			m_childrens, [childToRemove](const unique_ptr<GameObjectBase>& obj)
+			{
+				if (obj.get() == childToRemove)
+				{
+					obj->Finalize();
+					return true;
+				}
+				return false;
+			}
+		);
+	}
+	m_childrenToRemove.clear();
+}
+
 void GameObjectBase::UpdateWorldMatrix()
 {
 	if (!m_isDirty) return;
@@ -153,6 +193,12 @@ void GameObjectBase::UpdateWorldMatrix()
 	XMVECTOR scaleSquared = XMVectorMultiply(m_scale, m_scale);
 	XMVECTOR invScaleSquared = XMVectorReciprocal(scaleSquared);
 	m_inverseScaleSquareMatrix = XMMatrixScalingFromVector(invScaleSquared);
+
+	if (m_parent)
+	{
+		m_worldMatrix *= m_parent->m_worldMatrix;
+		m_inverseScaleSquareMatrix *= m_parent->m_inverseScaleSquareMatrix;
+	}
 
 	// 카메라 컴포넌트가 있으면 뷰 행렬 갱신 // TODO: 더 나은 방법 고민
 	CameraComponent* cameraComponent = GetComponent<CameraComponent>();

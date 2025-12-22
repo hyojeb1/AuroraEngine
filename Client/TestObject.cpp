@@ -8,7 +8,7 @@ using namespace DirectX;
 
 void TestObject::InitializeGameObject()
 {
-	AddComponent<ModelComponent>(); // 扁夯 积己
+	CreateComponent<ModelComponent>(); // 扁夯 积己
 	SetScale({ 1.0f, 1.0f, 1.0f });
 }
 
