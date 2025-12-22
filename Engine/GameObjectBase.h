@@ -1,12 +1,8 @@
 #pragma once
 #include "ComponentBase.h"
 
-class Renderer;
-
 class GameObjectBase
 {
-	friend class SceneBase;
-
 	UINT m_id = 0; // 고유 ID
 	std::string m_typeName = "GameObjectBase"; // 게임 오브젝트 타입 이름
 
@@ -35,7 +31,6 @@ class GameObjectBase
 	std::unordered_map<std::type_index, std::unique_ptr<ComponentBase>> m_components = {}; // 컴포넌트 맵
 
 protected:
-	SceneBase* m_scene = nullptr; // 소유 씬 포인터
 	GameObjectBase* m_parent = nullptr; // 부모 게임 오브젝트 포인터
 	std::vector<GameObjectBase*> m_children = {}; // 자식 게임 오브젝트 배열
 
@@ -46,6 +41,17 @@ public:
 	GameObjectBase& operator=(const GameObjectBase&) = default; // 복사 대입
 	GameObjectBase(GameObjectBase&&) = default; // 이동
 	GameObjectBase& operator=(GameObjectBase&&) = default; // 이동 대입
+
+	// 게임 오브젝트 초기화
+	void Initialize();
+	// 게임 오브젝트 업데이트
+	void Update(float deltaTime);
+	// 게임 오브젝트 렌더링
+	void Render(DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix);
+	// ImGui 렌더링
+	void RenderImGui();
+	// 게임 오브젝트 종료
+	void Finalize();
 
 	UINT GetID() const { return m_id; }
 
@@ -93,30 +99,20 @@ public:
 	void RemoveComponent(); // 컴포넌트 제거
 
 protected:
-	// 게임 오브젝트 Initialize에서 호출
-	virtual void Begin() {}
-	// 매 프레임 씬 Render에서 호출
-	virtual void Update(float deltaTime) {}
-	// 매 프레임 RenderImGui에서 호출
-	virtual void SerializeImGui() {}
-	// 게임 오브젝트 소멸자가 호출
-	virtual void End() {}
+	// Initialize에서 호출
+	virtual void InitializeGameObject() {}
+	// Update에서 호출
+	virtual void UpdateGameObject(float deltaTime) {}
+	// RenderImGui에서 호출
+	virtual void RenderImGuiGameObject() {}
+	// Finalize에서 호출
+	virtual void FinalizeGameObject() {}
 
 private:
-	void SetDirty() { m_isDirty = true; } // 위치 갱신 필요로 설정
-
-	// 게임 오브젝트 초기화 // 씬이 CreateGameObject에서 호출
-	void Initialize(SceneBase* scene);
-
+	// 위치 갱신 필요로 설정
+	void SetDirty() { m_isDirty = true; }
 	// 월드 행렬 갱신 // 씬이 TransformGameObjects에서 호출
 	void UpdateWorldMatrix();
-	// 렌더링 // 씬이 Render에서 호출
-	void Render(DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix);
-	// ImGui 렌더링 // 씬이 RenderImGui에서 호출
-	void RenderImGui();
-
-	// 게임 오브젝트 종료 // 씬이 호출
-	void Finalize();
 };
 
 template<typename T, typename ...Args>

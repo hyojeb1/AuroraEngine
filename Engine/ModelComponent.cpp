@@ -39,17 +39,7 @@ void ModelComponent::Render()
 	}
 }
 
-void ModelComponent::Begin()
-{
-	ResourceManager& resourceManager = ResourceManager::GetInstance();
-
-	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(MaterialFactor));
-	m_model = resourceManager.LoadModel(m_modelFileName);
-
-	CreateShaders();
-}
-
-void ModelComponent::SerializeImGui()
+void ModelComponent::RenderImGuiComponent()
 {
 	// Model File Name
 	char modelFileNameBuffer[256];
@@ -69,6 +59,16 @@ void ModelComponent::SerializeImGui()
 		m_model = ResourceManager::GetInstance().LoadModel(m_modelFileName);
 		CreateShaders();
 	}
+}
+
+void ModelComponent::InitializeComponent()
+{
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
+
+	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(MaterialFactor));
+	m_model = resourceManager.LoadModel(m_modelFileName);
+
+	CreateShaders();
 }
 
 void ModelComponent::CreateShaders()

@@ -21,11 +21,8 @@ void SceneBase::Initialize()
 
 void SceneBase::Update(float deltaTime)
 {
-	UpdateScene(deltaTime);
-
 	RemovePendingGameObjects();
 	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->Update(deltaTime);
-	UpdateGameObjectsTransform();
 }
 
 void SceneBase::RemovePendingGameObjects()
@@ -48,17 +45,10 @@ void SceneBase::RemovePendingGameObjects()
 	m_gameObjectsToRemove.clear();
 }
 
-void SceneBase::UpdateGameObjectsTransform()
-{
-	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->UpdateWorldMatrix();
-}
-
 void SceneBase::Render()
 {
 	Renderer& renderer = Renderer::GetInstance();
 	renderer.BeginFrame(m_clearColor);
-
-	RenderScene();
 
 	// 뷰-투영 상수 버퍼 업데이트 및 셰이더에 설정
 	m_viewProjectionData.viewMatrix = XMMatrixTranspose(m_mainCamera->GetViewMatrix());
@@ -77,15 +67,6 @@ void SceneBase::Render()
 	renderer.EndFrame();
 }
 
-GameObjectBase* SceneBase::CreateCameraObject()
-{
-	GameObjectBase* cameraGameObject = CreateGameObject<GameObjectBase>();
-	cameraGameObject->SetPosition({ 0.0f, 5.0f, -10.0f });
-	cameraGameObject->LookAt({ 0.0f, 0.0f, 0.0f });
-
-	return cameraGameObject;
-}
-
 void SceneBase::RenderImGui()
 {
 	ImGui::Begin(m_typeName.c_str());
@@ -97,4 +78,13 @@ void SceneBase::RenderImGui()
 	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->RenderImGui();
 
 	ImGui::End();
+}
+
+GameObjectBase* SceneBase::CreateCameraObject()
+{
+	GameObjectBase* cameraGameObject = CreateNodeGameObject<GameObjectBase>();
+	cameraGameObject->SetPosition({ 0.0f, 5.0f, -10.0f });
+	cameraGameObject->LookAt({ 0.0f, 0.0f, 0.0f });
+
+	return cameraGameObject;
 }

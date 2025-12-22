@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "CameraComponent.h"
 
-void CameraComponent::SerializeImGui()
+void CameraComponent::RenderImGuiComponent()
 {
 	if (ImGui::DragFloat("FovY (radian)", &m_fovY, 0.01f, 0.1f, DirectX::XM_2PI)) UpdateProjectionMatrix();
 	if (ImGui::DragInt("Screen Width", reinterpret_cast<int*>(&m_screenWidth), 1.0f, 1, 8192)) UpdateProjectionMatrix();

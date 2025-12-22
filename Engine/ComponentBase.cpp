@@ -8,14 +8,15 @@ void ComponentBase::Initialize(GameObjectBase* owner)
 
 	m_owner = owner;
 
-	Begin();
+	InitializeComponent();
 }
 
 void ComponentBase::RenderImGui()
 {
 	if (ImGui::TreeNode(m_typeName.c_str()))
 	{
-		SerializeImGui();
+		RenderImGuiComponent();
+
 		ImGui::TreePop();
 	}
 }

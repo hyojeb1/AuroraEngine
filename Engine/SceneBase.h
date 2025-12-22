@@ -1,8 +1,7 @@
 #pragma once
 #include "GameObjectBase.h"
-#include "IBase.h"
 
-class SceneBase : public IBase
+class SceneBase
 {
 	std::string m_typeName = "SceneBase"; // 씬 타입 이름
 
@@ -30,25 +29,23 @@ public:
 	SceneBase& operator=(SceneBase&&) = delete; // 이동 대입 금지
 
 	// 씬 초기화 // 씬 사용 전 반드시 호출해야 함
-	void Initialize() override;
+	void Initialize();
 	// 씬 업데이트 // 씬 매니저가 호출
-	void Update(float deltaTime) override;
+	void Update(float deltaTime);
 	// 씬 렌더링 // 씬 매니저가 호출
-	void Render() override;
+	void Render();
+	// ImGui 렌더링
+	void RenderImGui();
 	// 씬 종료 // 씬 매니저가 씬을 교체할 때 호출
-	void Finalize() override { FinalizeScene(); }
+	void Finalize() { FinalizeScene(); }
 
 	template<typename T, typename... Args>
-	T* CreateGameObject(Args&&... args);
+	T* CreateNodeGameObject(Args&&... args);
 	void RemoveGameObject(GameObjectBase* gameObject) { m_gameObjectsToRemove.push_back(gameObject); }
 
 protected:
 	// 씬 초기화 // Initialize에서 호출
 	virtual void InitializeScene() = 0;
-	// 씬 업데이트 // Update에서 호출
-	virtual void UpdateScene(float deltaTime) {}
-	// 씬 렌더링 // Render에서 호출
-	virtual void RenderScene() {}
 	// 씬 종료 // Finalize에서 호출
 	virtual void FinalizeScene() = 0;
 
@@ -58,19 +55,15 @@ protected:
 private:
 	// 제거할 게임 오브젝트 제거 // Update에서 호출
 	void RemovePendingGameObjects();
-	// 게임 오브젝트 변환 갱신 // Update에서 호출
-	void UpdateGameObjectsTransform();
-
-	// ImGui 렌더링
-	void RenderImGui();
 };
 
+// TODO: concept 쓰기
 template<typename T, typename ...Args>
-inline T* SceneBase::CreateGameObject(Args && ...args)
+inline T* SceneBase::CreateNodeGameObject(Args && ...args)
 {
 	auto gameObject = std::make_unique<T>(std::forward<Args>(args)...);
 
-	gameObject->Initialize(this);
+	gameObject->Initialize();
 	T* gameObjectPtr = gameObject.get();
 	m_gameObjects.push_back(move(gameObject));
 
