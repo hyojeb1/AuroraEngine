@@ -9,7 +9,6 @@ cbuffer World : register(b1)
 {
     matrix WorldMatrix;
     matrix NormalMatrix; // 스케일 역행렬을 적용한 월드 행렬
-    matrix WVP;
 }
 
 struct VertexInput
@@ -23,6 +22,7 @@ struct VertexInput
 struct VertexOutput
 {
     float4 Position : SV_POSITION0;
+    float4 WorldPosition : POSITION0;
     float2 UV : TEXCOORD0;
     float3x3 TBN : TBN0;
 };
@@ -32,7 +32,8 @@ VertexOutput main(VertexInput input)
     VertexOutput output;
     
     input.Position.w = 1.0f;
-    output.Position = mul(input.Position, WVP);
+    output.WorldPosition = mul(input.Position, WorldMatrix);
+    output.Position = mul(output.WorldPosition, VPMatrix);
     
     output.UV = input.UV;
     

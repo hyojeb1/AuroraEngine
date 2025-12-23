@@ -42,7 +42,7 @@ void GameObjectBase::Update(float deltaTime)
 	for (auto& child : m_childrens) child->Update(deltaTime);
 }
 
-void GameObjectBase::Render(const XMMATRIX& VPMatrix)
+void GameObjectBase::Render()
 {
 	ModelComponent* model = GetComponent<ModelComponent>();
 	if (model)
@@ -50,7 +50,6 @@ void GameObjectBase::Render(const XMMATRIX& VPMatrix)
 		// 월드 및 WVP 행렬 상수 버퍼 업데이트 및 셰이더에 설정
 		m_worldData.worldMatrix = XMMatrixTranspose(m_worldMatrix);
 		m_worldData.normalMatrix = XMMatrixTranspose(m_worldMatrix * m_inverseScaleSquareMatrix);
-		m_worldData.WVPMatrix = VPMatrix * m_worldData.worldMatrix;
 
 		const com_ptr<ID3D11DeviceContext> deviceContext = Renderer::GetInstance().GetDeviceContext();
 		deviceContext->UpdateSubresource(m_worldWVPConstantBuffer.Get(), 0, nullptr, &m_worldData, 0, 0);
@@ -61,7 +60,7 @@ void GameObjectBase::Render(const XMMATRIX& VPMatrix)
 	}
 
 	// 자식 게임 오브젝트 렌더링
-	for (auto& child : m_childrens) child->Render(VPMatrix);
+	for (auto& child : m_childrens) child->Render();
 }
 
 void GameObjectBase::RenderImGui()

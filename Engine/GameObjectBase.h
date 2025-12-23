@@ -23,7 +23,6 @@ class GameObjectBase
 	{
 		DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity(); // 월드 행렬
 		DirectX::XMMATRIX normalMatrix = DirectX::XMMatrixIdentity(); // 스케일 역행렬을 적용한 월드 행렬
-		DirectX::XMMATRIX WVPMatrix = DirectX::XMMatrixIdentity(); // WVP 행렬
 	};
 	WorldBuffer m_worldData = {}; // 월드 및 WVP 행렬 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_worldWVPConstantBuffer = nullptr; // 월드, WVP 행렬 상수 버퍼
@@ -48,7 +47,7 @@ public:
 	// 게임 오브젝트 업데이트
 	void Update(float deltaTime);
 	// 게임 오브젝트 렌더링
-	void Render(const DirectX::XMMATRIX& VPMatrix);
+	void Render();
 	// ImGui 렌더링
 	void RenderImGui();
 	// 게임 오브젝트 종료

@@ -41,8 +41,6 @@ void SceneBase::Render()
 	deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
 	deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::ViewProjection), 1, m_viewProjectionConstantBuffer.GetAddressOf());
 
-	XMMATRIX VPMatrix = m_viewProjectionData.projectionMatrix * m_viewProjectionData.viewMatrix;
-
 	// 방향광 상수 버퍼 업데이트 및 셰이더에 설정
 	m_directionalLightData.lightDirection = DirectionalLightDirection;
 	m_directionalLightData.lightColor = m_clearColor;
@@ -50,7 +48,7 @@ void SceneBase::Render()
 	deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::DirectionalLight), 1, m_directionalLightConstantBuffer.GetAddressOf());
 
 	// 게임 오브젝트 렌더링
-	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->Render(VPMatrix);
+	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->Render();
 
 	// ImGui 렌더링
 	RenderImGui();
