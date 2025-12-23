@@ -16,7 +16,7 @@ void SceneBase::Initialize()
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_viewProjectionConstantBuffer = resourceManager.GetConstantBuffer(sizeof(ViewProjectionBuffer)); // 뷰-투영 상수 버퍼 생성
 	m_directionalLightConstantBuffer = resourceManager.GetConstantBuffer(sizeof(DirectionalLightBuffer)); // 방향광 상수 버퍼 생성
-	//m_environmentMapSRV = resourceManager.CreateTexture(m_environmentMapFileName); // 환경 맵 로드
+	m_environmentMapSRV = resourceManager.GetTexture(m_environmentMapFileName); // 환경 맵 로드
 
 	m_mainCamera = CreateCameraObject()->CreateComponent<CameraComponent>();
 

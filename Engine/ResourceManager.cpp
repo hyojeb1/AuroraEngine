@@ -92,7 +92,7 @@ com_ptr<ID3D11PixelShader> ResourceManager::GetPixelShader(const string& shaderN
 	return m_pixelShaders[shaderName];
 }
 
-com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const std::string& fileName, D3D11_SHADER_RESOURCE_VIEW_DESC* srvDesc)
+com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& fileName)
 {
 	// 기존에 생성된 텍스처가 있으면 재사용
 	auto it = m_textures.find(fileName);
@@ -112,22 +112,50 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const std::string&
 		exit(EXIT_FAILURE);
 	}
 
-	hr = CreateWICTextureFromMemoryEx
-	(
-		m_device.Get(),
-		m_deviceContext.Get(), // 디바이스 컨텍스트도 같이 넘겨주먼 mipmap 자동 생성 가능
-		cacheIt->second.data(),
-		cacheIt->second.size(),
-		0,
-		D3D11_USAGE_DEFAULT,
-		D3D11_BIND_SHADER_RESOURCE,
-		0,
-		D3D11_RESOURCE_MISC_GENERATE_MIPS, // mipmap 자동 생성
-		WIC_LOADER_DEFAULT, // 나중에 감마 보정 옵션도 넣기
-		nullptr,
-		m_textures[fileName].GetAddressOf()
-	);
-	CheckResult(hr, "텍스처 생성 실패.");
+	// 파일 확장자 확인
+	const string extension = fileName.substr(fileName.find_last_of('.') + 1);
+	const bool isDDS = (extension == "dds" || extension == "DDS");
+
+	if (isDDS)
+	{
+		// DDS 파일 (큐브맵 등)
+		hr = CreateDDSTextureFromMemoryEx
+		(
+			m_device.Get(),
+			m_deviceContext.Get(),
+			cacheIt->second.data(),
+			cacheIt->second.size(),
+			0,
+			D3D11_USAGE_DEFAULT,
+			D3D11_BIND_SHADER_RESOURCE,
+			0,
+			D3D11_RESOURCE_MISC_GENERATE_MIPS, // mipmap 자동 생성
+			DDS_LOADER_DEFAULT,
+			nullptr,
+			m_textures[fileName].GetAddressOf()
+		);
+		CheckResult(hr, "DDS 텍스처 생성 실패.");
+	}
+	else
+	{
+		// WIC 지원 이미지 (jpg, png 등)
+		hr = CreateWICTextureFromMemoryEx
+		(
+			m_device.Get(),
+			m_deviceContext.Get(),
+			cacheIt->second.data(),
+			cacheIt->second.size(),
+			0,
+			D3D11_USAGE_DEFAULT,
+			D3D11_BIND_SHADER_RESOURCE,
+			0,
+			D3D11_RESOURCE_MISC_GENERATE_MIPS, // mipmap 자동 생성
+			WIC_LOADER_DEFAULT, // 나중에 감마 보정 옵션도 넣기
+			nullptr,
+			m_textures[fileName].GetAddressOf()
+		);
+		CheckResult(hr, "텍스처 생성 실패.");
+	}
 
 	return m_textures[fileName];
 }

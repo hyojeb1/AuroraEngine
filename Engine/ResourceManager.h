@@ -42,7 +42,7 @@ public:
 	// 픽셀 셰이더 얻기
 	com_ptr<ID3D11PixelShader> GetPixelShader(const std::string& shaderName);
 	// 텍스처 파일로부터 텍스처 로드
-	com_ptr<ID3D11ShaderResourceView> GetTexture(const std::string& fileName, D3D11_SHADER_RESOURCE_VIEW_DESC* srvDesc = nullptr);
+	com_ptr<ID3D11ShaderResourceView> GetTexture(const std::string& fileName);
 	// 모델 파일로부터 모델 로드
 	const Model* LoadModel(const std::string& fileName);
 
