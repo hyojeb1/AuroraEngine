@@ -13,12 +13,14 @@ cbuffer MaterialFactor : register(b1)
     float ambient;
 };
 
-SamplerState textureSampler : register(s0);
+SamplerState textureSampler : register(s1);
 
-Texture2D albedoTexture : register(t0);
-Texture2D normalTexture : register(t1);
-Texture2D metallicTexture : register(t2);
-Texture2D roughnessTexture : register(t3);
+TextureCube environmentMap : register(t1);
+
+Texture2D albedoTexture : register(t2);
+Texture2D normalTexture : register(t3);
+Texture2D metallicTexture : register(t4);
+Texture2D roughnessTexture : register(t5);
 
 struct PixelInput
 {
@@ -35,7 +37,7 @@ float4 main(PixelInput input) : SV_TARGET
     float3 normalMap = normalTexture.Sample(textureSampler, input.UV).xyz * 2.0f - 1.0f;
     
     float3 normal = normalize(mul(normalMap, input.TBN)); // 이것도 normalize 꼭 필요하나?
-    float3 lightDir = -lightDirection.xyz;
+    float3 lightDir = lightDirection.xyz;
     float NdotL = dot(normal, lightDir);
     
     albedo.rgb *= saturate(NdotL) * lightColor.rgb * lightFactor;

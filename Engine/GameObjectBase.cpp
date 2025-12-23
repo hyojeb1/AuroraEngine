@@ -123,7 +123,7 @@ void GameObjectBase::MoveDirection(float distance, Direction direction)
 	MovePosition(deltaPosition);
 }
 
-void GameObjectBase::SetRotation(const DirectX::XMVECTOR& rotation)
+void GameObjectBase::SetRotation(const XMVECTOR& rotation)
 {
 	m_euler = rotation;
 	m_quaternion = XMQuaternionRotationRollPitchYawFromVector(ToRadians(m_euler)); // 라디안으로 변환
@@ -131,7 +131,7 @@ void GameObjectBase::SetRotation(const DirectX::XMVECTOR& rotation)
 	SetDirty();
 }
 
-void GameObjectBase::Rotate(const DirectX::XMVECTOR& deltaRotation)
+void GameObjectBase::Rotate(const XMVECTOR& deltaRotation)
 {
 	m_euler = XMVectorAdd(m_euler, deltaRotation);
 	m_quaternion = XMQuaternionRotationRollPitchYawFromVector(ToRadians(m_euler)); // 라디안으로 변환

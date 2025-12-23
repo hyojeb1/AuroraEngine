@@ -68,7 +68,7 @@ constexpr std::array<D3D11_RASTERIZER_DESC, static_cast<size_t>(RasterState::Cou
 enum class SamplerState
 {
 	BackBuffer, // 백 버퍼 전용 샘플러 상태
-	Scene,
+	Default,
 
 	Count
 };
@@ -89,7 +89,7 @@ constexpr std::array<D3D11_SAMPLER_DESC, static_cast<size_t>(SamplerState::Count
 		.MaxLOD = D3D11_FLOAT32_MAX // 최대 LOD
 	},
 
-	// Scene
+	// Default
 	D3D11_SAMPLER_DESC
 	{
 		.Filter = D3D11_FILTER_ANISOTROPIC, // 이방성 필터링
@@ -177,6 +177,8 @@ enum class PSConstBuffers
 };
 enum class TextureSlots
 {
+	BackBuffer,
+	Environment,
 	Albedo,
 	Normal,
 	Metallic,

@@ -138,7 +138,7 @@ void Renderer::CreateDeviceAndContext()
 	// ImGui DirectX11 초기화
 	ImGui_ImplDX11_Init(m_device.Get(), m_deviceContext.Get());
 	// RenderResourceManager 초기화
-	ResourceManager::GetInstance().Initialize(m_device);
+	ResourceManager::GetInstance().Initialize(m_device, m_deviceContext);
 }
 
 void Renderer::CreateSwapChain(HWND hWnd)
@@ -365,8 +365,8 @@ void Renderer::RenderSceneToBackBuffer()
 	m_deviceContext->VSSetShader(m_backBufferVertexShaderAndInputLayout.first.Get(), nullptr, 0);
 	m_deviceContext->PSSetShader(m_backBufferPixelShader.Get(), nullptr, 0);
 
-	m_deviceContext->PSSetShaderResources(0, 1, m_sceneShaderResourceView.GetAddressOf());
-	m_deviceContext->PSSetSamplers(0, 1, m_backBufferSamplerState.GetAddressOf());
+	m_deviceContext->PSSetSamplers(static_cast<UINT>(SamplerState::BackBuffer), 1, m_backBufferSamplerState.GetAddressOf());
+	m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::BackBuffer), 1, m_sceneShaderResourceView.GetAddressOf());
 
 	m_deviceContext->Draw(3, 0);
 }

@@ -3,6 +3,7 @@
 // STL Çì´õ
 #include <array>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <typeindex>
 #include <unordered_map>

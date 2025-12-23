@@ -13,12 +13,12 @@ void SceneBase::Initialize()
 	m_typeName = typeid(*this).name();
 	if (m_typeName.find("class ") == 0) m_typeName = m_typeName.substr(6);
 
-	m_mainCamera = CreateCameraObject()->CreateComponent<CameraComponent>();
-
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
+	m_viewProjectionConstantBuffer = resourceManager.GetConstantBuffer(sizeof(ViewProjectionBuffer)); // 뷰-투영 상수 버퍼 생성
+	m_directionalLightConstantBuffer = resourceManager.GetConstantBuffer(sizeof(DirectionalLightBuffer)); // 방향광 상수 버퍼 생성
+	//m_environmentMapSRV = resourceManager.CreateTexture(m_environmentMapFileName); // 환경 맵 로드
 
-	m_directionalLightConstantBuffer = resourceManager.GetConstantBuffer(sizeof(DirectionalLightBuffer));
-	m_viewProjectionConstantBuffer = resourceManager.GetConstantBuffer(sizeof(ViewProjectionBuffer));
+	m_mainCamera = CreateCameraObject()->CreateComponent<CameraComponent>();
 
 	InitializeScene();
 }
@@ -36,18 +36,24 @@ void SceneBase::Render()
 
 	com_ptr<ID3D11DeviceContext> deviceContext = renderer.GetDeviceContext();
 
-	// 방향광 상수 버퍼 업데이트 및 셰이더에 설정
-	m_directionalLightData.lightDirection = XMVector3Normalize(m_directionalLightDirection);
-	m_directionalLightData.lightColor = m_sceneColor;
-	deviceContext->UpdateSubresource(m_directionalLightConstantBuffer.Get(), 0, nullptr, &m_directionalLightData, 0, 0);
-	deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::DirectionalLight), 1, m_directionalLightConstantBuffer.GetAddressOf());
-
 	// 뷰-투영 상수 버퍼 업데이트 및 셰이더에 설정
 	m_viewProjectionData.viewMatrix = XMMatrixTranspose(m_mainCamera->GetViewMatrix());
 	m_viewProjectionData.projectionMatrix = XMMatrixTranspose(m_mainCamera->GetProjectionMatrix());
 	m_viewProjectionData.VPMatrix = m_viewProjectionData.projectionMatrix * m_viewProjectionData.viewMatrix;
 	deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
 	deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::ViewProjection), 1, m_viewProjectionConstantBuffer.GetAddressOf());
+
+	// 방향광 상수 버퍼 업데이트 및 셰이더에 설정
+	m_directionalLightData.lightDirection = -XMVector3Normalize(m_directionalLightDirection);
+	m_directionalLightData.lightColor = m_sceneColor;
+	deviceContext->UpdateSubresource(m_directionalLightConstantBuffer.Get(), 0, nullptr, &m_directionalLightData, 0, 0);
+	deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::DirectionalLight), 1, m_directionalLightConstantBuffer.GetAddressOf());
+
+	// 샘플러 상태 설정
+	deviceContext->PSSetSamplers(static_cast<UINT>(SamplerState::Default), 1, ResourceManager::GetInstance().GetSamplerState(SamplerState::Default).GetAddressOf());
+
+	// 환경 맵 설정
+	deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Environment), 1, m_environmentMapSRV.GetAddressOf());
 
 	// 게임 오브젝트 렌더링
 	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->Render();
