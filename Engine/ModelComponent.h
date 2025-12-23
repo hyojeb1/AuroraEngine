@@ -34,6 +34,7 @@ public:
 	ModelComponent& operator=(ModelComponent&&) = default;
 
 	void Render();
+	void RenderImGuiComponent() override;
 
 	const std::string& GetModelFileName() const { return m_modelFileName; }
 	void SetModelFileName(const std::string& modelFileName) { m_modelFileName = modelFileName; }
@@ -43,11 +44,8 @@ public:
 	const std::string& GetPixelShaderName() const { return m_psShaderName; }
 	void SetPixelShaderName(const std::string& psShaderName) { m_psShaderName = psShaderName; }
 
-protected:
-	void Begin() override;
-	void SerializeImGui() override;
-
 private:
+	void InitializeComponent() override;
 	// ¼ÎÀÌ´õ »ý¼º
 	void CreateShaders();
 };

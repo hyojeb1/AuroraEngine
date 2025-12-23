@@ -4,8 +4,6 @@ class GameObjectBase;
 
 class ComponentBase
 {
-	friend class GameObjectBase;
-
 	std::string m_typeName = "ComponentBase"; // 컴포넌트 타입 이름
 
 protected:
@@ -19,17 +17,16 @@ public:
 	ComponentBase(ComponentBase&&) = default; // 이동
 	ComponentBase& operator=(ComponentBase&&) = default; // 이동 대입
 
-protected:
-	// 컴포넌트 초기화 // ComponentBase의 Initialize에서 호출
-	virtual void Begin() {};
-	// 매 프레임 RenderImGui에서 호출
-	virtual void SerializeImGui() {};
-	// 컴포넌트 Finalize에서 호출
-	virtual void End() {};
-
-private:
 	void Initialize(GameObjectBase* owner);
 	// ImGui 렌더링 // GameObjectBase의 RenderImGui에서 호출
 	void RenderImGui();
-	void Finalize() { End(); }
+	void Finalize() { FinalizeComponent(); }
+
+protected:
+	// 컴포넌트 초기화 // ComponentBase의 Initialize에서 호출
+	virtual void InitializeComponent() {};
+	// 컴포넌트 ImGui 렌더링 // RenderImGui에서 호출
+	virtual void RenderImGuiComponent() {};
+	// 컴포넌트 Finalize에서 호출
+	virtual void FinalizeComponent() {};
 };

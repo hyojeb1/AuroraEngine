@@ -12,6 +12,6 @@ public:
 	TestObject& operator=(TestObject&&) = default;
 
 private:
-	void Begin() override;
-	void Update(float deltaTime) override;
+	void InitializeGameObject() override;
+	void UpdateGameObject(float deltaTime) override;
 };

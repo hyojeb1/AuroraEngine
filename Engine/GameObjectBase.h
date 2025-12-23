@@ -1,12 +1,8 @@
 #pragma once
 #include "ComponentBase.h"
 
-class Renderer;
-
 class GameObjectBase
 {
-	friend class SceneBase;
-
 	UINT m_id = 0; // 고유 ID
 	std::string m_typeName = "GameObjectBase"; // 게임 오브젝트 타입 이름
 
@@ -35,9 +31,9 @@ class GameObjectBase
 	std::unordered_map<std::type_index, std::unique_ptr<ComponentBase>> m_components = {}; // 컴포넌트 맵
 
 protected:
-	SceneBase* m_scene = nullptr; // 소유 씬 포인터
 	GameObjectBase* m_parent = nullptr; // 부모 게임 오브젝트 포인터
-	std::vector<GameObjectBase*> m_children = {}; // 자식 게임 오브젝트 배열
+	std::vector<std::unique_ptr<GameObjectBase>> m_childrens = {}; // 소유한 자식 게임 오브젝트 배열
+	std::vector<GameObjectBase*> m_childrenToRemove = {}; // 제거할 자식 게임 오브젝트 배열
 
 public:
 	GameObjectBase(); // 무조건 CreateGameObject로 생성
@@ -46,6 +42,17 @@ public:
 	GameObjectBase& operator=(const GameObjectBase&) = default; // 복사 대입
 	GameObjectBase(GameObjectBase&&) = default; // 이동
 	GameObjectBase& operator=(GameObjectBase&&) = default; // 이동 대입
+
+	// 게임 오브젝트 초기화
+	void Initialize();
+	// 게임 오브젝트 업데이트
+	void Update(float deltaTime);
+	// 게임 오브젝트 렌더링
+	void Render(const DirectX::XMMATRIX& VPMatrix);
+	// ImGui 렌더링
+	void RenderImGui();
+	// 게임 오브젝트 종료
+	void Finalize();
 
 	UINT GetID() const { return m_id; }
 
@@ -85,42 +92,52 @@ public:
 
 	DirectX::XMMATRIX GetWorldMatrix() const { return m_worldMatrix; }
 
-	template<typename T, typename... Args>
-	T* AddComponent(Args&&... args); // 컴포넌트 추가
-	template<typename T>
+	template<typename T, typename... Args> requires std::derived_from<T, GameObjectBase>
+	T* CreateChildGameObject(Args&&... args); // 자식 게임 오브젝트 생성
+	// 자식 게임 오브젝트 제거 // 제거 배열에 추가
+	void RemoveChildGameObject(GameObjectBase* childGameObject) { m_childrenToRemove.push_back(childGameObject); }
+
+	template<typename T, typename... Args> requires std::derived_from<T, ComponentBase>
+	T* CreateComponent(Args&&... args); // 컴포넌트 추가
+	template<typename T> requires std::derived_from<T, ComponentBase>
 	T* GetComponent(); // 컴포넌트 가져오기 // 없으면 nullptr 반환
-	template<typename T>
+	template<typename T> requires std::derived_from<T, ComponentBase>
 	void RemoveComponent(); // 컴포넌트 제거
 
 protected:
-	// 게임 오브젝트 Initialize에서 호출
-	virtual void Begin() {}
-	// 매 프레임 씬 Render에서 호출
-	virtual void Update(float deltaTime) {}
-	// 매 프레임 RenderImGui에서 호출
-	virtual void SerializeImGui() {}
-	// 게임 오브젝트 소멸자가 호출
-	virtual void End() {}
+	// Initialize에서 호출
+	virtual void InitializeGameObject() {}
+	// Update에서 호출
+	virtual void UpdateGameObject(float deltaTime) {}
+	// RenderImGui에서 호출
+	virtual void RenderImGuiGameObject() {}
+	// Finalize에서 호출
+	virtual void FinalizeGameObject() {}
 
 private:
-	void SetDirty() { m_isDirty = true; } // 위치 갱신 필요로 설정
-
-	// 게임 오브젝트 초기화 // 씬이 CreateGameObject에서 호출
-	void Initialize(SceneBase* scene);
-
+	// 위치 갱신 필요로 설정 // 자식 게임 오브젝트도 설정
+	void SetDirty();
+	// 제거할 자식 게임 오브젝트 제거
+	void RemovePendingChildGameObjects();
 	// 월드 행렬 갱신 // 씬이 TransformGameObjects에서 호출
 	void UpdateWorldMatrix();
-	// 렌더링 // 씬이 Render에서 호출
-	void Render(DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix);
-	// ImGui 렌더링 // 씬이 RenderImGui에서 호출
-	void RenderImGui();
-
-	// 게임 오브젝트 종료 // 씬이 호출
-	void Finalize();
 };
 
-template<typename T, typename ...Args>
-inline T* GameObjectBase::AddComponent(Args && ...args)
+template<typename T, typename ...Args> requires std::derived_from<T, GameObjectBase>
+inline T* GameObjectBase::CreateChildGameObject(Args && ...args)
+{
+	auto child = std::make_unique<T>(std::forward<Args>(args)...);
+
+	child->m_parent = this;
+	child->Initialize();
+	T* childPtr = child.get();
+	m_childrens.push_back(std::move(child));
+
+	return childPtr;
+}
+
+template<typename T, typename ...Args> requires std::derived_from<T, ComponentBase>
+inline T* GameObjectBase::CreateComponent(Args && ...args)
 {
 	auto component = std::make_unique<T>(std::forward<Args>(args)...);
 
@@ -131,7 +148,7 @@ inline T* GameObjectBase::AddComponent(Args && ...args)
 	return componentPtr;
 }
 
-template<typename T>
+template<typename T> requires std::derived_from<T, ComponentBase>
 inline T* GameObjectBase::GetComponent()
 {
 	auto it = m_components.find(std::type_index(typeid(T)));
@@ -140,7 +157,7 @@ inline T* GameObjectBase::GetComponent()
 	return nullptr;
 }
 
-template<typename T>
+template<typename T> requires std::derived_from<T, ComponentBase>
 inline void GameObjectBase::RemoveComponent()
 {
 	auto it = m_components.find(std::type_index(typeid(T)));

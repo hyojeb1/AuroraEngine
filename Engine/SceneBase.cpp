@@ -8,54 +8,21 @@
 using namespace std;
 using namespace DirectX;
 
-GameObjectBase* SceneBase::CreateCameraObject()
-{
-	GameObjectBase* cameraGameObject = CreateGameObject<GameObjectBase>();
-	cameraGameObject->SetPosition({ 0.0f, 5.0f, -10.0f });
-	cameraGameObject->LookAt({ 0.0f, 0.0f, 0.0f });
-
-	return cameraGameObject;
-}
-
 void SceneBase::Initialize()
 {
 	m_typeName = typeid(*this).name();
 	if (m_typeName.find("class ") == 0) m_typeName = m_typeName.substr(6);
 
 	m_viewProjectionConstantBuffer = ResourceManager::GetInstance().GetConstantBuffer(sizeof(ViewProjectionBuffer));
-	m_mainCamera = CreateCameraObject()->AddComponent<CameraComponent>();
+	m_mainCamera = CreateCameraObject()->CreateComponent<CameraComponent>();
 
-	Begin();
+	InitializeScene();
 }
 
 void SceneBase::Update(float deltaTime)
 {
+	RemovePendingGameObjects();
 	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->Update(deltaTime);
-}
-
-void SceneBase::RemovePendingGameObjects()
-{
-	for (GameObjectBase* gameObjectToRemove : m_gameObjectsToRemove)
-	{
-		std::erase_if
-		(
-			m_gameObjects, [gameObjectToRemove](const unique_ptr<GameObjectBase>& obj)
-			{
-				if (obj.get() == gameObjectToRemove)
-				{
-					obj->Finalize();
-					return true;
-				}
-			return false;
-			}
-		);
-	}
-	m_gameObjectsToRemove.clear();
-}
-
-void SceneBase::TransformGameObjects()
-{
-	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->UpdateWorldMatrix();
 }
 
 void SceneBase::Render()
@@ -71,8 +38,10 @@ void SceneBase::Render()
 	deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
 	deviceContext->VSSetConstantBuffers(0, 1, m_viewProjectionConstantBuffer.GetAddressOf());
 
+	XMMATRIX VPMatrix = m_viewProjectionData.projectionMatrix * m_viewProjectionData.viewMatrix;
+
 	// 게임 오브젝트 렌더링
-	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->Render(m_viewProjectionData.viewMatrix, m_viewProjectionData.projectionMatrix);
+	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->Render(VPMatrix);
 
 	// ImGui 렌더링
 	RenderImGui();
@@ -93,7 +62,31 @@ void SceneBase::RenderImGui()
 	ImGui::End();
 }
 
-void SceneBase::Finalize()
+GameObjectBase* SceneBase::CreateCameraObject()
 {
-	End();
+	GameObjectBase* cameraGameObject = CreateRootGameObject<GameObjectBase>();
+	cameraGameObject->SetPosition({ 0.0f, 5.0f, -10.0f });
+	cameraGameObject->LookAt({ 0.0f, 0.0f, 0.0f });
+
+	return cameraGameObject;
+}
+
+void SceneBase::RemovePendingGameObjects()
+{
+	for (GameObjectBase* gameObjectToRemove : m_gameObjectsToRemove)
+	{
+		erase_if
+		(
+			m_gameObjects, [gameObjectToRemove](const unique_ptr<GameObjectBase>& obj)
+			{
+				if (obj.get() == gameObjectToRemove)
+				{
+					obj->Finalize();
+					return true;
+				}
+				return false;
+			}
+		);
+	}
+	m_gameObjectsToRemove.clear();
 }

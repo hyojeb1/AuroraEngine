@@ -6,13 +6,12 @@
 
 using namespace std;
 
-GameObjectBase* TestScene::CreateCameraObject()
+void TestScene::InitializeScene()
 {
-	return CreateGameObject<TestCameraObject>();
+	CreateRootGameObject<TestObject>();
 }
 
-void TestScene::Begin()
+GameObjectBase* TestScene::CreateCameraObject()
 {
-	CreateGameObject<TestObject>();
-	CreateGameObject<TestObject>()->SetPosition({ 3.0f, 0.0f, 0.0f });
+	return CreateRootGameObject<TestCameraObject>();
 }
