@@ -12,13 +12,23 @@ class SceneBase
 	{
 		DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixIdentity(); // 뷰 행렬
 		DirectX::XMMATRIX projectionMatrix = DirectX::XMMatrixIdentity(); // 투영 행렬
+		DirectX::XMMATRIX VPMatrix = DirectX::XMMatrixIdentity(); // VP 행렬
 	};
 	ViewProjectionBuffer m_viewProjectionData = {}; // 뷰-투영 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_viewProjectionConstantBuffer = nullptr; // 뷰-투영 상수 버퍼
 
+	struct DirectionalLightBuffer // 방향광 상수 버퍼 구조체
+	{
+		DirectX::XMVECTOR lightDirection = DirectX::XMVectorSet(-0.5f, -1.0f, -0.5f, 0.0f); // 방향광 방향
+		DirectX::XMFLOAT4 lightColor = { 0.5f, 0.5f, 0.5f, 1.0f }; // 방향광 색상
+	};
+	DirectionalLightBuffer m_directionalLightData = {}; // 방향광 상수 버퍼 데이터
+	com_ptr<ID3D11Buffer> m_directionalLightConstantBuffer = nullptr; // 방향광 상수 버퍼
+
 protected:
 	class CameraComponent* m_mainCamera = nullptr; // 메인 카메라 컴포넌트 포인터
-	std::array<FLOAT, 4> m_clearColor = { 0.5f, 0.5f, 0.5f, 1.0f }; // 씬 클리어 색상
+	DirectX::XMVECTOR DirectionalLightDirection = DirectX::XMVectorSet(-0.5f, -1.0f, -0.5f, 0.0f); // 방향광 방향
+	DirectX::XMFLOAT4 m_clearColor = { 0.5f, 0.5f, 0.5f, 1.0f }; // 씬 클리어 색상 // 방향광 색상으로도 씀
 
 public:
 	SceneBase() = default; // 무조건 SceneManager로 생성

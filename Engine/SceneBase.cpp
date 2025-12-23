@@ -13,8 +13,10 @@ void SceneBase::Initialize()
 	m_typeName = typeid(*this).name();
 	if (m_typeName.find("class ") == 0) m_typeName = m_typeName.substr(6);
 
-	m_viewProjectionConstantBuffer = ResourceManager::GetInstance().GetConstantBuffer(sizeof(ViewProjectionBuffer));
 	m_mainCamera = CreateCameraObject()->CreateComponent<CameraComponent>();
+
+	m_viewProjectionConstantBuffer = ResourceManager::GetInstance().GetConstantBuffer(sizeof(ViewProjectionBuffer));
+	m_directionalLightConstantBuffer = ResourceManager::GetInstance().GetConstantBuffer(sizeof(DirectionalLightBuffer));
 
 	InitializeScene();
 }
@@ -33,12 +35,19 @@ void SceneBase::Render()
 	// 뷰-투영 상수 버퍼 업데이트 및 셰이더에 설정
 	m_viewProjectionData.viewMatrix = XMMatrixTranspose(m_mainCamera->GetViewMatrix());
 	m_viewProjectionData.projectionMatrix = XMMatrixTranspose(m_mainCamera->GetProjectionMatrix());
+	m_viewProjectionData.VPMatrix = m_viewProjectionData.projectionMatrix * m_viewProjectionData.viewMatrix;
 
 	com_ptr<ID3D11DeviceContext> deviceContext = renderer.GetDeviceContext();
 	deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
-	deviceContext->VSSetConstantBuffers(0, 1, m_viewProjectionConstantBuffer.GetAddressOf());
+	deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::ViewProjection), 1, m_viewProjectionConstantBuffer.GetAddressOf());
 
 	XMMATRIX VPMatrix = m_viewProjectionData.projectionMatrix * m_viewProjectionData.viewMatrix;
+
+	// 방향광 상수 버퍼 업데이트 및 셰이더에 설정
+	m_directionalLightData.lightDirection = DirectionalLightDirection;
+	m_directionalLightData.lightColor = m_clearColor;
+	deviceContext->UpdateSubresource(m_directionalLightConstantBuffer.Get(), 0, nullptr, &m_directionalLightData, 0, 0);
+	deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::DirectionalLight), 1, m_directionalLightConstantBuffer.GetAddressOf());
 
 	// 게임 오브젝트 렌더링
 	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->Render(VPMatrix);
@@ -53,7 +62,7 @@ void SceneBase::RenderImGui()
 {
 	ImGui::Begin(m_typeName.c_str());
 
-	if (ImGui::ColorEdit3("Clear Color", m_clearColor.data())) {}
+	if (ImGui::ColorEdit3("Clear Color", &m_clearColor.x)) {}
 
 	ImGui::Separator();
 	ImGui::Text("Game Objects:");

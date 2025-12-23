@@ -2,6 +2,7 @@ cbuffer ViewProjection : register(b0)
 {
     matrix ViewMatrix;
     matrix ProjectionMatrix;
+    matrix VPMatrix;
 }
 
 cbuffer World : register(b1)
@@ -23,8 +24,7 @@ struct VertexOutput
 {
     float4 Position : SV_POSITION0;
     float2 UV : TEXCOORD0;
-    float3 Normal : NORMAL0;
-    float3 Tangent : TANGENT0;
+    float3x3 TBN : TBN0;
 };
 
 VertexOutput main(VertexInput input)
@@ -36,8 +36,10 @@ VertexOutput main(VertexInput input)
     
     output.UV = input.UV;
     
-    output.Normal = normalize(mul(float4(input.Normal, 0.0f), NormalMatrix).xyz); // 이거 normalize 꼭 필요하나?
-    output.Tangent = normalize(mul(float4(input.Tangent, 0.0f), NormalMatrix).xyz);
+    output.TBN[2] = normalize(mul(float4(input.Normal, 0.0f), NormalMatrix).xyz); // 이거 normalize 꼭 필요하나?
+    output.TBN[0] = normalize(mul(float4(input.Tangent, 0.0f), NormalMatrix).xyz);
+    output.TBN[1] = cross(output.TBN[2], output.TBN[0]);
+    
     
     return output;
 }

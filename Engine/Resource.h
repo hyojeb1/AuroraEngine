@@ -165,6 +165,24 @@ constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement:
 	}
 };
 
+enum class VSConstBuffers
+{
+	ViewProjection,
+	WorldNormal
+};
+enum class PSConstBuffers
+{
+	DirectionalLight,
+	Material
+};
+enum class TextureSlots
+{
+	Albedo,
+	Normal,
+	Metallic,
+	Roughness
+};
+
 struct Vertex
 {
 	DirectX::XMFLOAT4 position = {};

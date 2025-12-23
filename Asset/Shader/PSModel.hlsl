@@ -1,4 +1,10 @@
-cbuffer MaterialFactor : register(b0)
+cbuffer DirectionalLight : register(b0)
+{
+    float4 lightDirection;
+    float4 lightColor;
+};
+
+cbuffer MaterialFactor : register(b1)
 {
     float4 albedoFactor;
     float metallicFactor;
@@ -18,8 +24,7 @@ struct PixelInput
 {
     float4 Position : SV_POSITION0;
     float2 UV : TEXCOORD0;
-    float3 Normal : NORMAL0;
-    float3 Tangent : TANGENT0;
+    float3x3 TBN : TBN0;
 };
 
 float4 main(PixelInput input) : SV_TARGET
