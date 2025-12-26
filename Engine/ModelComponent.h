@@ -6,6 +6,8 @@ class ModelComponent : public ComponentBase
 {
 	const struct Model* m_model = nullptr;
 
+	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
+
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_vertexShaderAndInputLayout = {}; // 정점 셰이더 및 입력 레이아웃
 	com_ptr<ID3D11PixelShader> m_pixelShader = nullptr; // 픽셀 셰이더
 

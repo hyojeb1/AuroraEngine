@@ -1,0 +1,35 @@
+cbuffer ViewProjection : register(b0)
+{
+    matrix ViewMatrix;
+    matrix ProjectionMatrix;
+    matrix VPMatrix;
+}
+
+struct VSOutput
+{
+    float4 position : SV_POSITION;
+    float3 viewDir : TEXCOORD0;
+};
+
+VSOutput main(uint vertexID : SV_VertexID)
+{
+    VSOutput output;
+    
+    // 전체 화면을 덮는 2개의 삼각형 정점 위치 계산
+    float2 texCoord = float2((vertexID << 1) & 2, vertexID & 2);
+    output.position = float4(texCoord * float2(2, -2) + float2(-1, 1), 1, 1);
+    
+    // 회전만 반영된 뷰 행렬
+    matrix viewNoTranslation = ViewMatrix;
+    viewNoTranslation[3] = float4(0, 0, 0, 1);
+    
+    // 역투영행렬 * 역뷰행렬
+    matrix invVP = mul(viewNoTranslation, ProjectionMatrix);
+    invVP = transpose(invVP);
+    
+    // 원점에서 멀리 떨어진 위치 계산
+    float4 farPos = mul(output.position, invVP);
+    output.viewDir = farPos.xyz;
+    
+    return output;
+}

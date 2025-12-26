@@ -8,6 +8,7 @@ class ResourceManager : public SingletonBase<ResourceManager>
 	com_ptr<ID3D11Device> m_device = nullptr; // 디바이스
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
 
+	std::array<com_ptr<ID3D11DepthStencilState>, static_cast<size_t>(DepthStencilState::Count)> m_depthStencilStates = {}; // 깊이버퍼 상태 배열
 	std::array<com_ptr<ID3D11RasterizerState>, static_cast<size_t>(RasterState::Count)> m_rasterStates = {}; // 래스터 상태 배열
 	std::array<com_ptr<ID3D11SamplerState>, static_cast<size_t>(SamplerState::Count)> m_samplerStates = {}; // 샘플러 상태 배열
 
@@ -31,6 +32,8 @@ public:
 	void Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11DeviceContext> deviceContext);
 
 	// 자원 획득 함수들
+	// 깊이버퍼 상태 얻기
+	com_ptr<ID3D11DepthStencilState> GetDepthStencilState(DepthStencilState state) { return m_depthStencilStates[static_cast<size_t>(state)]; }
 	// 래스터 상태 얻기
 	com_ptr<ID3D11RasterizerState> GetRasterState(RasterState state) { return m_rasterStates[static_cast<size_t>(state)]; }
 	// 샘플러 상태 얻기
@@ -38,7 +41,7 @@ public:
 	// 상수 버퍼 얻기 // 이미 생성된 버퍼가 있으면 재사용 // 없으면 새로 생성
 	com_ptr<ID3D11Buffer> GetConstantBuffer(UINT bufferSize);
 	// 정점 셰이더 및 입력 레이아웃 얻기
-	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> GetVertexShaderAndInputLayout(const std::string& shaderName, const std::vector<InputElement>& inputElements);
+	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> GetVertexShaderAndInputLayout(const std::string& shaderName, const std::vector<InputElement>& inputElements = {});
 	// 픽셀 셰이더 얻기
 	com_ptr<ID3D11PixelShader> GetPixelShader(const std::string& shaderName);
 	// 텍스처 파일로부터 텍스처 로드
@@ -47,6 +50,8 @@ public:
 	const Model* LoadModel(const std::string& fileName);
 
 private:
+	// 깊이버퍼 상태 생성 함수
+	void CreateDepthStencilStates();
 	// 래스터 상태 생성 함수
 	void CreateRasterStates();
 	// 샘플러 상태 생성 함수

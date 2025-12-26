@@ -5,6 +5,9 @@ class SceneBase
 {
 	std::string m_typeName = "SceneBase"; // 씬 타입 이름
 
+	class Renderer* m_renderer = nullptr; // 렌더러 포인터
+	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트 포인터
+
 	std::vector<std::unique_ptr<GameObjectBase>> m_gameObjects = {}; // 게임 오브젝트 배열
 	std::vector<GameObjectBase*> m_gameObjectsToRemove = {}; // 제거할 게임 오브젝트 배열
 
@@ -27,6 +30,10 @@ class SceneBase
 
 	std::string m_environmentMapFileName = "Skybox.dds"; // 환경 맵 파일 이름
 	com_ptr<ID3D11ShaderResourceView> m_environmentMapSRV = nullptr; // 환경 맵 셰이더 리소스 뷰
+
+	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_skyboxVertexShaderAndInputLayout = {}; // 스카이박스 정점 셰이더
+	com_ptr<ID3D11PixelShader> m_skyboxPixelShader = nullptr; // 스카이박스 픽셀 셰이더
+	com_ptr<ID3D11DepthStencilState> m_skyboxDepthStencilState = nullptr; // 스카이박스 깊이버퍼 상태
 
 protected:
 	class CameraComponent* m_mainCamera = nullptr; // 메인 카메라 컴포넌트 포인터
@@ -67,6 +74,12 @@ protected:
 	virtual GameObjectBase* CreateCameraObject();
 
 private:
+	// 리소스 매니저에서 필요한 리소스 얻기
+	void GetResources();
+	// 상수 버퍼 업데이트
+	void UpdateConstantBuffers();
+	// 스카이박스 렌더링
+	void RenderSkybox();
 	// 제거할 게임 오브젝트 제거 // Update에서 호출
 	void RemovePendingGameObjects();
 };

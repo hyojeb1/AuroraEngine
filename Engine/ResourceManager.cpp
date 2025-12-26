@@ -9,6 +9,7 @@ void ResourceManager::Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11Dev
 	m_device = device;
 	m_deviceContext = deviceContext;
 
+	CreateDepthStencilStates();
 	CreateRasterStates();
 	CreateSamplerStates();
 	CacheAllTexture();
@@ -54,18 +55,21 @@ pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> ResourceManager::G
 	CheckResult(hr, "정점 셰이더 생성 실패.");
 
 	// 입력 레이아웃 생성
-	vector<D3D11_INPUT_ELEMENT_DESC> inputElementDescs;
-	for (const auto& element : inputElements) inputElementDescs.push_back(INPUT_ELEMENT_DESC_TEMPLATES[static_cast<size_t>(element)]);
+	if (!inputElements.empty())
+	{
+		vector<D3D11_INPUT_ELEMENT_DESC> inputElementDescs;
+		for (const auto& element : inputElements) inputElementDescs.push_back(INPUT_ELEMENT_DESC_TEMPLATES[static_cast<size_t>(element)]);
 
-	hr = m_device->CreateInputLayout
-	(
-		inputElementDescs.data(),
-		static_cast<UINT>(inputElementDescs.size()),
-		VSCode->GetBufferPointer(),
-		VSCode->GetBufferSize(),
-		m_vertexShadersAndInputLayouts[shaderName].second.GetAddressOf()
-	);
-	CheckResult(hr, "입력 레이아웃 생성 실패.");
+		hr = m_device->CreateInputLayout
+		(
+			inputElementDescs.data(),
+			static_cast<UINT>(inputElementDescs.size()),
+			VSCode->GetBufferPointer(),
+			VSCode->GetBufferSize(),
+			m_vertexShadersAndInputLayouts[shaderName].second.GetAddressOf()
+		);
+		CheckResult(hr, "입력 레이아웃 생성 실패.");
+	}
 
 	return m_vertexShadersAndInputLayouts[shaderName];
 }
@@ -209,6 +213,16 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 	ProcessNode(scene->mRootNode, scene, m_models[fileName]);
 
 	return &m_models[fileName];
+}
+
+void ResourceManager::CreateDepthStencilStates()
+{
+	HRESULT hr = S_OK;
+	for (size_t i = 0; i < static_cast<size_t>(DepthStencilState::Count); ++i)
+	{
+		hr = m_device->CreateDepthStencilState(&DEPTH_STENCIL_DESC_TEMPLATES[i], m_depthStencilStates[i].GetAddressOf());
+		CheckResult(hr, "깊이버퍼 상태 생성 실패.");
+	}
 }
 
 void ResourceManager::CreateRasterStates()

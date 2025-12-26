@@ -39,7 +39,7 @@
 // 기타 사용자 정의 헤더
 #include "SingletonBase.h"
 
-// 메크로
+// 메크로 정의
 #define com_ptr Microsoft::WRL::ComPtr
 
 // 각도 변환 상수 및 함수

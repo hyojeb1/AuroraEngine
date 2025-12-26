@@ -15,7 +15,7 @@ cbuffer MaterialFactor : register(b1)
 
 SamplerState textureSampler : register(s1);
 
-TextureCube environmentMap : register(t1);
+TextureCube environmentMapTexture : register(t1); // 나중에 사용
 
 Texture2D albedoTexture : register(t2);
 Texture2D normalTexture : register(t3);

@@ -9,6 +9,27 @@ struct RenderTarget
 	com_ptr<ID3D11DepthStencilView> depthStencilView = nullptr; // 깊이-스텐실 뷰
 };
 
+enum class DepthStencilState
+{
+	Skybox,
+	Count
+};
+constexpr std::array<D3D11_DEPTH_STENCIL_DESC, static_cast<size_t>(DepthStencilState::Count)> DEPTH_STENCIL_DESC_TEMPLATES =
+{
+	// Skybox
+	D3D11_DEPTH_STENCIL_DESC
+	{
+		.DepthEnable = TRUE, // 깊이 테스트 활성화
+		.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO, // 깊이 쓰기 활성화
+		.DepthFunc = D3D11_COMPARISON_LESS_EQUAL, // 깊이 비교 함수: 작거나 같음
+		.StencilEnable = FALSE, // 스텐실 테스트 비활성화
+		.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK,
+		.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK,
+		.FrontFace = {}, // 사용 안 함
+		.BackFace = {} // 사용 안 함
+	}
+};
+
 enum class RasterState
 {
 	BackBuffer, // 백 버퍼 전용 래스터 상태 // AA 없음
