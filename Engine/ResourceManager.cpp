@@ -345,6 +345,7 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene)
 		resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleNormal.jpg");
 		resultMesh.materialTexture.metallicTextureSRV = GetTexture("SampleMetallic.jpg");
 		resultMesh.materialTexture.roughnessTextureSRV = GetTexture("SampleRoughness.jpg");
+		resultMesh.materialTexture.ambientOcclusionTextureSRV = GetTexture("SampleAmbientOcclusion.jpg");
 	}
 
 	CreateMeshBuffers(resultMesh);

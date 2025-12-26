@@ -31,6 +31,7 @@ void ModelComponent::Render()
 		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, mesh.materialTexture.normalTextureSRV.GetAddressOf());
 		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Metallic), 1, mesh.materialTexture.metallicTextureSRV.GetAddressOf());
 		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Roughness), 1, mesh.materialTexture.roughnessTextureSRV.GetAddressOf());
+		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::AmbientOcclusion), 1, mesh.materialTexture.ambientOcclusionTextureSRV.GetAddressOf());
 
 		m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
 	}

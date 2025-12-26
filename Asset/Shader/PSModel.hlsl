@@ -9,8 +9,9 @@ cbuffer MaterialFactor : register(b1)
     float4 albedoFactor;
     float metallicFactor;
     float roughnessFactor;
+    float ambientOcclusionFactor;
     float lightFactor;
-    float ambient;
+    float4 emissionFactor;
 };
 
 SamplerState textureSampler : register(s1);
@@ -33,11 +34,9 @@ struct PixelInput
 float4 main(PixelInput input) : SV_TARGET
 {
     float4 albedo = albedoTexture.Sample(textureSampler, input.UV) * albedoFactor;
-    float3 normalMap = normalTexture.Sample(textureSampler, input.UV).xyz * 2.0f - 1.0f;
+    float3 normal = mul(normalTexture.Sample(textureSampler, input.UV).xyz * 2.0f - 1.0f, input.TBN);
     
-    float3 normal = mul(normalMap, input.TBN);
-    float3 lightDir = lightDirection.xyz;
-    albedo.rgb *= lightColor.rgb * dot(normal, lightDir) * lightFactor;
+    albedo.rgb *= lightColor.rgb * dot(normal, lightDirection.xyz) * lightFactor;
     
-    return albedo;
+    return albedo + emissionFactor;
 }

@@ -203,7 +203,8 @@ enum class TextureSlots
 	Albedo,
 	Normal,
 	Metallic,
-	Roughness
+	Roughness,
+	AmbientOcclusion
 };
 
 struct Vertex
@@ -219,8 +220,9 @@ struct MaterialFactor
 	DirectX::XMFLOAT4 albedoFactor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 텍스처 색상이 얼마나 적용되는지
 	float metallicFactor = 1.0f; // 금속성 텍스처가 얼마나 적용되는지
 	float roughnessFactor = 1.0f; // 거칠기 텍스처가 얼마나 적용되는지
+	float ambientOcclusionFactor = 1.0f; // 환경광 차폐 텍스처가 얼마나 적용되는지
 	float lightFactor = 1.0f; // 조명 영향도 // 일반적으로 1.0f 여야 함
-	float ambient = 1.0f; // 자체적인 밝기 // 일반적으로 0.0f 이여야 함
+	DirectX::XMFLOAT4 emissionFactor = { 0.0f, 0.0f, 0.0f, 0.0f }; // 자가 발광 색상 팩터
 };
 
 struct MaterialTexture
@@ -229,6 +231,7 @@ struct MaterialTexture
 	com_ptr<ID3D11ShaderResourceView> normalTextureSRV = nullptr;
 	com_ptr<ID3D11ShaderResourceView> metallicTextureSRV = nullptr;
 	com_ptr<ID3D11ShaderResourceView> roughnessTextureSRV = nullptr;
+	com_ptr<ID3D11ShaderResourceView> ambientOcclusionTextureSRV = nullptr;
 };
 
 struct Mesh
