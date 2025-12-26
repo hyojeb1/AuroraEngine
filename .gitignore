@@ -48,6 +48,7 @@ Release/
 *.temp
 *~
 
-# OS generated files
+# OS generated files - hyoe made these for vcpkg
 .DS_Store
 Thumbs.db
+custom-ports/
