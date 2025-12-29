@@ -7,8 +7,8 @@ cbuffer ViewProjection : register(b0)
 
 struct VSOutput
 {
-    float4 position : SV_POSITION;
-    float3 viewDir : TEXCOORD0;
+    float4 Position : SV_POSITION;
+    float3 ViewDir : TEXCOORD0;
 };
 
 VSOutput main(uint vertexID : SV_VertexID)
@@ -17,7 +17,7 @@ VSOutput main(uint vertexID : SV_VertexID)
     
     // 전체 화면을 덮는 2개의 삼각형 정점 위치 계산
     float2 texCoord = float2((vertexID << 1) & 2, vertexID & 2);
-    output.position = float4(texCoord * float2(2, -2) + float2(-1, 1), 1, 1);
+    output.Position = float4(texCoord * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), 1.0f, 1.0f);
     
     // 회전만 반영된 뷰 행렬
     matrix viewNoTranslation = ViewMatrix;
@@ -28,8 +28,8 @@ VSOutput main(uint vertexID : SV_VertexID)
     invVP = transpose(invVP);
     
     // 원점에서 멀리 떨어진 위치 계산
-    float4 farPos = mul(output.position, invVP);
-    output.viewDir = farPos.xyz;
+    float4 farPos = mul(output.Position, invVP);
+    output.ViewDir = farPos.xyz;
     
     return output;
 }
