@@ -19,6 +19,7 @@ public:
 
 	void Initialize(GameObjectBase* owner);
 	void Update(float deltaTime) { UpdateComponent(deltaTime); }
+	void Render() { RenderComponent(); }
 	// ImGui 렌더링 // GameObjectBase의 RenderImGui에서 호출
 	void RenderImGui();
 	void Finalize() { FinalizeComponent(); }
@@ -28,6 +29,8 @@ protected:
 	virtual void InitializeComponent() {};
 	// 컴포넌트 업데이트 // Update에서 호출
 	virtual void UpdateComponent(float deltaTime) {};
+	// 컴포넌트 렌더링 // Render에서 호출 // 사실상 Model등 렌더링용 컴포넌트에서만 사용
+	virtual void RenderComponent() {};
 	// 컴포넌트 ImGui 렌더링 // RenderImGui에서 호출
 	virtual void RenderImGuiComponent() {};
 	// 컴포넌트 Finalize에서 호출

@@ -35,9 +35,6 @@ public:
 	ModelComponent(ModelComponent&&) = default;
 	ModelComponent& operator=(ModelComponent&&) = default;
 
-	void Render();
-	void RenderImGuiComponent() override;
-
 	const std::string& GetModelFileName() const { return m_modelFileName; }
 	void SetModelFileName(const std::string& modelFileName) { m_modelFileName = modelFileName; }
 
@@ -48,6 +45,8 @@ public:
 
 private:
 	void InitializeComponent() override;
+	void RenderComponent() override;
+	void RenderImGuiComponent() override;
 	// ¼ÎÀÌ´õ »ý¼º
 	void CreateShaders();
 };

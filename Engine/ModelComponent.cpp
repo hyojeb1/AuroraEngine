@@ -5,7 +5,19 @@
 #include "Renderer.h"
 #include "ResourceManager.h"
 
-void ModelComponent::Render()
+void ModelComponent::InitializeComponent()
+{
+	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
+
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
+
+	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(MaterialFactor)); // TODO: 매번 재질 상수 버퍼 생성하지 말고 공유하도록 변경
+	m_model = resourceManager.LoadModel(m_modelFileName);
+
+	CreateShaders();
+}
+
+void ModelComponent::RenderComponent()
 {
 	constexpr UINT stride = sizeof(Vertex);
 	constexpr UINT offset = 0;
@@ -56,18 +68,6 @@ void ModelComponent::RenderImGuiComponent()
 		m_model = ResourceManager::GetInstance().LoadModel(m_modelFileName);
 		CreateShaders();
 	}
-}
-
-void ModelComponent::InitializeComponent()
-{
-	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
-
-	ResourceManager& resourceManager = ResourceManager::GetInstance();
-
-	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(MaterialFactor)); // TODO: 매번 재질 상수 버퍼 생성하지 말고 공유하도록 변경
-	m_model = resourceManager.LoadModel(m_modelFileName);
-
-	CreateShaders();
 }
 
 void ModelComponent::CreateShaders()
