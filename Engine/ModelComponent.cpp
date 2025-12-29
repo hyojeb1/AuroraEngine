@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "ModelComponent.h"
 
-#include "GameObjectBase.h"
 #include "Renderer.h"
 #include "ResourceManager.h"
 
