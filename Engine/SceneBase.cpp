@@ -8,28 +8,40 @@
 using namespace std;
 using namespace DirectX;
 
-void SceneBase::Initialize()
+SceneBase::SceneBase()
+{
+	m_renderer = &Renderer::GetInstance();
+	m_deviceContext = m_renderer->GetDeviceContext();
+}
+
+GameObjectBase* SceneBase::CreateCameraObject()
+{
+	GameObjectBase* cameraGameObject = CreateRootGameObject<GameObjectBase>();
+	cameraGameObject->SetPosition({ 0.0f, 5.0f, -10.0f });
+	cameraGameObject->LookAt({ 0.0f, 0.0f, 0.0f });
+
+	return cameraGameObject;
+}
+
+void SceneBase::BaseInitialize()
 {
 	m_typeName = typeid(*this).name();
 	if (m_typeName.find("class ") == 0) m_typeName = m_typeName.substr(6);
-
-	m_renderer = &Renderer::GetInstance();
-	m_deviceContext = m_renderer->GetDeviceContext();
 
 	GetResources();
 
 	m_mainCamera = CreateCameraObject()->CreateComponent<CameraComponent>();
 
-	InitializeScene();
+	Initialize();
 }
 
-void SceneBase::Update(float deltaTime)
+void SceneBase::BaseUpdate(float deltaTime)
 {
 	RemovePendingGameObjects();
-	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->Update(deltaTime);
+	for (unique_ptr<IBase>& gameObject : m_gameObjects) gameObject->BaseUpdate(deltaTime);
 }
 
-void SceneBase::Render()
+void SceneBase::BaseRender()
 {
 	m_renderer->BeginFrame(m_sceneColor);
 
@@ -43,18 +55,18 @@ void SceneBase::Render()
 	m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Environment), 1, m_environmentMapSRV.GetAddressOf());
 
 	// 게임 오브젝트 렌더링
-	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->Render();
+	for (unique_ptr<IBase>& gameObject : m_gameObjects) gameObject->BaseRender();
 
 	// 스카이박스 렌더링
 	RenderSkybox();
 
 	// ImGui 렌더링
-	RenderImGui();
+	BaseRenderImGui();
 
 	m_renderer->EndFrame();
 }
 
-void SceneBase::RenderImGui()
+void SceneBase::BaseRenderImGui()
 {
 	ImGui::Begin(m_typeName.c_str());
 
@@ -63,24 +75,16 @@ void SceneBase::RenderImGui()
 
 	ImGui::Separator();
 	ImGui::Text("Game Objects:");
-	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->RenderImGui();
+	for (unique_ptr<IBase>& gameObject : m_gameObjects) gameObject->BaseRenderImGui();
 
 	ImGui::End();
-}
-
-GameObjectBase* SceneBase::CreateCameraObject()
-{
-	GameObjectBase* cameraGameObject = CreateRootGameObject<GameObjectBase>();
-	cameraGameObject->SetPosition({ 0.0f, 5.0f, -10.0f });
-	cameraGameObject->LookAt({ 0.0f, 0.0f, 0.0f });
-
-	return cameraGameObject;
 }
 
 void SceneBase::GetResources()
 {
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_viewProjectionConstantBuffer = resourceManager.GetConstantBuffer(sizeof(ViewProjectionBuffer)); // 뷰-투영 상수 버퍼 생성
+	m_cameraPositionConstantBuffer = resourceManager.GetConstantBuffer(sizeof(XMVECTOR)); // 카메라 위치 상수 버퍼 생성
 	m_directionalLightConstantBuffer = resourceManager.GetConstantBuffer(sizeof(DirectionalLightBuffer)); // 방향광 상수 버퍼 생성
 	m_environmentMapSRV = resourceManager.GetTexture(m_environmentMapFileName); // 환경 맵 로드
 
@@ -97,6 +101,10 @@ void SceneBase::UpdateConstantBuffers()
 	m_viewProjectionData.VPMatrix = m_viewProjectionData.projectionMatrix * m_viewProjectionData.viewMatrix;
 	m_deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
 	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::ViewProjection), 1, m_viewProjectionConstantBuffer.GetAddressOf());
+
+	// 카메라 위치 상수 버퍼 업데이트 및 셰이더에 설정
+	m_deviceContext->UpdateSubresource(m_cameraPositionConstantBuffer.Get(), 0, nullptr, &m_mainCamera->GetPosition(), 0, 0);
+	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::CameraPosition), 1, m_cameraPositionConstantBuffer.GetAddressOf());
 
 	// 방향광 상수 버퍼 업데이트 및 셰이더에 설정
 	m_directionalLightData.lightDirection = -XMVector3Normalize(m_directionalLightDirection);
@@ -126,15 +134,15 @@ void SceneBase::RenderSkybox()
 
 void SceneBase::RemovePendingGameObjects()
 {
-	for (GameObjectBase* gameObjectToRemove : m_gameObjectsToRemove)
+	for (IBase* gameObjectToRemove : m_gameObjectsToRemove)
 	{
 		erase_if
 		(
-			m_gameObjects, [gameObjectToRemove](const unique_ptr<GameObjectBase>& obj)
+			m_gameObjects, [gameObjectToRemove](const unique_ptr<IBase>& obj)
 			{
 				if (obj.get() == gameObjectToRemove)
 				{
-					obj->Finalize();
+					obj->BaseFinalize();
 					return true;
 				}
 				return false;
