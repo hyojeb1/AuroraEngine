@@ -42,7 +42,7 @@ protected:
 	DirectX::XMFLOAT4 m_sceneColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 환경광, 방향광, 클리어 색장
 
 public:
-	SceneBase() = default; // 무조건 SceneManager로 생성
+	SceneBase();
 	virtual ~SceneBase() = default;
 	SceneBase(const SceneBase&) = delete; // 복사 금지
 	SceneBase& operator=(const SceneBase&) = delete; // 복사 대입 금지

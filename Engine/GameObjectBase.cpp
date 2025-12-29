@@ -13,6 +13,8 @@ GameObjectBase::GameObjectBase()
 {
 	static UINT idIndex = 0;
 	m_id = idIndex++;
+
+	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
 }
 
 void GameObjectBase::MoveDirection(float distance, Direction direction)
@@ -113,9 +115,8 @@ void GameObjectBase::BaseRender()
 		m_worldData.worldMatrix = XMMatrixTranspose(m_worldMatrix);
 		m_worldData.normalMatrix = XMMatrixTranspose(m_inverseScaleSquareMatrix * m_worldMatrix);
 
-		const com_ptr<ID3D11DeviceContext> deviceContext = Renderer::GetInstance().GetDeviceContext();
-		deviceContext->UpdateSubresource(m_worldWVPConstantBuffer.Get(), 0, nullptr, &m_worldData, 0, 0);
-		deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::WorldNormal), 1, m_worldWVPConstantBuffer.GetAddressOf());
+		m_deviceContext->UpdateSubresource(m_worldWVPConstantBuffer.Get(), 0, nullptr, &m_worldData, 0, 0);
+		m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::WorldNormal), 1, m_worldWVPConstantBuffer.GetAddressOf());
 
 		for (IBase*& component : m_renderComponents) component->BaseRender();
 	}

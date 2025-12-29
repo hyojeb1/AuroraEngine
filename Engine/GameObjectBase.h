@@ -29,6 +29,8 @@ class GameObjectBase : public IBase
 	DirectX::XMVECTOR m_scale = DirectX::XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f); // 크기
 	bool m_isDirty = true; // 위치 갱신 필요 여부
 
+	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트 포인터
+
 	struct WorldBuffer // 월드 및 WVP 행렬 상수 버퍼 구조체
 	{
 		DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity(); // 월드 행렬

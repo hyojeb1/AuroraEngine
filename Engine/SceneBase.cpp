@@ -8,6 +8,12 @@
 using namespace std;
 using namespace DirectX;
 
+SceneBase::SceneBase()
+{
+	m_renderer = &Renderer::GetInstance();
+	m_deviceContext = m_renderer->GetDeviceContext();
+}
+
 GameObjectBase* SceneBase::CreateCameraObject()
 {
 	GameObjectBase* cameraGameObject = CreateRootGameObject<GameObjectBase>();
@@ -21,9 +27,6 @@ void SceneBase::BaseInitialize()
 {
 	m_typeName = typeid(*this).name();
 	if (m_typeName.find("class ") == 0) m_typeName = m_typeName.substr(6);
-
-	m_renderer = &Renderer::GetInstance();
-	m_deviceContext = m_renderer->GetDeviceContext();
 
 	GetResources();
 
