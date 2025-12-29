@@ -1,10 +1,8 @@
 #pragma once
 #include "IBase.h"
 
-class ComponentBase : protected IBase
+class ComponentBase : public IBase
 {
-	friend class GameObjectBase;
-
 	std::string m_typeName = "ComponentBase"; // 컴포넌트 타입 이름
 
 protected:
@@ -18,6 +16,9 @@ public:
 	ComponentBase(ComponentBase&&) = default; // 이동
 	ComponentBase& operator=(ComponentBase&&) = default; // 이동 대입
 
+	void SetOwner(GameObjectBase* owner) { m_owner = owner; }
+
+private:
 	void BaseInitialize() override;
 	void BaseUpdate(float deltaTime) override { Update(deltaTime); }
 	void BaseRender() override { Render(); }

@@ -15,9 +15,64 @@ GameObjectBase::GameObjectBase()
 	m_id = idIndex++;
 }
 
-GameObjectBase::~GameObjectBase()
+void GameObjectBase::MoveDirection(float distance, Direction direction)
 {
-	for (auto& [typeIndex, component] : m_components) component->Finalize();
+	XMVECTOR directionVector = GetDirectionVector(direction);
+	XMVECTOR deltaPosition = XMVectorScale(directionVector, distance);
+
+	MovePosition(deltaPosition);
+}
+
+void GameObjectBase::SetRotation(const XMVECTOR& rotation)
+{
+	m_euler = rotation;
+	m_quaternion = XMQuaternionRotationRollPitchYawFromVector(ToRadians(m_euler)); // 라디안으로 변환
+
+	SetDirty();
+}
+
+void GameObjectBase::Rotate(const XMVECTOR& deltaRotation)
+{
+	m_euler = XMVectorAdd(m_euler, deltaRotation);
+	m_quaternion = XMQuaternionRotationRollPitchYawFromVector(ToRadians(m_euler)); // 라디안으로 변환
+
+	SetDirty();
+}
+
+void GameObjectBase::LookAt(const XMVECTOR& targetPosition, const XMVECTOR& upDirection)
+{
+	XMVECTOR direction = XMVector3Normalize(XMVectorSubtract(targetPosition, UpdateWorldMatrix().r[3]));
+	XMVECTOR right = XMVector3Cross(upDirection, direction);
+	XMVECTOR up = XMVector3Cross(direction, right);
+
+	m_quaternion = XMQuaternionRotationMatrix({ right, up, direction, { 0.0f, 0.0f, 0.0f, 1.0f } });
+	m_euler = ToDegrees(static_cast<XMVECTOR>(static_cast<SimpleMath::Quaternion>(m_quaternion).ToEuler())); // 도 단위로 변환
+
+	SetDirty();
+}
+
+XMVECTOR GameObjectBase::GetDirectionVector(Direction direction) const
+{
+	switch (direction)
+	{
+	case Direction::Left:
+		return XMVector3Rotate({ -1.0f, 0.0f, 0.0f, 0.0f }, m_quaternion);
+	case Direction::Right:
+		return XMVector3Rotate({ 1.0f, 0.0f, 0.0f, 0.0f }, m_quaternion);
+
+	case Direction::Up:
+		return XMVector3Rotate({ 0.0f, 1.0f, 0.0f, 0.0f }, m_quaternion);
+	case Direction::Down:
+		return XMVector3Rotate({ 0.0f, -1.0f, 0.0f, 0.0f }, m_quaternion);
+
+	case Direction::Forward:
+		return XMVector3Rotate({ 0.0f, 0.0f, 1.0f, 0.0f }, m_quaternion);
+	case Direction::Backward:
+		return XMVector3Rotate({ 0.0f, 0.0f, -1.0f, 0.0f }, m_quaternion);
+
+	default:
+		return XMVectorZero();
+	}
 }
 
 void GameObjectBase::BaseInitialize()
@@ -52,7 +107,7 @@ void GameObjectBase::BaseRender()
 	Render();
 
 	// 모델 컴포넌트 렌더링
-	ModelComponent* model = GetComponent<ModelComponent>();
+	IBase* model = GetComponent<ModelComponent>();
 	if (model)
 	{
 		// 월드 및 WVP 행렬 상수 버퍼 업데이트 및 셰이더에 설정
@@ -118,66 +173,6 @@ void GameObjectBase::BaseFinalize()
 
 	// 자식 게임 오브젝트 종료
 	for (auto& child : m_childrens) child->BaseFinalize();
-}
-
-void GameObjectBase::MoveDirection(float distance, Direction direction)
-{
-	XMVECTOR directionVector = GetDirectionVector(direction);
-	XMVECTOR deltaPosition = XMVectorScale(directionVector, distance);
-
-	MovePosition(deltaPosition);
-}
-
-void GameObjectBase::SetRotation(const XMVECTOR& rotation)
-{
-	m_euler = rotation;
-	m_quaternion = XMQuaternionRotationRollPitchYawFromVector(ToRadians(m_euler)); // 라디안으로 변환
-
-	SetDirty();
-}
-
-void GameObjectBase::Rotate(const XMVECTOR& deltaRotation)
-{
-	m_euler = XMVectorAdd(m_euler, deltaRotation);
-	m_quaternion = XMQuaternionRotationRollPitchYawFromVector(ToRadians(m_euler)); // 라디안으로 변환
-
-	SetDirty();
-}
-
-void GameObjectBase::LookAt(const XMVECTOR& targetPosition, const XMVECTOR& upDirection)
-{
-	XMVECTOR direction = XMVector3Normalize(XMVectorSubtract(targetPosition, UpdateWorldMatrix().r[3]));
-	XMVECTOR right = XMVector3Cross(upDirection, direction);
-	XMVECTOR up = XMVector3Cross(direction, right);
-
-	m_quaternion = XMQuaternionRotationMatrix({ right, up, direction, { 0.0f, 0.0f, 0.0f, 1.0f } });
-	m_euler = ToDegrees(static_cast<XMVECTOR>(static_cast<SimpleMath::Quaternion>(m_quaternion).ToEuler())); // 도 단위로 변환
-
-	SetDirty();
-}
-
-XMVECTOR GameObjectBase::GetDirectionVector(Direction direction) const
-{
-	switch (direction)
-	{
-	case Direction::Left:
-		return XMVector3Rotate({ -1.0f, 0.0f, 0.0f, 0.0f }, m_quaternion);
-	case Direction::Right:
-		return XMVector3Rotate({ 1.0f, 0.0f, 0.0f, 0.0f }, m_quaternion);
-
-	case Direction::Up:
-		return XMVector3Rotate({ 0.0f, 1.0f, 0.0f, 0.0f }, m_quaternion);
-	case Direction::Down:
-		return XMVector3Rotate({ 0.0f, -1.0f, 0.0f, 0.0f }, m_quaternion);
-
-	case Direction::Forward:
-		return XMVector3Rotate({ 0.0f, 0.0f, 1.0f, 0.0f }, m_quaternion);
-	case Direction::Backward:
-		return XMVector3Rotate({ 0.0f, 0.0f, -1.0f, 0.0f }, m_quaternion);
-
-	default:
-		return XMVectorZero();
-	}
 }
 
 void GameObjectBase::SetDirty()

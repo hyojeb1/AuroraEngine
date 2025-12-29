@@ -16,6 +16,7 @@ public:
 	virtual void BaseRenderImGui() = 0;
 	virtual void BaseFinalize() = 0;
 
+protected:
 	virtual void Initialize() {}
 	virtual void Update(float deltaTime) {}
 	virtual void Render() {}

@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "SceneManager.h"
 
-#include "SceneBase.h"
-
 using namespace std;
 
 void SceneManager::Run()

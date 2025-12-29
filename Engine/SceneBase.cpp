@@ -8,6 +8,15 @@
 using namespace std;
 using namespace DirectX;
 
+GameObjectBase* SceneBase::CreateCameraObject()
+{
+	GameObjectBase* cameraGameObject = CreateRootGameObject<GameObjectBase>();
+	cameraGameObject->SetPosition({ 0.0f, 5.0f, -10.0f });
+	cameraGameObject->LookAt({ 0.0f, 0.0f, 0.0f });
+
+	return cameraGameObject;
+}
+
 void SceneBase::BaseInitialize()
 {
 	m_typeName = typeid(*this).name();
@@ -26,7 +35,7 @@ void SceneBase::BaseInitialize()
 void SceneBase::BaseUpdate(float deltaTime)
 {
 	RemovePendingGameObjects();
-	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->BaseUpdate(deltaTime);
+	for (unique_ptr<IBase>& gameObject : m_gameObjects) gameObject->BaseUpdate(deltaTime);
 }
 
 void SceneBase::BaseRender()
@@ -43,7 +52,7 @@ void SceneBase::BaseRender()
 	m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Environment), 1, m_environmentMapSRV.GetAddressOf());
 
 	// 게임 오브젝트 렌더링
-	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->BaseRender();
+	for (unique_ptr<IBase>& gameObject : m_gameObjects) gameObject->BaseRender();
 
 	// 스카이박스 렌더링
 	RenderSkybox();
@@ -63,18 +72,9 @@ void SceneBase::BaseRenderImGui()
 
 	ImGui::Separator();
 	ImGui::Text("Game Objects:");
-	for (unique_ptr<GameObjectBase>& gameObject : m_gameObjects) gameObject->BaseRenderImGui();
+	for (unique_ptr<IBase>& gameObject : m_gameObjects) gameObject->BaseRenderImGui();
 
 	ImGui::End();
-}
-
-GameObjectBase* SceneBase::CreateCameraObject()
-{
-	GameObjectBase* cameraGameObject = CreateRootGameObject<GameObjectBase>();
-	cameraGameObject->SetPosition({ 0.0f, 5.0f, -10.0f });
-	cameraGameObject->LookAt({ 0.0f, 0.0f, 0.0f });
-
-	return cameraGameObject;
 }
 
 void SceneBase::GetResources()
@@ -126,11 +126,11 @@ void SceneBase::RenderSkybox()
 
 void SceneBase::RemovePendingGameObjects()
 {
-	for (GameObjectBase* gameObjectToRemove : m_gameObjectsToRemove)
+	for (IBase* gameObjectToRemove : m_gameObjectsToRemove)
 	{
 		erase_if
 		(
-			m_gameObjects, [gameObjectToRemove](const unique_ptr<GameObjectBase>& obj)
+			m_gameObjects, [gameObjectToRemove](const unique_ptr<IBase>& obj)
 			{
 				if (obj.get() == gameObjectToRemove)
 				{
