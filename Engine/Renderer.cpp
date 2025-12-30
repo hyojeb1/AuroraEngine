@@ -2,6 +2,7 @@
 #include "Renderer.h"
 
 #include "ResourceManager.h"
+#include "SceneManager.h"
 
 using namespace std;
 using namespace DirectX;
@@ -12,9 +13,12 @@ void Renderer::Initialize(HWND hWnd, UINT width, UINT height)
 	CreateSwapChain(hWnd);
 	Resize(width, height);
 	CreateBackBufferResources();
+
+	// 씬 매니저 초기화
+	SceneManager::GetInstance().Initialize(this);
 }
 
-void Renderer::BeginFrame(const XMFLOAT4& clearColor)
+void Renderer::BeginFrame()
 {
 	HRESULT hr = S_OK;
 
@@ -30,7 +34,7 @@ void Renderer::BeginFrame(const XMFLOAT4& clearColor)
 	m_deviceContext->OMSetRenderTargets(1, m_sceneBuffer.renderTargetView.GetAddressOf(), m_sceneBuffer.depthStencilView.Get());
 
 	// 씬 렌더 타겟 클리어
-	ClearRenderTarget(m_sceneBuffer, clearColor);
+	ClearRenderTarget(m_sceneBuffer);
 }
 
 void Renderer::EndFrame()
@@ -329,9 +333,10 @@ void Renderer::SetViewport()
 	m_deviceContext->RSSetViewports(1, &viewport);
 }
 
-void Renderer::ClearRenderTarget(RenderTarget& target, const XMFLOAT4& clearColor)
+void Renderer::ClearRenderTarget(RenderTarget& target)
 {
-	m_deviceContext->ClearRenderTargetView(target.renderTargetView.Get(), &clearColor.x);
+	constexpr array<float, 4> clearColor = { 0.0f, 1.0f, 0.0f, 1.0f };
+	m_deviceContext->ClearRenderTargetView(target.renderTargetView.Get(), clearColor.data());
 	if (target.depthStencilView) m_deviceContext->ClearDepthStencilView(target.depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 
@@ -351,8 +356,7 @@ void Renderer::RenderSceneToBackBuffer()
 	m_deviceContext->OMSetRenderTargets(1, m_backBuffer.renderTargetView.GetAddressOf(), m_backBuffer.depthStencilView.Get());
 
 	// 백 버퍼 클리어
-	constexpr XMFLOAT4 clearColor = { 1.0f, 0.0f, 0.0f, 1.0f };
-	ClearRenderTarget(m_backBuffer, clearColor);
+	ClearRenderTarget(m_backBuffer);
 
 	// 전체 화면 삼각형 렌더링
 	constexpr UINT stride = sizeof(BackBufferVertex);

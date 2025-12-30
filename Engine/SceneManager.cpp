@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "SceneManager.h"
 
+#include "Renderer.h"
+
 using namespace std;
 
 void SceneManager::Run()
@@ -13,7 +15,15 @@ void SceneManager::Run()
 	}
 
 	m_currentScene->BaseUpdate(GetDeltaTime());
+
+	m_renderer->BeginFrame();
+
+	// ¾À ·»´õ¸µ
 	m_currentScene->BaseRender();
+	// ImGui ·»´õ¸µ
+	m_currentScene->BaseRenderImGui();
+
+	m_renderer->EndFrame();
 }
 
 float SceneManager::GetDeltaTime()

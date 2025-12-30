@@ -16,7 +16,7 @@ int main()
 	windowManager.Initialize(L"Window");
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
-	sceneManager.ChangeScene<TestScene>(); // »ç½Ç»ó Initialize()
+	sceneManager.ChangeScene<TestScene>();
 
 	while (windowManager.ProcessMessages()) sceneManager.Run();
 

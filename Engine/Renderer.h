@@ -62,7 +62,7 @@ public:
 	void Initialize(HWND hWnd, UINT width, UINT height);
 
 	// 프레임 시작
-	void BeginFrame(const DirectX::XMFLOAT4& clearColor);
+	void BeginFrame();
 	// 프레임 종료 // 화면에 내용 출력
 	void EndFrame();
 
@@ -97,7 +97,7 @@ private:
 
 	// 랜더링 파이프라인 함수
 	// 렌더 타겟 클리어
-	void ClearRenderTarget(RenderTarget& target, const DirectX::XMFLOAT4& clearColor);
+	void ClearRenderTarget(RenderTarget& target);
 	// 씬 렌더 타겟 MSAA 다운샘플링 // MSAA 미적용시 그냥 복사
 	void ResolveSceneMSAA();
 	// 백 버퍼 랜더링

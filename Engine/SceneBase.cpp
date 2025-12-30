@@ -43,8 +43,6 @@ void SceneBase::BaseUpdate(float deltaTime)
 
 void SceneBase::BaseRender()
 {
-	m_renderer->BeginFrame(m_sceneColor);
-
 	// 상수 버퍼 업데이트 및 셰이더에 설정
 	UpdateConstantBuffers();
 
@@ -59,11 +57,6 @@ void SceneBase::BaseRender()
 
 	// 스카이박스 렌더링
 	RenderSkybox();
-
-	// ImGui 렌더링
-	BaseRenderImGui();
-
-	m_renderer->EndFrame();
 }
 
 void SceneBase::BaseRenderImGui()
