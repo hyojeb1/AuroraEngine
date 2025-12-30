@@ -5,8 +5,6 @@ class SceneManager : public Singleton<SceneManager>
 {
 	friend class Singleton<SceneManager>;
 
-	Renderer* m_renderer = nullptr; // 렌더러 포인터
-
 	std::unique_ptr<class IBase> m_currentScene = nullptr;
 	std::unique_ptr<class IBase> m_nextScene = nullptr;
 
@@ -18,13 +16,10 @@ public:
 	SceneManager(SceneManager&&) = delete;
 	SceneManager& operator=(SceneManager&&) = delete;
 
-	void Initialize(Renderer* renderer) { m_renderer = renderer; }
+	void Initialize();
 
 	template<typename T, typename... Args> requires std::derived_from<T, SceneBase>
 	void ChangeScene(Args&&... args) { m_nextScene = std::make_unique<T>(std::forward<Args>(args)...); }
 
 	void Run();
-
-private:
-	float GetDeltaTime();
 };

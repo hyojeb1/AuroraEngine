@@ -12,8 +12,8 @@ int main()
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_DockingEnable;
 
-	WindowManager windowManager;
-	windowManager.Initialize(L"Window");
+	WindowManager& windowManager = WindowManager::GetInstance();
+	windowManager.Initialize(L"Aurora");
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
 	sceneManager.ChangeScene<TestScene>();

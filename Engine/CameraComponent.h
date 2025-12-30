@@ -38,7 +38,7 @@ public:
 private:
 	void Initialize() override;
 	// 위치, 뷰 행렬 갱신
-	void Update(float /*deltaTime*/) override { UpdateViewMatrix(); }
+	void Update() override { UpdateViewMatrix(); }
 	void RenderImGui() override;
 
 	// 뷰 행렬 갱신

@@ -2,6 +2,7 @@
 #include "TestObject.h"
 
 #include "ModelComponent.h"
+#include "TimeManager.h"
 
 using namespace std;
 using namespace DirectX;
@@ -19,8 +20,10 @@ void TestObject::Initialize()
 	}
 }
 
-void TestObject::Update(float deltaTime)
+void TestObject::Update()
 {
+	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
+
 	if (GetAsyncKeyState('W') & 0x8000) Rotate({ -deltaTime * 45.0f, 0.0f, 0.0f });
 	if (GetAsyncKeyState('S') & 0x8000) Rotate({ deltaTime * 45.0f, 0.0f, 0.0f });
 	if (GetAsyncKeyState('A') & 0x8000) Rotate({ 0.0f, -deltaTime * 45.0f, 0.0f });

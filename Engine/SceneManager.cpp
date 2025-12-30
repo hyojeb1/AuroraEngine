@@ -2,8 +2,14 @@
 #include "SceneManager.h"
 
 #include "Renderer.h"
+#include "TimeManager.h"
 
 using namespace std;
+
+void SceneManager::Initialize()
+{
+	TimeManager::GetInstance().Initialize();
+}
 
 void SceneManager::Run()
 {
@@ -14,24 +20,16 @@ void SceneManager::Run()
 		m_currentScene->BaseInitialize();
 	}
 
-	m_currentScene->BaseUpdate(GetDeltaTime());
+	TimeManager::GetInstance().UpdateTime();
+	m_currentScene->BaseUpdate();
 
-	m_renderer->BeginFrame();
+	Renderer& m_renderer = Renderer::GetInstance();
+	m_renderer.BeginFrame();
 
 	// ¾À ·»´õ¸µ
 	m_currentScene->BaseRender();
 	// ImGui ·»´õ¸µ
 	m_currentScene->BaseRenderImGui();
 
-	m_renderer->EndFrame();
-}
-
-float SceneManager::GetDeltaTime()
-{
-	static DWORD previousTime = timeGetTime();
-	const DWORD currentTime = timeGetTime();
-	const float deltaTime = static_cast<float>(currentTime - previousTime) / 1000.0f;
-	previousTime = currentTime;
-
-	return deltaTime;
+	m_renderer.EndFrame();
 }

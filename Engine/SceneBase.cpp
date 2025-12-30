@@ -10,8 +10,7 @@ using namespace DirectX;
 
 SceneBase::SceneBase()
 {
-	m_renderer = &Renderer::GetInstance();
-	m_deviceContext = m_renderer->GetDeviceContext();
+	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
 }
 
 GameObjectBase* SceneBase::CreateCameraObject()
@@ -35,10 +34,10 @@ void SceneBase::BaseInitialize()
 	Initialize();
 }
 
-void SceneBase::BaseUpdate(float deltaTime)
+void SceneBase::BaseUpdate()
 {
 	RemovePendingGameObjects();
-	for (unique_ptr<IBase>& gameObject : m_gameObjects) gameObject->BaseUpdate(deltaTime);
+	for (unique_ptr<IBase>& gameObject : m_gameObjects) gameObject->BaseUpdate();
 }
 
 void SceneBase::BaseRender()

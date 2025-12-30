@@ -59,7 +59,7 @@ public:
 	Renderer& operator=(Renderer&&) = delete;
 
 	// 렌더러 초기화 // WindowManager에서 윈도우 생성 후 호출
-	void Initialize(HWND hWnd, UINT width, UINT height);
+	void Initialize(UINT width, UINT height);
 
 	// 프레임 시작
 	void BeginFrame();
@@ -85,7 +85,7 @@ private:
 	// 디바이스 및 디바이스 컨텍스트 생성
 	void CreateDeviceAndContext();
 	// 스왑 체인 생성
-	void CreateSwapChain(HWND hWnd);
+	void CreateSwapChain();
 	// 백 버퍼 렌더 타겟 생성
 	void CreateBackBufferRenderTarget();
 	// 백 버퍼 셰이더 및 상수 버퍼 생성

@@ -3,19 +3,20 @@
 
 #include "ResourceManager.h"
 #include "SceneManager.h"
+#include "WindowManager.h"
 
 using namespace std;
 using namespace DirectX;
 
-void Renderer::Initialize(HWND hWnd, UINT width, UINT height)
+void Renderer::Initialize(UINT width, UINT height)
 {
 	CreateDeviceAndContext();
-	CreateSwapChain(hWnd);
+	CreateSwapChain();
 	Resize(width, height);
 	CreateBackBufferResources();
 
 	// 씬 매니저 초기화
-	SceneManager::GetInstance().Initialize(this);
+	SceneManager::GetInstance().Initialize();
 }
 
 void Renderer::BeginFrame()
@@ -145,7 +146,7 @@ void Renderer::CreateDeviceAndContext()
 	ResourceManager::GetInstance().Initialize(m_device, m_deviceContext);
 }
 
-void Renderer::CreateSwapChain(HWND hWnd)
+void Renderer::CreateSwapChain()
 {
 	HRESULT hr = S_OK;
 
@@ -164,7 +165,7 @@ void Renderer::CreateSwapChain(HWND hWnd)
 	hr = dxgiFactory->CreateSwapChainForHwnd
 	(
 		dxgiDevice.Get(),
-		hWnd,
+		WindowManager::GetInstance().GetHWnd(),
 		&m_swapChainDesc,
 		nullptr,
 		nullptr,
