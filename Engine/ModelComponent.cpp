@@ -2,9 +2,20 @@
 #include "stdafx.h"
 #include "ModelComponent.h"
 
-#include "GameObjectBase.h"
 #include "Renderer.h"
 #include "ResourceManager.h"
+
+void ModelComponent::Initialize()
+{
+	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
+
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
+
+	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(MaterialFactor)); // TODO: 매번 재질 상수 버퍼 생성하지 말고 공유하도록 변경
+	m_model = resourceManager.LoadModel(m_modelFileName);
+
+	CreateShaders();
+}
 
 void ModelComponent::Render()
 {
@@ -38,7 +49,7 @@ void ModelComponent::Render()
 	}
 }
 
-void ModelComponent::RenderImGuiComponent()
+void ModelComponent::RenderImGui()
 {
 	char modelFileNameBuffer[256];
 	strcpy_s(modelFileNameBuffer, m_modelFileName.c_str());
@@ -57,18 +68,6 @@ void ModelComponent::RenderImGuiComponent()
 		m_model = ResourceManager::GetInstance().LoadModel(m_modelFileName);
 		CreateShaders();
 	}
-}
-
-void ModelComponent::InitializeComponent()
-{
-	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
-
-	ResourceManager& resourceManager = ResourceManager::GetInstance();
-
-	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(MaterialFactor)); // TODO: 매번 재질 상수 버퍼 생성하지 말고 공유하도록 변경
-	m_model = resourceManager.LoadModel(m_modelFileName);
-
-	CreateShaders();
 }
 
 void ModelComponent::CreateShaders()

@@ -133,9 +133,9 @@ enum class InputElement
 	Normal,
 	Tangent,
 
-	InputElementCount
+	Count
 };
-constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement::InputElementCount)> INPUT_ELEMENT_DESC_TEMPLATES =
+constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement::Count)> INPUT_ELEMENT_DESC_TEMPLATES =
 {
 	// Position
 	D3D11_INPUT_ELEMENT_DESC
@@ -193,6 +193,7 @@ enum class VSConstBuffers
 };
 enum class PSConstBuffers
 {
+	CameraPosition,
 	DirectionalLight,
 	Material
 };

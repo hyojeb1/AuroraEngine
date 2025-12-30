@@ -36,9 +36,6 @@ public:
 	ModelComponent(ModelComponent&&) = default;
 	ModelComponent& operator=(ModelComponent&&) = default;
 
-	void Render();
-	void RenderImGuiComponent() override;
-
 	const std::string& GetModelFileName() const { return m_modelFileName; }
 	void SetModelFileName(const std::string& modelFileName) { m_modelFileName = modelFileName; }
 
@@ -47,8 +44,13 @@ public:
 	const std::string& GetPixelShaderName() const { return m_psShaderName; }
 	void SetPixelShaderName(const std::string& psShaderName) { m_psShaderName = psShaderName; }
 
+	bool NeedsUpdate() const override { return false; }
+	bool NeedsRender() const override { return true; }
+
 private:
-	void InitializeComponent() override;
+	void Initialize() override;
+	void Render() override;
+	void RenderImGui() override;
 	// ¼ÎÀÌ´õ »ý¼º
 	void CreateShaders();
 };

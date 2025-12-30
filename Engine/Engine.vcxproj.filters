@@ -69,7 +69,7 @@
     <ClInclude Include="ModelComponent.h">
       <Filter>GameObject\Component</Filter>
     </ClInclude>
-    <ClInclude Include="SingletonBase.h" />
+    <ClInclude Include="Singleton.h" />
     <ClInclude Include="CameraComponent.h">
       <Filter>GameObject\Component</Filter>
     </ClInclude>
@@ -82,6 +82,7 @@
     <ClInclude Include="Resource.h">
       <Filter>Render</Filter>
     </ClInclude>
+    <ClInclude Include="IBase.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Asset\Shader\PSPostProcessing.hlsl">
