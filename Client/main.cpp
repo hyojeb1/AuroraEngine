@@ -10,7 +10,7 @@ int main()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
 
 	WindowManager& windowManager = WindowManager::GetInstance();
 	windowManager.Initialize(L"Aurora");

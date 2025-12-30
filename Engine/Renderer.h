@@ -12,6 +12,7 @@ class Renderer : public Singleton<Renderer>
 		D3D_FEATURE_LEVEL_10_0
 	};
 
+	float m_aspectRatio = 16.0f / 9.0f; // 화면 종횡비
 	DXGI_SWAP_CHAIN_DESC1 m_swapChainDesc = // 스왑 체인 설정
 	{
 		.Width = 1280,
@@ -96,6 +97,8 @@ private:
 	void SetViewport();
 
 	// 랜더링 파이프라인 함수
+	// 셰이더 리소스 해제
+	void UnbindShaderResources();
 	// 렌더 타겟 클리어
 	void ClearRenderTarget(RenderTarget& target);
 	// 씬 렌더 타겟 MSAA 다운샘플링 // MSAA 미적용시 그냥 복사

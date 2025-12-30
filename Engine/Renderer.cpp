@@ -31,11 +31,45 @@ void Renderer::BeginFrame()
 	// 래스터 상태 변경
 	m_deviceContext->RSSetState(m_sceneRasterState.Get());
 
+	// 셰이더 리소스 해제
+	UnbindShaderResources();
+
 	// 씬 렌더 타겟으로 설정
 	m_deviceContext->OMSetRenderTargets(1, m_sceneBuffer.renderTargetView.GetAddressOf(), m_sceneBuffer.depthStencilView.Get());
 
 	// 씬 렌더 타겟 클리어
 	ClearRenderTarget(m_sceneBuffer);
+
+	ImGui::Begin("Game Scene");
+
+	// 비율 유지하며 창 크기에 맞게 이미지 크기 조정
+	ImVec2 windowSize = ImGui::GetContentRegionAvail();
+
+	float windowAspectRatio = windowSize.x / windowSize.y;
+
+	ImVec2 imageSize;
+	if (windowAspectRatio > m_aspectRatio)
+	{
+		// 창이 더 넓음 - 높이에 맞추고 좌우 여백
+		imageSize.y = windowSize.y;
+		imageSize.x = windowSize.y * m_aspectRatio;
+	}
+	else
+	{
+		// 창이 더 좁음 - 너비에 맞추고 상하 여백
+		imageSize.x = windowSize.x;
+		imageSize.y = windowSize.x / m_aspectRatio;
+	}
+
+	// 이미지를 중앙에 배치
+	ImVec2 cursorPos = ImGui::GetCursorPos();
+	cursorPos.x += (windowSize.x - imageSize.x) * 0.5f;
+	cursorPos.y += (windowSize.y - imageSize.y) * 0.5f;
+	ImGui::SetCursorPos(cursorPos);
+
+	ImGui::Image(reinterpret_cast<ImTextureID>(m_sceneShaderResourceView.Get()), imageSize);
+
+	ImGui::End();
 }
 
 void Renderer::EndFrame()
@@ -48,12 +82,25 @@ void Renderer::EndFrame()
 	// 래스터 상태 변경
 	m_deviceContext->RSSetState(m_backBufferRasterState.Get());
 
+	// 픽셀 셰이더의 셰이더 리소스 뷰 해제
+	UnbindShaderResources();
+
+	// 백 버퍼 렌더 타겟으로 설정
+	m_deviceContext->OMSetRenderTargets(1, m_backBuffer.renderTargetView.GetAddressOf(), m_backBuffer.depthStencilView.Get());
+
+	// 백 버퍼 클리어
+	ClearRenderTarget(m_backBuffer);
+
 	// 백 버퍼로 씬 렌더링
 	RenderSceneToBackBuffer();
 
 	// ImGui 렌더링
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+	// 복수의 뷰포트 지원을 위한 플랫폼 윈도우 렌더링
+	ImGui::UpdatePlatformWindows();
+	ImGui::RenderPlatformWindowsDefault();
 
 	// 스왑 체인 프레젠트
 	hr = m_swapChain->Present(1, 0);
@@ -95,6 +142,7 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 
 	m_swapChainDesc.Width = width;
 	m_swapChainDesc.Height = height;
+	m_aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 
 	// 스왑 체인 크기 조정
 	hr = m_swapChain->ResizeBuffers
@@ -334,6 +382,13 @@ void Renderer::SetViewport()
 	m_deviceContext->RSSetViewports(1, &viewport);
 }
 
+void Renderer::UnbindShaderResources()
+{
+	constexpr ID3D11ShaderResourceView* nullSRV = nullptr;
+
+	for (UINT i = 0; i < static_cast<UINT>(TextureSlots::Count); ++i) m_deviceContext->PSSetShaderResources(i, 1, &nullSRV);
+}
+
 void Renderer::ClearRenderTarget(RenderTarget& target)
 {
 	constexpr array<float, 4> clearColor = { 0.0f, 1.0f, 0.0f, 1.0f };
@@ -349,16 +404,6 @@ void Renderer::ResolveSceneMSAA()
 
 void Renderer::RenderSceneToBackBuffer()
 {
-	// 픽셀 셰이더의 셰이더 리소스 뷰 해제
-	constexpr ID3D11ShaderResourceView* nullSRV = nullptr;
-	m_deviceContext->PSSetShaderResources(0, 1, &nullSRV);
-
-	// 백 버퍼 렌더 타겟으로 설정
-	m_deviceContext->OMSetRenderTargets(1, m_backBuffer.renderTargetView.GetAddressOf(), m_backBuffer.depthStencilView.Get());
-
-	// 백 버퍼 클리어
-	ClearRenderTarget(m_backBuffer);
-
 	// 전체 화면 삼각형 렌더링
 	constexpr UINT stride = sizeof(BackBufferVertex);
 	constexpr UINT offset = 0;
