@@ -1,4 +1,3 @@
-///main.cppÀÇ ½ÃÀÛ
 #include "stdafx.h"
 
 #include "WindowManager.h"
@@ -38,4 +37,3 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	ImGui::DestroyContext();
 }
-///main.cppÀÇ ³¡
