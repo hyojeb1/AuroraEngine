@@ -1,3 +1,4 @@
+///SceneManager.cppÃ€Ã‡ Â½ÃƒÃ€Ã›
 #include "stdafx.h"
 #include "SceneManager.h"
 
@@ -13,6 +14,7 @@ void SceneManager::Initialize()
 
 void SceneManager::Run()
 {
+
 	if (m_nextScene)
 	{
 		if (m_currentScene) m_currentScene->BaseFinalize();
@@ -26,11 +28,11 @@ void SceneManager::Run()
 	Renderer& m_renderer = Renderer::GetInstance();
 	m_renderer.BeginFrame();
 
-	// ¾À ·»´õ¸µ
+	// Â¾Ã€ Â·Â»Â´ÃµÂ¸Âµ
 	m_currentScene->BaseRender();
 
 	#ifdef _DEBUG
-	// ImGui ·»´õ¸µ
+	// ImGui Â·Â»Â´ÃµÂ¸Âµ
 	m_currentScene->BaseRenderImGui();
 	#endif
 

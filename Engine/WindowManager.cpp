@@ -1,7 +1,9 @@
+/// WindowManager.hÏùò ÏãúÏûë
 #include "stdafx.h"
 #include "WindowManager.h"
 
 #include "Renderer.h"
+#include "InputManager.h"
 
 using namespace std;
 
@@ -10,6 +12,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 LRESULT CALLBACK WindowManager::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam)) return true;
+
+	InputManager::GetInstance().HandleMessage(message, wParam, lParam);
 
 	switch (message)
 	{
@@ -38,9 +42,9 @@ void WindowManager::Initialize(const wchar_t* windowTitle, int width, int height
 	if (!RegisterClass(&wc))
 	{
 		#ifdef _DEBUG
-		cerr << "¿©µµøÏ ≈¨∑°Ω∫ µÓ∑œ Ω«∆–. ø°∑Ø ƒ⁄µÂ: " << hex << GetLastError() << endl;
+		cerr << "ÏúàÎèÑÏö∞ ÌÅ¥ÎûòÏä§ Îì±Î°ù Ïã§Ìå®. ÏóêÎü¨ ÏΩîÎìú: " << hex << GetLastError() << endl;
 		#else
-		MessageBoxA(nullptr, "¿©µµøÏ ≈¨∑°Ω∫ µÓ∑œ Ω«∆–.", "¿©µµøÏ ∞¸∏Æ¿⁄ ø¿∑˘", MB_OK | MB_ICONERROR);
+		MessageBoxA(nullptr, "ÏúàÎèÑÏö∞ ÌÅ¥ÎûòÏä§ Îì±Î°ù Ïã§Ìå®.", "ÏúàÎèÑÏö∞ Í¥ÄÎ¶¨Ïûê Ïò§Î•ò", MB_OK | MB_ICONERROR);
 		#endif
 		exit(EXIT_FAILURE);
 	}
@@ -67,16 +71,16 @@ void WindowManager::Initialize(const wchar_t* windowTitle, int width, int height
 	if (!m_hWnd)
 	{
 		#ifdef _DEBUG
-		cerr << "¿©µµøÏ ª˝º∫ Ω«∆–. ø°∑Ø ƒ⁄µÂ: " << hex << GetLastError() << endl;
+		cerr << "ÏúàÎèÑÏö∞ ÏÉùÏÑ± Ïã§Ìå®. ÏóêÎü¨ ÏΩîÎìú: " << hex << GetLastError() << endl;
 		#else
-		MessageBoxA(nullptr, "¿©µµøÏ ª˝º∫ Ω«∆–.", "¿©µµøÏ ∞¸∏Æ¿⁄ ø¿∑˘", MB_OK | MB_ICONERROR);
+		MessageBoxA(nullptr, "ÏúàÎèÑÏö∞ ÏÉùÏÑ± Ïã§Ìå®.", "ÏúàÎèÑÏö∞ Í¥ÄÎ¶¨Ïûê Ïò§Î•ò", MB_OK | MB_ICONERROR);
 		#endif
 		exit(EXIT_FAILURE);
 	}
 
-	// ImGui Win32 √ ±‚»≠
+	// ImGui Win32 Ï¥àÍ∏∞Ìôî
 	ImGui_ImplWin32_Init(m_hWnd);
-	// ∑ª¥ı∑Ø √ ±‚»≠
+	// Î†åÎçîÎü¨ Ï¥àÍ∏∞Ìôî
 	Renderer::GetInstance().Initialize();
 
 	ShowWindow(m_hWnd, SW_SHOW);
@@ -95,7 +99,7 @@ bool WindowManager::ProcessMessages()
 		DispatchMessage(&msg);
 	}
 
-	// ImGui Win32 ªı «¡∑π¿” Ω√¿€
+	// ImGui Win32 ÏÉà ÌîÑÎ†àÏûÑ ÏãúÏûë
 	ImGui_ImplWin32_NewFrame();
 
 	return true;
@@ -103,13 +107,15 @@ bool WindowManager::ProcessMessages()
 
 void WindowManager::Finalize()
 {
-	// ∑ª¥ı∑Ø ¡æ∑·
+	// Î†åÎçîÎü¨ Ï¢ÖÎ£å
 	Renderer::GetInstance().Finalize();
+	
+	// Ïù∏ÌíãÎß§ÎãàÏ†Ä Ï¢ÖÎ£å // Îî∞Î°ú ÌïÑÏöî ÏóÜÏùå
 
-	// ImGui Win32 ¡æ∑·
+	// ImGui Win32 Ï¢ÖÎ£å
 	ImGui_ImplWin32_Shutdown();
 
-	// ¿©µµøÏ ∆ƒ±´ π◊ ≈¨∑°Ω∫ µÓ∑œ «ÿ¡¶
+	// ÏúàÎèÑÏö∞ ÌååÍ¥¥ Î∞è ÌÅ¥ÎûòÏä§ Îì±Î°ù Ìï¥Ï†ú
 	DestroyWindow(m_hWnd);
 	m_hWnd = nullptr;
 	UnregisterClass(L"EngineWindowClass", m_hInstance);

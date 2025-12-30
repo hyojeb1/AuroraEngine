@@ -73,6 +73,7 @@
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
+  <Import Project="VcpkgLocal.props" Condition="exists('VcpkgLocal.props')" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -138,6 +139,8 @@
     <ClInclude Include="ComponentBase.h" />
     <ClInclude Include="GameObjectBase.h" />
     <ClInclude Include="IBase.h" />
+    <ClInclude Include="InputManager.h" />
+    <ClInclude Include="KeyCode.h" />
     <ClInclude Include="ModelComponent.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="ResourceManager.h" />
@@ -153,6 +156,7 @@
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="ComponentBase.cpp" />
     <ClCompile Include="GameObjectBase.cpp" />
+    <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="ModelComponent.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="ResourceManager.cpp" />

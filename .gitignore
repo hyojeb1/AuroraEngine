@@ -52,3 +52,4 @@ Release/
 .DS_Store
 Thumbs.db
 custom-ports/
+Engine/VcpkgLocal.props

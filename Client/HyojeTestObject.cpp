@@ -1,23 +1,20 @@
-///TestObject.cpp의 시작
+///HyojeTestObject.cpp의 시작
 #include "stdafx.h"
-#include "TestObject.h"
+#include "HyojeTestObject.h"
 
 #include "ModelComponent.h"
-#include "TimeManager.h"
 
 using namespace std;
 using namespace DirectX;
 
-void TestObject::Initialize()
+void HyojeTestObject::Initialize()
 {
 	CreateComponent<ModelComponent>(); // 기본 생성
 	SetScale({ 1.0f, 1.0f, 1.0f });
 }
 
-void TestObject::Update()
+void HyojeTestObject::Update(float deltaTime)
 {
-	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
-
 	if (GetAsyncKeyState('W') & 0x8000) Rotate({ -deltaTime * 45.0f, 0.0f, 0.0f });
 	if (GetAsyncKeyState('S') & 0x8000) Rotate({ deltaTime * 45.0f, 0.0f, 0.0f });
 	if (GetAsyncKeyState('A') & 0x8000) Rotate({ 0.0f, -deltaTime * 45.0f, 0.0f });
@@ -26,4 +23,4 @@ void TestObject::Update()
 	if (GetAsyncKeyState('E') & 0x8000) Rotate({ 0.0f, 0.0f, deltaTime * 45.0f });
 }
 
-///TestObject.cpp의 끝
+///HyojeTestObject.cpp의 끝

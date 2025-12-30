@@ -19,6 +19,9 @@
     <Filter Include="Manager">
       <UniqueIdentifier>{b704db7d-9366-450b-908e-d5b7607566e6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Input">
+      <UniqueIdentifier>{6751b606-7ad5-4d02-95fa-9b35d5cff09b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Renderer.cpp">
@@ -50,6 +53,9 @@
     </ClCompile>
     <ClCompile Include="ResourceManager.cpp">
       <Filter>Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="InputManager.cpp">
+      <Filter>Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -92,6 +98,13 @@
     </ClInclude>
     <ClInclude Include="Singleton.h">
       <Filter>Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="IBase.h" />
+    <ClInclude Include="InputManager.h">
+      <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyCode.h">
+      <Filter>Input</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

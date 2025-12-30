@@ -1,9 +1,13 @@
+///main.cppÀÇ ½ÃÀÛ
 #include "stdafx.h"
 
 #include "WindowManager.h"
 #include "SceneManager.h"
 
 #include "TestScene.h"
+#include "HyojeTestBRDF.h"
+
+
 
 #ifdef _DEBUG
 int main()
@@ -11,6 +15,12 @@ int main()
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif
 {
+#ifdef _DEBUG
+	cout << "==================================" << endl;
+	cout << "Welcome to Aurora Engine" << endl;
+	cout << "==================================" << endl;
+#endif
+
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
@@ -20,7 +30,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	windowManager.Initialize(L"Aurora");
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
-	sceneManager.ChangeScene<TestScene>();
+	sceneManager.ChangeScene<HyojeTestBRDF>();
 
 	while (windowManager.ProcessMessages()) sceneManager.Run();
 
@@ -28,3 +38,4 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	ImGui::DestroyContext();
 }
+///main.cppÀÇ ³¡

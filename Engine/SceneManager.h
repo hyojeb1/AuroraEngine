@@ -1,3 +1,4 @@
+///SceneManager.hÀÇ ½ÃÀÛ
 #pragma once
 #include "SceneBase.h"
 

@@ -1,3 +1,4 @@
+///SceneBase.cpp의 시작
 #include "stdafx.h"
 #include "SceneBase.h"
 
@@ -146,3 +147,4 @@ void SceneBase::RemovePendingGameObjects()
 	}
 	m_gameObjectsToRemove.clear();
 }
+///SceneBase.cpp의 끝
