@@ -33,3 +33,8 @@ void SceneManager::Run()
 
 	m_renderer.EndFrame();
 }
+
+void SceneManager::Finalize()
+{
+	if (m_currentScene) m_currentScene->BaseFinalize();
+}

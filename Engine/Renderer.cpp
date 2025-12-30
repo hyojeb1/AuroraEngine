@@ -8,11 +8,10 @@
 using namespace std;
 using namespace DirectX;
 
-void Renderer::Initialize(UINT width, UINT height)
+void Renderer::Initialize()
 {
 	CreateDeviceAndContext();
 	CreateSwapChain();
-	Resize(width, height);
 	CreateBackBufferResources();
 
 	// 씬 매니저 초기화
@@ -113,6 +112,8 @@ void Renderer::Finalize()
 	ImGui_ImplDX11_Shutdown();
 
 	// RenderResourceManager 종료는 따로 필요 없음
+
+	SceneManager::GetInstance().Finalize();
 }
 
 HRESULT Renderer::Resize(UINT width, UINT height)
@@ -122,10 +123,10 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 	HRESULT hr = S_OK;
 
 	// 렌더 타겟 및 셰이더 리소스 해제
+	UnbindShaderResources();
 	constexpr ID3D11RenderTargetView* nullRTV = nullptr;
-	constexpr ID3D11ShaderResourceView* nullSRV = nullptr;
 	m_deviceContext->OMSetRenderTargets(1, &nullRTV, nullptr);
-	m_deviceContext->PSSetShaderResources(0, 1, &nullSRV);
+
 	m_deviceContext->Flush();
 
 	// 백 버퍼 리소스 해제

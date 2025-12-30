@@ -60,7 +60,7 @@ public:
 	Renderer& operator=(Renderer&&) = delete;
 
 	// 렌더러 초기화 // WindowManager에서 윈도우 생성 후 호출
-	void Initialize(UINT width, UINT height);
+	void Initialize();
 
 	// 프레임 시작
 	void BeginFrame();
@@ -75,6 +75,8 @@ public:
 
 	// 화면 크기 조정
 	HRESULT Resize(UINT width, UINT height);
+	// 화면 종횡비 조회
+	float GetAspectRatio() const { return m_aspectRatio; }
 
 	// 스왑 체인 설정 변경
 	void SetSwapChainDesc(const DXGI_SWAP_CHAIN_DESC1& desc) { m_swapChainDesc = desc; }
