@@ -38,6 +38,7 @@ public:
 
     const MousePos& GetMousePosition() const { return m_mousePos; }
     const MousePos& GetMouseDelta() const { return m_mouseDelta; }
+    int GetMouseWheel() const { return m_wheelDelta; }
 
 private:
     InputManager() = default;
@@ -50,6 +51,7 @@ private:
     MousePos m_mousePos = { 0, 0 };
     MousePos m_prevMousePos = { 0, 0 };
     MousePos m_mouseDelta = { 0, 0 };
+    int m_wheelDelta = 0;
 
     int MapKeyCodeToVKey(KeyCode key) const;
 };

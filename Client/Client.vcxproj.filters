@@ -20,6 +20,9 @@
     <ClCompile Include="CamRotObject.cpp">
       <Filter>GameObject\Camera</Filter>
     </ClCompile>
+    <ClCompile Include="BlenderCameraObject.cpp">
+      <Filter>GameObject\Camera</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -39,6 +42,9 @@
       <Filter>GameObject\Camera</Filter>
     </ClInclude>
     <ClInclude Include="CamRotObject.h">
+      <Filter>GameObject\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="BlenderCameraObject.h">
       <Filter>GameObject\Camera</Filter>
     </ClInclude>
   </ItemGroup>

@@ -4,7 +4,7 @@
 
 
 #include "HyojeTestObject.h"
-#include "TestCameraObject.h"
+#include "BlenderCameraObject.h"
 #include "CamRotObject.h"
 
 using namespace std;
@@ -18,5 +18,5 @@ void HyojeTestBRDF::Initialize()
 
 GameObjectBase* HyojeTestBRDF::CreateCameraObject()
 {
-	return CreateRootGameObject<CamRotObject>()->CreateChildGameObject<TestCameraObject>();
+	return CreateRootGameObject<CamRotObject>()->CreateChildGameObject<BlenderCameraObject>();
 }

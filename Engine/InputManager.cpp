@@ -31,6 +31,7 @@ void InputManager::EndFrame()
 {
     m_keyDownState.fill(false);
     m_keyUpState.fill(false);
+    m_wheelDelta = 0;
 }
 
 void InputManager::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
@@ -87,7 +88,12 @@ void InputManager::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         m_keyUpState[VK_MBUTTON] = true;
         m_keyState[VK_MBUTTON] = false;
         break;
+
+    case WM_MOUSEWHEEL:
+        m_wheelDelta += GET_WHEEL_DELTA_WPARAM(wParam);
+        break;
     }
+
 }
 
 bool InputManager::GetKeyDown(KeyCode key) const
