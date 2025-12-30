@@ -28,8 +28,16 @@ void SceneManager::Run()
 
 	// ¾À ·»´õ¸µ
 	m_currentScene->BaseRender();
+
+	#ifdef _DEBUG
 	// ImGui ·»´õ¸µ
 	m_currentScene->BaseRenderImGui();
+	#endif
 
 	m_renderer.EndFrame();
+}
+
+void SceneManager::Finalize()
+{
+	if (m_currentScene) m_currentScene->BaseFinalize();
 }

@@ -22,4 +22,6 @@ public:
 	void ChangeScene(Args&&... args) { m_nextScene = std::make_unique<T>(std::forward<Args>(args)...); }
 
 	void Run();
+
+	void Finalize();
 };

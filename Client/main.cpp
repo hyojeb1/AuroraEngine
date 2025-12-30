@@ -5,12 +5,16 @@
 
 #include "TestScene.h"
 
+#ifdef _DEBUG
 int main()
+#else
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+#endif
 {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
 
 	WindowManager& windowManager = WindowManager::GetInstance();
 	windowManager.Initialize(L"Aurora");
