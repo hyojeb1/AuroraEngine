@@ -29,7 +29,8 @@ void CameraComponent::UpdateProjectionMatrix()
 
 void CameraComponent::RenderImGui()
 {
-	ImGui::DragFloat("FovY (radian)", &m_fovY, 0.01f, 0.1f, XM_2PI);
+	float fovYInDegrees = XMConvertToDegrees(m_fovY);
+	if (ImGui::DragFloat("FovY", &fovYInDegrees, 0.1f, 1.0f, 179.0f)) m_fovY = XMConvertToRadians(fovYInDegrees);
 	ImGui::DragFloat("NearZ", &m_nearZ, 0.01f, 0.01f, m_farZ - 0.01f);
 	ImGui::DragFloat("FarZ", &m_farZ, 1.0f, m_nearZ + 0.01f, 10000.0f);
 }
