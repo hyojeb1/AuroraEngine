@@ -37,7 +37,7 @@ void SceneBase::BaseInitialize()
 void SceneBase::BaseUpdate()
 {
 	RemovePendingGameObjects();
-	for (unique_ptr<IBase>& gameObject : m_gameObjects) gameObject->BaseUpdate();
+	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseUpdate();
 }
 
 void SceneBase::BaseRender()
@@ -52,7 +52,7 @@ void SceneBase::BaseRender()
 	m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Environment), 1, m_environmentMapSRV.GetAddressOf());
 
 	// 게임 오브젝트 렌더링
-	for (unique_ptr<IBase>& gameObject : m_gameObjects) gameObject->BaseRender();
+	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseRender();
 
 	// 스카이박스 렌더링
 	RenderSkybox();
@@ -67,7 +67,7 @@ void SceneBase::BaseRenderImGui()
 
 	ImGui::Separator();
 	ImGui::Text("Game Objects:");
-	for (unique_ptr<IBase>& gameObject : m_gameObjects) gameObject->BaseRenderImGui();
+	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseRenderImGui();
 
 	ImGui::End();
 }
@@ -159,11 +159,11 @@ void SceneBase::RenderSkybox()
 
 void SceneBase::RemovePendingGameObjects()
 {
-	for (IBase* gameObjectToRemove : m_gameObjectsToRemove)
+	for (Base* gameObjectToRemove : m_gameObjectsToRemove)
 	{
 		erase_if
 		(
-			m_gameObjects, [gameObjectToRemove](const unique_ptr<IBase>& obj)
+			m_gameObjects, [gameObjectToRemove](const unique_ptr<Base>& obj)
 			{
 				if (obj.get() == gameObjectToRemove)
 				{

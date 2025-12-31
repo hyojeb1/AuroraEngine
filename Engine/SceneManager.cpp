@@ -48,7 +48,7 @@ void SceneManager::Run()
 		cout << "ÀúÀå Áß..." << endl;
 
 		nlohmann::json sceneData = m_currentScene->BaseSerialize();
-		filesystem::path sceneFilePath = "../Asset/Scene/" + dynamic_cast<Base*>(m_currentScene.get())->GetTypeName() + ".json";
+		filesystem::path sceneFilePath = "../Asset/Scene/" + m_currentScene->GetTypeName() + ".json";
 		ofstream file(sceneFilePath);
 		file << sceneData.dump(4);
 		file.close();

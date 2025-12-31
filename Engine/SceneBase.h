@@ -1,14 +1,13 @@
 ///SceneBase.h의 시작
 #pragma once
-#include "IBase.h"
 #include "GameObjectBase.h"
 
 class SceneBase : public Base
 {
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트 포인터
 
-	std::vector<std::unique_ptr<IBase>> m_gameObjects = {}; // 게임 오브젝트 배열
-	std::vector<IBase*> m_gameObjectsToRemove = {}; // 제거할 게임 오브젝트 배열
+	std::vector<std::unique_ptr<Base>> m_gameObjects = {}; // 게임 오브젝트 배열
+	std::vector<Base*> m_gameObjectsToRemove = {}; // 제거할 게임 오브젝트 배열
 
 	struct ViewProjectionBuffer // 뷰-투영 상수 버퍼 구조체
 	{
@@ -89,7 +88,7 @@ private:
 template<typename T, typename ...Args> requires std::derived_from<T, GameObjectBase>
 inline T* SceneBase::CreateRootGameObject(Args && ...args)
 {
-	std::unique_ptr<IBase> gameObject = std::make_unique<T>(std::forward<Args>(args)...);
+	std::unique_ptr<Base> gameObject = std::make_unique<T>(std::forward<Args>(args)...);
 
 	T* gameObjectPtr = static_cast<T*>(gameObject.get()); // 이거 왜 dynamic_cast 가 아니라 static_cast 인거지?
 	gameObject->BaseInitialize();

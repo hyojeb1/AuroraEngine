@@ -1,8 +1,9 @@
 #include "stdafx.h"
+#include "Base.h"
 
 using namespace std;
 
-unordered_map<string, function<unique_ptr<IBase>()>> Base::s_registry = {};
+unordered_map<string, function<unique_ptr<Base>()>> Base::s_registry = {};
 
 string Base::GetTypeName() const
 {
@@ -12,7 +13,7 @@ string Base::GetTypeName() const
 	return typeName;
 }
 
-unique_ptr<IBase> Base::Create(const string& typeName)
+unique_ptr<Base> Base::Create(const string& typeName)
 {
 	auto it = s_registry.find(typeName);
 	if (it != s_registry.end()) return it->second();

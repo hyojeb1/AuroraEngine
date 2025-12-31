@@ -36,10 +36,6 @@ public:
 	// 타입 이름 가져오기
 	std::string GetTypeName() const;
 
-	template<typename T> requires std::derived_from<T, Base>
-	static void Register(const std::string& typeName) { s_registry[typeName] = []() -> std::unique_ptr<IBase> { return std::make_unique<T>(); }; }
-	static std::unique_ptr<IBase> Create(const std::string& typeName);
-
 protected:
 	virtual void Initialize() {}
 	virtual void Update() {}
@@ -47,9 +43,13 @@ protected:
 	virtual void RenderImGui() {}
 	virtual void Finalize() {}
 
+	template<typename T> requires std::derived_from<T, Base>
+	static void Register(const std::string& typeName) { s_registry[typeName] = []() -> std::unique_ptr<Base> { return std::make_unique<T>(); }; }
+	static std::unique_ptr<Base> Create(const std::string& typeName);
+
 	virtual nlohmann::json Serialize() { return nlohmann::json(); }
 	virtual void Deserialize(const nlohmann::json& jsonData) {}
 
 private:
-	static std::unordered_map<std::string, std::function<std::unique_ptr<IBase>()>> s_registry;
+	static std::unordered_map<std::string, std::function<std::unique_ptr<Base>()>> s_registry;
 };

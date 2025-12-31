@@ -119,7 +119,7 @@ void GameObjectBase::BaseUpdate()
 	// 월드 행렬 업데이트
 	UpdateWorldMatrix();
 	// 컴포넌트 업데이트
-	for (IBase*& component : m_updateComponents) component->BaseUpdate();
+	for (Base*& component : m_updateComponents) component->BaseUpdate();
 
 	// 제거할 자식 게임 오브젝트 제거
 	RemovePendingChildGameObjects();
@@ -142,7 +142,7 @@ void GameObjectBase::BaseRender()
 		m_deviceContext->UpdateSubresource(m_worldWVPConstantBuffer.Get(), 0, nullptr, &m_worldData, 0, 0);
 		m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::WorldNormal), 1, m_worldWVPConstantBuffer.GetAddressOf());
 
-		for (IBase*& component : m_renderComponents) component->BaseRender();
+		for (Base*& component : m_renderComponents) component->BaseRender();
 	}
 
 	// 자식 게임 오브젝트 렌더링

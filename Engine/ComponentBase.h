@@ -1,5 +1,4 @@
 #pragma once
-#include "IBase.h"
 
 class ComponentBase : public Base
 {
