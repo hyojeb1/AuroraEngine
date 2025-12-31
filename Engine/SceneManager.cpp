@@ -47,10 +47,9 @@ void SceneManager::Run()
 	{
 		cout << "저장 중..." << endl;
 
-		nlohmann::json sceneData = m_currentScene->BaseSerialize();
 		filesystem::path sceneFilePath = "../Asset/Scene/" + m_currentScene->GetTypeName() + ".json";
 		ofstream file(sceneFilePath);
-		file << sceneData.dump(4);
+		file << m_currentScene->BaseSerialize().dump(4);
 		file.close();
 
 		cout << "저장 완료!" << endl;
