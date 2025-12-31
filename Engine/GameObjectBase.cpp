@@ -104,9 +104,8 @@ XMVECTOR GameObjectBase::GetWorldDirectionVector(Direction direction)
 
 void GameObjectBase::BaseInitialize()
 {
-	m_typeName = typeid(*this).name();
-	if (m_typeName.find("class ") == 0) m_typeName = m_typeName.substr(6);
-	m_typeName += "_" + to_string(m_id);
+	m_name = GetTypeName();
+	m_uniqueName = m_name + "_" + to_string(m_id);
 
 	m_worldWVPConstantBuffer = ResourceManager::GetInstance().GetConstantBuffer(sizeof(WorldBuffer));
 
@@ -152,7 +151,7 @@ void GameObjectBase::BaseRender()
 
 void GameObjectBase::BaseRenderImGui()
 {
-	if (ImGui::TreeNode(m_typeName.c_str()))
+	if (ImGui::TreeNode(m_uniqueName.c_str()))
 	{
 		// 파생 클래스 ImGui 렌더링
 		RenderImGui();

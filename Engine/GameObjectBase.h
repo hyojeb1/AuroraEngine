@@ -12,10 +12,10 @@ enum class Direction // 방향 열거형
 	Count
 };
 
-class GameObjectBase : public IBase
+class GameObjectBase : public Base
 {
 	UINT m_id = 0; // 고유 ID
-	std::string m_typeName = "GameObjectBase"; // 게임 오브젝트 타입 이름
+	std::string m_uniqueName = "";
 
 	// 변환 관련 멤버 변수
 	DirectX::XMMATRIX m_worldMatrix = DirectX::XMMatrixIdentity(); // 월드 행렬

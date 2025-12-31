@@ -25,8 +25,7 @@ GameObjectBase* SceneBase::CreateCameraObject()
 
 void SceneBase::BaseInitialize()
 {
-	m_typeName = typeid(*this).name();
-	if (m_typeName.find("class ") == 0) m_typeName = m_typeName.substr(6);
+	m_name = GetTypeName();
 
 	GetResources();
 
@@ -61,7 +60,7 @@ void SceneBase::BaseRender()
 
 void SceneBase::BaseRenderImGui()
 {
-	ImGui::Begin(m_typeName.c_str());
+	ImGui::Begin(m_name.c_str());
 
 	if (ImGui::DragFloat3("Directional Light Direction", &m_directionalLightDirection.m128_f32[0], 0.001f, -1.0f, 1.0f)) {}
 	if (ImGui::ColorEdit3("Scene Color", &m_sceneColor.x)) {}
@@ -71,6 +70,15 @@ void SceneBase::BaseRenderImGui()
 	for (unique_ptr<IBase>& gameObject : m_gameObjects) gameObject->BaseRenderImGui();
 
 	ImGui::End();
+}
+
+nlohmann::json SceneBase::BaseSerialize()
+{
+	return nlohmann::json();
+}
+
+void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
+{
 }
 
 void SceneBase::GetResources()

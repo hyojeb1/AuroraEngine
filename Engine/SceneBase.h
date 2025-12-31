@@ -3,10 +3,8 @@
 #include "IBase.h"
 #include "GameObjectBase.h"
 
-class SceneBase : public IBase
+class SceneBase : public Base
 {
-	std::string m_typeName = "SceneBase"; // 씬 타입 이름
-
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트 포인터
 
 	std::vector<std::unique_ptr<IBase>> m_gameObjects = {}; // 게임 오브젝트 배열
@@ -72,6 +70,11 @@ private:
 	void BaseRenderImGui() override;
 	// 씬 종료 // 씬 매니저가 씬을 교체할 때 호출
 	void BaseFinalize() override { Finalize(); }
+
+	// 씬 직렬화
+	nlohmann::json BaseSerialize() override;
+	// 씬 역직렬화
+	void BaseDeserialize(const nlohmann::json& jsonData) override;
 
 	// 리소스 매니저에서 필요한 리소스 얻기
 	void GetResources();

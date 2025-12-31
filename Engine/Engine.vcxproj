@@ -157,6 +157,7 @@
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="ComponentBase.cpp" />
     <ClCompile Include="GameObjectBase.cpp" />
+    <ClCompile Include="IBase.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="LineComponent.cpp" />
     <ClCompile Include="ModelComponent.cpp" />

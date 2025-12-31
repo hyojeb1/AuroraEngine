@@ -21,7 +21,7 @@
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "dxgi.lib")
 
-// DirectX 툴킷 헤더
+// DirectXTK 헤더
 #include <directxtk/SimpleMath.h>
 #include <directxtk/WICTextureLoader.h>
 #include <directxtk/DDSTextureLoader.h>
@@ -35,6 +35,9 @@
 #include <imgui.h>
 #include <imgui_impl_win32.h>
 #include <imgui_impl_dx11.h>
+
+// JSON 헤더
+#include <nlohmann/json.hpp>
 
 // 기타 사용자 정의 헤더
 #include "IBase.h"
