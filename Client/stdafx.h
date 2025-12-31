@@ -4,6 +4,7 @@
 #include <array>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #ifdef _DEBUG
 #include <iostream>
 #endif

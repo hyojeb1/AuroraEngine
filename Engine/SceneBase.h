@@ -40,7 +40,7 @@ class SceneBase : public Base
 protected:
 	class CameraComponent* m_mainCamera = nullptr; // 메인 카메라 컴포넌트 포인터
 	DirectX::XMVECTOR m_directionalLightDirection = DirectX::XMVectorSet(-0.5f, -1.0f, -0.5f, 0.0f); // 방향광 방향
-	DirectX::XMFLOAT4 m_sceneColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 환경광, 방향광, 클리어 색장
+	DirectX::XMFLOAT4 m_lightColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 환경광, 방향광
 
 public:
 	SceneBase();

@@ -63,7 +63,7 @@ void SceneBase::BaseRenderImGui()
 	ImGui::Begin(m_type.c_str());
 
 	if (ImGui::DragFloat3("Directional Light Direction", &m_directionalLightDirection.m128_f32[0], 0.001f, -1.0f, 1.0f)) {}
-	if (ImGui::ColorEdit3("Scene Color", &m_sceneColor.x)) {}
+	if (ImGui::ColorEdit3("Scene Color", &m_lightColor.x)) {}
 
 	ImGui::Separator();
 	ImGui::Text("Game Objects:");
@@ -74,7 +74,28 @@ void SceneBase::BaseRenderImGui()
 
 nlohmann::json SceneBase::BaseSerialize()
 {
-	return nlohmann::json();
+	nlohmann::json sceneData;
+
+	// Store scene type
+	sceneData["type"] = m_type;
+
+	// Store scene-specific data
+	sceneData["directionalLightDirection"] =
+	{
+		m_directionalLightDirection.m128_f32[0],
+		m_directionalLightDirection.m128_f32[1],
+		m_directionalLightDirection.m128_f32[2]
+	};
+	sceneData["lightColor"] =
+	{
+		m_lightColor.x,
+		m_lightColor.y,
+		m_lightColor.z,
+		m_lightColor.w
+	};
+	sceneData["environmentMapFileName"] = m_environmentMapFileName;
+
+	return sceneData;
 }
 
 void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
@@ -112,7 +133,7 @@ void SceneBase::UpdateConstantBuffers()
 
 	// 방향광 상수 버퍼 업데이트 및 셰이더에 설정
 	m_directionalLightData.lightDirection = -XMVector3Normalize(m_directionalLightDirection);
-	m_directionalLightData.lightColor = m_sceneColor;
+	m_directionalLightData.lightColor = m_lightColor;
 	m_deviceContext->UpdateSubresource(m_directionalLightConstantBuffer.Get(), 0, nullptr, &m_directionalLightData, 0, 0);
 	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::DirectionalLight), 1, m_directionalLightConstantBuffer.GetAddressOf());
 }
