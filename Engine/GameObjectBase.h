@@ -123,6 +123,11 @@ private:
 	// 게임 오브젝트 종료
 	void BaseFinalize() override;
 
+	// 게임 오브젝트 직렬화
+	nlohmann::json BaseSerialize() override;
+	// 게임 오브젝트 역직렬화
+	void BaseDeserialize(const nlohmann::json& jsonData) override;
+
 	// 위치 갱신 필요로 설정 // 자식 게임 오브젝트도 설정
 	void SetDirty();
 	// 제거할 자식 게임 오브젝트 제거 // TODO: 컴포넌트 정리 추가 필요
@@ -193,7 +198,6 @@ inline void GameObjectBase::RemoveComponent()
 		Base* componentPtr = it->second.get();
 		if (componentPtr->NeedsUpdate()) erase_if(m_updateComponents, [componentPtr](Base* obj) { return obj == componentPtr; });
 		if (componentPtr->NeedsRender()) erase_if(m_renderComponents, [componentPtr](Base* obj) { return obj == componentPtr; });
-
 
 		it->second->BaseFinalize();
 		m_components.erase(it);

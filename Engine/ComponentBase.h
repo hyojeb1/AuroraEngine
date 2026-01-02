@@ -25,4 +25,9 @@ private:
 	void BaseRender() override { Render(); }
 	void BaseRenderImGui() override;
 	void BaseFinalize() override { Finalize(); }
+
+	// 컴포넌트 직렬화
+	nlohmann::json BaseSerialize() override;
+	// 컴포넌트 역직렬화
+	void BaseDeserialize(const nlohmann::json& jsonData) override { Deserialize(jsonData); }
 };

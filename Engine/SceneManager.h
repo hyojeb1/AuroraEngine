@@ -21,8 +21,6 @@ public:
 
 	void ChangeScene(std::string sceneTypeName) { m_nextScene = TypeRegistry::GetInstance().CreateScene(sceneTypeName); }
 
-	void SaveCurrentScene();
-
 private:
 	SceneManager() = default;
 };

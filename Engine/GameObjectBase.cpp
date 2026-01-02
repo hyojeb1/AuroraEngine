@@ -257,6 +257,99 @@ void GameObjectBase::BaseFinalize()
 	for (auto& child : m_childrens) child->BaseFinalize();
 }
 
+nlohmann::json GameObjectBase::BaseSerialize()
+{
+	nlohmann::json jsonData;
+
+	// 게임 오브젝트 타입 저장
+	jsonData["type"] = m_type;
+
+	// 기본 게임 오브젝트 데이터 저장
+	jsonData["name"] = m_name;
+	jsonData["position"] = { m_position.m128_f32[0], m_position.m128_f32[1], m_position.m128_f32[2], m_position.m128_f32[3] };
+	jsonData["rotation"] = { m_quaternion.m128_f32[0], m_quaternion.m128_f32[1], m_quaternion.m128_f32[2], m_quaternion.m128_f32[3] };
+	jsonData["scale"] = { m_scale.m128_f32[0], m_scale.m128_f32[1], m_scale.m128_f32[2], m_scale.m128_f32[3] };
+
+	// 파생 클래스의 직렬화 호출
+	nlohmann::json derivedData = Serialize();
+	if (!derivedData.is_null() && derivedData.is_object()) jsonData.merge_patch(derivedData);
+
+	// 컴포넌트들 저장
+	nlohmann::json componentsData = nlohmann::json::array();
+	for (auto& [typeIndex, component] : m_components) componentsData.push_back(component->BaseSerialize());
+	jsonData["components"] = componentsData;
+
+	// 자식 게임 오브젝트들 저장
+	nlohmann::json childrenData = nlohmann::json::array();
+	for (auto& child : m_childrens) childrenData.push_back(child->BaseSerialize());
+	jsonData["childGameObjects"] = childrenData;
+
+	return jsonData;
+}
+
+void GameObjectBase::BaseDeserialize(const nlohmann::json& jsonData)
+{
+	// 기본 게임 오브젝트 데이터 로드
+	m_name = jsonData["name"].get<string>();
+
+	m_position = XMVectorSet
+	(
+		jsonData["position"][0].get<float>(),
+		jsonData["position"][1].get<float>(),
+		jsonData["position"][2].get<float>(),
+		jsonData["position"][3].get<float>()
+	);
+	m_quaternion = XMVectorSet
+	(
+		jsonData["rotation"][0].get<float>(),
+		jsonData["rotation"][1].get<float>(),
+		jsonData["rotation"][2].get<float>(),
+		jsonData["rotation"][3].get<float>()
+	);
+	m_scale = XMVectorSet
+	(
+		jsonData["scale"][0].get<float>(),
+		jsonData["scale"][1].get<float>(),
+		jsonData["scale"][2].get<float>(),
+		jsonData["scale"][3].get<float>()
+	);
+
+	// 파생 클래스의 데이터 로드
+	Deserialize(jsonData);
+
+	// 컴포넌트들 로드
+	for (const auto& componentData : jsonData["components"])
+	{
+		string typeName = componentData["type"].get<string>();
+		unique_ptr<ComponentBase> componentPtr = TypeRegistry::GetInstance().CreateComponent(typeName);
+
+		componentPtr->SetOwner(this);
+		if (componentPtr->NeedsUpdate()) m_updateComponents.push_back(componentPtr.get());
+		if (componentPtr->NeedsRender()) m_renderComponents.push_back(componentPtr.get());
+
+		Base* basePtr = static_cast<Base*>(componentPtr.get());
+		basePtr->BaseDeserialize(componentData);
+		basePtr->BaseInitialize();
+
+		m_components[type_index(typeid(*componentPtr))] = move(componentPtr);
+	}
+	
+	// 자식 게임 오브젝트들 로드
+	for (const auto& childData : jsonData["childGameObjects"])
+	{
+		string typeName = childData["type"].get<string>();
+		unique_ptr<GameObjectBase> childGameObjectPtr = TypeRegistry::GetInstance().CreateGameObject(typeName);
+
+		childGameObjectPtr->m_parent = this;
+		childGameObjectPtr->BaseDeserialize(childData);
+		childGameObjectPtr->BaseInitialize();
+
+		m_childrens.push_back(move(childGameObjectPtr));
+	}
+
+	SetDirty();
+}
+
 void GameObjectBase::SetDirty()
 {
 	m_isDirty = true;
