@@ -91,7 +91,7 @@ public:
 	const DirectX::XMMATRIX& GetWorldMatrix() const { return m_worldMatrix; }
 
 	template<typename T, typename... Args> requires std::derived_from<T, GameObjectBase>
-	T* CreateChildGameObject(Args&&... args); // 자식 게임 오브젝트 생성
+	T* CreateChildGameObject(Args&&... args); // 자식 게임 오브젝트 생성 // 포인터 반환
 	// 자식 게임 오브젝트 제거 // 제거 배열에 추가
 	void RemoveChildGameObject(GameObjectBase* childGameObject) { m_childrenToRemove.push_back(childGameObject); }
 
