@@ -92,18 +92,17 @@ public:
 
 	// 자식 게임 오브젝트 생성 // 포인터 반환 안함
 	void CreateChildGameObject(std::string typeName);
-
 	template<typename T> requires std::derived_from<T, GameObjectBase>
 	T* CreateChildGameObject(); // 자식 게임 오브젝트 생성 // 포인터 반환
 	// 자식 게임 오브젝트 제거 // 제거 배열에 추가
-
 	template<typename T> requires std::derived_from<T, GameObjectBase>
 	T* CreateChildGameObject(std::string typeName); // 자식 게임 오브젝트 생성 // 포인터 반환
 
 	void RemoveChildGameObject(GameObjectBase* childGameObject) { m_childrenToRemove.push_back(childGameObject); }
 
-	template<typename T, typename... Args> requires std::derived_from<T, ComponentBase>
-	T* CreateComponent(Args&&... args); // 컴포넌트 추가
+	template<typename T> requires std::derived_from<T, ComponentBase>
+	T* CreateComponent(); // 컴포넌트 추가
+
 	template<typename T> requires std::derived_from<T, ComponentBase>
 	T* GetComponent(); // 컴포넌트 가져오기 // 없으면 nullptr 반환
 	template<typename T> requires std::derived_from<T, ComponentBase>
@@ -155,17 +154,16 @@ inline T* GameObjectBase::CreateChildGameObject(std::string typeName)
 	return childPtr;
 }
 
-template<typename T, typename ...Args> requires std::derived_from<T, ComponentBase>
-inline T* GameObjectBase::CreateComponent(Args && ...args)
+template<typename T> requires std::derived_from<T, ComponentBase>
+inline T* GameObjectBase::CreateComponent()
 {
-	std::unique_ptr<Base> component = std::make_unique<T>(std::forward<Args>(args)...);
+	std::unique_ptr<Base> component = std::make_unique<T>();
 
 	T* componentPtr = static_cast<T*>(component.get());
-	componentPtr->SetOwner(this);
-
 	if (componentPtr->NeedsUpdate()) m_updateComponents.push_back(componentPtr);
 	if (componentPtr->NeedsRender()) m_renderComponents.push_back(componentPtr);
 
+	component->SetOwner(this);
 	component->BaseInitialize();
 	m_components[std::type_index(typeid(T))] = std::move(component);
 
