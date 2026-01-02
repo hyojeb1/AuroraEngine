@@ -33,8 +33,7 @@ public:
 	Base(Base&&) = default;
 	Base& operator=(Base&&) = default;
 
-	// 타입 이름 가져오기
-	std::string GetTypeName() const;
+	std::string GetType() const { return m_type; }
 
 protected:
 	// 파생 클래스의 초기화
@@ -47,7 +46,6 @@ protected:
 	virtual void RenderImGui() {}
 	// 파생 클래스의 종료
 	virtual void Finalize() {}
-	static std::unique_ptr<Base> Create(const std::string& typeName);
 
 	virtual nlohmann::json Serialize() { return nlohmann::json(); }
 	virtual void Deserialize(const nlohmann::json& jsonData) {}

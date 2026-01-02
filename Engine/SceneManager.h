@@ -9,7 +9,6 @@ class SceneManager : public Singleton<SceneManager>
 	std::unique_ptr<class Base> m_nextScene = nullptr;
 
 public:
-	SceneManager() = default;
 	~SceneManager() = default;
 	SceneManager(const SceneManager&) = delete;
 	SceneManager& operator=(const SceneManager&) = delete;
@@ -20,8 +19,10 @@ public:
 	void Run();
 	void Finalize() { if (m_currentScene) m_currentScene->BaseFinalize(); }
 
-	template<typename T, typename... Args> requires std::derived_from<T, SceneBase>
-	void ChangeScene(Args&&... args) { m_nextScene = std::make_unique<T>(std::forward<Args>(args)...); }
+	void ChangeScene(std::string sceneTypeName) { m_nextScene = TypeRegistry::GetInstance().Create(sceneTypeName); }
 
 	void SaveCurrentScene();
+
+private:
+	SceneManager() = default;
 };

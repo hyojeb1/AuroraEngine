@@ -25,7 +25,7 @@ GameObjectBase* SceneBase::CreateCameraObject()
 
 void SceneBase::BaseInitialize()
 {
-	m_type = GetTypeName();
+	m_type = GetTypeName(*this);
 
 	GetResources();
 

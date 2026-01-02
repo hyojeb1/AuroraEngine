@@ -104,7 +104,7 @@ XMVECTOR GameObjectBase::GetWorldDirectionVector(Direction direction)
 
 void GameObjectBase::BaseInitialize()
 {
-	m_type = GetTypeName();
+	m_type = GetTypeName(*this);
 	m_name = m_type + "_" + to_string(m_id);
 
 	m_worldWVPConstantBuffer = ResourceManager::GetInstance().GetConstantBuffer(sizeof(WorldBuffer));

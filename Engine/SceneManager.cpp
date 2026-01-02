@@ -50,7 +50,7 @@ void SceneManager::SaveCurrentScene()
 {
 	cout << "ÀúÀå Áß..." << endl;
 
-	filesystem::path sceneFilePath = "../Asset/Scene/" + m_currentScene->GetTypeName() + ".json";
+	filesystem::path sceneFilePath = "../Asset/Scene/" + m_currentScene->GetType() + ".json";
 	ofstream file(sceneFilePath);
 	file << m_currentScene->BaseSerialize().dump(4);
 	file.close();

@@ -12,6 +12,7 @@
 using namespace std;
 using namespace DirectX;
 
+REGISTER_TYPE(HyojeTestScene)
 
 void HyojeTestScene::Initialize()
 {

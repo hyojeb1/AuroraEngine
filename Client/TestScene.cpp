@@ -8,6 +8,8 @@
 
 using namespace std;
 
+REGISTER_TYPE(TestScene)
+
 void TestScene::Initialize()
 {
 	CreateRootGameObject<TestObject>();

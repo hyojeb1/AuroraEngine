@@ -49,8 +49,8 @@ public:
 	SceneBase(SceneBase&&) = delete; // 이동 금지
 	SceneBase& operator=(SceneBase&&) = delete; // 이동 대입 금지
 
-	template<typename T, typename... Args> requires std::derived_from<T, GameObjectBase>
-	T* CreateRootGameObject(Args&&... args);
+	template<typename T> requires std::derived_from<T, GameObjectBase>
+	T* CreateRootGameObject();
 	// 루트 게임 오브젝트 제거 // 제거 배열에 추가
 	void RemoveGameObject(GameObjectBase* gameObject) { m_gameObjectsToRemove.push_back(gameObject); }
 
@@ -85,10 +85,10 @@ private:
 	void RemovePendingGameObjects();
 };
 
-template<typename T, typename ...Args> requires std::derived_from<T, GameObjectBase>
-inline T* SceneBase::CreateRootGameObject(Args && ...args)
+template<typename T> requires std::derived_from<T, GameObjectBase>
+inline T* SceneBase::CreateRootGameObject()
 {
-	std::unique_ptr<Base> gameObject = std::make_unique<T>(std::forward<Args>(args)...);
+	std::unique_ptr<Base> gameObject = std::make_unique<T>();
 
 	T* gameObjectPtr = static_cast<T*>(gameObject.get()); // 이거 왜 dynamic_cast 가 아니라 static_cast 인거지?
 	gameObject->BaseInitialize();
