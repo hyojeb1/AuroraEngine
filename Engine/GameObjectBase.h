@@ -160,10 +160,10 @@ inline T* GameObjectBase::CreateComponent()
 	std::unique_ptr<Base> component = std::make_unique<T>();
 
 	T* componentPtr = static_cast<T*>(component.get());
+	componentPtr->SetOwner(this);
 	if (componentPtr->NeedsUpdate()) m_updateComponents.push_back(componentPtr);
 	if (componentPtr->NeedsRender()) m_renderComponents.push_back(componentPtr);
 
-	component->SetOwner(this);
 	component->BaseInitialize();
 	m_components[std::type_index(typeid(T))] = std::move(component);
 
