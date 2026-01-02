@@ -50,9 +50,14 @@ public:
 	SceneBase& operator=(SceneBase&&) = delete; // 이동 대입 금지
 
 	// 루트 게임 오브젝트 생성 // 포인터 반환 안함
-	void CreateRootGameObject(std::string typeName) { m_gameObjects.push_back(std::move(TypeRegistry::GetInstance().Create(typeName))); }
+	void CreateRootGameObject(std::string typeName);
+
+	template<typename T> requires std::derived_from<T, GameObjectBase>
+	T* CreateRootGameObject(); // 루트 게임 오브젝트 생성 // 포인터 반환
+
 	template<typename T> requires std::derived_from<T, GameObjectBase>
 	T* CreateRootGameObject(std::string typeName); // 루트 게임 오브젝트 생성 // 포인터 반환
+
 	// 루트 게임 오브젝트 제거 // 제거 배열에 추가
 	void RemoveGameObject(GameObjectBase* gameObject) { m_gameObjectsToRemove.push_back(gameObject); }
 
@@ -88,9 +93,21 @@ private:
 };
 
 template<typename T> requires std::derived_from<T, GameObjectBase>
+inline T* SceneBase::CreateRootGameObject()
+{
+	std::unique_ptr<Base> gameObject = std::make_unique<T>();
+
+	gameObject->BaseInitialize();
+	T* gameObjectPtr = static_cast<T*>(gameObject.get());
+	m_gameObjects.push_back(std::move(gameObject));
+
+	return gameObjectPtr;
+}
+
+template<typename T> requires std::derived_from<T, GameObjectBase>
 inline T* SceneBase::CreateRootGameObject(std::string typeName)
 {
-	auto gameObject = TypeRegistry::GetInstance().Create(typeName);
+	std::unique_ptr<Base> gameObject = TypeRegistry::GetInstance().Create(typeName);
 
 	gameObject->BaseInitialize();
 	T* gameObjectPtr = static_cast<T*>(gameObject.get());

@@ -5,8 +5,6 @@
 #include "Renderer.h"
 #include "ResourceManager.h"
 
-REGISTER_TYPE(GameObjectBase)
-
 using namespace std;
 using namespace DirectX;
 
@@ -102,6 +100,14 @@ XMVECTOR GameObjectBase::GetWorldDirectionVector(Direction direction)
 	default:
 		return XMVectorZero();
 	}
+}
+
+void GameObjectBase::CreateChildGameObject(string typeName)
+{
+	// 뭔가 이상함 // 기분이 더러움
+	unique_ptr<GameObjectBase> childGameObjectPtr = unique_ptr<GameObjectBase>(dynamic_cast<GameObjectBase*>(TypeRegistry::GetInstance().Create(typeName).release()));
+	childGameObjectPtr->m_parent = this;
+	m_childrens.push_back(move(childGameObjectPtr));
 }
 
 void GameObjectBase::BaseInitialize()

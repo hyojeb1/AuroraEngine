@@ -16,11 +16,18 @@ SceneBase::SceneBase()
 
 GameObjectBase* SceneBase::CreateCameraObject()
 {
-	GameObjectBase* cameraGameObject = CreateRootGameObject<GameObjectBase>("GameObjectBase");
+	GameObjectBase* cameraGameObject = CreateRootGameObject<GameObjectBase>();
 	cameraGameObject->SetPosition({ 0.0f, 5.0f, -10.0f });
 	cameraGameObject->LookAt({ 0.0f, 0.0f, 0.0f });
 
 	return cameraGameObject;
+}
+
+void SceneBase::CreateRootGameObject(std::string typeName)
+{
+	unique_ptr<Base> gameObjectPtr = unique_ptr<Base>(TypeRegistry::GetInstance().Create(typeName).release());
+	gameObjectPtr->BaseInitialize();
+	m_gameObjects.push_back(move(gameObjectPtr));
 }
 
 void SceneBase::BaseInitialize()

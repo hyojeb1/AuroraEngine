@@ -90,9 +90,16 @@ public:
 
 	const DirectX::XMMATRIX& GetWorldMatrix() const { return m_worldMatrix; }
 
-	template<typename T, typename... Args> requires std::derived_from<T, GameObjectBase>
-	T* CreateChildGameObject(Args&&... args); // 자식 게임 오브젝트 생성 // 포인터 반환
+	// 자식 게임 오브젝트 생성 // 포인터 반환 안함
+	void CreateChildGameObject(std::string typeName);
+
+	template<typename T> requires std::derived_from<T, GameObjectBase>
+	T* CreateChildGameObject(); // 자식 게임 오브젝트 생성 // 포인터 반환
 	// 자식 게임 오브젝트 제거 // 제거 배열에 추가
+
+	template<typename T> requires std::derived_from<T, GameObjectBase>
+	T* CreateChildGameObject(std::string typeName); // 자식 게임 오브젝트 생성 // 포인터 반환
+
 	void RemoveChildGameObject(GameObjectBase* childGameObject) { m_childrenToRemove.push_back(childGameObject); }
 
 	template<typename T, typename... Args> requires std::derived_from<T, ComponentBase>
@@ -122,15 +129,28 @@ private:
 	const DirectX::XMMATRIX& UpdateWorldMatrix();
 };
 
-template<typename T, typename ...Args> requires std::derived_from<T, GameObjectBase>
-inline T* GameObjectBase::CreateChildGameObject(Args && ...args)
+template<typename T> requires std::derived_from<T, GameObjectBase>
+inline T* GameObjectBase::CreateChildGameObject()
 {
-	auto child = std::make_unique<T>(std::forward<Args>(args)...);
+	auto child = std::make_unique<T>();
 
 	T* childPtr = child.get();
 	child->m_parent = this;
 	child->BaseInitialize();
 	m_childrens.push_back(std::move(child));
+
+	return childPtr;
+}
+
+template<typename T> requires std::derived_from<T, GameObjectBase>
+inline T* GameObjectBase::CreateChildGameObject(std::string typeName)
+{
+	std::unique_ptr<GameObjectBase> childGameObjectPtr = std::unique_ptr<GameObjectBase>(dynamic_cast<GameObjectBase*>(TypeRegistry::GetInstance().Create(typeName).release()));
+
+	childGameObjectPtr->m_parent = this;
+	childGameObjectPtr->BaseInitialize();
+	T* childPtr = static_cast<T*>(childGameObjectPtr.get());
+	m_childrens.push_back(std::move(childGameObjectPtr));
 
 	return childPtr;
 }
