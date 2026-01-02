@@ -116,7 +116,7 @@ private:
 
 	// 위치 갱신 필요로 설정 // 자식 게임 오브젝트도 설정
 	void SetDirty();
-	// 제거할 자식 게임 오브젝트 제거
+	// 제거할 자식 게임 오브젝트 제거 // TODO: 컴포넌트 정리 추가 필요
 	void RemovePendingChildGameObjects();
 	// 월드 행렬 갱신
 	const DirectX::XMMATRIX& UpdateWorldMatrix();

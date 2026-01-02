@@ -68,7 +68,7 @@ private:
 	// ImGui 렌더링
 	void BaseRenderImGui() override;
 	// 씬 종료 // 씬 매니저가 씬을 교체할 때 호출
-	void BaseFinalize() override { Finalize(); }
+	void BaseFinalize() override;
 
 	// 씬 직렬화
 	nlohmann::json BaseSerialize() override;

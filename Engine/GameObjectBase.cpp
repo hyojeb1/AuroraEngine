@@ -109,13 +109,17 @@ void GameObjectBase::BaseInitialize()
 
 	m_worldWVPConstantBuffer = ResourceManager::GetInstance().GetConstantBuffer(sizeof(WorldBuffer));
 
+	#ifdef NDEBUG
 	Initialize();
+	#endif
 }
 
 void GameObjectBase::BaseUpdate()
 {
-	// 게임 오브젝트 업데이트 // 파생 클래스에서 오버라이드
+	#ifdef NDEBUG
 	Update();
+	#endif
+
 	// 월드 행렬 업데이트
 	UpdateWorldMatrix();
 	// 컴포넌트 업데이트
@@ -129,8 +133,9 @@ void GameObjectBase::BaseUpdate()
 
 void GameObjectBase::BaseRender()
 {
-	// 게임 오브젝트 렌더링 // 파생 클래스에서 오버라이드
+	#ifdef NDEBUG
 	Render();
+	#endif
 
 	// 컴포넌트 렌더링
 	if (!m_renderComponents.empty())
@@ -153,9 +158,6 @@ void GameObjectBase::BaseRenderImGui()
 {
 	if (ImGui::TreeNode(m_name.c_str()))
 	{
-		// 파생 클래스 ImGui 렌더링
-		RenderImGui();
-
 		// 위치
 		if (ImGui::DragFloat3("Position", &m_position.m128_f32[0], 0.05f))  SetDirty();
 		// 회전
@@ -166,6 +168,8 @@ void GameObjectBase::BaseRenderImGui()
 		};
 		// 크기
 		if (ImGui::DragFloat3("Scale", &m_scale.m128_f32[0], 0.01f)) SetDirty();
+
+		RenderImGui();
 
 		// 컴포넌트 ImGui 렌더링
 		if (!m_components.empty())
@@ -189,7 +193,9 @@ void GameObjectBase::BaseRenderImGui()
 
 void GameObjectBase::BaseFinalize()
 {
+	#ifdef NDEBUG
 	Finalize();
+	#endif
 
 	// 컴포넌트 종료
 	for (auto& [typeIndex, component] : m_components) component->BaseFinalize();
