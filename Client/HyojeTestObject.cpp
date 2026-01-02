@@ -9,6 +9,8 @@
 using namespace std;
 using namespace DirectX;
 
+REGISTER_TYPE(HyojeTestObject)
+
 void HyojeTestObject::Initialize()
 {
 	CreateComponent<ModelComponent>(); // 기본 생성
