@@ -107,14 +107,23 @@ void GameObjectBase::CreateChildGameObject(string typeName)
 	// 뭔가 이상함 // 기분이 더러움
 	unique_ptr<GameObjectBase> childGameObjectPtr = TypeRegistry::GetInstance().CreateGameObject(typeName);
 	childGameObjectPtr->m_parent = this;
+	childGameObjectPtr->BaseInitialize();
+
 	m_childrens.push_back(move(childGameObjectPtr));
 }
 
 void GameObjectBase::CreateComponent(string typeName)
 {
-	pair<unique_ptr<Base>, type_index> componentPair = TypeRegistry::GetInstance().CreateComponent(typeName);
+	unique_ptr<ComponentBase> component = TypeRegistry::GetInstance().CreateComponent(typeName);
 
+	component->SetOwner(this);
 
+	if (component->NeedsUpdate()) m_updateComponents.push_back(component.get());
+	if (component->NeedsRender()) m_renderComponents.push_back(component.get());
+
+	static_cast<Base*>(component.get())->BaseInitialize();
+
+	m_components[type_index(typeid(*component))] = move(component);
 }
 
 void GameObjectBase::BaseInitialize()
