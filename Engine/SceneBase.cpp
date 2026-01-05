@@ -133,19 +133,7 @@ void SceneBase::BaseRenderImGui()
 
 	ImGui::Separator();
 	ImGui::Text("Game Objects:");
-	for (unique_ptr<Base>& gameObject : m_gameObjects)
-	{
-		ImGui::PushID(gameObject.get());
-
-		// 게임 오브젝트 제거 버튼
-		if (ImGui::Button("Remove")) gameObject->SetAlive(false);
-
-		// GameObject ImGui 렌더링
-		ImGui::SameLine();
-		gameObject->BaseRenderImGui();
-
-		ImGui::PopID();
-	}
+	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseRenderImGui();
 
 	ImGui::Separator();
 	if (ImGui::Button("Add GameObject")) ImGui::OpenPopup("Select GameObject Type");

@@ -10,12 +10,19 @@ void ComponentBase::BaseInitialize()
 
 void ComponentBase::BaseRenderImGui()
 {
+	ImGui::PushID(this);
+
+	if (ImGui::Button("Remove")) SetAlive(false);
+
+	ImGui::SameLine();
 	if (ImGui::TreeNode(m_type.c_str()))
 	{
 		RenderImGui();
 
 		ImGui::TreePop();
 	}
+
+	ImGui::PopID();
 }
 
 nlohmann::json ComponentBase::BaseSerialize()

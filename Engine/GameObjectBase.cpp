@@ -194,6 +194,11 @@ void GameObjectBase::BaseRender()
 
 void GameObjectBase::BaseRenderImGui()
 {
+	ImGui::PushID(this);
+
+	if (ImGui::Button("Remove")) SetAlive(false);
+
+	ImGui::SameLine();
 	if (ImGui::TreeNode(m_name.c_str()))
 	{
 		// 위치
@@ -214,19 +219,7 @@ void GameObjectBase::BaseRenderImGui()
 		{
 			ImGui::Separator();
 			ImGui::Text("Components:");
-			for (auto& [typeIndex, component] : m_components)
-			{
-				ImGui::PushID(component.get());
-
-				// 컴포넌트 제거 버튼
-				if (ImGui::Button("Remove")) component->SetAlive(false);
-
-				// Component ImGui 렌더링
-				ImGui::SameLine();
-				component->BaseRenderImGui();
-
-				ImGui::PopID();
-			}
+			for (auto& [typeIndex, component] : m_components) component->BaseRenderImGui();
 		}
 		ImGui::Separator();
 		if (ImGui::Button("Add Component")) ImGui::OpenPopup("Select Component Type");
@@ -248,19 +241,7 @@ void GameObjectBase::BaseRenderImGui()
 		{
 			ImGui::Separator();
 			ImGui::Text("Children:");
-			for (unique_ptr<GameObjectBase>& child : m_childrens)
-			{
-				ImGui::PushID(child.get());
-
-				// 자식 게임 오브젝트 제거 버튼
-				if (ImGui::Button("Remove")) child->SetAlive(false);
-
-				// Child GameObject ImGui 렌더링
-				ImGui::SameLine();
-				child->BaseRenderImGui();
-
-				ImGui::PopID();
-			}
+			for (unique_ptr<GameObjectBase>& child : m_childrens) child->BaseRenderImGui();
 		}
 		ImGui::Separator();
 		if (ImGui::Button("Add GameObject")) ImGui::OpenPopup("Select GameObject Type");
@@ -280,6 +261,8 @@ void GameObjectBase::BaseRenderImGui()
 
 		ImGui::TreePop();
 	}
+
+	ImGui::PopID();
 }
 
 void GameObjectBase::BaseFinalize()
@@ -390,6 +373,7 @@ void GameObjectBase::BaseDeserialize(const nlohmann::json& jsonData)
 
 void GameObjectBase::RemovePending()
 {
+	// 제거할 자식 게임 오브젝트 제거
 	erase_if
 	(
 		m_childrens, [](const unique_ptr<GameObjectBase>& gameObject)
@@ -402,6 +386,7 @@ void GameObjectBase::RemovePending()
 			return false;
 		}
 	);
+	// 제거할 컴포넌트 제거
 	erase_if
 	(
 		m_components, [&](const auto& component)
@@ -410,6 +395,7 @@ void GameObjectBase::RemovePending()
 			{
 				component.second->BaseFinalize();
 				
+				// 업데이트 및 렌더링 목록에서 제거
 				ComponentBase* compBasePtr = dynamic_cast<ComponentBase*>(component.second.get());
 				if (compBasePtr->NeedsUpdate()) erase_if(m_updateComponents, [&](Base* updateComponent) { return updateComponent == compBasePtr; });
 				if (compBasePtr->NeedsRender()) erase_if(m_renderComponents, [&](Base* renderComponent) { return renderComponent == compBasePtr; });

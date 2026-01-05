@@ -25,10 +25,11 @@ public:
 
 class Base : public IBase
 {
-protected:
-	std::string m_type = "Base"; // 타입 이름
 	bool m_isActive = true; // 활성화 여부 // TODO: 기능 추가
 	bool m_isAlive = true; // 생존 여부
+
+protected:
+	std::string m_type = "Base"; // 타입 이름
 
 public:
 	Base() = default;
