@@ -198,6 +198,8 @@ void GameObjectBase::BaseRenderImGui()
 
 	if (ImGui::Button("Remove")) SetAlive(false);
 
+	ImGui::PopID();
+
 	ImGui::SameLine();
 	if (ImGui::TreeNode(m_name.c_str()))
 	{
@@ -261,8 +263,6 @@ void GameObjectBase::BaseRenderImGui()
 
 		ImGui::TreePop();
 	}
-
-	ImGui::PopID();
 }
 
 void GameObjectBase::BaseFinalize()
