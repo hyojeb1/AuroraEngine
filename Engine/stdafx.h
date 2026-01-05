@@ -52,20 +52,21 @@ inline DirectX::XMVECTOR ToRadians(const DirectX::XMVECTOR& degrees) { return Di
 inline DirectX::XMVECTOR ToDegrees(const DirectX::XMVECTOR& radians) { return DirectX::XMVectorScale(radians, RAD_TO_DEG); }
 
 // 타입 이름 얻기 매크로
-#define GET_TYPE_NAME(Type) [&]() \
-{ \
-    std::string typeName = typeid(Type).name(); \
-    const char* prefixes[] = {"class ", "struct ", "union ", "enum "}; \
-    for (const char* prefix : prefixes) \
-	{ \
-        if (typeName.starts_with(prefix)) \
-		{ \
-            typeName = typeName.substr(std::strlen(prefix)); \
-            break; \
-        } \
-    } \
-    return typeName; \
-}()
+template<typename T>
+inline std::string GetTypeName()
+{
+	std::string typeName = typeid(T).name();
+	constexpr std::array<const char*, 4> prefixes = { "class ", "struct ", "union ", "enum " };
+	for (const char* prefix : prefixes)
+	{
+		if (typeName.starts_with(prefix))
+		{
+			typeName = typeName.substr(std::strlen(prefix));
+			break;
+		}
+	}
+	return typeName;
+}
 
 // HRESULT 결과 확인
 constexpr void CheckResult(HRESULT hr, const char* msg)
