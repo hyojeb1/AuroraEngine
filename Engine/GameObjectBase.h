@@ -42,6 +42,7 @@ class GameObjectBase : public Base
 	com_ptr<ID3D11Buffer> m_worldWVPConstantBuffer = nullptr; // 월드, WVP 행렬 상수 버퍼
 
 	std::unordered_map<std::type_index, std::unique_ptr<Base>> m_components = {}; // 컴포넌트 맵
+	std::vector<std::type_index> m_componentToRemove = {}; // 제거할 컴포넌트 타입 인덱스 배열
 	std::vector<Base*> m_updateComponents = {}; // 업데이트할 컴포넌트 배열
 	std::vector<Base*> m_renderComponents = {}; // 렌더링할 컴포넌트 배열
 
@@ -92,6 +93,15 @@ public:
 
 	const DirectX::XMMATRIX& GetWorldMatrix() const { return m_worldMatrix; }
 
+	void CreateComponent(std::string typeName); // 컴포넌트 추가 // 포인터 반환 안함
+	template<typename T> requires std::derived_from<T, ComponentBase>
+	T* CreateComponent(); // 컴포넌트 추가 // 포인터 반환
+
+	template<typename T> requires std::derived_from<T, ComponentBase>
+	T* GetComponent(); // 컴포넌트 가져오기 // 없으면 nullptr 반환
+	template<typename T> requires std::derived_from<T, ComponentBase>
+	void RemoveComponent(); // 컴포넌트 제거
+
 	// 자식 게임 오브젝트 생성 // 포인터 반환 안함
 	void CreateChildGameObject(std::string typeName);
 	template<typename T> requires std::derived_from<T, GameObjectBase>
@@ -101,16 +111,6 @@ public:
 	T* CreateChildGameObject(std::string typeName); // 자식 게임 오브젝트 생성 // 포인터 반환
 
 	void RemoveChildGameObject(GameObjectBase* childGameObject) { m_childrenToRemove.push_back(childGameObject); }
-
-	void CreateComponent(std::string typeName); // 컴포넌트 추가 // 포인터 반환 안함
-
-	template<typename T> requires std::derived_from<T, ComponentBase>
-	T* CreateComponent(); // 컴포넌트 추가 // 포인터 반환
-
-	template<typename T> requires std::derived_from<T, ComponentBase>
-	T* GetComponent(); // 컴포넌트 가져오기 // 없으면 nullptr 반환
-	template<typename T> requires std::derived_from<T, ComponentBase>
-	void RemoveComponent(); // 컴포넌트 제거
 
 private:
 	// 게임 오브젝트 초기화
@@ -131,37 +131,13 @@ private:
 
 	// 위치 갱신 필요로 설정 // 자식 게임 오브젝트도 설정
 	void SetDirty();
-	// 제거할 자식 게임 오브젝트 제거 // TODO: 컴포넌트 정리 추가 필요
+	// 제거할 컴포넌트 제거
+	void RemovePendingComponents();
+	// 제거할 자식 게임 오브젝트 제거
 	void RemovePendingChildGameObjects();
 	// 월드 행렬 갱신
 	const DirectX::XMMATRIX& UpdateWorldMatrix();
 };
-
-template<typename T> requires std::derived_from<T, GameObjectBase>
-inline T* GameObjectBase::CreateChildGameObject()
-{
-	std::unique_ptr<T> child = std::make_unique<T>();
-
-	T* childPtr = child.get();
-	child->m_parent = this;
-	child->BaseInitialize();
-	m_childrens.push_back(std::move(child));
-
-	return childPtr;
-}
-
-template<typename T> requires std::derived_from<T, GameObjectBase>
-inline T* GameObjectBase::CreateChildGameObject(std::string typeName)
-{
-	std::unique_ptr<GameObjectBase> childGameObjectPtr = TypeRegistry::GetInstance().CreateGameObject(typeName);
-
-	childGameObjectPtr->m_parent = this;
-	childGameObjectPtr->BaseInitialize();
-	T* childPtr = static_cast<T*>(childGameObjectPtr.get());
-	m_childrens.push_back(std::move(childGameObjectPtr));
-
-	return childPtr;
-}
 
 template<typename T> requires std::derived_from<T, ComponentBase>
 inline T* GameObjectBase::CreateComponent()
@@ -203,16 +179,33 @@ inline T* GameObjectBase::GetComponent()
 template<typename T> requires std::derived_from<T, ComponentBase>
 inline void GameObjectBase::RemoveComponent()
 {
-	auto it = m_components.find(std::type_index(typeid(T)));
-	if (it != m_components.end())
-	{
-		Base* componentPtr = it->second.get();
-		if (componentPtr->NeedsUpdate()) erase_if(m_updateComponents, [componentPtr](Base* obj) { return obj == componentPtr; });
-		if (componentPtr->NeedsRender()) erase_if(m_renderComponents, [componentPtr](Base* obj) { return obj == componentPtr; });
+	m_componentToRemove.push_back(std::type_index(typeid(T)));
+}
 
-		it->second->BaseFinalize();
-		m_components.erase(it);
-	}
+template<typename T> requires std::derived_from<T, GameObjectBase>
+inline T* GameObjectBase::CreateChildGameObject()
+{
+	std::unique_ptr<T> child = std::make_unique<T>();
+
+	T* childPtr = child.get();
+	child->m_parent = this;
+	child->BaseInitialize();
+	m_childrens.push_back(std::move(child));
+
+	return childPtr;
+}
+
+template<typename T> requires std::derived_from<T, GameObjectBase>
+inline T* GameObjectBase::CreateChildGameObject(std::string typeName)
+{
+	std::unique_ptr<GameObjectBase> childGameObjectPtr = TypeRegistry::GetInstance().CreateGameObject(typeName);
+
+	childGameObjectPtr->m_parent = this;
+	childGameObjectPtr->BaseInitialize();
+	T* childPtr = static_cast<T*>(childGameObjectPtr.get());
+	m_childrens.push_back(std::move(childGameObjectPtr));
+
+	return childPtr;
 }
 
 /// GameObjectBase.h의 끝

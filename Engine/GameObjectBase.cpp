@@ -104,16 +104,6 @@ XMVECTOR GameObjectBase::GetWorldDirectionVector(Direction direction)
 	}
 }
 
-void GameObjectBase::CreateChildGameObject(string typeName)
-{
-	// 뭔가 이상함 // 기분이 더러움
-	unique_ptr<GameObjectBase> childGameObjectPtr = TypeRegistry::GetInstance().CreateGameObject(typeName);
-	childGameObjectPtr->m_parent = this;
-	childGameObjectPtr->BaseInitialize();
-
-	m_childrens.push_back(move(childGameObjectPtr));
-}
-
 void GameObjectBase::CreateComponent(string typeName)
 {
 	unique_ptr<ComponentBase> component = TypeRegistry::GetInstance().CreateComponent(typeName);
@@ -138,6 +128,15 @@ void GameObjectBase::CreateComponent(string typeName)
 	m_components[type_index(typeid(*component))] = move(component);
 }
 
+void GameObjectBase::CreateChildGameObject(string typeName)
+{
+	unique_ptr<GameObjectBase> childGameObjectPtr = TypeRegistry::GetInstance().CreateGameObject(typeName);
+	childGameObjectPtr->m_parent = this;
+	childGameObjectPtr->BaseInitialize();
+
+	m_childrens.push_back(move(childGameObjectPtr));
+}
+
 void GameObjectBase::BaseInitialize()
 {
 	m_type = GetTypeName(*this);
@@ -158,6 +157,9 @@ void GameObjectBase::BaseUpdate()
 
 	// 월드 행렬 업데이트
 	UpdateWorldMatrix();
+
+	// 제거할 컴포넌트 제거
+	RemovePendingComponents();
 	// 컴포넌트 업데이트
 	for (Base*& component : m_updateComponents) component->BaseUpdate();
 
@@ -366,6 +368,34 @@ void GameObjectBase::SetDirty()
 {
 	m_isDirty = true;
 	for (auto& child : m_childrens) child->SetDirty();
+}
+
+void GameObjectBase::RemovePendingComponents()
+{
+	for (const type_index& componentTypeIndex : m_componentToRemove)
+	{
+		erase_if
+		(
+			m_updateComponents, [this, &componentTypeIndex](Base* component)
+			{
+				return type_index(typeid(*component)) == componentTypeIndex;
+			}
+		);
+		erase_if
+		(
+			m_renderComponents, [this, &componentTypeIndex](Base* component)
+			{
+				return type_index(typeid(*component)) == componentTypeIndex;
+			}
+		);
+		auto it = m_components.find(componentTypeIndex);
+		if (it != m_components.end())
+		{
+			it->second->BaseFinalize();
+			m_components.erase(it);
+		}
+	}
+	m_componentToRemove.clear();
 }
 
 void GameObjectBase::RemovePendingChildGameObjects()
