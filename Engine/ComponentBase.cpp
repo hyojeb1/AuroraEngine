@@ -14,8 +14,6 @@ void ComponentBase::BaseRenderImGui()
 
 	if (ImGui::Button("Remove")) SetAlive(false);
 
-	ImGui::PopID();
-
 	ImGui::SameLine();
 	if (ImGui::TreeNode(m_type.c_str()))
 	{
@@ -23,6 +21,8 @@ void ComponentBase::BaseRenderImGui()
 
 		ImGui::TreePop();
 	}
+
+	ImGui::PopID();
 }
 
 nlohmann::json ComponentBase::BaseSerialize()
