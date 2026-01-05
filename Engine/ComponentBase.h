@@ -1,5 +1,6 @@
 #pragma once
 #include "Base.h"
+#include "TypeRegistry.h"
 
 class ComponentBase : public Base
 {

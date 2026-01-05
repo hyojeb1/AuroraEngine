@@ -14,39 +14,7 @@
     ],
     "rootGameObjects": [
         {
-            "childGameObjects": [
-                {
-                    "childGameObjects": [],
-                    "components": [
-                        {
-                            "modelFileName": "box.fbx",
-                            "psShaderName": "PSModel.hlsl",
-                            "type": "ModelComponent",
-                            "vsShaderName": "VSModel.hlsl"
-                        }
-                    ],
-                    "name": "TestObject_1_serialized",
-                    "position": [
-                        -3.3499999046325684,
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "rotation": [
-                        0.0,
-                        0.0,
-                        0.0,
-                        1.0
-                    ],
-                    "scale": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "type": "TestObject"
-                }
-            ],
+            "childGameObjects": [],
             "components": [
                 {
                     "modelFileName": "box.fbx",
@@ -55,7 +23,31 @@
                     "vsShaderName": "VSModel.hlsl"
                 }
             ],
-            "name": "TestObject_0_serialized",
+            "name": "GameObjectBase_1",
+            "position": [
+                -4.150000095367432,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "GameObjectBase"
+        },
+        {
+            "childGameObjects": [],
+            "components": [],
+            "name": "HyojeTestObject_2",
             "position": [
                 0.0,
                 0.0,
@@ -65,16 +57,16 @@
             "rotation": [
                 0.0,
                 0.0,
-                -0.44228869676589966,
-                0.8968727588653564
+                0.0,
+                1.0
             ],
             "scale": [
-                1.5299999713897705,
-                0.9100000262260437,
+                1.0,
+                1.0,
                 1.0,
                 1.0
             ],
-            "type": "TestObject"
+            "type": "HyojeTestObject"
         }
     ]
 }

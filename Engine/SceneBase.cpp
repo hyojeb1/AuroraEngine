@@ -81,10 +81,14 @@ void SceneBase::BaseUpdate()
 	InputManager& inputManager = InputManager::GetInstance();
 	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::S))
 	{
+		cout << "¾À: " << m_type << " ÀúÀå Áß..." << endl;
+
 		const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
 		ofstream file(sceneFilePath);
 		file << BaseSerialize().dump(4);
 		file.close();
+
+		cout << "¾À: " << m_type << " ÀúÀå ¿Ï·á!" << endl;
 	}
 	#endif
 }

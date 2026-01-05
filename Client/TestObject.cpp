@@ -11,6 +11,7 @@ REGISTER_TYPE(TestObject)
 
 void TestObject::Initialize()
 {
+	CreateComponent<ModelComponent>();
 	SetScale({ 1.0f, 1.0f, 1.0f });
 }
 
