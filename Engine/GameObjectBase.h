@@ -193,5 +193,4 @@ inline T* GameObjectBase::CreateChildGameObject(std::string typeName)
 
 	return childPtr;
 }
-
 /// GameObjectBase.h¿« ≥°

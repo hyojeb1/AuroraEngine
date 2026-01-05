@@ -60,7 +60,7 @@ inline DirectX::XMVECTOR ToDegrees(const DirectX::XMVECTOR& radians) { return Di
 
 // 타입 이름 얻기 매크로
 template<typename T>
-// 템플릿 개반 타입 이름 얻기
+// 템플릿 기반 타입 이름 얻기
 inline std::string GetTypeName()
 {
 	std::string typeName = typeid(T).name();
