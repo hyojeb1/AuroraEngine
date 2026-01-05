@@ -41,7 +41,6 @@
 #include <nlohmann/json.hpp>
 
 // 메크로 정의
-
 // com_ptr 매크로
 #define com_ptr Microsoft::WRL::ComPtr
 
