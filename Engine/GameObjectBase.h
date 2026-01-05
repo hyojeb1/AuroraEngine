@@ -39,7 +39,7 @@ class GameObjectBase : public Base
 		DirectX::XMMATRIX normalMatrix = DirectX::XMMatrixIdentity(); // 스케일 역행렬을 적용한 월드 행렬
 	};
 	WorldBuffer m_worldData = {}; // 월드 및 WVP 행렬 상수 버퍼 데이터
-	com_ptr<ID3D11Buffer> m_worldWVPConstantBuffer = nullptr; // 월드, WVP 행렬 상수 버퍼
+	com_ptr<ID3D11Buffer> m_worldMatrixConstantBuffer = nullptr; // 월드, WVP 행렬 상수 버퍼
 
 	std::unordered_map<std::type_index, std::unique_ptr<Base>> m_components = {}; // 컴포넌트 맵
 	std::vector<Base*> m_updateComponents = {}; // 업데이트할 컴포넌트 배열

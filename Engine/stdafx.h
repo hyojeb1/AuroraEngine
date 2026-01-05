@@ -66,6 +66,7 @@ inline std::string GetTypeName()
 	}
 	return typeName;
 }
+#define TYPE_NAME GetTypeName<decltype(*this)>()
 
 // HRESULT 결과 확인
 constexpr void CheckResult(HRESULT hr, const char* msg)

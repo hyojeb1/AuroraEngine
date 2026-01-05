@@ -74,3 +74,4 @@ inline std::string GetTypeName()
 	}
 	return typeName;
 }
+#define TYPE_NAME GetTypeName<decltype(*this)>()
