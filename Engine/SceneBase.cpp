@@ -278,6 +278,12 @@ void SceneBase::UpdateConstantBuffers()
 
 void SceneBase::RenderSkybox()
 {
+	// 뷰-투영 행렬의 역행렬 계산
+	m_viewProjectionData.viewMatrix.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // 뷰 행렬의 위치 성분 제거
+	m_viewProjectionData.VPMatrix = XMMatrixInverse(nullptr, m_viewProjectionData.projectionMatrix * m_viewProjectionData.viewMatrix);
+	m_deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
+	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::ViewProjection), 1, m_viewProjectionConstantBuffer.GetAddressOf());
+
 	m_deviceContext->IASetInputLayout(m_skyboxVertexShaderAndInputLayout.second.Get());
 	m_deviceContext->VSSetShader(m_skyboxVertexShaderAndInputLayout.first.Get(), nullptr, 0);
 	m_deviceContext->PSSetShader(m_skyboxPixelShader.Get(), nullptr, 0);
