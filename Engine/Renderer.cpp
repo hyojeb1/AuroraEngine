@@ -68,7 +68,7 @@ void Renderer::EndFrame()
 	#endif
 
 	// 스왑 체인 프레젠트
-	hr = m_swapChain->Present(1, 0);
+	hr = m_swapChain->Present(1, 0); // DXGI_PRESENT_ALLOW_TEARING // 나중에 필요시 적용
 	CheckResult(hr, "스왑 체인 프레젠트 실패.");
 }
 
