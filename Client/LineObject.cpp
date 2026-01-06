@@ -1,4 +1,4 @@
-///LineObject.cppÀÇ ½ÃÀÛ
+///LineObject.cppì˜ ì‹œì‘
 #include "stdafx.h"
 #include "LineObject.h"
 
@@ -11,7 +11,7 @@ REGISTER_TYPE(LineObject)
 
 void LineObject::Initialize()
 {
-	CreateComponent<LineComponent>(); // ±âº» »ı¼º
+	CreateComponent<LineComponent>(); // ê¸°ë³¸ ìƒì„±
 	SetScale({ 10.0f, 1.0f, 1.0f });
 	//SetPosition({ -5.0f, .0f, .0f });
 	GetComponent<LineComponent>()->SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
@@ -22,4 +22,4 @@ void LineObject::Update()
 
 }
 
-///LineObject.cppÀÇ ³¡
+///LineObject.cppì˜ ë

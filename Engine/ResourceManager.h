@@ -1,4 +1,4 @@
-///ResourceManager.hÀÇ ½ÃÀÛ
+///ResourceManager.hì˜ ì‹œì‘
 #pragma once
 #include "Singleton.h"
 #include "Resource.h"
@@ -7,20 +7,20 @@ class ResourceManager : public Singleton<ResourceManager>
 {
 	friend class Singleton<ResourceManager>;
 
-	com_ptr<ID3D11Device> m_device = nullptr; // µğ¹ÙÀÌ½º
-	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // µğ¹ÙÀÌ½º ÄÁÅØ½ºÆ®
+	com_ptr<ID3D11Device> m_device = nullptr; // ë””ë°”ì´ìŠ¤
+	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // ë””ë°”ì´ìŠ¤ ì»¨í…ìŠ¤íŠ¸
 
-	std::array<com_ptr<ID3D11DepthStencilState>, static_cast<size_t>(DepthStencilState::Count)> m_depthStencilStates = {}; // ±íÀÌ¹öÆÛ »óÅÂ ¹è¿­
-	std::array<com_ptr<ID3D11RasterizerState>, static_cast<size_t>(RasterState::Count)> m_rasterStates = {}; // ·¡½ºÅÍ »óÅÂ ¹è¿­
-	std::array<com_ptr<ID3D11SamplerState>, static_cast<size_t>(SamplerState::Count)> m_samplerStates = {}; // »ùÇÃ·¯ »óÅÂ ¹è¿­
+	std::array<com_ptr<ID3D11DepthStencilState>, static_cast<size_t>(DepthStencilState::Count)> m_depthStencilStates = {}; // ê¹Šì´ë²„í¼ ìƒíƒœ ë°°ì—´
+	std::array<com_ptr<ID3D11RasterizerState>, static_cast<size_t>(RasterState::Count)> m_rasterStates = {}; // ë˜ìŠ¤í„° ìƒíƒœ ë°°ì—´
+	std::array<com_ptr<ID3D11SamplerState>, static_cast<size_t>(SamplerState::Count)> m_samplerStates = {}; // ìƒ˜í”ŒëŸ¬ ìƒíƒœ ë°°ì—´
 
-	std::unordered_map<std::string, std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>>> m_vertexShadersAndInputLayouts = {}; // Á¤Á¡ ¼ÎÀÌ´õ ¹× ÀÔ·Â ·¹ÀÌ¾Æ¿ô ¸Ê // Å°: ¼ÎÀÌ´õ ÆÄÀÏ ÀÌ¸§
-	std::unordered_map<std::string, com_ptr<ID3D11PixelShader>> m_pixelShaders = {}; // ÇÈ¼¿ ¼ÎÀÌ´õ ¸Ê // Å°: ¼ÎÀÌ´õ ÆÄÀÏ ÀÌ¸§
+	std::unordered_map<std::string, std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>>> m_vertexShadersAndInputLayouts = {}; // ì •ì  ì…°ì´ë” ë° ì…ë ¥ ë ˆì´ì•„ì›ƒ ë§µ // í‚¤: ì…°ì´ë” íŒŒì¼ ì´ë¦„
+	std::unordered_map<std::string, com_ptr<ID3D11PixelShader>> m_pixelShaders = {}; // í”½ì…€ ì…°ì´ë” ë§µ // í‚¤: ì…°ì´ë” íŒŒì¼ ì´ë¦„
 
-	std::unordered_map<std::string, std::vector<uint8_t>> m_textureCaches = {}; // ÅØ½ºÃ³ µ¥ÀÌÅÍ Ä³½Ã // Å°: ÅØ½ºÃ³ ÆÄÀÏ ÀÌ¸§
-	std::unordered_map<std::string, com_ptr<ID3D11ShaderResourceView>> m_textures = {}; // ÅØ½ºÃ³ ¸Ê // Å°: ÅØ½ºÃ³ ÆÄÀÏ ÀÌ¸§
+	std::unordered_map<std::string, std::vector<uint8_t>> m_textureCaches = {}; // í…ìŠ¤ì²˜ ë°ì´í„° ìºì‹œ // í‚¤: í…ìŠ¤ì²˜ íŒŒì¼ ì´ë¦„
+	std::unordered_map<std::string, com_ptr<ID3D11ShaderResourceView>> m_textures = {}; // í…ìŠ¤ì²˜ ë§µ // í‚¤: í…ìŠ¤ì²˜ íŒŒì¼ ì´ë¦„
 
-	std::unordered_map<std::string, Model> m_models = {}; // ¸ğµ¨ ¸Ê // Å°: ¸ğµ¨ ÆÄÀÏ °æ·Î
+	std::unordered_map<std::string, Model> m_models = {}; // ëª¨ë¸ ë§µ // í‚¤: ëª¨ë¸ íŒŒì¼ ê²½ë¡œ
 
 public:
 	~ResourceManager() = default;
@@ -29,52 +29,52 @@ public:
 	ResourceManager(ResourceManager&&) = delete;
 	ResourceManager& operator=(ResourceManager&&) = delete;
 
-	// »ı¼ºÀÚ Renderer¿¡¼­ È£Ãâ
+	// ìƒì„±ì Rendererì—ì„œ í˜¸ì¶œ
 	void Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11DeviceContext> deviceContext);
 
-	// ÀÚ¿ø È¹µæ ÇÔ¼öµé
-	// ±íÀÌ¹öÆÛ »óÅÂ ¾ò±â
+	// ìì› íšë“ í•¨ìˆ˜ë“¤
+	// ê¹Šì´ë²„í¼ ìƒíƒœ ì–»ê¸°
 	com_ptr<ID3D11DepthStencilState> GetDepthStencilState(DepthStencilState state) { return m_depthStencilStates[static_cast<size_t>(state)]; }
-	// ·¡½ºÅÍ »óÅÂ ¾ò±â
+	// ë˜ìŠ¤í„° ìƒíƒœ ì–»ê¸°
 	com_ptr<ID3D11RasterizerState> GetRasterState(RasterState state) { return m_rasterStates[static_cast<size_t>(state)]; }
-	// »ùÇÃ·¯ »óÅÂ ¾ò±â
+	// ìƒ˜í”ŒëŸ¬ ìƒíƒœ ì–»ê¸°
 	com_ptr<ID3D11SamplerState> GetSamplerState(SamplerState state) { return m_samplerStates[static_cast<size_t>(state)]; }
-	// »ó¼ö ¹öÆÛ ¾ò±â // ÀÌ¹Ì »ı¼ºµÈ ¹öÆÛ°¡ ÀÖÀ¸¸é Àç»ç¿ë // ¾øÀ¸¸é »õ·Î »ı¼º
+	// ìƒìˆ˜ ë²„í¼ ì–»ê¸° // ì´ë¯¸ ìƒì„±ëœ ë²„í¼ê°€ ìˆìœ¼ë©´ ì¬ì‚¬ìš© // ì—†ìœ¼ë©´ ìƒˆë¡œ ìƒì„±
 	com_ptr<ID3D11Buffer> GetConstantBuffer(UINT bufferSize);
-	// ¹öÅØ½º ¹öÆÛ¸¦ ¸¸µé¾î¼­ ¸®ÅÏÇÏ´Â ÇÔ¼ö : ¶óÀÎÀ» ±×¸®±â À§ÇÔÀÓ
+	// ë²„í…ìŠ¤ ë²„í¼ë¥¼ ë§Œë“¤ì–´ì„œ ë¦¬í„´í•˜ëŠ” í•¨ìˆ˜ : ë¼ì¸ì„ ê·¸ë¦¬ê¸° ìœ„í•¨ì„
 	com_ptr<ID3D11Buffer> CreateVertexBuffer(const void* data, UINT stride, UINT count, bool isDynamic = false);
-	// Á¤Á¡ ¼ÎÀÌ´õ ¹× ÀÔ·Â ·¹ÀÌ¾Æ¿ô ¾ò±â
+	// ì •ì  ì…°ì´ë” ë° ì…ë ¥ ë ˆì´ì•„ì›ƒ ì–»ê¸°
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> GetVertexShaderAndInputLayout(const std::string& shaderName, const std::vector<InputElement>& inputElements = {});
-	// ÇÈ¼¿ ¼ÎÀÌ´õ ¾ò±â
+	// í”½ì…€ ì…°ì´ë” ì–»ê¸°
 	com_ptr<ID3D11PixelShader> GetPixelShader(const std::string& shaderName);
-	// ÅØ½ºÃ³ ÆÄÀÏ·ÎºÎÅÍ ÅØ½ºÃ³ ·Îµå
+	// í…ìŠ¤ì²˜ íŒŒì¼ë¡œë¶€í„° í…ìŠ¤ì²˜ ë¡œë“œ
 	com_ptr<ID3D11ShaderResourceView> GetTexture(const std::string& fileName);
-	// ¸ğµ¨ ÆÄÀÏ·ÎºÎÅÍ ¸ğµ¨ ·Îµå
+	// ëª¨ë¸ íŒŒì¼ë¡œë¶€í„° ëª¨ë¸ ë¡œë“œ
 	const Model* LoadModel(const std::string& fileName);
 
 private:
 	ResourceManager() = default;
 
-	// ±íÀÌ¹öÆÛ »óÅÂ »ı¼º ÇÔ¼ö
+	// ê¹Šì´ë²„í¼ ìƒíƒœ ìƒì„± í•¨ìˆ˜
 	void CreateDepthStencilStates();
-	// ·¡½ºÅÍ »óÅÂ »ı¼º ÇÔ¼ö
+	// ë˜ìŠ¤í„° ìƒíƒœ ìƒì„± í•¨ìˆ˜
 	void CreateRasterStates();
-	// »ùÇÃ·¯ »óÅÂ »ı¼º ÇÔ¼ö
+	// ìƒ˜í”ŒëŸ¬ ìƒíƒœ ìƒì„± í•¨ìˆ˜
 	void CreateSamplerStates();
-	// ÅØ½ºÃ³ µ¥ÀÌÅÍ Ä³½Ì ÇÔ¼ö
+	// í…ìŠ¤ì²˜ ë°ì´í„° ìºì‹± í•¨ìˆ˜
 	void CacheAllTexture();
 
-	// FBX ÆÄÀÏ ·Îµå ÇÔ¼ö
-	// ³ëµå Ã³¸® ÇÔ¼ö
+	// FBX íŒŒì¼ ë¡œë“œ í•¨ìˆ˜
+	// ë…¸ë“œ ì²˜ë¦¬ í•¨ìˆ˜
 	void ProcessNode(const aiNode* node, const aiScene* scene, Model& model);
-	// ¸Ş½¬ Ã³¸® ÇÔ¼ö
+	// ë©”ì‰¬ ì²˜ë¦¬ í•¨ìˆ˜
 	Mesh ProcessMesh(const aiMesh* mesh, const aiScene* scene);
-	// ÀçÁú Ã³¸® ÇÔ¼ö
+	// ì¬ì§ˆ ì²˜ë¦¬ í•¨ìˆ˜
 	MaterialFactor ProcessMaterialFactor(aiMaterial* material);
-	// ¸Ş½¬ ¹öÆÛ(GPU) »ı¼º ÇÔ¼ö
+	// ë©”ì‰¬ ë²„í¼(GPU) ìƒì„± í•¨ìˆ˜
 	void CreateMeshBuffers(Mesh& mesh);
 
-	// ¼ÎÀÌ´õ ÄÄÆÄÀÏ ÇÔ¼ö
+	// ì…°ì´ë” ì»´íŒŒì¼ í•¨ìˆ˜
 	com_ptr<ID3DBlob> CompileShader(const std::string& shaderName, const char* shaderModel);
 };
-///ResourceManager.hÀÇ ³¡
+///ResourceManager.hì˜ ë

@@ -1,4 +1,4 @@
-/// LineComponent.hÀÇ ½ÃÀÛ
+/// LineComponent.hì˜ ì‹œì‘
 #pragma once
 #include "ComponentBase.h"
 #include "Resource.h"
@@ -8,15 +8,15 @@ class LineComponent : public ComponentBase
 {
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; 
 
-	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_vertexShaderAndInputLayout = {}; // Á¤Á¡ ¼ÎÀÌ´õ ¹× ÀÔ·Â ·¹ÀÌ¾Æ¿ô
-	com_ptr<ID3D11PixelShader> m_pixelShader = nullptr; // ÇÈ¼¿ ¼ÎÀÌ´õ
-	com_ptr<ID3D11Buffer> m_vertexBuffer = nullptr; //Á¤Á¡ ¹öÆÛ
-	com_ptr<ID3D11Buffer> m_materialConstantBuffer = nullptr; // ÀçÁú »ó¼ö ¹öÆÛ
+	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_vertexShaderAndInputLayout = {}; // ì •ì  ì…°ì´ë” ë° ì…ë ¥ ë ˆì´ì•„ì›ƒ
+	com_ptr<ID3D11PixelShader> m_pixelShader = nullptr; // í”½ì…€ ì…°ì´ë”
+	com_ptr<ID3D11Buffer> m_vertexBuffer = nullptr; //ì •ì  ë²„í¼
+	com_ptr<ID3D11Buffer> m_materialConstantBuffer = nullptr; // ì¬ì§ˆ ìƒìˆ˜ ë²„í¼
 
-	std::string m_vsShaderName = "VSLine.hlsl"; // ±âº» ¶óÀÎ Á¤Á¡ ¼ÎÀÌ´õ
-	std::string m_psShaderName = "PSLine.hlsl"; // ±âº» ¶óÀÎ ÇÈ¼¿ ¼ÎÀÌ´õ
+	std::string m_vsShaderName = "VSLine.hlsl"; // ê¸°ë³¸ ë¼ì¸ ì •ì  ì…°ì´ë”
+	std::string m_psShaderName = "PSLine.hlsl"; // ê¸°ë³¸ ë¼ì¸ í”½ì…€ ì…°ì´ë”
 	
-	// ÀÔ·Â ¿ä¼Ò ¹è¿­ // À§Ä¡, COLOR
+	// ì…ë ¥ ìš”ì†Œ ë°°ì—´ // ìœ„ì¹˜, COLOR
 	std::vector<InputElement> m_inputElements =
 	{
 		InputElement::Position,
@@ -46,7 +46,7 @@ private:
 	void Initialize() override;
 	void Render() override;
 	void RenderImGui() override;
-	// ¼ÎÀÌ´õ »ı¼º
+	// ì…°ì´ë” ìƒì„±
 	void CreateShaders();
 };
-/// LineComponent.hÀÇ ³¡
+/// LineComponent.hì˜ ë

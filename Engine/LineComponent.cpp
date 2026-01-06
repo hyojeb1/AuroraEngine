@@ -1,4 +1,4 @@
-/// LineComponent.cppÀÇ ½ÃÀÛ
+/// LineComponent.cppì˜ ì‹œì‘
 #include "stdafx.h"
 #include "LineComponent.h"
 
@@ -18,7 +18,7 @@ void LineComponent::Initialize()
 	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
 
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
-	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(MaterialLegacy)); // TODO: ¸Å¹ø ÀçÁú »ó¼ö ¹öÆÛ »ı¼ºÇÏÁö ¸»°í °øÀ¯ÇÏµµ·Ï º¯°æ
+	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(MaterialLegacy)); // TODO: ë§¤ë²ˆ ì¬ì§ˆ ìƒìˆ˜ ë²„í¼ ìƒì„±í•˜ì§€ ë§ê³  ê³µìœ í•˜ë„ë¡ ë³€ê²½
 
 	CreateShaders();
 }
@@ -68,4 +68,4 @@ void LineComponent::CreateShaders()
 	m_pixelShader = resourceManager.GetPixelShader(m_psShaderName);
 	m_vertexBuffer = resourceManager.CreateVertexBuffer(g_line_vertices, sizeof(Vertex_Pos), 2, false);
 }
-/// LineComponent.cppÀÇ ³¡
+/// LineComponent.cppì˜ ë
