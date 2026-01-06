@@ -306,9 +306,9 @@ void ResourceManager::CacheAllTexture()
 			{
 				const streamsize fileSize = fileStream.tellg();
 				fileStream.seekg(0, ios::beg);
-				vector<uint8_t> fileData(static_cast<size_t>(fileSize));
+				vector<char> fileData(static_cast<size_t>(fileSize));
 
-				if (fileStream.read(reinterpret_cast<char*>(fileData.data()), fileSize)) m_textureCaches[fileName] = move(fileData);
+				if (fileStream.read(fileData.data(), fileSize)) m_textureCaches[fileName] = vector<uint8_t>(fileData.begin(), fileData.end());
 				else cerr << "텍스처 파일 읽기 실패: " << fileName << endl;
 			}
 			else cerr << "텍스처 파일 열기 실패: " << fileName << endl;
