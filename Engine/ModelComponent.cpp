@@ -1,4 +1,4 @@
-/// ModelComponent.cppÀÇ ½ÃÀÛ
+/// ModelComponent.cppì˜ ì‹œì‘
 #include "stdafx.h"
 #include "ModelComponent.h"
 
@@ -15,7 +15,7 @@ void ModelComponent::Initialize()
 
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(MaterialFactor)); // TODO: ¸Å¹ø ÀçÁú »ó¼ö ¹öÆÛ »ı¼ºÇÏÁö ¸»°í °øÀ¯ÇÏµµ·Ï º¯°æ
+	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(MaterialFactor)); // TODO: ë§¤ë²ˆ ì¬ì§ˆ ìƒìˆ˜ ë²„í¼ ìƒì„±í•˜ì§€ ë§ê³  ê³µìœ í•˜ë„ë¡ ë³€ê²½
 	m_model = resourceManager.LoadModel(m_modelFileName);
 
 	CreateShaders();
@@ -35,14 +35,14 @@ void ModelComponent::Render()
 		m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
 		m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-		// ³ªÁß¿¡ ¸Ş½¬º°·Î ¼³Á¤ °¡´ÉÇÏ°Ô º¯°æ
+		// ë‚˜ì¤‘ì— ë©”ì‰¬ë³„ë¡œ ì„¤ì • ê°€ëŠ¥í•˜ê²Œ ë³€ê²½
 		m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		// ÀçÁú »ó¼ö ¹öÆÛ ¼ÎÀÌ´õ¿¡ ¼³Á¤
+		// ì¬ì§ˆ ìƒìˆ˜ ë²„í¼ ì…°ì´ë”ì— ì„¤ì •
 		m_deviceContext->UpdateSubresource(m_materialConstantBuffer.Get(), 0, nullptr, &mesh.materialFactor, 0, 0);
 		m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::Material), 1, m_materialConstantBuffer.GetAddressOf());
 
-		// ÀçÁú ÅØ½ºÃ³ ¼ÎÀÌ´õ¿¡ ¼³Á¤
+		// ì¬ì§ˆ í…ìŠ¤ì²˜ ì…°ì´ë”ì— ì„¤ì •
 		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
 		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, mesh.materialTexture.normalTextureSRV.GetAddressOf());
 		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Metallic), 1, mesh.materialTexture.metallicTextureSRV.GetAddressOf());
@@ -98,4 +98,4 @@ void ModelComponent::CreateShaders()
 	m_vertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout(m_vsShaderName, m_inputElements);
 	m_pixelShader = resourceManager.GetPixelShader(m_psShaderName);
 }
-/// ModelComponent.cppÀÇ ³¡
+/// ModelComponent.cppì˜ ë

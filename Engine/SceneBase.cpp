@@ -1,4 +1,4 @@
-///SceneBase.cppÀÇ ½ÃÀÛ
+///SceneBase.cppì˜ ì‹œì‘
 #include "stdafx.h"
 #include "SceneBase.h"
 
@@ -40,7 +40,7 @@ void SceneBase::BaseInitialize()
 {
 	m_type = GetTypeName(*this);
 
-	// ÀúÀåµÈ ¾À ÆÄÀÏ ºÒ·¯¿À±â
+	// ì €ì¥ëœ ì”¬ íŒŒì¼ ë¶ˆëŸ¬ì˜¤ê¸°
 	const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
 	if (filesystem::exists(sceneFilePath))
 	{
@@ -74,45 +74,45 @@ void SceneBase::BaseUpdate()
 	#endif
 
 	RemovePending();
-	// °ÔÀÓ ¿ÀºêÁ§Æ® ¾÷µ¥ÀÌÆ®
+	// ê²Œì„ ì˜¤ë¸Œì íŠ¸ ì—…ë°ì´íŠ¸
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseUpdate();
 
 	#ifdef _DEBUG
-	// Ctrl + S ÀÔ·Â ½Ã ¾À ÀúÀå
+	// Ctrl + S ì…ë ¥ ì‹œ ì”¬ ì €ì¥
 	InputManager& inputManager = InputManager::GetInstance();
 	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::S))
 	{
-		cout << "¾À: " << m_type << " ÀúÀå Áß..." << endl;
+		cout << "ì”¬: " << m_type << " ì €ì¥ ì¤‘..." << endl;
 
 		const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
 		ofstream file(sceneFilePath);
 		file << BaseSerialize().dump(4);
 		file.close();
 
-		cout << "¾À: " << m_type << " ÀúÀå ¿Ï·á!" << endl;
+		cout << "ì”¬: " << m_type << " ì €ì¥ ì™„ë£Œ!" << endl;
 	}
 	#endif
 }
 
 void SceneBase::BaseRender()
 {
-	// »ó¼ö ¹öÆÛ ¾÷µ¥ÀÌÆ® ¹× ¼ÎÀÌ´õ¿¡ ¼³Á¤
+	// ìƒìˆ˜ ë²„í¼ ì—…ë°ì´íŠ¸ ë° ì…°ì´ë”ì— ì„¤ì •
 	UpdateConstantBuffers();
 
-	// »ùÇÃ·¯ »óÅÂ ¼³Á¤
+	// ìƒ˜í”ŒëŸ¬ ìƒíƒœ ì„¤ì •
 	m_deviceContext->PSSetSamplers(static_cast<UINT>(SamplerState::Default), 1, ResourceManager::GetInstance().GetSamplerState(SamplerState::Default).GetAddressOf());
 
-	// È¯°æ ¸Ê ¼³Á¤
+	// í™˜ê²½ ë§µ ì„¤ì •
 	m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Environment), 1, m_environmentMapSRV.GetAddressOf());
 
-	// ½ºÄ«ÀÌ¹Ú½º ·»´õ¸µ
+	// ìŠ¤ì¹´ì´ë°•ìŠ¤ ë Œë”ë§
 	RenderSkybox();
 
 	#ifdef NDEBUG
 	Render();
 	#endif
 
-	// °ÔÀÓ ¿ÀºêÁ§Æ® ·»´õ¸µ
+	// ê²Œì„ ì˜¤ë¸Œì íŠ¸ ë Œë”ë§
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseRender();
 }
 
@@ -160,7 +160,7 @@ void SceneBase::BaseFinalize()
 	Finalize();
 	#endif
 
-	// °ÔÀÓ ¿ÀºêÁ§Æ® Á¾·á
+	// ê²Œì„ ì˜¤ë¸Œì íŠ¸ ì¢…ë£Œ
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseFinalize();
 }
 
@@ -168,7 +168,7 @@ nlohmann::json SceneBase::BaseSerialize()
 {
 	nlohmann::json jsonData;
 
-	// ±âº» ¾À µ¥ÀÌÅÍ ÀúÀå
+	// ê¸°ë³¸ ì”¬ ë°ì´í„° ì €ì¥
 	jsonData["directionalLightDirection"] =
 	{
 		m_directionalLightDirection.m128_f32[0],
@@ -179,11 +179,11 @@ nlohmann::json SceneBase::BaseSerialize()
 	jsonData["lightColor"] = { m_lightColor.x, m_lightColor.y, m_lightColor.z, m_lightColor.w };
 	jsonData["environmentMapFileName"] = m_environmentMapFileName;
 
-	// ÆÄ»ı Å¬·¡½ºÀÇ Á÷·ÄÈ­ È£Ãâ
+	// íŒŒìƒ í´ë˜ìŠ¤ì˜ ì§ë ¬í™” í˜¸ì¶œ
 	nlohmann::json derivedData = Serialize();
 	if (!derivedData.is_null() && derivedData.is_object()) jsonData.merge_patch(derivedData);
 
-	// °ÔÀÓ ¿ÀºêÁ§Æ®µé ÀúÀå
+	// ê²Œì„ ì˜¤ë¸Œì íŠ¸ë“¤ ì €ì¥
 	nlohmann::json gameObjectsData = nlohmann::json::array();
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObjectsData.push_back(gameObject->BaseSerialize());
 	jsonData["rootGameObjects"] = gameObjectsData;
@@ -193,7 +193,7 @@ nlohmann::json SceneBase::BaseSerialize()
 
 void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 {
-	// ±âº» ¾À µ¥ÀÌÅÍ ·Îµå
+	// ê¸°ë³¸ ì”¬ ë°ì´í„° ë¡œë“œ
 	m_directionalLightDirection = XMVectorSet
 	(
 		jsonData["directionalLightDirection"][0].get<float>(),
@@ -201,7 +201,7 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 		jsonData["directionalLightDirection"][2].get<float>(),
 		jsonData["directionalLightDirection"][3].get<float>()
 	);
-	// ±¤¿ø »ö»ó
+	// ê´‘ì› ìƒ‰ìƒ
 	m_lightColor = XMFLOAT4
 	(
 		jsonData["lightColor"][0].get<float>(),
@@ -209,13 +209,13 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 		jsonData["lightColor"][2].get<float>(),
 		jsonData["lightColor"][3].get<float>()
 	);
-	// È¯°æ ¸Ê ÆÄÀÏ ÀÌ¸§
+	// í™˜ê²½ ë§µ íŒŒì¼ ì´ë¦„
 	m_environmentMapFileName = jsonData["environmentMapFileName"].get<string>();
 
-	// ÆÄ»ı Å¬·¡½ºÀÇ µ¥ÀÌÅÍ ·Îµå
+	// íŒŒìƒ í´ë˜ìŠ¤ì˜ ë°ì´í„° ë¡œë“œ
 	Deserialize(jsonData);
 
-	// °ÔÀÓ ¿ÀºêÁ§Æ®µé ·Îµå
+	// ê²Œì„ ì˜¤ë¸Œì íŠ¸ë“¤ ë¡œë“œ
 	for (const auto& gameObjectData : jsonData["rootGameObjects"])
 	{
 		string typeName = gameObjectData["type"].get<string>();
@@ -248,39 +248,39 @@ void SceneBase::GetResources()
 {
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-	m_viewProjectionConstantBuffer = resourceManager.GetConstantBuffer(sizeof(ViewProjectionBuffer)); // ºä-Åõ¿µ »ó¼ö ¹öÆÛ »ı¼º
-	m_skyboxViewProjectionConstantBuffer = resourceManager.GetConstantBuffer(sizeof(XMMATRIX)); // ½ºÄ«ÀÌ¹Ú½º ºä-Åõ¿µ ¿ªÇà·Ä »ó¼ö ¹öÆÛ »ı¼º
-	m_cameraPositionConstantBuffer = resourceManager.GetConstantBuffer(sizeof(XMVECTOR)); // Ä«¸Ş¶ó À§Ä¡ »ó¼ö ¹öÆÛ »ı¼º
-	m_directionalLightConstantBuffer = resourceManager.GetConstantBuffer(sizeof(DirectionalLightBuffer)); // ¹æÇâ±¤ »ó¼ö ¹öÆÛ »ı¼º
+	m_viewProjectionConstantBuffer = resourceManager.GetConstantBuffer(sizeof(ViewProjectionBuffer)); // ë·°-íˆ¬ì˜ ìƒìˆ˜ ë²„í¼ ìƒì„±
+	m_skyboxViewProjectionConstantBuffer = resourceManager.GetConstantBuffer(sizeof(XMMATRIX)); // ìŠ¤ì¹´ì´ë°•ìŠ¤ ë·°-íˆ¬ì˜ ì—­í–‰ë ¬ ìƒìˆ˜ ë²„í¼ ìƒì„±
+	m_cameraPositionConstantBuffer = resourceManager.GetConstantBuffer(sizeof(XMVECTOR)); // ì¹´ë©”ë¼ ìœ„ì¹˜ ìƒìˆ˜ ë²„í¼ ìƒì„±
+	m_directionalLightConstantBuffer = resourceManager.GetConstantBuffer(sizeof(DirectionalLightBuffer)); // ë°©í–¥ê´‘ ìƒìˆ˜ ë²„í¼ ìƒì„±
 
-	m_environmentMapSRV = resourceManager.GetTexture(m_environmentMapFileName); // È¯°æ ¸Ê ·Îµå
+	m_environmentMapSRV = resourceManager.GetTexture(m_environmentMapFileName); // í™˜ê²½ ë§µ ë¡œë“œ
 
-	m_skyboxVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSSkybox.hlsl"); // ½ºÄ«ÀÌ¹Ú½º Á¤Á¡ ¼ÎÀÌ´õ ¾ò±â
-	m_skyboxPixelShader = resourceManager.GetPixelShader("PSSkybox.hlsl"); // ½ºÄ«ÀÌ¹Ú½º ÇÈ¼¿ ¼ÎÀÌ´õ ¾ò±â
+	m_skyboxVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSSkybox.hlsl"); // ìŠ¤ì¹´ì´ë°•ìŠ¤ ì •ì  ì…°ì´ë” ì–»ê¸°
+	m_skyboxPixelShader = resourceManager.GetPixelShader("PSSkybox.hlsl"); // ìŠ¤ì¹´ì´ë°•ìŠ¤ í”½ì…€ ì…°ì´ë” ì–»ê¸°
 
-	m_skyboxDepthStencilState = resourceManager.GetDepthStencilState(DepthStencilState::Skybox); // ½ºÄ«ÀÌ¹Ú½º ±íÀÌ¹öÆÛ »óÅÂ ¾ò±â
+	m_skyboxDepthStencilState = resourceManager.GetDepthStencilState(DepthStencilState::Skybox); // ìŠ¤ì¹´ì´ë°•ìŠ¤ ê¹Šì´ë²„í¼ ìƒíƒœ ì–»ê¸°
 }
 
 void SceneBase::UpdateConstantBuffers()
 {
-	// ºä-Åõ¿µ »ó¼ö ¹öÆÛ ¾÷µ¥ÀÌÆ® ¹× ¼ÎÀÌ´õ¿¡ ¼³Á¤
+	// ë·°-íˆ¬ì˜ ìƒìˆ˜ ë²„í¼ ì—…ë°ì´íŠ¸ ë° ì…°ì´ë”ì— ì„¤ì •
 	m_viewProjectionData.viewMatrix = m_mainCamera->GetViewMatrix();
 	m_viewProjectionData.projectionMatrix = m_mainCamera->GetProjectionMatrix();
 	m_viewProjectionData.VPMatrix = XMMatrixTranspose(m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix);
 	m_deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
 	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::ViewProjection), 1, m_viewProjectionConstantBuffer.GetAddressOf());
 
-	// ½ºÄ«ÀÌ¹Ú½º ºä-Åõ¿µ ¿ªÇà·Ä »ó¼ö ¹öÆÛ ¾÷µ¥ÀÌÆ® ¹× ¼ÎÀÌ´õ¿¡ ¼³Á¤ // m_viewProjectionData ÀçÈ°¿ë
-	m_viewProjectionData.viewMatrix.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // ºä Çà·ÄÀÇ À§Ä¡ ¼ººĞ Á¦°Å
+	// ìŠ¤ì¹´ì´ë°•ìŠ¤ ë·°-íˆ¬ì˜ ì—­í–‰ë ¬ ìƒìˆ˜ ë²„í¼ ì—…ë°ì´íŠ¸ ë° ì…°ì´ë”ì— ì„¤ì • // m_viewProjectionData ì¬í™œìš©
+	m_viewProjectionData.viewMatrix.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // ë·° í–‰ë ¬ì˜ ìœ„ì¹˜ ì„±ë¶„ ì œê±°
 	m_viewProjectionData.VPMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix));
 	m_deviceContext->UpdateSubresource(m_skyboxViewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData.VPMatrix, 0, 0);
 	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::SkyboxViewProjection), 1, m_skyboxViewProjectionConstantBuffer.GetAddressOf());
 
-	// Ä«¸Ş¶ó À§Ä¡ »ó¼ö ¹öÆÛ ¾÷µ¥ÀÌÆ® ¹× ¼ÎÀÌ´õ¿¡ ¼³Á¤
+	// ì¹´ë©”ë¼ ìœ„ì¹˜ ìƒìˆ˜ ë²„í¼ ì—…ë°ì´íŠ¸ ë° ì…°ì´ë”ì— ì„¤ì •
 	m_deviceContext->UpdateSubresource(m_cameraPositionConstantBuffer.Get(), 0, nullptr, &m_mainCamera->GetPosition(), 0, 0);
 	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::CameraPosition), 1, m_cameraPositionConstantBuffer.GetAddressOf());
 
-	// ¹æÇâ±¤ »ó¼ö ¹öÆÛ ¾÷µ¥ÀÌÆ® ¹× ¼ÎÀÌ´õ¿¡ ¼³Á¤
+	// ë°©í–¥ê´‘ ìƒìˆ˜ ë²„í¼ ì—…ë°ì´íŠ¸ ë° ì…°ì´ë”ì— ì„¤ì •
 	m_directionalLightData.lightDirection = -XMVector3Normalize(m_directionalLightDirection);
 	m_directionalLightData.lightColor = m_lightColor;
 	m_deviceContext->UpdateSubresource(m_directionalLightConstantBuffer.Get(), 0, nullptr, &m_directionalLightData, 0, 0);
@@ -305,4 +305,4 @@ void SceneBase::RenderSkybox()
 
 	m_deviceContext->OMSetDepthStencilState(nullptr, 0);
 }
-///SceneBase.cppÀÇ ³¡
+///SceneBase.cppì˜ ë
