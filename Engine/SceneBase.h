@@ -42,7 +42,6 @@ class SceneBase : public Base
 
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_skyboxVertexShaderAndInputLayout = {}; // 스카이박스 정점 셰이더
 	com_ptr<ID3D11PixelShader> m_skyboxPixelShader = nullptr; // 스카이박스 픽셀 셰이더
-	com_ptr<ID3D11DepthStencilState> m_skyboxDepthStencilState = nullptr; // 스카이박스 깊이버퍼 상태
 
 protected:
 	class CameraComponent* m_mainCamera = nullptr; // 메인 카메라 컴포넌트 포인터

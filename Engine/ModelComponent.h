@@ -7,9 +7,6 @@ class ModelComponent : public ComponentBase
 {
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
 
-	BlendState m_blendState = BlendState::Opaque; // 블렌드 상태
-	com_ptr<ID3D11BlendState> m_blendStatePtr = nullptr; // 블렌드 상태 포인터
-
 	std::string m_vsShaderName = "VSModel.hlsl"; // 기본 모델 정점 셰이더
 	std::string m_psShaderName = "PSModel.hlsl"; // 기본 모델 픽셀 셰이더
 

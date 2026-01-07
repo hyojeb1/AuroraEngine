@@ -15,8 +15,6 @@ void ModelComponent::Initialize()
 
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-	m_blendStatePtr = resourceManager.GetBlendState(m_blendState);
-
 	CreateShaders();
 
 	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(MaterialFactor)); // TODO: 매번 재질 상수 버퍼 생성하지 말고 공유하도록 변경

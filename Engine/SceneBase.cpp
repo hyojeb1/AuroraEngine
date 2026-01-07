@@ -254,8 +254,6 @@ void SceneBase::GetResources()
 
 	m_skyboxVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSSkybox.hlsl"); // 스카이박스 정점 셰이더 얻기
 	m_skyboxPixelShader = resourceManager.GetPixelShader("PSSkybox.hlsl"); // 스카이박스 픽셀 셰이더 얻기
-
-	m_skyboxDepthStencilState = resourceManager.GetDepthStencilState(DepthStencilState::Skybox); // 스카이박스 깊이버퍼 상태 얻기
 }
 
 void SceneBase::UpdateConstantBuffers()
@@ -286,7 +284,8 @@ void SceneBase::UpdateConstantBuffers()
 
 void SceneBase::RenderSkybox()
 {
-	m_deviceContext->OMSetDepthStencilState(m_skyboxDepthStencilState.Get(), 0);
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
+	resourceManager.SetDepthStencilState(DepthStencilState::Skybox);
 
 	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -301,6 +300,6 @@ void SceneBase::RenderSkybox()
 
 	m_deviceContext->Draw(3, 0);
 
-	m_deviceContext->OMSetDepthStencilState(nullptr, 0);
+	resourceManager.SetDepthStencilState(DepthStencilState::Default);
 }
 ///SceneBase.cpp의 끝
