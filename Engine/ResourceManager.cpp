@@ -11,9 +11,35 @@ void ResourceManager::Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11Dev
 	m_deviceContext = deviceContext;
 
 	CreateDepthStencilStates();
+	CreateBlendStates();
 	CreateRasterStates();
-	CreateSamplerStates();
+	CreateAndSetSamplerStates();
 	CacheAllTexture();
+}
+
+void ResourceManager::SetDepthStencilState(DepthStencilState state)
+{
+	if (m_currentDepthStencilState == state) return;
+
+	m_deviceContext->OMSetDepthStencilState(m_depthStencilStates[static_cast<size_t>(state)].Get(), 0);
+	m_currentDepthStencilState = state;
+}
+
+void ResourceManager::SetBlendState(BlendState state)
+{
+	if (m_currentBlendState == state) return;
+
+	constexpr array<FLOAT, 4> blendFactor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 나중에 따로 받도록 수정?
+	m_deviceContext->OMSetBlendState(m_blendStates[static_cast<size_t>(state)].Get(), blendFactor.data(), 0xFFFFFFFF);
+	m_currentBlendState = state;
+}
+
+void ResourceManager::SetRasterState(RasterState state)
+{
+	if (m_currentRasterState == state) return;
+
+	m_deviceContext->RSSetState(m_rasterStates[static_cast<size_t>(state)].Get());
+	m_currentRasterState = state;
 }
 
 com_ptr<ID3D11Buffer> ResourceManager::GetConstantBuffer(UINT bufferSize)
@@ -175,7 +201,7 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 			D3D11_USAGE_DEFAULT,
 			D3D11_BIND_SHADER_RESOURCE,
 			0,
-			D3D11_RESOURCE_MISC_GENERATE_MIPS, // mipmap 자동 생성
+			0, // dds 는 mipmap 자동 생성 안함
 			DDS_LOADER_DEFAULT,
 			nullptr,
 			m_textures[fileName].GetAddressOf()
@@ -267,6 +293,16 @@ void ResourceManager::CreateDepthStencilStates()
 	}
 }
 
+void ResourceManager::CreateBlendStates()
+{
+	HRESULT hr = S_OK;
+	for (size_t i = 0; i < static_cast<size_t>(BlendState::Count); ++i)
+	{
+		hr = m_device->CreateBlendState(&BLEND_DESC_TEMPLATES[i], m_blendStates[i].GetAddressOf());
+		CheckResult(hr, "블렌드 상태 생성 실패.");
+	}
+}
+
 void ResourceManager::CreateRasterStates()
 {
 	HRESULT hr = S_OK;
@@ -278,7 +314,7 @@ void ResourceManager::CreateRasterStates()
 	}
 }
 
-void ResourceManager::CreateSamplerStates()
+void ResourceManager::CreateAndSetSamplerStates()
 {
 	HRESULT hr = S_OK;
 
@@ -286,6 +322,8 @@ void ResourceManager::CreateSamplerStates()
 	{
 		hr = m_device->CreateSamplerState(&SAMPLER_DESC_TEMPLATES[i], m_samplerStates[i].GetAddressOf());
 		CheckResult(hr, "샘플러 상태 생성 실패.");
+
+		m_deviceContext->PSSetSamplers(static_cast<UINT>(i), 1, m_samplerStates[i].GetAddressOf());
 	}
 }
 
@@ -383,11 +421,9 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene)
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 		resultMesh.materialFactor = ProcessMaterialFactor(material);
 
-		resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.jpg");
-		resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleNormal.jpg");
-		resultMesh.materialTexture.metallicTextureSRV = GetTexture("SampleMetallic.jpg");
-		resultMesh.materialTexture.roughnessTextureSRV = GetTexture("SampleRoughness.jpg");
-		resultMesh.materialTexture.ambientOcclusionTextureSRV = GetTexture("SampleAmbientOcclusion.jpg");
+		resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.dds");
+		resultMesh.materialTexture.ORMTextureSRV = GetTexture("SampleORM.dds");
+		resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleNormal.dds");
 	}
 
 	CreateMeshBuffers(resultMesh);
@@ -411,7 +447,9 @@ MaterialFactor ResourceManager::ProcessMaterialFactor(aiMaterial* material)
 	float roughnessFactor = 1.0f;
 	if (AI_SUCCESS == material->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughnessFactor)) resultMaterialFactor.roughnessFactor = roughnessFactor;
 
-	// TODO: PBR 환경광 차폐 팩터
+	// 굴절률 팩터
+	float iorFactor = 1.5f;
+	if (AI_SUCCESS == material->Get(AI_MATKEY_REFRACTI, iorFactor)) resultMaterialFactor.iorFactor = iorFactor;
 
 	return resultMaterialFactor;
 }

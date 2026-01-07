@@ -15,28 +15,30 @@ void ModelComponent::Initialize()
 
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(MaterialFactor)); // TODO: 매번 재질 상수 버퍼 생성하지 말고 공유하도록 변경
-	m_model = resourceManager.LoadModel(m_modelFileName);
+	m_blendStatePtr = resourceManager.GetBlendState(m_blendState);
 
 	CreateShaders();
+
+	m_materialConstantBuffer = resourceManager.GetConstantBuffer(sizeof(MaterialFactor)); // TODO: 매번 재질 상수 버퍼 생성하지 말고 공유하도록 변경
+	m_model = resourceManager.LoadModel(m_modelFileName);
 }
 
 void ModelComponent::Render()
 {
-	constexpr UINT stride = sizeof(Vertex);
-	constexpr UINT offset = 0;
-
 	m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
 	m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
 	m_deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 
 	for (const auto& mesh : m_model->meshes)
 	{
-		m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
-		m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
 		// 나중에 메쉬별로 설정 가능하게 변경
 		m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		// 메쉬 버퍼 설정
+		constexpr UINT stride = sizeof(Vertex);
+		constexpr UINT offset = 0;
+		m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+		m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 		// 재질 상수 버퍼 셰이더에 설정
 		m_deviceContext->UpdateSubresource(m_materialConstantBuffer.Get(), 0, nullptr, &mesh.materialFactor, 0, 0);
@@ -44,10 +46,8 @@ void ModelComponent::Render()
 
 		// 재질 텍스처 셰이더에 설정
 		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
+		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, mesh.materialTexture.ORMTextureSRV.GetAddressOf());
 		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, mesh.materialTexture.normalTextureSRV.GetAddressOf());
-		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Metallic), 1, mesh.materialTexture.metallicTextureSRV.GetAddressOf());
-		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Roughness), 1, mesh.materialTexture.roughnessTextureSRV.GetAddressOf());
-		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::AmbientOcclusion), 1, mesh.materialTexture.ambientOcclusionTextureSRV.GetAddressOf());
 
 		m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
 	}

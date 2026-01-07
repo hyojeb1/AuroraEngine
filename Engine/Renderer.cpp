@@ -23,7 +23,7 @@ void Renderer::BeginFrame()
 	HRESULT hr = S_OK;
 
 	// 래스터 상태 변경
-	m_deviceContext->RSSetState(m_sceneRasterState.Get());
+	ResourceManager::GetInstance().SetRasterState(RasterState::Solid);
 
 	// 셰이더 리소스 해제
 	UnbindShaderResources();
@@ -48,7 +48,7 @@ void Renderer::EndFrame()
 	ResolveSceneMSAA();
 
 	// 래스터 상태 변경
-	m_deviceContext->RSSetState(m_backBufferRasterState.Get());
+	ResourceManager::GetInstance().SetRasterState(RasterState::BackBuffer);
 
 	// 픽셀 셰이더의 셰이더 리소스 뷰 해제
 	UnbindShaderResources();
@@ -236,10 +236,6 @@ void Renderer::CreateBackBufferResources()
 	CheckResult(hr, "백 버퍼 정점 버퍼 생성 실패.");
 
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
-	// 래스터 상태 생성
-	m_backBufferRasterState = resourceManager.GetRasterState(RasterState::BackBuffer);
-	// 샘플러 상태 생성
-	m_backBufferSamplerState = resourceManager.GetSamplerState(SamplerState::BackBuffer);
 	// 정점 셰이더 및 입력 레이아웃 생성
 	vector<InputElement> inputElements = { InputElement::Position, InputElement::UV };
 	m_backBufferVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSPostProcessing.hlsl", inputElements);
@@ -329,9 +325,6 @@ void Renderer::CreateSceneRenderTarget()
 	};
 	hr = m_device->CreateShaderResourceView(m_sceneResultTexture.Get(), &srvDesc, m_sceneShaderResourceView.GetAddressOf());
 	CheckResult(hr, "씬 셰이더 리소스 뷰 생성 실패.");
-
-	// 래스터 상태 생성
-	m_sceneRasterState = ResourceManager::GetInstance().GetRasterState(RasterState::Solid);
 }
 
 void Renderer::SetViewport()
@@ -388,7 +381,6 @@ void Renderer::RenderSceneToBackBuffer()
 	m_deviceContext->VSSetShader(m_backBufferVertexShaderAndInputLayout.first.Get(), nullptr, 0);
 	m_deviceContext->PSSetShader(m_backBufferPixelShader.Get(), nullptr, 0);
 
-	m_deviceContext->PSSetSamplers(static_cast<UINT>(SamplerState::BackBuffer), 1, m_backBufferSamplerState.GetAddressOf());
 	m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::BackBuffer), 1, m_sceneShaderResourceView.GetAddressOf());
 
 	m_deviceContext->Draw(3, 0);

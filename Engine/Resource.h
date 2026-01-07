@@ -31,6 +31,80 @@ constexpr std::array<D3D11_DEPTH_STENCIL_DESC, static_cast<size_t>(DepthStencilS
 	}
 };
 
+enum class BlendState
+{
+	Opaque,
+	AlphaBlend,
+	AlphaToCoverage,
+
+	Count
+};
+constexpr std::array<D3D11_BLEND_DESC, static_cast<size_t>(BlendState::Count)> BLEND_DESC_TEMPLATES =
+{
+	// Opaque
+	D3D11_BLEND_DESC
+	{
+		.AlphaToCoverageEnable = FALSE, // 알파 투 커버리지 비활성화
+		.IndependentBlendEnable = FALSE,
+		.RenderTarget =
+		{
+			D3D11_RENDER_TARGET_BLEND_DESC
+			{
+				.BlendEnable = FALSE,
+				.SrcBlend = D3D11_BLEND_ONE,
+				.DestBlend = D3D11_BLEND_ZERO,
+				.BlendOp = D3D11_BLEND_OP_ADD,
+				.SrcBlendAlpha = D3D11_BLEND_ONE,
+				.DestBlendAlpha = D3D11_BLEND_ZERO,
+				.BlendOpAlpha = D3D11_BLEND_OP_ADD,
+				.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL
+			}
+		}
+	},
+
+	// AlphaBlend
+	D3D11_BLEND_DESC
+	{
+		.AlphaToCoverageEnable = FALSE,
+		.IndependentBlendEnable = FALSE,
+		.RenderTarget =
+		{
+			D3D11_RENDER_TARGET_BLEND_DESC
+			{
+				.BlendEnable = TRUE,
+				.SrcBlend = D3D11_BLEND_SRC_ALPHA, // 소스 알파로 소스 색상 곱하기
+				.DestBlend = D3D11_BLEND_INV_SRC_ALPHA, // (1 - 소스 알파)로 대상 색상 곱하기
+				.BlendOp = D3D11_BLEND_OP_ADD, // 두 값을 더하기
+				.SrcBlendAlpha = D3D11_BLEND_ONE, // 소스 알파 유지
+				.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA, // 대상 알파 혼합
+				.BlendOpAlpha = D3D11_BLEND_OP_ADD,
+				.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL
+			}
+		}
+	},
+
+	// AlphaToCoverage
+	D3D11_BLEND_DESC
+	{
+		.AlphaToCoverageEnable = TRUE, // 알파 투 커버리지 활성화
+		.IndependentBlendEnable = FALSE,
+		.RenderTarget =
+		{
+			D3D11_RENDER_TARGET_BLEND_DESC
+			{
+				.BlendEnable = TRUE,
+				.SrcBlend = D3D11_BLEND_ONE,
+				.DestBlend = D3D11_BLEND_INV_SRC_ALPHA,
+				.BlendOp = D3D11_BLEND_OP_ADD,
+				.SrcBlendAlpha = D3D11_BLEND_ONE,
+				.DestBlendAlpha = D3D11_BLEND_ZERO,
+				.BlendOpAlpha = D3D11_BLEND_OP_ADD,
+				.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL
+			}
+		}
+	}
+};
+
 enum class RasterState
 {
 	BackBuffer, // 백 버퍼 전용 래스터 상태 // AA 없음
@@ -218,11 +292,10 @@ enum class TextureSlots
 {
 	BackBuffer,
 	Environment,
-	Albedo,
-	Normal,
-	Metallic,
-	Roughness,
-	AmbientOcclusion,
+
+	Albedo, // RGBA
+	ORM, // ambient occlusion(R) + roughness(G) + metallic(B)
+	Normal, // X(R) + Y(G) + Z(B)
 
 	Count
 };
@@ -243,10 +316,12 @@ struct Vertex_Pos
 struct MaterialFactor
 {
 	DirectX::XMFLOAT4 albedoFactor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 텍스처 색상이 얼마나 적용되는지
-	float metallicFactor = 1.0f; // 금속성 텍스처가 얼마나 적용되는지
-	float roughnessFactor = 1.0f; // 거칠기 텍스처가 얼마나 적용되는지
+
 	float ambientOcclusionFactor = 1.0f; // 환경광 차폐 텍스처가 얼마나 적용되는지
-	float lightFactor = 1.0f; // 조명 영향도 // 일반적으로 1.0f 여야 함
+	float roughnessFactor = 1.0f; // 거칠기 텍스처가 얼마나 적용되는지
+	float metallicFactor = 1.0f; // 금속성 텍스처가 얼마나 적용되는지
+	float iorFactor = 1.5f; // 굴절률 팩터 // 일반적으로 1.5f 여야 함
+
 	DirectX::XMFLOAT4 emissionFactor = { 0.0f, 0.0f, 0.0f, 0.0f }; // 자가 발광 색상 팩터
 };
 
@@ -254,17 +329,15 @@ struct MaterialFactor
 /// 목적: 라인 그릴려고 만듬
 struct MaterialLegacy
 {
-	DirectX::XMFLOAT4 Diffuse;
+	DirectX::XMFLOAT4 Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
 };
 
 
 struct MaterialTexture
 {
 	com_ptr<ID3D11ShaderResourceView> albedoTextureSRV = nullptr;
+	com_ptr<ID3D11ShaderResourceView> ORMTextureSRV = nullptr;
 	com_ptr<ID3D11ShaderResourceView> normalTextureSRV = nullptr;
-	com_ptr<ID3D11ShaderResourceView> metallicTextureSRV = nullptr;
-	com_ptr<ID3D11ShaderResourceView> roughnessTextureSRV = nullptr;
-	com_ptr<ID3D11ShaderResourceView> ambientOcclusionTextureSRV = nullptr;
 };
 
 struct Mesh

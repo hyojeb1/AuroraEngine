@@ -20,10 +20,12 @@ cbuffer DirectionalLight : register(b1)
 cbuffer MaterialFactor : register(b2)
 {
     float4 AlbedoFactor;
-    float  MetallicFactor;
-    float  RoughnessFactor;
-    float  AmbientOcclusionFactor;
-    float  LightFactor;
+    
+    float ambientOcclusionFactor;
+    float RoughnessFactor;
+    float MetallicFactor;
+    float iorFactor;
+    
     float4 EmissionFactor;
 };
 
@@ -45,11 +47,11 @@ SamplerState SamplerLinearWrap : register(s1); // Model, Skybox
 // --------------------------------------------------------
 Texture2D sceneTexture : register(t0);
 TextureCube environmentMapTexture : register(t1); // 나중에 반사광에 사용?
+
+// PBR 재질
 Texture2D albedoTexture : register(t2);
-Texture2D normalTexture : register(t3);
-Texture2D metallicTexture : register(t4);
-Texture2D roughnessTexture : register(t5);
-Texture2D ambientOcclusionTexture : register(t6);
+Texture2D ORMTexture : register(t3); // ambient occlusion(R) + roughness(G) + metallic(B)
+Texture2D normalTexture : register(t4);
 
 // --------------------------------------------------------
 // Input Structures (VS 출력과 매칭되어야 함)

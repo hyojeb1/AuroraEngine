@@ -99,9 +99,6 @@ void SceneBase::BaseRender()
 	// 상수 버퍼 업데이트 및 셰이더에 설정
 	UpdateConstantBuffers();
 
-	// 샘플러 상태 설정
-	m_deviceContext->PSSetSamplers(static_cast<UINT>(SamplerState::Default), 1, ResourceManager::GetInstance().GetSamplerState(SamplerState::Default).GetAddressOf());
-
 	// 환경 맵 설정
 	m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Environment), 1, m_environmentMapSRV.GetAddressOf());
 
@@ -289,12 +286,13 @@ void SceneBase::UpdateConstantBuffers()
 
 void SceneBase::RenderSkybox()
 {
+	m_deviceContext->OMSetDepthStencilState(m_skyboxDepthStencilState.Get(), 0);
+
+	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 	m_deviceContext->IASetInputLayout(m_skyboxVertexShaderAndInputLayout.second.Get());
 	m_deviceContext->VSSetShader(m_skyboxVertexShaderAndInputLayout.first.Get(), nullptr, 0);
 	m_deviceContext->PSSetShader(m_skyboxPixelShader.Get(), nullptr, 0);
-
-	m_deviceContext->OMSetDepthStencilState(m_skyboxDepthStencilState.Get(), 0);
-	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	constexpr UINT stride = 0;
 	constexpr UINT offset = 0;
