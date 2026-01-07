@@ -17,70 +17,17 @@
             "childGameObjects": [],
             "components": [
                 {
-                    "modelFileName": "vehicle.fbx",
-                    "psShaderName": "PSModel.hlsl",
-                    "type": "ModelComponent",
-                    "vsShaderName": "VSModel.hlsl"
-                }
-            ],
-            "name": "GameObjectBase_0",
-            "position": [
-                -3.200000047683716,
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                0.05000000074505806,
-                0.07000000029802322,
-                0.05000000074505806,
-                1.0
-            ],
-            "type": "GameObjectBase"
-        },
-        {
-            "childGameObjects": [],
-            "components": [],
-            "name": "HyojeTestObject_1",
-            "position": [
-                0.0,
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            ],
-            "type": "HyojeTestObject"
-        },
-        {
-            "childGameObjects": [],
-            "components": [
-                {
+                    "blendState": 1,
                     "modelFileName": "box.fbx",
                     "psShaderName": "PSModel.hlsl",
+                    "rasterState": 1,
                     "type": "ModelComponent",
                     "vsShaderName": "VSModel.hlsl"
                 }
             ],
-            "name": "GameObjectBase_3",
+            "name": "GameObjectBase_1",
             "position": [
-                4.949999809265137,
+                0.0,
                 0.0,
                 0.0,
                 0.0

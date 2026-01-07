@@ -11,29 +11,38 @@ void ResourceManager::Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11Dev
 	m_deviceContext = deviceContext;
 
 	CreateDepthStencilStates();
+	CreateBlendStates();
 	CreateRasterStates();
-	CreateSamplerStates();
+
+	CreateAndSetConstantBuffers();
+	CreateAndSetSamplerStates();
+
 	CacheAllTexture();
 }
 
-com_ptr<ID3D11Buffer> ResourceManager::GetConstantBuffer(UINT bufferSize)
+void ResourceManager::SetDepthStencilState(DepthStencilState state)
 {
-	HRESULT hr = S_OK;
+	if (m_currentDepthStencilState == state) return;
 
-	com_ptr<ID3D11Buffer> constantBuffer = nullptr;
-	const D3D11_BUFFER_DESC bufferDesc =
-	{
-		.ByteWidth = bufferSize,
-		.Usage = D3D11_USAGE_DEFAULT,
-		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
-		.CPUAccessFlags = 0,
-		.MiscFlags = 0,
-		.StructureByteStride = 0
-	};
-	hr = m_device->CreateBuffer(&bufferDesc, nullptr, constantBuffer.GetAddressOf());
-	CheckResult(hr, "상수 버퍼 생성 실패.");
+	m_deviceContext->OMSetDepthStencilState(m_depthStencilStates[static_cast<size_t>(state)].Get(), 0);
+	m_currentDepthStencilState = state;
+}
 
-	return constantBuffer;
+void ResourceManager::SetBlendState(BlendState state)
+{
+	if (m_currentBlendState == state) return;
+
+	constexpr array<FLOAT, 4> blendFactor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 나중에 따로 받도록 수정?
+	m_deviceContext->OMSetBlendState(m_blendStates[static_cast<size_t>(state)].Get(), blendFactor.data(), 0xFFFFFFFF);
+	m_currentBlendState = state;
+}
+
+void ResourceManager::SetRasterState(RasterState state)
+{
+	if (m_currentRasterState == state) return;
+
+	m_deviceContext->RSSetState(m_rasterStates[static_cast<size_t>(state)].Get());
+	m_currentRasterState = state;
 }
 
 com_ptr<ID3D11Buffer> ResourceManager::CreateVertexBuffer(const void* data, UINT stride, UINT count, bool isDynamic)
@@ -175,7 +184,7 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 			D3D11_USAGE_DEFAULT,
 			D3D11_BIND_SHADER_RESOURCE,
 			0,
-			D3D11_RESOURCE_MISC_GENERATE_MIPS, // mipmap 자동 생성
+			0, // dds 는 mipmap 자동 생성 안함
 			DDS_LOADER_DEFAULT,
 			nullptr,
 			m_textures[fileName].GetAddressOf()
@@ -267,6 +276,16 @@ void ResourceManager::CreateDepthStencilStates()
 	}
 }
 
+void ResourceManager::CreateBlendStates()
+{
+	HRESULT hr = S_OK;
+	for (size_t i = 0; i < static_cast<size_t>(BlendState::Count); ++i)
+	{
+		hr = m_device->CreateBlendState(&BLEND_DESC_TEMPLATES[i], m_blendStates[i].GetAddressOf());
+		CheckResult(hr, "블렌드 상태 생성 실패.");
+	}
+}
+
 void ResourceManager::CreateRasterStates()
 {
 	HRESULT hr = S_OK;
@@ -278,7 +297,40 @@ void ResourceManager::CreateRasterStates()
 	}
 }
 
-void ResourceManager::CreateSamplerStates()
+void ResourceManager::CreateAndSetConstantBuffers()
+{
+	HRESULT hr = S_OK;
+
+	// 정점 셰이더용 상수 버퍼 생성 및 설정
+	// 뷰-투영 상수 버퍼
+	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::ViewProjection)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::ViewProjection)].GetAddressOf());
+	CheckResult(hr, "ViewProjection 상수 버퍼 생성 실패.");
+	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::ViewProjection), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::ViewProjection)].GetAddressOf());
+	// 스카이박스 뷰-투영 역행렬 상수 버퍼
+	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::SkyboxViewProjection)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::SkyboxViewProjection)].GetAddressOf());
+	CheckResult(hr, "Object 상수 버퍼 생성 실패.");
+	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::SkyboxViewProjection), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::SkyboxViewProjection)].GetAddressOf());
+	// 객체 월드, 스케일 역행렬 적용한 월드 상수 버퍼
+	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::WorldNormal)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::WorldNormal)].GetAddressOf());
+	CheckResult(hr, "WorldNormal 상수 버퍼 생성 실패.");
+	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::WorldNormal), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::WorldNormal)].GetAddressOf());
+
+	// 픽셀 셰이더용 상수 버퍼 생성 및 설정
+	// 카메라 위치 상수 버퍼
+	hr = m_device->CreateBuffer(&PS_CONST_BUFFER_DESCS[static_cast<size_t>(PSConstBuffers::CameraPosition)], nullptr, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::CameraPosition)].GetAddressOf());
+	CheckResult(hr, "CameraPosition 상수 버퍼 생성 실패.");
+	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::CameraPosition), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::CameraPosition)].GetAddressOf());
+	// 방향광 상수 버퍼
+	hr = m_device->CreateBuffer(&PS_CONST_BUFFER_DESCS[static_cast<size_t>(PSConstBuffers::DirectionalLight)], nullptr, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::DirectionalLight)].GetAddressOf());
+	CheckResult(hr, "DirectionalLight 상수 버퍼 생성 실패.");
+	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::DirectionalLight), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::DirectionalLight)].GetAddressOf());
+	// 재질 팩터 상수 버퍼
+	hr = m_device->CreateBuffer(&PS_CONST_BUFFER_DESCS[static_cast<size_t>(PSConstBuffers::MaterialFactor)], nullptr, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::MaterialFactor)].GetAddressOf());
+	CheckResult(hr, "MaterialFactor 상수 버퍼 생성 실패.");
+	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::MaterialFactor), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::MaterialFactor)].GetAddressOf());
+}
+
+void ResourceManager::CreateAndSetSamplerStates()
 {
 	HRESULT hr = S_OK;
 
@@ -286,6 +338,8 @@ void ResourceManager::CreateSamplerStates()
 	{
 		hr = m_device->CreateSamplerState(&SAMPLER_DESC_TEMPLATES[i], m_samplerStates[i].GetAddressOf());
 		CheckResult(hr, "샘플러 상태 생성 실패.");
+
+		m_deviceContext->PSSetSamplers(static_cast<UINT>(i), 1, m_samplerStates[i].GetAddressOf());
 	}
 }
 
@@ -383,11 +437,9 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene)
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 		resultMesh.materialFactor = ProcessMaterialFactor(material);
 
-		resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.jpg");
-		resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleNormal.jpg");
-		resultMesh.materialTexture.metallicTextureSRV = GetTexture("SampleMetallic.jpg");
-		resultMesh.materialTexture.roughnessTextureSRV = GetTexture("SampleRoughness.jpg");
-		resultMesh.materialTexture.ambientOcclusionTextureSRV = GetTexture("SampleAmbientOcclusion.jpg");
+		resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.dds");
+		resultMesh.materialTexture.ORMTextureSRV = GetTexture("SampleORM.dds");
+		resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleNormal.dds");
 	}
 
 	CreateMeshBuffers(resultMesh);
@@ -395,9 +447,9 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene)
 	return resultMesh;
 }
 
-MaterialFactor ResourceManager::ProcessMaterialFactor(aiMaterial* material)
+MaterialFactorBuffer ResourceManager::ProcessMaterialFactor(aiMaterial* material)
 {
-	MaterialFactor resultMaterialFactor;
+	MaterialFactorBuffer resultMaterialFactor;
 
 	// Albedo/Diffuse 색상 팩터
 	aiColor4D albedoColor;
@@ -411,7 +463,9 @@ MaterialFactor ResourceManager::ProcessMaterialFactor(aiMaterial* material)
 	float roughnessFactor = 1.0f;
 	if (AI_SUCCESS == material->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughnessFactor)) resultMaterialFactor.roughnessFactor = roughnessFactor;
 
-	// TODO: PBR 환경광 차폐 팩터
+	// 굴절률 팩터
+	float iorFactor = 1.5f;
+	if (AI_SUCCESS == material->Get(AI_MATKEY_REFRACTI, iorFactor)) resultMaterialFactor.iorFactor = iorFactor;
 
 	return resultMaterialFactor;
 }

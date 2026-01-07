@@ -12,11 +12,26 @@ struct RenderTarget
 
 enum class DepthStencilState
 {
+	Default,
 	Skybox,
+
 	Count
 };
 constexpr std::array<D3D11_DEPTH_STENCIL_DESC, static_cast<size_t>(DepthStencilState::Count)> DEPTH_STENCIL_DESC_TEMPLATES =
 {
+	// Default
+	D3D11_DEPTH_STENCIL_DESC
+	{
+		.DepthEnable = TRUE, // 깊이 테스트 활성화
+		.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL, // 깊이 쓰기 활성화
+		.DepthFunc = D3D11_COMPARISON_LESS, // 깊이 비교 함수: 작음
+		.StencilEnable = FALSE, // 스텐실 테스트 비활성화
+		.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK,
+		.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK,
+		.FrontFace = {}, // 사용 안 함
+		.BackFace = {} // 사용 안 함
+	},
+
 	// Skybox
 	D3D11_DEPTH_STENCIL_DESC
 	{
@@ -28,6 +43,80 @@ constexpr std::array<D3D11_DEPTH_STENCIL_DESC, static_cast<size_t>(DepthStencilS
 		.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK,
 		.FrontFace = {}, // 사용 안 함
 		.BackFace = {} // 사용 안 함
+	}
+};
+
+enum class BlendState
+{
+	Opaque,
+	AlphaBlend,
+	AlphaToCoverage,
+
+	Count
+};
+constexpr std::array<D3D11_BLEND_DESC, static_cast<size_t>(BlendState::Count)> BLEND_DESC_TEMPLATES =
+{
+	// Opaque
+	D3D11_BLEND_DESC
+	{
+		.AlphaToCoverageEnable = FALSE, // 알파 투 커버리지 비활성화
+		.IndependentBlendEnable = FALSE,
+		.RenderTarget =
+		{
+			D3D11_RENDER_TARGET_BLEND_DESC
+			{
+				.BlendEnable = FALSE,
+				.SrcBlend = D3D11_BLEND_ONE,
+				.DestBlend = D3D11_BLEND_ZERO,
+				.BlendOp = D3D11_BLEND_OP_ADD,
+				.SrcBlendAlpha = D3D11_BLEND_ONE,
+				.DestBlendAlpha = D3D11_BLEND_ZERO,
+				.BlendOpAlpha = D3D11_BLEND_OP_ADD,
+				.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL
+			}
+		}
+	},
+
+	// AlphaBlend
+	D3D11_BLEND_DESC
+	{
+		.AlphaToCoverageEnable = FALSE,
+		.IndependentBlendEnable = FALSE,
+		.RenderTarget =
+		{
+			D3D11_RENDER_TARGET_BLEND_DESC
+			{
+				.BlendEnable = TRUE,
+				.SrcBlend = D3D11_BLEND_SRC_ALPHA, // 소스 알파로 소스 색상 곱하기
+				.DestBlend = D3D11_BLEND_INV_SRC_ALPHA, // (1 - 소스 알파)로 대상 색상 곱하기
+				.BlendOp = D3D11_BLEND_OP_ADD, // 두 값을 더하기
+				.SrcBlendAlpha = D3D11_BLEND_ONE, // 소스 알파 유지
+				.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA, // 대상 알파 혼합
+				.BlendOpAlpha = D3D11_BLEND_OP_ADD,
+				.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL
+			}
+		}
+	},
+
+	// AlphaToCoverage
+	D3D11_BLEND_DESC
+	{
+		.AlphaToCoverageEnable = TRUE, // 알파 투 커버리지 활성화
+		.IndependentBlendEnable = FALSE,
+		.RenderTarget =
+		{
+			D3D11_RENDER_TARGET_BLEND_DESC
+			{
+				.BlendEnable = TRUE,
+				.SrcBlend = D3D11_BLEND_ONE,
+				.DestBlend = D3D11_BLEND_INV_SRC_ALPHA,
+				.BlendOp = D3D11_BLEND_OP_ADD,
+				.SrcBlendAlpha = D3D11_BLEND_ONE,
+				.DestBlendAlpha = D3D11_BLEND_ZERO,
+				.BlendOpAlpha = D3D11_BLEND_OP_ADD,
+				.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL
+			}
+		}
 	}
 };
 
@@ -203,26 +292,133 @@ constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement:
 
 enum class VSConstBuffers
 {
-	ViewProjection,
-	SkyboxViewProjection,
-	WorldNormal
+	ViewProjection, // ViewProjectionBuffer
+	SkyboxViewProjection, // SkyboxViewProjectionBuffer
+	WorldNormal, // WorldBuffer
+
+	Count
 };
+struct ViewProjectionBuffer // 뷰-투영 상수 버퍼 구조체
+{
+	DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixIdentity(); // 뷰 행렬 // 전치 안함
+	DirectX::XMMATRIX projectionMatrix = DirectX::XMMatrixIdentity(); // 투영 행렬 // 전치 안함
+	DirectX::XMMATRIX VPMatrix = DirectX::XMMatrixIdentity(); // VP 행렬 // 전치함
+};
+struct SkyboxViewProjectionBuffer // 스카이박스 뷰-투영 상수 버퍼 구조체
+{
+	DirectX::XMMATRIX skyboxVPMatrix = DirectX::XMMatrixIdentity(); // 스카이박스 VP 행렬(뷰-투영 역행렬) // 전치함
+};
+struct WorldNormalBuffer // 월드 및 WVP 행렬 상수 버퍼 구조체
+{
+	DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity(); // 월드 행렬
+	DirectX::XMMATRIX normalMatrix = DirectX::XMMatrixIdentity(); // 스케일 역행렬을 적용한 월드 행렬
+};
+constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Count)> VS_CONST_BUFFER_DESCS =
+{
+	// ViewProjectionBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(ViewProjectionBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	},
+
+	// SkyboxViewProjectionBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(SkyboxViewProjectionBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	},
+
+	// WorldBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(WorldNormalBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	}
+};
+
 enum class PSConstBuffers
 {
-	CameraPosition,
-	DirectionalLight,
-	Material,
-	MaterialLegacy
+	CameraPosition, // CameraPositionBuffer
+	DirectionalLight, // DirectionalLightBuffer
+	MaterialFactor, // MaterialFactorBuffer
+
+	Count
 };
+struct CameraPositionBuffer // 카메라 위치 상수 버퍼 구조체
+{
+	DirectX::XMVECTOR cameraPosition = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // 카메라 월드 좌표 위치
+};
+struct DirectionalLightBuffer // 방향광 상수 버퍼 구조체
+{
+	DirectX::XMVECTOR lightDirection = DirectX::XMVectorSet(-0.5f, -1.0f, -0.5f, 0.0f); // 방향광 방향
+	DirectX::XMFLOAT4 lightColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 방향광 색상
+};
+struct MaterialFactorBuffer
+{
+	DirectX::XMFLOAT4 albedoFactor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 텍스처 색상이 얼마나 적용되는지
+
+	float ambientOcclusionFactor = 1.0f; // 환경광 차폐 텍스처가 얼마나 적용되는지
+	float roughnessFactor = 1.0f; // 거칠기 텍스처가 얼마나 적용되는지
+	float metallicFactor = 1.0f; // 금속성 텍스처가 얼마나 적용되는지
+	float iorFactor = 1.5f; // 굴절률 팩터 // 일반적으로 1.5f 여야 함
+
+	DirectX::XMFLOAT4 emissionFactor = { 0.0f, 0.0f, 0.0f, 0.0f }; // 자가 발광 색상 팩터
+};
+constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(PSConstBuffers::Count)> PS_CONST_BUFFER_DESCS =
+{
+	// CameraPositionBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(CameraPositionBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	},
+	// DirectionalLightBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(DirectionalLightBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	},
+	// MaterialFactorBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(MaterialFactorBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	}
+};
+
 enum class TextureSlots
 {
 	BackBuffer,
 	Environment,
-	Albedo,
-	Normal,
-	Metallic,
-	Roughness,
-	AmbientOcclusion,
+
+	Albedo, // RGBA
+	ORM, // ambient occlusion(R) + roughness(G) + metallic(B)
+	Normal, // X(R) + Y(G) + Z(B)
 
 	Count
 };
@@ -240,31 +436,20 @@ struct Vertex_Pos
 	DirectX::XMFLOAT4 position = {};
 };
 
-struct MaterialFactor
-{
-	DirectX::XMFLOAT4 albedoFactor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 텍스처 색상이 얼마나 적용되는지
-	float metallicFactor = 1.0f; // 금속성 텍스처가 얼마나 적용되는지
-	float roughnessFactor = 1.0f; // 거칠기 텍스처가 얼마나 적용되는지
-	float ambientOcclusionFactor = 1.0f; // 환경광 차폐 텍스처가 얼마나 적용되는지
-	float lightFactor = 1.0f; // 조명 영향도 // 일반적으로 1.0f 여야 함
-	DirectX::XMFLOAT4 emissionFactor = { 0.0f, 0.0f, 0.0f, 0.0f }; // 자가 발광 색상 팩터
-};
 
 /// 블린-퐁 했을 때의 그것과 동일함.
 /// 목적: 라인 그릴려고 만듬
 struct MaterialLegacy
 {
-	DirectX::XMFLOAT4 Diffuse;
+	DirectX::XMFLOAT4 Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
 };
 
 
 struct MaterialTexture
 {
 	com_ptr<ID3D11ShaderResourceView> albedoTextureSRV = nullptr;
+	com_ptr<ID3D11ShaderResourceView> ORMTextureSRV = nullptr;
 	com_ptr<ID3D11ShaderResourceView> normalTextureSRV = nullptr;
-	com_ptr<ID3D11ShaderResourceView> metallicTextureSRV = nullptr;
-	com_ptr<ID3D11ShaderResourceView> roughnessTextureSRV = nullptr;
-	com_ptr<ID3D11ShaderResourceView> ambientOcclusionTextureSRV = nullptr;
 };
 
 struct Mesh
@@ -278,7 +463,7 @@ struct Mesh
 	com_ptr<ID3D11Buffer> vertexBuffer = nullptr;
 	com_ptr<ID3D11Buffer> indexBuffer = nullptr;
 
-	MaterialFactor materialFactor = {};
+	MaterialFactorBuffer materialFactor = {};
 	MaterialTexture materialTexture = {};
 };
 

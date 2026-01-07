@@ -99,9 +99,6 @@ void SceneBase::BaseRender()
 	// 상수 버퍼 업데이트 및 셰이더에 설정
 	UpdateConstantBuffers();
 
-	// 샘플러 상태 설정
-	m_deviceContext->PSSetSamplers(static_cast<UINT>(SamplerState::Default), 1, ResourceManager::GetInstance().GetSamplerState(SamplerState::Default).GetAddressOf());
-
 	// 환경 맵 설정
 	m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Environment), 1, m_environmentMapSRV.GetAddressOf());
 
@@ -248,17 +245,16 @@ void SceneBase::GetResources()
 {
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-	m_viewProjectionConstantBuffer = resourceManager.GetConstantBuffer(sizeof(ViewProjectionBuffer)); // 뷰-투영 상수 버퍼 생성
-	m_skyboxViewProjectionConstantBuffer = resourceManager.GetConstantBuffer(sizeof(XMMATRIX)); // 스카이박스 뷰-투영 역행렬 상수 버퍼 생성
-	m_cameraPositionConstantBuffer = resourceManager.GetConstantBuffer(sizeof(XMVECTOR)); // 카메라 위치 상수 버퍼 생성
-	m_directionalLightConstantBuffer = resourceManager.GetConstantBuffer(sizeof(DirectionalLightBuffer)); // 방향광 상수 버퍼 생성
-
-	m_environmentMapSRV = resourceManager.GetTexture(m_environmentMapFileName); // 환경 맵 로드
-
 	m_skyboxVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSSkybox.hlsl"); // 스카이박스 정점 셰이더 얻기
 	m_skyboxPixelShader = resourceManager.GetPixelShader("PSSkybox.hlsl"); // 스카이박스 픽셀 셰이더 얻기
 
-	m_skyboxDepthStencilState = resourceManager.GetDepthStencilState(DepthStencilState::Skybox); // 스카이박스 깊이버퍼 상태 얻기
+	m_environmentMapSRV = resourceManager.GetTexture(m_environmentMapFileName); // 환경 맵 로드
+
+	m_viewProjectionConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::ViewProjection); // 뷰-투영 상수 버퍼 생성
+	m_skyboxViewProjectionConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::SkyboxViewProjection); // 스카이박스 뷰-투영 역행렬 상수 버퍼 생성
+
+	m_cameraPositionConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::CameraPosition); // 카메라 위치 상수 버퍼 생성
+	m_directionalLightConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::DirectionalLight); // 방향광 상수 버퍼 생성
 }
 
 void SceneBase::UpdateConstantBuffers()
@@ -268,33 +264,35 @@ void SceneBase::UpdateConstantBuffers()
 	m_viewProjectionData.projectionMatrix = m_mainCamera->GetProjectionMatrix();
 	m_viewProjectionData.VPMatrix = XMMatrixTranspose(m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix);
 	m_deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
-	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::ViewProjection), 1, m_viewProjectionConstantBuffer.GetAddressOf());
 
 	// 스카이박스 뷰-투영 역행렬 상수 버퍼 업데이트 및 셰이더에 설정 // m_viewProjectionData 재활용
 	m_viewProjectionData.viewMatrix.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // 뷰 행렬의 위치 성분 제거
-	m_viewProjectionData.VPMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix));
-	m_deviceContext->UpdateSubresource(m_skyboxViewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData.VPMatrix, 0, 0);
-	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::SkyboxViewProjection), 1, m_skyboxViewProjectionConstantBuffer.GetAddressOf());
+	m_skyboxViewProjectionData.skyboxVPMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix));
+	m_deviceContext->UpdateSubresource(m_skyboxViewProjectionConstantBuffer.Get(), 0, nullptr, &m_skyboxViewProjectionData, 0, 0);
 
 	// 카메라 위치 상수 버퍼 업데이트 및 셰이더에 설정
-	m_deviceContext->UpdateSubresource(m_cameraPositionConstantBuffer.Get(), 0, nullptr, &m_mainCamera->GetPosition(), 0, 0);
-	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::CameraPosition), 1, m_cameraPositionConstantBuffer.GetAddressOf());
+	m_cameraPositionData.cameraPosition = m_mainCamera->GetPosition();
+	m_deviceContext->UpdateSubresource(m_cameraPositionConstantBuffer.Get(), 0, nullptr, &m_cameraPositionData, 0, 0);
 
 	// 방향광 상수 버퍼 업데이트 및 셰이더에 설정
 	m_directionalLightData.lightDirection = -XMVector3Normalize(m_directionalLightDirection);
 	m_directionalLightData.lightColor = m_lightColor;
 	m_deviceContext->UpdateSubresource(m_directionalLightConstantBuffer.Get(), 0, nullptr, &m_directionalLightData, 0, 0);
-	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::DirectionalLight), 1, m_directionalLightConstantBuffer.GetAddressOf());
 }
 
 void SceneBase::RenderSkybox()
 {
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
+	resourceManager.SetDepthStencilState(DepthStencilState::Skybox);
+
+	resourceManager.SetBlendState(BlendState::Opaque);
+	resourceManager.SetRasterState(RasterState::Solid);
+
+	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 	m_deviceContext->IASetInputLayout(m_skyboxVertexShaderAndInputLayout.second.Get());
 	m_deviceContext->VSSetShader(m_skyboxVertexShaderAndInputLayout.first.Get(), nullptr, 0);
 	m_deviceContext->PSSetShader(m_skyboxPixelShader.Get(), nullptr, 0);
-
-	m_deviceContext->OMSetDepthStencilState(m_skyboxDepthStencilState.Get(), 0);
-	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	constexpr UINT stride = 0;
 	constexpr UINT offset = 0;
@@ -303,6 +301,6 @@ void SceneBase::RenderSkybox()
 
 	m_deviceContext->Draw(3, 0);
 
-	m_deviceContext->OMSetDepthStencilState(nullptr, 0);
+	resourceManager.SetDepthStencilState(DepthStencilState::Default);
 }
 ///SceneBase.cpp의 끝
