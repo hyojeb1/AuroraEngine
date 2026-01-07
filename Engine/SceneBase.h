@@ -58,6 +58,7 @@ public:
 	template<typename T> requires std::derived_from<T, GameObjectBase>
 	T* CreateRootGameObject(std::string typeName); // ë£¨íŠ¸ ê²Œì„ ì˜¤ë¸Œì íŠ¸ ìƒì„± // í¬ì¸í„° ë°˜í™˜
 
+	GameObjectBase* CreateRootGameObjectPtr(const std::string& typeName);//·±Å¸ÀÓ Å¸ÀÔ°áÁ¤ ¹× Æ÷ÀÎÅÍ ¹İÈ¯¿ë
 protected:
 	// ë©”ì¸ ì¹´ë©”ë¼ ê²Œì„ ì˜¤ë¸Œì íŠ¸ ì„¤ì •
 	virtual GameObjectBase* CreateCameraObject();

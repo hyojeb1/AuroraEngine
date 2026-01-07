@@ -15,10 +15,10 @@ public:
 	ComponentBase& operator=(ComponentBase&&) = default; // 이동 대입
 
 	void SetOwner(GameObjectBase* owner) { m_owner = owner; }
-
+	GameObjectBase* GetOwner() const { return m_owner; }
 	virtual bool NeedsUpdate() const = 0;
 	virtual bool NeedsRender() const = 0;
-
+  
 private:
 	void BaseInitialize() override;
 	void BaseUpdate() override { Update(); }
