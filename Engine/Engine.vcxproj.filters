@@ -22,6 +22,9 @@
     <Filter Include="Manager\Input">
       <UniqueIdentifier>{6751b606-7ad5-4d02-95fa-9b35d5cff09b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scene\GameObject\Component\Network">
+      <UniqueIdentifier>{1bc52dc4-7856-44ba-b4e2-7d1f08d88cf7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Renderer.cpp">
@@ -68,6 +71,18 @@
     </ClCompile>
     <ClCompile Include="DebugCamera.cpp">
       <Filter>Scene\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="NetManager.cpp">
+      <Filter>Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkTestComponent.cpp">
+      <Filter>Scene\GameObject\Component\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkWorld.cpp">
+      <Filter>Scene\GameObject\Component\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkIdentityComponent.cpp">
+      <Filter>Scene\GameObject\Component\Network</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -125,6 +140,18 @@
     </ClInclude>
     <ClInclude Include="DebugCamera.h">
       <Filter>Scene\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="NetManager.h">
+      <Filter>Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkTestComponent.h">
+      <Filter>Scene\GameObject\Component\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkWorld.h">
+      <Filter>Scene\GameObject\Component\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkIdentityComponent.h">
+      <Filter>Scene\GameObject\Component\Network</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

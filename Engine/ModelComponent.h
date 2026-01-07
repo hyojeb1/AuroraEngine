@@ -3,6 +3,8 @@
 #include "ComponentBase.h"
 #include "Resource.h"
 
+void ForceLink_ModelComponent();
+
 class ModelComponent : public ComponentBase
 {
 	const struct Model* m_model = nullptr;

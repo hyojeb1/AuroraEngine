@@ -1,4 +1,22 @@
 #pragma once
+//추가~
+#ifndef WIN32_LEAN_AND_MEAN		
+#define WIN32_LEAN_AND_MEAN
+#endif
+
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
+// 윈도우 헤더
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+#include <windows.h>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib") // timeGetTime함수 사용을 위한 라이브러리
+#include <wrl/client.h>
+//~추가
 
 // STL 헤더
 #include <array>
@@ -8,10 +26,8 @@
 #include <iostream>
 #include <typeindex>
 #include <unordered_map>
-
-// 윈도우 헤더
-#include <wrl/client.h>
-#pragma comment(lib, "winmm.lib") // timeGetTime함수 사용을 위한 라이브러리
+#include <queue>		//추가
+#include <optional>		//추가
 
 // DirectX 헤더
 #include <d3d11.h>
@@ -39,6 +55,10 @@
 
 // JSON 헤더
 #include <nlohmann/json.hpp>
+
+// boost-asio 헤더//추가
+#include <boost/asio.hpp>
+#include <boost/asio/executor_work_guard.hpp>
 
 // 메크로 정의
 // com_ptr 매크로

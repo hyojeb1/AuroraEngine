@@ -144,6 +144,10 @@
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="LineComponent.h" />
     <ClInclude Include="ModelComponent.h" />
+    <ClInclude Include="NetManager.h" />
+    <ClInclude Include="NetworkIdentityComponent.h" />
+    <ClInclude Include="NetworkTestComponent.h" />
+    <ClInclude Include="NetworkWorld.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Resource.h" />
@@ -164,6 +168,12 @@
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="LineComponent.cpp" />
     <ClCompile Include="ModelComponent.cpp" />
+    <ClCompile Include="NetManager.cpp" />
+    <ClCompile Include="NetworkIdentityComponent.cpp" />
+    <ClCompile Include="NetworkTestComponent.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="NetworkWorld.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="SceneBase.cpp" />

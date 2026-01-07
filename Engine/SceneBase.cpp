@@ -36,6 +36,16 @@ void SceneBase::CreateRootGameObject(string typeName)
 	m_gameObjects.push_back(move(gameObjectPtr));
 }
 
+GameObjectBase* SceneBase::CreateRootGameObjectPtr(const std::string& typeName)
+{
+	std::unique_ptr<Base> gameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
+
+	gameObject->BaseInitialize();
+	GameObjectBase* ptr = static_cast<GameObjectBase*>(gameObject.get());
+	m_gameObjects.push_back(std::move(gameObject));
+	return ptr;
+}
+
 void SceneBase::BaseInitialize()
 {
 	m_type = GetTypeName(*this);

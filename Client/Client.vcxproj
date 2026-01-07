@@ -119,6 +119,9 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /E /I /Y "$(SolutionDir)Asset" "$(TargetDir)Asset"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -148,7 +151,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="CamRotObject.cpp" />
+    <ClCompile Include="ClientTestScene.cpp" />
     <ClCompile Include="CoordinateSystemObject.cpp" />
+    <ClCompile Include="HostTestScene.cpp" />
     <ClCompile Include="HyojeTestObject.cpp" />
     <ClCompile Include="LineObject.cpp" />
     <ClCompile Include="main.cpp" />
@@ -156,6 +161,7 @@
     <ClCompile Include="TestCameraObject.cpp" />
     <ClCompile Include="TestObject.cpp" />
     <ClCompile Include="TestScene.cpp" />
+    <ClCompile Include="YdmTestObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BlenderCameraObject.h">
@@ -164,6 +170,7 @@
     </ClInclude>
     <ClInclude Include="CamRotObject.h" />
     <ClInclude Include="CoordinateSystemObject.h" />
+    <ClInclude Include="HostTestScene.h" />
     <ClInclude Include="HyojeTestScene.h" />
     <ClInclude Include="HyojeTestObject.h" />
     <ClInclude Include="LineObject.h" />
@@ -171,6 +178,8 @@
     <ClInclude Include="TestCameraObject.h" />
     <ClInclude Include="TestObject.h" />
     <ClInclude Include="TestScene.h" />
+    <ClInclude Include="YdmTestObject.h" />
+    <ClInclude Include="ClientTestScene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
