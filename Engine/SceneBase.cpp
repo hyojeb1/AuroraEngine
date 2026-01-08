@@ -87,6 +87,7 @@ void SceneBase::BaseUpdate()
 		cout << "씬: " << m_type << " 저장 중..." << endl;
 
 		const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
+
 		ofstream file(sceneFilePath);
 		file << BaseSerialize().dump(4);
 		file.close();
@@ -107,7 +108,10 @@ void SceneBase::BaseRender()
 	// 스카이박스 렌더링
 	RenderSkybox();
 
-	#ifdef NDEBUG
+	#ifdef _DEBUG
+	// 디버그 좌표축 렌더링 (디버그 모드에서만)
+	if (m_isRenderDebugCoordinates) RenderDebugCoordinates();
+	#else
 	Render();
 	#endif
 
@@ -125,8 +129,16 @@ void SceneBase::BaseRenderImGui()
 
 	ImGui::Begin(m_type.c_str());
 
-	if (ImGui::DragFloat3("Light Direction", &m_directionalLightDirection.m128_f32[0], 0.001f, -1.0f, 1.0f)) {}
-	if (ImGui::ColorEdit3("Scene Color", &m_lightColor.x)) {}
+	#ifdef _DEBUG
+	ImGui::Checkbox("Debug Coordinates", &m_isRenderDebugCoordinates);
+	#endif
+
+	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);
+	ImGui::DragFloat("Ambient Intensity", &m_globalLightData.lightColor.w, 0.001f, 0.0f, 1.0f);
+	if (ImGui::DragFloat3("Light Direction", &m_globalLightData.lightDirection.m128_f32[0], 0.001f, -1.0f, 1.0f))
+	{
+		m_globalLightData.lightDirection = XMVector3Normalize(m_globalLightData.lightDirection);
+	}
 
 	RenderImGui();
 
@@ -168,14 +180,23 @@ nlohmann::json SceneBase::BaseSerialize()
 	nlohmann::json jsonData;
 
 	// 기본 씬 데이터 저장
-	jsonData["directionalLightDirection"] =
+
+	// 씬 조명 정보
+	jsonData["lightColor"] =
 	{
-		m_directionalLightDirection.m128_f32[0],
-		m_directionalLightDirection.m128_f32[1],
-		m_directionalLightDirection.m128_f32[2],
-		m_directionalLightDirection.m128_f32[3]
+		m_globalLightData.lightColor.x,
+		m_globalLightData.lightColor.y,
+		m_globalLightData.lightColor.z,
+		m_globalLightData.lightColor.w
 	};
-	jsonData["lightColor"] = { m_lightColor.x, m_lightColor.y, m_lightColor.z, m_lightColor.w };
+	jsonData["lightDirection"] =
+	{
+		m_globalLightData.lightDirection.m128_f32[0],
+		m_globalLightData.lightDirection.m128_f32[1],
+		m_globalLightData.lightDirection.m128_f32[2],
+		m_globalLightData.lightDirection.m128_f32[3]
+	};
+
 	jsonData["environmentMapFileName"] = m_environmentMapFileName;
 
 	// 파생 클래스의 직렬화 호출
@@ -193,21 +214,23 @@ nlohmann::json SceneBase::BaseSerialize()
 void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 {
 	// 기본 씬 데이터 로드
-	m_directionalLightDirection = XMVectorSet
-	(
-		jsonData["directionalLightDirection"][0].get<float>(),
-		jsonData["directionalLightDirection"][1].get<float>(),
-		jsonData["directionalLightDirection"][2].get<float>(),
-		jsonData["directionalLightDirection"][3].get<float>()
-	);
-	// 광원 색상
-	m_lightColor = XMFLOAT4
+
+	// 씬 조명 정보
+	m_globalLightData.lightColor = XMFLOAT4
 	(
 		jsonData["lightColor"][0].get<float>(),
 		jsonData["lightColor"][1].get<float>(),
 		jsonData["lightColor"][2].get<float>(),
 		jsonData["lightColor"][3].get<float>()
 	);
+	m_globalLightData.lightDirection = XMVectorSet
+	(
+		jsonData["lightDirection"][0].get<float>(),
+		jsonData["lightDirection"][1].get<float>(),
+		jsonData["lightDirection"][2].get<float>(),
+		jsonData["lightDirection"][3].get<float>()
+	);
+
 	// 환경 맵 파일 이름
 	m_environmentMapFileName = jsonData["environmentMapFileName"].get<string>();
 
@@ -250,13 +273,18 @@ void SceneBase::GetResources()
 	m_skyboxVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSSkybox.hlsl"); // 스카이박스 정점 셰이더 얻기
 	m_skyboxPixelShader = resourceManager.GetPixelShader("PSSkybox.hlsl"); // 스카이박스 픽셀 셰이더 얻기
 
+	#ifdef _DEBUG
+	m_debugCoordinateVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSCoordinateLine.hlsl"); // 디버그 좌표 정점 셰이더 얻기
+	m_debugCoordinatePixelShader = resourceManager.GetPixelShader("PSCoordinateLine.hlsl"); // 디버그 좌표 픽셀 셰이더 얻기
+	#endif
+
 	m_environmentMapSRV = resourceManager.GetTexture(m_environmentMapFileName); // 환경 맵 로드
 
 	m_viewProjectionConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::ViewProjection); // 뷰-투영 상수 버퍼 생성
 	m_skyboxViewProjectionConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::SkyboxViewProjection); // 스카이박스 뷰-투영 역행렬 상수 버퍼 생성
 
 	m_cameraPositionConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::CameraPosition); // 카메라 위치 상수 버퍼 생성
-	m_directionalLightConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::DirectionalLight); // 방향광 상수 버퍼 생성
+	m_globalLightConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::GlobalLight); // 방향광 상수 버퍼 생성
 }
 
 void SceneBase::UpdateConstantBuffers()
@@ -276,10 +304,8 @@ void SceneBase::UpdateConstantBuffers()
 	m_cameraPositionData.cameraPosition = m_mainCamera->GetPosition();
 	m_deviceContext->UpdateSubresource(m_cameraPositionConstantBuffer.Get(), 0, nullptr, &m_cameraPositionData, 0, 0);
 
-	// 방향광 상수 버퍼 업데이트 및 셰이더에 설정
-	m_directionalLightData.lightDirection = -XMVector3Normalize(m_directionalLightDirection);
-	m_directionalLightData.lightColor = m_lightColor;
-	m_deviceContext->UpdateSubresource(m_directionalLightConstantBuffer.Get(), 0, nullptr, &m_directionalLightData, 0, 0);
+	// 환경광, 방향광 상수 버퍼 업데이트 및 셰이더에 설정
+	m_deviceContext->UpdateSubresource(m_globalLightConstantBuffer.Get(), 0, nullptr, &m_globalLightData, 0, 0);
 }
 
 void SceneBase::RenderSkybox()
@@ -290,9 +316,8 @@ void SceneBase::RenderSkybox()
 	resourceManager.SetBlendState(BlendState::Opaque);
 	resourceManager.SetRasterState(RasterState::Solid);
 
-	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	m_deviceContext->IASetInputLayout(m_skyboxVertexShaderAndInputLayout.second.Get());
+	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_deviceContext->VSSetShader(m_skyboxVertexShaderAndInputLayout.first.Get(), nullptr, 0);
 	m_deviceContext->PSSetShader(m_skyboxPixelShader.Get(), nullptr, 0);
 
@@ -305,4 +330,20 @@ void SceneBase::RenderSkybox()
 
 	resourceManager.SetDepthStencilState(DepthStencilState::Default);
 }
-///SceneBase.cpp의 끝
+
+#ifdef _DEBUG
+void SceneBase::RenderDebugCoordinates()
+{
+	m_deviceContext->IASetInputLayout(m_debugCoordinateVertexShaderAndInputLayout.second.Get());
+	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	m_deviceContext->VSSetShader(m_debugCoordinateVertexShaderAndInputLayout.first.Get(), nullptr, 0);
+	m_deviceContext->PSSetShader(m_debugCoordinatePixelShader.Get(), nullptr, 0);
+
+	constexpr UINT stride = 0;
+	constexpr UINT offset = 0;
+	constexpr ID3D11Buffer* nullBuffer = nullptr;
+	m_deviceContext->IASetVertexBuffers(0, 1, &nullBuffer, &stride, &offset);
+
+	m_deviceContext->DrawInstanced(2, 204, 0, 0);
+}
+#endif

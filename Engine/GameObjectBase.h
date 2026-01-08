@@ -99,7 +99,7 @@ public:
 	T* CreateChildGameObject(); // 자식 게임 오브젝트 생성 // 포인터 반환
 	// 자식 게임 오브젝트 제거 // 제거 배열에 추가
 	template<typename T> requires std::derived_from<T, GameObjectBase>
-	T* CreateChildGameObject(const std::string& typeName); // 자식 게임 오브젝트 생성 // 포인터 반환
+	[[nodiscard]] T* CreateChildGameObject(const std::string& typeName); // 자식 게임 오브젝트 생성 // 포인터 반환
 
 private:
 	// 게임 오브젝트 초기화
