@@ -35,6 +35,19 @@ struct VS_INPUT_STD
     float3 Tangent : TANGENT;
 };
 
+
+struct VS_INPUT_STD_ANIM
+{
+    float4 Position : POSITION;
+    float2 UV : TEXCOORD;
+    float3 Normal : NORMAL;
+    float3 Tangent : TANGENT;
+    
+    float4 BlendWeights : BLENDWEIGHT;
+    uint4 BlendIndices : BLENDINDICES;
+};
+
+
 struct VS_INPUT_POS_UV
 {
     float4 Position : POSITION;
@@ -50,6 +63,7 @@ struct VS_INPUT_POS
 // Output Structures
 // --------------------------------------------------------
 
+// 스키닝 애니메이션도 이거 씁니다.
 struct VS_OUTPUT_STD
 {
     float4 WorldPosition : POSITION0;

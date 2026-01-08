@@ -176,6 +176,9 @@
     <FxCompile Include="..\Asset\Shader\PSCoordinateLine.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
+    <FxCompile Include="..\Asset\Shader\VSModelSkinAnim.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Asset\Shader\CommonVS.hlsli">
@@ -185,6 +188,9 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="..\Asset\Shader\CommonPS.hlsli">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="..\Asset\Shader\CommonSkinning.hlsli">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>
