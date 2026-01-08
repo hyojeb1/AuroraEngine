@@ -60,8 +60,8 @@
 #include <boost/asio.hpp>
 #include <boost/asio/executor_work_guard.hpp>
 
-// ��ũ�� ����
-// com_ptr ��ũ��
+// 메크로 정의
+// com_ptr 매크로
 #define com_ptr Microsoft::WRL::ComPtr
 
 // 각도 변환 상수 및 함수
@@ -120,3 +120,5 @@ constexpr void CheckResult(HRESULT hr, const char* msg)
 
 // 사용자 정의 헤더
 #include "Resource.h"
+#include "Singleton.h"
+#include "TypeRegistry.h"
