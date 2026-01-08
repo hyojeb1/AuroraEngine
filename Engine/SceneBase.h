@@ -60,7 +60,7 @@ public:
 	T* CreateRootGameObject(); // 루트 게임 오브젝트 생성 // 포인터 반환
 
 	template<typename T> requires std::derived_from<T, GameObjectBase>
-	T* CreateRootGameObject(const std::string& typeName); // 루트 게임 오브젝트 생성 // 포인터 반환
+	[[nodiscard]] T* CreateRootGameObject(const std::string& typeName); // 루트 게임 오브젝트 생성 // 포인터 반환
 
 protected:
 	// 메인 카메라 게임 오브젝트 설정
