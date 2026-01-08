@@ -104,9 +104,10 @@ XMVECTOR GameObjectBase::GetWorldDirectionVector(Direction direction)
 	}
 }
 
-void GameObjectBase::CreateComponent(string typeName)
+ComponentBase* GameObjectBase::CreateComponent(const string& typeName)
 {
 	unique_ptr<ComponentBase> component = TypeRegistry::GetInstance().CreateComponent(typeName);
+	ComponentBase* componentPtr = component.get();
 
 	if (m_components[type_index(typeid(*component))])
 	{
@@ -115,7 +116,7 @@ void GameObjectBase::CreateComponent(string typeName)
 		#else
 		MessageBoxA(nullptr, ("오류: 게임 오브젝트 '" + m_name + "'에 이미 컴포넌트 '" + typeName + "'가 존재합니다.").c_str(), "GameObjectBase Error", MB_OK | MB_ICONERROR);
 		#endif
-		return;
+		return nullptr;
 	}
 
 	component->SetOwner(this);
@@ -123,18 +124,23 @@ void GameObjectBase::CreateComponent(string typeName)
 	if (component->NeedsUpdate()) m_updateComponents.push_back(component.get());
 	if (component->NeedsRender()) m_renderComponents.push_back(component.get());
 
-	static_cast<Base*>(component.get())->BaseInitialize();
-
+	static_cast<Base*>(componentPtr)->BaseInitialize();
 	m_components[type_index(typeid(*component))] = move(component);
+
+	return componentPtr;
 }
 
-void GameObjectBase::CreateChildGameObject(string typeName)
+GameObjectBase* GameObjectBase::CreateChildGameObject(const string& typeName)
 {
-	unique_ptr<GameObjectBase> childGameObjectPtr = TypeRegistry::GetInstance().CreateGameObject(typeName);
-	childGameObjectPtr->m_parent = this;
-	childGameObjectPtr->BaseInitialize();
+	unique_ptr<GameObjectBase> childGameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
+	GameObjectBase* childGameObjectPtr = childGameObject.get();
 
-	m_childrens.push_back(move(childGameObjectPtr));
+	childGameObject->m_parent = this;
+	childGameObject->BaseInitialize();
+
+	m_childrens.push_back(move(childGameObject));
+
+	return childGameObjectPtr;
 }
 
 void GameObjectBase::BaseInitialize()

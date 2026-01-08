@@ -27,23 +27,15 @@ GameObjectBase* SceneBase::CreateCameraObject()
 	return cameraGameObject;
 }
 
-void SceneBase::CreateRootGameObject(string typeName)
+GameObjectBase* SceneBase::CreateRootGameObject(const string& typeName)
 {
-	unique_ptr<Base> gameObjectPtr = TypeRegistry::GetInstance().CreateGameObject(typeName);
+	unique_ptr<GameObjectBase> gameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
+	GameObjectBase* gameObjectPtr = gameObject.get();
 
-	gameObjectPtr->BaseInitialize();
+	static_cast<Base*>(gameObjectPtr)->BaseInitialize();
+	m_gameObjects.push_back(move(gameObject));
 
-	m_gameObjects.push_back(move(gameObjectPtr));
-}
-
-GameObjectBase* SceneBase::CreateRootGameObjectPtr(const std::string& typeName)
-{
-	std::unique_ptr<Base> gameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
-
-	gameObject->BaseInitialize();
-	GameObjectBase* ptr = static_cast<GameObjectBase*>(gameObject.get());
-	m_gameObjects.push_back(std::move(gameObject));
-	return ptr;
+	return gameObjectPtr;
 }
 
 void SceneBase::BaseInitialize()
