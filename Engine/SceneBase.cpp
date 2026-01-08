@@ -314,6 +314,7 @@ void SceneBase::RenderSkybox()
 	resourceManager.SetDepthStencilState(DepthStencilState::Default);
 }
 
+#ifdef _DEBUG
 void SceneBase::RenderDebugCoordinates()
 {
 	m_deviceContext->IASetInputLayout(m_debugCoordinateVertexShaderAndInputLayout.second.Get());
@@ -328,3 +329,4 @@ void SceneBase::RenderDebugCoordinates()
 
 	m_deviceContext->DrawInstanced(2, 204, 0, 0);
 }
+#endif
