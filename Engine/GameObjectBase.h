@@ -85,15 +85,16 @@ public:
 
 	const DirectX::XMMATRIX& GetWorldMatrix() const { return m_worldMatrix; }
 
-	void CreateComponent(const std::string& typeName); // 컴포넌트 추가 // 포인터 반환 안함
+	// 컴포넌트 추가 // 컴포넌트 베이스 포인터 반환
+	ComponentBase* CreateComponent(const std::string& typeName);
 	template<typename T> requires std::derived_from<T, ComponentBase>
 	T* CreateComponent(); // 컴포넌트 추가 // 포인터 반환
 
 	template<typename T> requires std::derived_from<T, ComponentBase>
 	T* GetComponent(); // 컴포넌트 가져오기 // 없으면 nullptr 반환
 
-	// 자식 게임 오브젝트 생성 // 포인터 반환 안함
-	void CreateChildGameObject(const std::string& typeName);
+	// 자식 게임 오브젝트 생성 // 게임 오브젝트 베이스 포인터 반환
+	GameObjectBase* CreateChildGameObject(const std::string& typeName);
 	template<typename T> requires std::derived_from<T, GameObjectBase>
 	T* CreateChildGameObject(); // 자식 게임 오브젝트 생성 // 포인터 반환
 	// 자식 게임 오브젝트 제거 // 제거 배열에 추가

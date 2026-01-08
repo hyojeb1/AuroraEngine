@@ -48,7 +48,7 @@ public:
 	SceneBase(SceneBase&&) = delete; // 이동 금지
 	SceneBase& operator=(SceneBase&&) = delete; // 이동 대입 금지
 
-	// 루트 게임 오브젝트 생성 // 게임 오브젝트 포인터 반환
+	// 루트 게임 오브젝트 생성 // 게임 오브젝트 베이스 포인터 반환
 	GameObjectBase* CreateRootGameObject(const std::string& typeName);
 
 	template<typename T> requires std::derived_from<T, GameObjectBase>
