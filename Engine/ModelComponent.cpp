@@ -6,6 +6,7 @@
 #include "ResourceManager.h"
 
 using namespace std;
+using namespace DirectX;
 
 REGISTER_TYPE(ModelComponent)
 
@@ -115,6 +116,23 @@ nlohmann::json ModelComponent::Serialize()
 	jsonData["psShaderName"] = m_psShaderName;
 	jsonData["modelFileName"] = m_modelFileName;
 
+	// 재질 팩터
+	jsonData["materialFactorData"]["albedoFactor"] = { m_materialFactorData.albedoFactor.x, m_materialFactorData.albedoFactor.y, m_materialFactorData.albedoFactor.z, m_materialFactorData.albedoFactor.w };
+	
+	jsonData["materialFactorData"]["ambientOcclusionFactor"] = m_materialFactorData.ambientOcclusionFactor;
+	jsonData["materialFactorData"]["roughnessFactor"] = m_materialFactorData.roughnessFactor;
+	jsonData["materialFactorData"]["metallicFactor"] = m_materialFactorData.metallicFactor;
+
+	jsonData["materialFactorData"]["ior"] = m_materialFactorData.ior;
+
+	jsonData["materialFactorData"]["normalScale"] = m_materialFactorData.normalScale;
+	jsonData["materialFactorData"]["heightScale"] = m_materialFactorData.heightScale;
+
+	jsonData["materialFactorData"]["lightFactor"] = m_materialFactorData.lightFactor;
+	jsonData["materialFactorData"]["glowFactor"] = m_materialFactorData.glowFactor;
+
+	jsonData["materialFactorData"]["emissionFactor"] = { m_materialFactorData.emissionFactor.x, m_materialFactorData.emissionFactor.y, m_materialFactorData.emissionFactor.z, m_materialFactorData.emissionFactor.w };
+
 	jsonData["blendState"] = static_cast<int>(m_blendState);
 	jsonData["rasterState"] = static_cast<int>(m_rasterState);
 
@@ -126,6 +144,35 @@ void ModelComponent::Deserialize(const nlohmann::json& jsonData)
 	m_vsShaderName = jsonData["vsShaderName"].get<string>();
 	m_psShaderName = jsonData["psShaderName"].get<string>();
 	m_modelFileName = jsonData["modelFileName"].get<string>();
+
+	// 재질 팩터
+	m_materialFactorData.albedoFactor = XMFLOAT4
+	(
+		jsonData["materialFactorData"]["albedoFactor"][0].get<float>(),
+		jsonData["materialFactorData"]["albedoFactor"][1].get<float>(),
+		jsonData["materialFactorData"]["albedoFactor"][2].get<float>(),
+		jsonData["materialFactorData"]["albedoFactor"][3].get<float>()
+	);
+
+	m_materialFactorData.ambientOcclusionFactor = jsonData["materialFactorData"]["ambientOcclusionFactor"].get<float>();
+	m_materialFactorData.roughnessFactor = jsonData["materialFactorData"]["roughnessFactor"].get<float>();
+	m_materialFactorData.metallicFactor = jsonData["materialFactorData"]["metallicFactor"].get<float>();
+
+	m_materialFactorData.ior = jsonData["materialFactorData"]["ior"].get<float>();
+
+	m_materialFactorData.normalScale = jsonData["materialFactorData"]["normalScale"].get<float>();
+	m_materialFactorData.heightScale = jsonData["materialFactorData"]["heightScale"].get<float>();
+
+	m_materialFactorData.lightFactor = jsonData["materialFactorData"]["lightFactor"].get<float>();
+	m_materialFactorData.glowFactor = jsonData["materialFactorData"]["glowFactor"].get<float>();
+
+	m_materialFactorData.emissionFactor = XMFLOAT4
+	(
+		jsonData["materialFactorData"]["emissionFactor"][0].get<float>(),
+		jsonData["materialFactorData"]["emissionFactor"][1].get<float>(),
+		jsonData["materialFactorData"]["emissionFactor"][2].get<float>(),
+		jsonData["materialFactorData"]["emissionFactor"][3].get<float>()
+	);
 
 	m_blendState = static_cast<BlendState>(jsonData["blendState"].get<int>());
 	m_rasterState = static_cast<RasterState>(jsonData["rasterState"].get<int>());

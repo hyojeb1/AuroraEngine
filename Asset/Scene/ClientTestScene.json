@@ -7,9 +7,9 @@
         0.0
     ],
     "lightDirection": [
-        -0.40824830532073975,
-        -0.8164966106414795,
-        -0.40824830532073975,
+        -0.5,
+        -1.0,
+        -0.5,
         1.0
     ],
     "rootGameObjects": [
@@ -17,7 +17,29 @@
             "childGameObjects": [],
             "components": [
                 {
-                    "blendState": 0,
+                    "blendState": 1,
+                    "materialFactorData": {
+                        "albedoFactor": [
+                            0.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "ambientOcclusionFactor": 1.0,
+                        "emissionFactor": [
+                            0.615686297416687,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "glowFactor": 0.0,
+                        "heightScale": 0.05000000074505806,
+                        "ior": 1.5,
+                        "lightFactor": 1.0,
+                        "metallicFactor": 1.0,
+                        "normalScale": 1.0,
+                        "roughnessFactor": 1.0
+                    },
                     "modelFileName": "box.fbx",
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
@@ -25,7 +47,7 @@
                     "vsShaderName": "VSModel.hlsl"
                 }
             ],
-            "name": "GameObjectBase_0",
+            "name": "GameObjectBase_1",
             "position": [
                 0.0,
                 0.0,
