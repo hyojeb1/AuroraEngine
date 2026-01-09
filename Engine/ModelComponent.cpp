@@ -89,7 +89,7 @@ void ModelComponent::RenderImGui()
 	ImGui::DragFloat("Height Scale", &m_materialFactorData.heightScale, 0.001f, 0.0f, 0.2f);
 
 	ImGui::DragFloat("Light Factor", &m_materialFactorData.lightFactor, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("Luminance Factor", &m_materialFactorData.glowFactor, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat("Glow Factor", &m_materialFactorData.glowFactor, 0.01f, 0.0f, 1.0f);
 
 	ImGui::ColorEdit4("Emission Factor", &m_materialFactorData.emissionFactor.x);
 
