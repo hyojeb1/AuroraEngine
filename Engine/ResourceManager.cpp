@@ -490,7 +490,7 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene)
 		// 재질 자체가 없는 경우 (완전 깡통)
 		resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.dds");
 		resultMesh.materialTexture.ORMTextureSRV = GetTexture("SampleORM.dds");
-		resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleNormal.dds");
+		resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleBump.dds");
 	}
 
 	CreateMeshBuffers(resultMesh);
