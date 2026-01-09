@@ -84,6 +84,9 @@
     <ClCompile Include="ComponentBase.cpp">
       <Filter>Base</Filter>
     </ClCompile>
+    <ClCompile Include="SoundManager.cpp">
+      <Filter>Manager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -149,6 +152,9 @@
     </ClInclude>
     <ClInclude Include="ComponentBase.h">
       <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundManager.h">
+      <Filter>Manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -68,6 +68,8 @@ protected:
 private:
 	// 씬 초기화 // 씬 사용 전 반드시 호출해야 함
 	void BaseInitialize() override;
+	// 씬 고정 업데이트 // 씬 매니저가 호출
+	void BaseFixedUpdate() override;
 	// 씬 업데이트 // 씬 매니저가 호출
 	void BaseUpdate() override;
 	// 씬 렌더링 // 씬 매니저가 호출

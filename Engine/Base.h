@@ -12,6 +12,7 @@ public:
 	IBase& operator=(IBase&&) = default;
 
 	virtual void BaseInitialize() = 0;
+	virtual void BaseFixedUpdate() = 0;
 	virtual void BaseUpdate() = 0;
 	virtual void BaseRender() = 0;
 	virtual void BaseRenderImGui() = 0;
@@ -50,6 +51,8 @@ public:
 protected:
 	// 파생 클래스의 초기화
 	virtual void Initialize() {}
+	// 파생 클래스의 고정 업데이트
+	virtual void FixedUpdate() {}
 	// 파생 클래스의 업데이트
 	virtual void Update() {}
 	// 파생 클래스의 렌더링

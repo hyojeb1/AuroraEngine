@@ -9,6 +9,8 @@ class SceneManager : public Singleton<SceneManager>
 	std::unique_ptr<class Base> m_currentScene = nullptr;
 	std::unique_ptr<class Base> m_nextScene = nullptr;
 
+	double m_accumulator;
+
 public:
 	~SceneManager() = default;
 	SceneManager(const SceneManager&) = delete;
@@ -20,7 +22,7 @@ public:
 	void Run();
 	void Finalize() { if (m_currentScene) m_currentScene->BaseFinalize(); }
 
-	void ChangeScene(const std::string& sceneTypeName) { m_nextScene = TypeRegistry::GetInstance().CreateScene(sceneTypeName); }
+	void ChangeScene(const std::string& sceneTypeName) { m_nextScene = TypeRegistry::GetInstance().CreateScene(sceneTypeName); m_accumulator = 0; }
 
 private:
 	SceneManager() = default;
