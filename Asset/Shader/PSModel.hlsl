@@ -31,7 +31,7 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float3 Lo = (kD * albedo.rgb / PI + specular) * radiance;
     float3 ambient = LightColor.rgb * albedo.xyz * orm.r;
     
-    albedo.xyz = ambient + Lo + EmissionFactor.rgb;
+    albedo.xyz = ambient + Lo;
     
     return albedo + EmissionFactor;
 }
