@@ -66,6 +66,11 @@ void SceneBase::BaseInitialize()
 	#endif
 }
 
+void SceneBase::BaseFixedUpdate()
+{
+	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseFixedUpdate();
+}
+
 void SceneBase::BaseUpdate()
 {
 	#ifdef _DEBUG
