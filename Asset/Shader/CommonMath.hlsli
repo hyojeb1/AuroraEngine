@@ -90,11 +90,10 @@ float DistributionGGX(float NdotH, float roughness)
     
     float NdotH2 = NdotH * NdotH;
     
-    float nom = a2;
     float denom = (NdotH2 * (a2 - 1.0f) + 1.0f);
     denom = PI * denom * denom;
     
-    return nom / denom;
+    return a2 / denom;
 }
 
 // 지오메트리 함수 (Schlick-GGX 근사)
@@ -103,10 +102,9 @@ float GeometrySchlickGGX(float NdotV, float roughness)
     float r = (roughness + 1.0f);
     float k = (r * r) / 8.0f;
     
-    float nom = NdotV;
     float denom = NdotV * (1.0f - k) + k;
     
-    return nom / denom;
+    return NdotV / denom;
 }
 
 // 지오메트리 함수 (Smith)

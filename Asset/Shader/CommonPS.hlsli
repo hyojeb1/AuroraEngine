@@ -13,7 +13,7 @@ cbuffer CameraPosition : register(b0)
 
 cbuffer GlobalLight : register(b1)
 {
-    float4 LightColor; // w는 앰비언트 강도
+    float4 LightColor; // w는 IBL 강도
     float4 LightDirection; // 정규화된 방향 벡터 // w는 방향광 강도
 };
 

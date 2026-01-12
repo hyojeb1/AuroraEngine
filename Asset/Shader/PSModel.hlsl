@@ -35,8 +35,6 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float3 specular = numerator / denominator; // 스페큘러 반사
     
     // 조명 계산
-    float3 ambient = albedo.rgb * LightColor.w * orm.r; // 앰비언트 조명
-    
     float3 radiance = LightColor.rgb * LightDirection.w; // 조명 세기
     float3 kD = (float3(1.0f, 1.0f, 1.0f) - F) * (1.0f - orm.b); // 디퓨즈 반사
     float3 Lo = (kD * albedo.rgb * INV_PI + specular) * radiance * NdotL; // PBR 직접광
@@ -57,10 +55,10 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float3 indirectSpecular = envReflection * F_env; // 환경광 스페큘러
     
     // IBL 최종 기여도
-    float3 ibl = (indirectDiffuse + indirectSpecular) * orm.r; // AO 적용
+    float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w * orm.r; // AO 적용
     
     // 최종 색상
-    albedo.rgb = ambient + Lo + ibl;
+    albedo.rgb = LinearToSRGB(Lo + ibl);
     
     return albedo + EmissionFactor;
 }
