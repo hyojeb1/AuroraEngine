@@ -76,16 +76,22 @@ float3 FresnelSchlick(float cosTheta, float3 F0)
     return F0 + (1.0f - F0) * pow(saturate(1.0f - cosTheta), 5.0f);
 }
 
+// 프레넬 효과 (거칠기 보정된 Schlick 근사)
+float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
+{
+    return F0 + (max(float3(1.0f - roughness, 1.0f - roughness, 1.0f - roughness), F0) - F0) * pow(saturate(1.0f - cosTheta), 5.0f);
+}
+
 // GGX 분포 함수 (Trowbridge-Reitz)
-float DistributionGGX(float3 N, float3 H, float roughness)
+float DistributionGGX(float NdotH, float roughness)
 {
     float a = roughness * roughness;
     float a2 = a * a;
-    float NdotH = max(dot(N, H), 0.0);
+    
     float NdotH2 = NdotH * NdotH;
     
     float nom = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    float denom = (NdotH2 * (a2 - 1.0f) + 1.0f);
     denom = PI * denom * denom;
     
     return nom / denom;
@@ -94,22 +100,20 @@ float DistributionGGX(float3 N, float3 H, float roughness)
 // 지오메트리 함수 (Schlick-GGX 근사)
 float GeometrySchlickGGX(float NdotV, float roughness)
 {
-    float r = (roughness + 1.0);
-    float k = (r * r) / 8.0;
+    float r = (roughness + 1.0f);
+    float k = (r * r) / 8.0f;
     
     float nom = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
+    float denom = NdotV * (1.0f - k) + k;
     
     return nom / denom;
 }
 
 // 지오메트리 함수 (Smith)
-float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
+float GeometrySmith(float NdotL, float NdotV, float roughness)
 {
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
     float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
     
     return ggx1 * ggx2;
 }
