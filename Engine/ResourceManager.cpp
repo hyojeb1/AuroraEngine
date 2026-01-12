@@ -400,8 +400,12 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene)
 		// 법선
 		if (mesh->HasNormals()) vertex.normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
 
-		// 접선
-		if (mesh->HasTangentsAndBitangents()) vertex.tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
+		// 쌍접선, 접선
+		if (mesh->HasTangentsAndBitangents())
+		{
+			vertex.bitangent = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
+			vertex.tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
+		}
 
 		resultMesh.vertices.push_back(vertex);
 	}

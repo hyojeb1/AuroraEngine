@@ -221,9 +221,8 @@ enum class InputElement
 	Position,
 	UV,
 	Normal,
+	Bitangent,
 	Tangent,
-
-	Color,
 
 	Count
 };
@@ -265,10 +264,10 @@ constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement:
 		.InstanceDataStepRate = 0
 	},
 
-	// Tangent
+	// Bitangent
 	D3D11_INPUT_ELEMENT_DESC
 	{
-		.SemanticName = "TANGENT",
+		.SemanticName = "BITANGENT",
 		.SemanticIndex = 0,
 		.Format = DXGI_FORMAT_R32G32B32_FLOAT, // float3
 		.InputSlot = 0,
@@ -277,12 +276,12 @@ constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement:
 		.InstanceDataStepRate = 0
 	},
 
-	// Color
+	// Tangent
 	D3D11_INPUT_ELEMENT_DESC
 	{
-		.SemanticName = "COLOR",
+		.SemanticName = "TANGENT",
 		.SemanticIndex = 0,
-		.Format = DXGI_FORMAT_R32G32B32A32_FLOAT, // float4
+		.Format = DXGI_FORMAT_R32G32B32_FLOAT, // float3
 		.InputSlot = 0,
 		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
@@ -437,12 +436,8 @@ struct Vertex
 	DirectX::XMFLOAT4 position = {};
 	DirectX::XMFLOAT2 UV = {};
 	DirectX::XMFLOAT3 normal = {};
+	DirectX::XMFLOAT3 bitangent = {};
 	DirectX::XMFLOAT3 tangent = {};
-};
-
-struct Vertex_Pos
-{
-	DirectX::XMFLOAT4 position = {};
 };
 
 struct MaterialTexture
