@@ -220,10 +220,10 @@ enum class InputElement
 {
 	Position,
 	UV,
-	Normal,
-	Tangent,
 
-	Color,
+	Normal,
+	Bitangent,
+	Tangent,
 
 	Count
 };
@@ -265,10 +265,10 @@ constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement:
 		.InstanceDataStepRate = 0
 	},
 
-	// Tangent
+	// Bitangent
 	D3D11_INPUT_ELEMENT_DESC
 	{
-		.SemanticName = "TANGENT",
+		.SemanticName = "BITANGENT",
 		.SemanticIndex = 0,
 		.Format = DXGI_FORMAT_R32G32B32_FLOAT, // float3
 		.InputSlot = 0,
@@ -277,12 +277,12 @@ constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement:
 		.InstanceDataStepRate = 0
 	},
 
-	// Color
+	// Tangent
 	D3D11_INPUT_ELEMENT_DESC
 	{
-		.SemanticName = "COLOR",
+		.SemanticName = "TANGENT",
 		.SemanticIndex = 0,
-		.Format = DXGI_FORMAT_R32G32B32A32_FLOAT, // float4
+		.Format = DXGI_FORMAT_R32G32B32_FLOAT, // float3
 		.InputSlot = 0,
 		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
@@ -363,7 +363,7 @@ struct CameraPositionBuffer // 카메라 위치 상수 버퍼 구조체
 };
 struct GlobalLightBuffer // 방향광 상수 버퍼 구조체
 {
-	DirectX::XMFLOAT4 lightColor = { 1.0f, 1.0f, 1.0f, 0.0f }; // 방향광 색상 // w는 앰비언트 강도
+	DirectX::XMFLOAT4 lightColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 방향광 색상 // w는 IBL 강도
 	DirectX::XMVECTOR lightDirection = DirectX::XMVectorSet(-0.5f, -1.0f, -0.5f, 1.0f); // 방향광 방향 // w는 방향광 강도
 };
 struct MaterialFactorBuffer
@@ -437,12 +437,8 @@ struct Vertex
 	DirectX::XMFLOAT4 position = {};
 	DirectX::XMFLOAT2 UV = {};
 	DirectX::XMFLOAT3 normal = {};
+	DirectX::XMFLOAT3 bitangent = {};
 	DirectX::XMFLOAT3 tangent = {};
-};
-
-struct Vertex_Pos
-{
-	DirectX::XMFLOAT4 position = {};
 };
 
 struct MaterialTexture

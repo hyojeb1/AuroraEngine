@@ -15,6 +15,7 @@ class ModelComponent : public ComponentBase
 		InputElement::Position,
 		InputElement::UV,
 		InputElement::Normal,
+		InputElement::Bitangent,
 		InputElement::Tangent
 	};
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_vertexShaderAndInputLayout = {}; // 정점 셰이더 및 입력 레이아웃

@@ -31,7 +31,9 @@ struct VS_INPUT_STD
 {
     float4 Position : POSITION;
     float2 UV : TEXCOORD;
+    
     float3 Normal : NORMAL;
+    float3 Bitangent : BITANGENT;
     float3 Tangent : TANGENT;
 };
 
