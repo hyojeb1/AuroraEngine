@@ -220,6 +220,7 @@ enum class InputElement
 {
 	Position,
 	UV,
+
 	Normal,
 	Bitangent,
 	Tangent,

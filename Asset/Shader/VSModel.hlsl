@@ -10,10 +10,8 @@ VS_OUTPUT_STD main(VS_INPUT_STD input)
     
     output.UV = input.UV;
     
-    output.TBN[2] = normalize(mul(float4(input.Normal, 0.0f), NormalMatrix).xyz); // 이거 normalize 꼭 필요하나?
-    output.TBN[1] = normalize(mul(float4(input.Bitangent, 0.0f), NormalMatrix).xyz);
-    output.TBN[0] = normalize(mul(float4(input.Tangent, 0.0f), NormalMatrix).xyz);
-    
+    output.TBN = mul(float3x3(input.Tangent, input.Bitangent, input.Normal), (float3x3)NormalMatrix);
+
     return output;
 }
 /// VSModel.hlsl의 끝
