@@ -48,7 +48,7 @@ SamplerState SamplerLinearWrap : register(s1); // Model, Skybox
 // Textures
 // --------------------------------------------------------
 Texture2D sceneTexture : register(t0);
-TextureCube environmentMapTexture : register(t1); // 나중에 반사광에 사용?
+TextureCube environmentMapTexture : register(t1);
 
 // PBR 재질
 Texture2D albedoTexture : register(t2);

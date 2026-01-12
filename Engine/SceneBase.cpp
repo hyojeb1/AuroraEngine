@@ -134,9 +134,9 @@ void SceneBase::BaseRenderImGui()
 	#endif
 
 	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);
-	ImGui::DragFloat("Ambient Intensity", &m_globalLightData.lightColor.w, 0.001f, 0.0f, 1.0f);
+	ImGui::DragFloat("IBL Intensity", &m_globalLightData.lightColor.w, 0.001f, 0.0f, 1.0f);
 
-	if (ImGui::DragFloat3("Light Direction / Intensity", &m_globalLightData.lightDirection.m128_f32[0], 0.001f, -1.0f, 1.0f))
+	if (ImGui::DragFloat3("Light Direction", &m_globalLightData.lightDirection.m128_f32[0], 0.001f, -1.0f, 1.0f))
 	{
 		m_globalLightData.lightDirection = XMVector3Normalize(m_globalLightData.lightDirection);
 	}
