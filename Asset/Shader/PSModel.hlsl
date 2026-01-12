@@ -12,7 +12,7 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float NdotL = saturate(dot(N, L));
     
     float3 V = normalize(CameraPosition.xyz - input.WorldPosition.xyz); // 뷰 벡터
-    float3 H = normalize(V + L); // 반사 벡터
+    float3 H = normalize(V + L); // 하프 벡터
     
     float3 F0 = lerp(float3(0.04, 0.04, 0.04), albedo.rgb, orm.b); // 금속도에 따른 F0 계산
     
@@ -24,14 +24,15 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float denominator = 4.0 * saturate(dot(N, V)) * NdotL + 0.0001; // 분모
     float3 specular = numerator / denominator; // 스페큘러 반사
     
-    float3 kD = (float3(1.0, 1.0, 1.0) - F) * (1.0 - orm.z); // 디퓨즈 반사
+    // 조명 계산
+    float3 ambient = albedo.rgb * LightColor.w * orm.r; // 앰비언트 조명
     
-    float3 radiance = LightColor.rgb * NdotL; // 조명 세기
+    float3 radiance = LightColor.rgb * LightDirection.w; // 조명 세기
+    float3 kD = (float3(1.0, 1.0, 1.0) - F) * (1.0 - orm.b); // 디퓨즈 반사
+    float3 Lo = (kD * albedo.rgb / PI + specular) * radiance * NdotL; // PBR 직접광
     
-    float3 diffuse = albedo.rgb * orm.r * radiance;
-    float3 Lo = (kD * albedo.rgb / PI + specular) * radiance;
-    
-    albedo.xyz = diffuse + Lo;
+    // 최종 색상
+    albedo.rgb = ambient + Lo;
     
     return albedo + EmissionFactor;
 }
