@@ -42,23 +42,19 @@ void Renderer::EndFrame()
 {
 	HRESULT hr = S_OK;
 
-	// 씬 렌더 타겟 MSAA 해제 및 결과 텍스처 복사
-	ResolveSceneMSAA();
+	for (auto& [renderTarget, renderCommands] : m_renderPass)
+	{
+		// 픽셀 셰이더의 셰이더 리소스 뷰 해제
+		UnbindShaderResources();
 
-	// 래스터 상태 변경
-	ResourceManager::GetInstance().SetRasterState(RasterState::BackBuffer);
+		// 백 버퍼 렌더 타겟으로 설정
+		m_deviceContext->OMSetRenderTargets(1, renderTarget.renderTargetView.GetAddressOf(), renderTarget.depthStencilView.Get());
 
-	// 픽셀 셰이더의 셰이더 리소스 뷰 해제
-	UnbindShaderResources();
+		// 백 버퍼 클리어
+		//ClearRenderTarget(renderTarget);
 
-	// 백 버퍼 렌더 타겟으로 설정
-	m_deviceContext->OMSetRenderTargets(1, m_backBuffer.renderTargetView.GetAddressOf(), m_backBuffer.depthStencilView.Get());
-
-	// 백 버퍼 클리어
-	ClearRenderTarget(m_backBuffer);
-
-	// 백 버퍼로 씬 렌더링
-	RenderSceneToBackBuffer();
+		for (auto& [priority, command] : renderCommands) command();
+	}
 
 	#ifdef _DEBUG
 	// ImGui 프레임 끝
@@ -94,8 +90,8 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 	m_deviceContext->Flush();
 
 	// 백 버퍼 리소스 해제
-	m_backBuffer.renderTarget.Reset();
-	m_backBuffer.renderTargetView.Reset();
+	m_renderPass[static_cast<size_t>(RenderPassStage::BackBuffer)].first.renderTarget.Reset();
+	m_renderPass[static_cast<size_t>(RenderPassStage::BackBuffer)].first.renderTargetView.Reset();
 
 	// 씬 버퍼 리소스 해제
 	m_sceneBuffer.renderTarget.Reset();
@@ -191,7 +187,7 @@ void Renderer::CreateBackBufferRenderTarget()
 {
 	HRESULT hr = S_OK;
 
-	hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(&m_backBuffer.renderTarget));
+	hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(&m_renderPass[static_cast<size_t>(RenderPassStage::BackBuffer)].first.renderTarget));
 	CheckResult(hr, "스왑 체인 버퍼 얻기 실패.");
 
 	// 렌더 타겟 뷰 생성
@@ -200,10 +196,24 @@ void Renderer::CreateBackBufferRenderTarget()
 		.Format = m_swapChainDesc.Format,
 		.ViewDimension = m_swapChainDesc.SampleDesc.Count > 1 ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D
 	};
-	hr = m_device->CreateRenderTargetView(m_backBuffer.renderTarget.Get(), &rtvDesc, m_backBuffer.renderTargetView.GetAddressOf());
+	hr = m_device->CreateRenderTargetView(m_renderPass[static_cast<size_t>(RenderPassStage::BackBuffer)].first.renderTarget.Get(), &rtvDesc, m_renderPass[static_cast<size_t>(RenderPassStage::BackBuffer)].first.renderTargetView.GetAddressOf());
 	CheckResult(hr, "렌더 타겟 뷰 생성 실패.");
 
-	m_renderPass[static_cast<size_t>(RenderPassStage::BackBuffer)].first = &m_backBuffer;
+	m_renderPass[static_cast<size_t>(RenderPassStage::BackBuffer)].second.clear();
+	m_renderPass[static_cast<size_t>(RenderPassStage::BackBuffer)].second.emplace
+	(
+		0.0f,
+		[&]()
+		{
+			ResolveSceneMSAA();
+
+			// 래스터 상태 변경
+			ResourceManager::GetInstance().SetRasterState(RasterState::BackBuffer);
+
+			// 백 버퍼로 씬 렌더링
+			RenderSceneToBackBuffer();
+		}
+	);
 }
 
 void Renderer::CreateBackBufferResources()
@@ -326,7 +336,7 @@ void Renderer::CreateSceneRenderTarget()
 	hr = m_device->CreateShaderResourceView(m_sceneResultTexture.Get(), &srvDesc, m_sceneShaderResourceView.GetAddressOf());
 	CheckResult(hr, "씬 셰이더 리소스 뷰 생성 실패.");
 
-	m_renderPass[static_cast<size_t>(RenderPassStage::SceneOpaqueModel)].first = &m_sceneBuffer;
+	m_renderPass[static_cast<size_t>(RenderPassStage::SceneOpaqueModel)].first = m_sceneBuffer;
 }
 
 void Renderer::SetViewport()

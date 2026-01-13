@@ -34,7 +34,6 @@ class Renderer : public Singleton<Renderer>
 	com_ptr<IDXGISwapChain1> m_swapChain = nullptr; // 스왑 체인
 
 	// 백 버퍼 렌더 타겟 관련 리소스
-	RenderTarget m_backBuffer = {}; // 백 버퍼 렌더 타겟 // 화면에 출력되는 버퍼 // UI만을 직접적으로 랜더
 	struct BackBufferVertex
 	{
 		DirectX::XMFLOAT4 position = {};
@@ -57,7 +56,7 @@ class Renderer : public Singleton<Renderer>
 
 		Count
 	};
-	std::array<std::pair<RenderTarget*, std::map<float, std::function<void()>>>, static_cast<size_t>(RenderPassStage::Count)> m_renderPass = {};
+	std::array<std::pair<RenderTarget, std::map<float, std::function<void()>>>, static_cast<size_t>(RenderPassStage::Count)> m_renderPass = {};
 
 public:
 	Renderer() = default;
