@@ -3,20 +3,23 @@
 
 float4 main(PS_INPUT_STD input) : SV_TARGET
 {
-    // 텍스처 샘플링
-    // 알베도 텍스처
-    float4 albedo = albedoTexture.Sample(SamplerLinearWrap, input.UV) * AlbedoFactor;
-    // ORM 텍스처 // R = Ambient Occlusion, G = Roughness, B = Metallic
-    float3 orm = ORMTexture.Sample(SamplerLinearWrap, input.UV).xyz * float3(AmbientOcclusionFactor, RoughnessFactor, MetallicFactor);
-    // 노말 텍스처 // RGB = 노말, A = 높이
-    float4 bump = normalTexture.Sample(SamplerLinearWrap, input.UV);
-    
-    float3 N = UnpackNormal(bump.rgb, input.TBN, NormalScale); // 노말 벡터
-    float3 L = -LightDirection.xyz; // 라이트 벡터
-    
     float3 V = normalize(CameraPosition.xyz - input.WorldPosition.xyz); // 뷰 벡터
+    float3 L = -LightDirection.xyz; // 라이트 벡터
     float3 H = normalize(V + L); // 하프 벡터
     
+    float3 V_TBN = normalize(mul(V, transpose(input.TBN))); // 뷰 벡터를 탄젠트 공간으로 변환
+    float height = normalTexture.Sample(SamplerLinearWrap, input.UV).a * HeightScale;
+    float2 parallaxUV = input.UV - V_TBN.xy * height; // 시차 매핑으로 UV 오프셋 계산
+    
+    // 텍스처 샘플링 (오프셋된 UV 사용)
+    // 알베도 텍스처
+    float4 albedo = albedoTexture.Sample(SamplerLinearWrap, parallaxUV) * AlbedoFactor;
+    // ORM 텍스처 // R = Ambient Occlusion, G = Roughness, B = Metallic
+    float3 orm = ORMTexture.Sample(SamplerLinearWrap, parallaxUV).xyz * float3(AmbientOcclusionFactor, RoughnessFactor, MetallicFactor);
+    // 노말 텍스처 // RGB = 노말, A = 높이
+    float4 bump = normalTexture.Sample(SamplerLinearWrap, parallaxUV);
+    
+    float3 N = UnpackNormal(bump.rgb, input.TBN, NormalScale); // 노말 벡터
     float3 R = reflect(-V, N); // 반사 벡터
     
     float NdotL = saturate(dot(N, L)); // N과 L의 내적
@@ -58,7 +61,7 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w * orm.r; // AO 적용
     
     // 최종 색상
-    albedo.rgb = LinearToSRGB(Lo + ibl);
+    albedo.rgb = (LinearToSRGB(Lo + ibl) * LightFactor) + (albedo.rgb * glowFactor);
     
     return albedo + EmissionFactor;
 }
