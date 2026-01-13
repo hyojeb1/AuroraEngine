@@ -6,7 +6,16 @@
 
 REGISTER_TYPE(CameraComponent)
 
+using namespace std;
 using namespace DirectX;
+
+CameraComponent* g_mainCamera = nullptr;
+
+CameraComponent::CameraComponent()
+{
+	if (g_mainCamera) cerr << "경고: 여러 개의 카메라가 생성되었습니다" << endl;
+	else g_mainCamera = this;
+}
 
 void CameraComponent::Initialize()
 {
@@ -16,10 +25,11 @@ void CameraComponent::Initialize()
 
 void CameraComponent::UpdateViewMatrix()
 {
+	m_forwardVector = m_owner->GetWorldDirectionVector(Direction::Forward);
 	m_viewMatrix = XMMatrixLookAtLH
 	(
 		*m_position, // 카메라 위치
-		XMVectorAdd(*m_position, m_owner->GetWorldDirectionVector(Direction::Forward)), // 카메라 앞 방향
+		XMVectorAdd(*m_position, m_forwardVector), // 카메라 앞 방향
 		m_owner->GetWorldDirectionVector(Direction::Up) // 카메라 위 방향
 	);
 }

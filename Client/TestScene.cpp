@@ -13,11 +13,7 @@ REGISTER_TYPE(TestScene)
 void TestScene::Initialize()
 {
 	CreateRootGameObject<TestObject>();
-}
-
-GameObjectBase* TestScene::CreateCameraObject()
-{
-	return CreateRootGameObject<CamRotObject>("CamRotObject")->CreateChildGameObject<TestCameraObject>();
+	CreateRootGameObject<CamRotObject>("CamRotObject")->CreateChildGameObject<TestCameraObject>();
 }
 
 /// TestScene.cpp의 끝

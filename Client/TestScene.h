@@ -14,5 +14,4 @@ public:
 
 private:
 	void Initialize() override;
-	GameObjectBase* CreateCameraObject() override;
 };

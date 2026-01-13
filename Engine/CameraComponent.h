@@ -14,9 +14,10 @@ class CameraComponent : public ComponentBase
 	DirectX::XMMATRIX m_viewMatrix = DirectX::XMMatrixIdentity(); // 뷰 행렬
 	DirectX::XMMATRIX m_projectionMatrix = DirectX::XMMatrixIdentity(); // 투영 행렬
 	const DirectX::XMVECTOR* m_position = nullptr; // 카메라 위치
+	DirectX::XMVECTOR m_forwardVector = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f); // 카메라 앞 방향 벡터
 
 public:
-	CameraComponent() = default;
+	CameraComponent();
 	~CameraComponent() override = default;
 	CameraComponent(const CameraComponent&) = default;
 	CameraComponent& operator=(const CameraComponent&) = default;
@@ -30,6 +31,7 @@ public:
 	const DirectX::XMMATRIX& GetViewMatrix() const { return m_viewMatrix; }
 	const DirectX::XMMATRIX& GetProjectionMatrix() const { return m_projectionMatrix; }
 	const DirectX::XMVECTOR& GetPosition() const { return *m_position; }
+	const DirectX::XMVECTOR& GetForwardVector() const { return m_forwardVector; }
 
 	bool NeedsUpdate() const override { return true; }
 	bool NeedsRender() const override { return false; }

@@ -32,7 +32,7 @@ void ModelComponent::Render()
 	m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
 	m_deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 
-	for (const auto& mesh : m_model->meshes)
+	for (const Mesh& mesh : m_model->meshes)
 	{
 		resourceManager.SetPrimitiveTopology(mesh.topology);
 

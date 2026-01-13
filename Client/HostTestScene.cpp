@@ -13,9 +13,5 @@ REGISTER_TYPE(HostTestScene)
 void HostTestScene::Initialize()
 {
 	CreateRootGameObject("YdmTestObject");
-}
-
-GameObjectBase* HostTestScene::CreateCameraObject()
-{
-	return CreateRootGameObject<CamRotObject>("CamRotObject")->CreateChildGameObject<TestCameraObject>();
+	CreateRootGameObject<CamRotObject>("CamRotObject")->CreateChildGameObject<TestCameraObject>();
 }

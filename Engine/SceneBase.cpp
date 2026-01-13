@@ -18,15 +18,6 @@ SceneBase::SceneBase()
 	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
 }
 
-GameObjectBase* SceneBase::CreateCameraObject()
-{
-	GameObjectBase* cameraGameObject = CreateRootGameObject<GameObjectBase>();
-	cameraGameObject->SetPosition({ 0.0f, 5.0f, -10.0f });
-	cameraGameObject->LookAt({ 0.0f, 0.0f, 0.0f });
-
-	return cameraGameObject;
-}
-
 GameObjectBase* SceneBase::CreateRootGameObject(const string& typeName)
 {
 	unique_ptr<GameObjectBase> gameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
@@ -59,9 +50,8 @@ void SceneBase::BaseInitialize()
 	m_debugCamera = make_unique<DebugCamera>();
 	static_cast<Base*>(m_debugCamera.get())->BaseInitialize();
 	m_debugCamera->Initialize();
-	m_mainCamera = static_cast<GameObjectBase*>(m_debugCamera.get())->CreateComponent<CameraComponent>();
+	static_cast<GameObjectBase*>(m_debugCamera.get())->CreateComponent<CameraComponent>();
 	#else
-	m_mainCamera = CreateCameraObject()->CreateComponent<CameraComponent>();
 	Initialize();
 	#endif
 }
@@ -297,8 +287,8 @@ void SceneBase::GetResources()
 void SceneBase::UpdateConstantBuffers()
 {
 	// 뷰-투영 상수 버퍼 업데이트 및 셰이더에 설정
-	m_viewProjectionData.viewMatrix = m_mainCamera->GetViewMatrix();
-	m_viewProjectionData.projectionMatrix = m_mainCamera->GetProjectionMatrix();
+	m_viewProjectionData.viewMatrix = g_mainCamera->GetViewMatrix();
+	m_viewProjectionData.projectionMatrix = g_mainCamera->GetProjectionMatrix();
 	m_viewProjectionData.VPMatrix = XMMatrixTranspose(m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix);
 	m_deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
 
@@ -308,7 +298,7 @@ void SceneBase::UpdateConstantBuffers()
 	m_deviceContext->UpdateSubresource(m_skyboxViewProjectionConstantBuffer.Get(), 0, nullptr, &m_skyboxViewProjectionData, 0, 0);
 
 	// 카메라 위치 상수 버퍼 업데이트 및 셰이더에 설정
-	m_cameraPositionData.cameraPosition = m_mainCamera->GetPosition();
+	m_cameraPositionData.cameraPosition = g_mainCamera->GetPosition();
 	m_deviceContext->UpdateSubresource(m_cameraPositionConstantBuffer.Get(), 0, nullptr, &m_cameraPositionData, 0, 0);
 
 	// 환경광, 방향광 상수 버퍼 업데이트 및 셰이더에 설정
