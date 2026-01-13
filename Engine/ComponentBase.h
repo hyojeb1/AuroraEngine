@@ -21,6 +21,7 @@ public:
   
 private:
 	void BaseInitialize() override;
+	void BaseFixedUpdate() override { FixedUpdate(); }
 	void BaseUpdate() override { Update(); }
 	void BaseRender() override { Render(); }
 	void BaseRenderImGui() override;

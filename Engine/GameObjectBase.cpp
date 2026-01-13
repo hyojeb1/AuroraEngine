@@ -155,6 +155,10 @@ void GameObjectBase::BaseInitialize()
 	#endif
 }
 
+void GameObjectBase::BaseFixedUpdate()
+{
+}
+
 void GameObjectBase::BaseUpdate()
 {
 	#ifdef NDEBUG
