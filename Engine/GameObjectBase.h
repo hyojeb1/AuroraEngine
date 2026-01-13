@@ -106,7 +106,7 @@ private:
 	// 게임 오브젝트 초기화
 	void BaseInitialize() override;
 	// 게임 오브젝트 고정 업데이트
-	void BaseFixedUpdate() override { FixedUpdate(); }
+	void BaseFixedUpdate() override;
 	// 게임 오브젝트 업데이트
 	void BaseUpdate() override;
 	// 게임 오브젝트 렌더링
