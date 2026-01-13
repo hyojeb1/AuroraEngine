@@ -34,7 +34,7 @@ class Renderer : public Singleton<Renderer>
 	com_ptr<IDXGISwapChain1> m_swapChain = nullptr; // 스왑 체인
 
 	// 백 버퍼 렌더 타겟 관련 리소스
-	RenderTarget m_backBuffer; // 백 버퍼 렌더 타겟 // 화면에 출력되는 버퍼 // UI만을 직접적으로 랜더
+	RenderTarget m_backBuffer{}; // 백 버퍼 렌더 타겟 // 화면에 출력되는 버퍼 // UI만을 직접적으로 랜더
 	struct BackBufferVertex
 	{
 		DirectX::XMFLOAT4 position = {};
@@ -46,7 +46,7 @@ class Renderer : public Singleton<Renderer>
 
 	// 씬 렌더 타겟 관련 리소스
 	DXGI_SAMPLE_DESC m_sceneBufferSampleDesc = { 4, 0 }; // 씬 렌더 타겟용 샘플 설명 // 멀티샘플링 설정
-	RenderTarget m_sceneBuffer; // 씬 렌더 타겟 // 실제 게임 씬을 랜더링하는 버퍼
+	RenderTarget m_sceneBuffer {}; // 씬 렌더 타겟 // 실제 게임 씬을 랜더링하는 버퍼
 	com_ptr<ID3D11Texture2D> m_sceneResultTexture = nullptr; // 씬 렌더 타겟의 결과 텍스처 // MSAA 다운샘플링 후 결과 저장
 	com_ptr<ID3D11ShaderResourceView> m_sceneShaderResourceView = nullptr; // 씬 렌더 타겟의 셰이더 리소스 뷰 // 백 버퍼에 적용하면서 후처리됨
 

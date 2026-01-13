@@ -20,8 +20,6 @@ void Renderer::Initialize()
 
 void Renderer::BeginFrame()
 {
-	HRESULT hr = S_OK;
-
 	// 래스터 상태 변경
 	ResourceManager::GetInstance().SetRasterState(RasterState::Solid);
 
