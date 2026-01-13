@@ -2,6 +2,8 @@
 #pragma once
 #include "ComponentBase.h"
 
+extern class CameraComponent* g_mainCamera; // 전역 메인 카메라 컴포넌트 포인터
+
 class ModelComponent : public ComponentBase
 {
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트

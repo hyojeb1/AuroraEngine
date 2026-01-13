@@ -5,6 +5,7 @@
 #include "Renderer.h"
 #include "ResourceManager.h"
 #include "GameObjectBase.h"
+#include "CameraComponent.h"
 
 using namespace std;
 using namespace DirectX;
@@ -27,15 +28,15 @@ void ModelComponent::Initialize()
 
 void ModelComponent::Render()
 {
-	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene).emplace_back
+	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, m_blendState).emplace_back
 	(
-		0.0f,
+		// 투명한 오브젝트의 경우 카메라로부터의 거리 저장
+		m_blendState == BlendState::AlphaBlend ? XMVectorGetZ(XMVector3Dot(g_mainCamera->GetPosition() - m_worldNormalData->worldMatrix.r[3], g_mainCamera->GetForwardVector())) : 0.0f,
 		[&]()
 		{
 			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
-			resourceManager.SetBlendState(m_blendState);
 			resourceManager.SetRasterState(m_rasterState);
 
 			m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());

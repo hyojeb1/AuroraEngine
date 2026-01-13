@@ -20,7 +20,7 @@ void Renderer::Initialize()
 
 void Renderer::BeginFrame()
 {
-	RENDER_FUNCTION(RenderStage::BackBuffer).emplace_back
+	RENDER_FUNCTION(RenderStage::BackBuffer, BlendState::Opaque).emplace_back
 	(
 		0.0f,
 		[&]()
@@ -46,7 +46,7 @@ void Renderer::EndFrame()
 {
 	HRESULT hr = S_OK;
 
-	for (auto& [renderTarget, renderCommands] : m_renderPass)
+	for (auto& [renderTarget, blendStates] : m_renderPass)
 	{
 		// 픽셀 셰이더의 셰이더 리소스 뷰 해제
 		UnbindShaderResources();
@@ -57,11 +57,21 @@ void Renderer::EndFrame()
 		// 백 버퍼 클리어
 		ClearRenderTarget(renderTarget);
 
-		// 렌더 명령어 실행
-		for (auto& [priority, command] : renderCommands) command();
+		for (auto& blendState : blendStates)
+		{
+			BlendState state = static_cast<BlendState>(&blendState - &blendStates[0]);
 
-		// 렌더 명령어 클리어
-		renderCommands.clear();
+			// 블렌드 상태 설정
+			ResourceManager::GetInstance().SetBlendState(state);
+			// 알파 블렌딩은 뒤에서부터 그려야 하므로 내림차순 정렬
+			if (state == BlendState::AlphaBlend) sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
+
+			// 렌더 명령어 실행
+			for (auto& [priority, command] : blendState) command();
+
+			// 렌더 명령어 클리어
+			blendState.clear();
+		}
 	}
 
 	#ifdef _DEBUG

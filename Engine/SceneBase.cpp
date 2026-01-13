@@ -94,7 +94,7 @@ void SceneBase::BaseUpdate()
 
 void SceneBase::BaseRender()
 {
-	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene).emplace_back
+	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
 	(
 		0.0f,
 		[&]()
