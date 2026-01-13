@@ -57,17 +57,17 @@ void ModelComponent::Render()
 
 void ModelComponent::RenderImGui()
 {
-	char modelFileNameBuffer[256];
-	strcpy_s(modelFileNameBuffer, m_modelFileName.c_str());
-	if (ImGui::InputText("Model File Name", modelFileNameBuffer, sizeof(modelFileNameBuffer))) m_modelFileName = modelFileNameBuffer;
+	array<char, 256> modelFileNameBuffer = {};
+	strcpy_s(modelFileNameBuffer.data(), modelFileNameBuffer.size(), m_modelFileName.c_str());
+	if (ImGui::InputText("Model File Name", modelFileNameBuffer.data(), sizeof(modelFileNameBuffer))) m_modelFileName = modelFileNameBuffer.data();
 
-	char vsShaderNameBuffer[256];
-	strcpy_s(vsShaderNameBuffer, m_vsShaderName.c_str());
-	if (ImGui::InputText("Vertex Shader Name", vsShaderNameBuffer, sizeof(vsShaderNameBuffer))) m_vsShaderName = vsShaderNameBuffer;
+	array<char, 256> vsShaderNameBuffer = {};
+	strcpy_s(vsShaderNameBuffer.data(), vsShaderNameBuffer.size(), m_vsShaderName.c_str());
+	if (ImGui::InputText("Vertex Shader Name", vsShaderNameBuffer.data(), sizeof(vsShaderNameBuffer))) m_vsShaderName = vsShaderNameBuffer.data();
 
-	char psShaderNameBuffer[256];
-	strcpy_s(psShaderNameBuffer, m_psShaderName.c_str());
-	if (ImGui::InputText("Pixel Shader Name", psShaderNameBuffer, sizeof(psShaderNameBuffer))) m_psShaderName = psShaderNameBuffer;
+	array<char, 256> psShaderNameBuffer = {};
+	strcpy_s(psShaderNameBuffer.data(), psShaderNameBuffer.size(), m_psShaderName.c_str());
+	if (ImGui::InputText("Pixel Shader Name", psShaderNameBuffer.data(), sizeof(psShaderNameBuffer))) m_psShaderName = psShaderNameBuffer.data();
 
 	if (ImGui::Button("Load"))
 	{
