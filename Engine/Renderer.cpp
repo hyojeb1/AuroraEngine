@@ -202,6 +202,8 @@ void Renderer::CreateBackBufferRenderTarget()
 	};
 	hr = m_device->CreateRenderTargetView(m_backBuffer.renderTarget.Get(), &rtvDesc, m_backBuffer.renderTargetView.GetAddressOf());
 	CheckResult(hr, "렌더 타겟 뷰 생성 실패.");
+
+	m_renderPass[static_cast<size_t>(RenderPassStage::BackBuffer)].first = &m_backBuffer;
 }
 
 void Renderer::CreateBackBufferResources()
@@ -323,6 +325,8 @@ void Renderer::CreateSceneRenderTarget()
 	};
 	hr = m_device->CreateShaderResourceView(m_sceneResultTexture.Get(), &srvDesc, m_sceneShaderResourceView.GetAddressOf());
 	CheckResult(hr, "씬 셰이더 리소스 뷰 생성 실패.");
+
+	m_renderPass[static_cast<size_t>(RenderPassStage::SceneOpaqueModel)].first = &m_sceneBuffer;
 }
 
 void Renderer::SetViewport()

@@ -4,6 +4,7 @@
 
 #include "Renderer.h"
 #include "ResourceManager.h"
+#include "GameObjectBase.h"
 
 using namespace std;
 using namespace DirectX;
@@ -13,17 +14,21 @@ REGISTER_TYPE(ModelComponent)
 void ModelComponent::Initialize()
 {
 	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
+	m_worldNormalData = &m_owner->GetWorldNormalBuffer();
 
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
 	CreateShaders();
 
+	m_worldMatrixConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal);
 	m_materialConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor);
 	m_model = resourceManager.LoadModel(m_modelFileName);
 }
 
 void ModelComponent::Render()
 {
+	m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
+
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	resourceManager.SetBlendState(m_blendState);
 	resourceManager.SetRasterState(m_rasterState);

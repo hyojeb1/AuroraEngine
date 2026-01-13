@@ -6,6 +6,9 @@ class ModelComponent : public ComponentBase
 {
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
 
+	const WorldNormalBuffer* m_worldNormalData = nullptr; // 월드, 월드 역행렬 상수 버퍼 데이터
+	com_ptr<ID3D11Buffer> m_worldMatrixConstantBuffer = nullptr; // 월드, WVP 행렬 상수 버퍼
+
 	std::string m_vsShaderName = "VSModel.hlsl"; // 기본 모델 정점 셰이더
 	std::string m_psShaderName = "PSModel.hlsl"; // 기본 모델 픽셀 셰이더
 
