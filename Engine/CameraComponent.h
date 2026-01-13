@@ -17,7 +17,7 @@ class CameraComponent : public ComponentBase
 	DirectX::XMVECTOR m_forwardVector = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f); // 카메라 앞 방향 벡터
 
 public:
-	CameraComponent();
+	CameraComponent() = default;
 	~CameraComponent() override = default;
 	CameraComponent(const CameraComponent&) = default;
 	CameraComponent& operator=(const CameraComponent&) = default;
@@ -38,9 +38,12 @@ public:
 
 private:
 	void Initialize() override;
+
 	// 위치, 뷰 행렬 갱신
 	void Update() override { UpdateViewMatrix(); UpdateProjectionMatrix(); }
 	void RenderImGui() override;
+
+	void Finalize() override;
 
 	nlohmann::json Serialize() override;
 	void Deserialize(const nlohmann::json& jsonData) override;
