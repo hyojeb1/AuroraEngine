@@ -5,6 +5,8 @@
 #include "DebugCamera.h"
 #endif
 
+extern class CameraComponent* g_mainCamera; // 전역 메인 카메라 컴포넌트 포인터
+
 class SceneBase : public Base
 {
 	#ifdef _DEBUG
@@ -41,9 +43,6 @@ class SceneBase : public Base
 	GlobalLightBuffer m_globalLightData = {}; // 환경광, 방향광 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_globalLightConstantBuffer = nullptr; // 환경광, 방향광 상수 버퍼
 
-protected:
-	class CameraComponent* m_mainCamera = nullptr; // 메인 카메라 컴포넌트 포인터
-
 public:
 	SceneBase();
 	virtual ~SceneBase() = default;
@@ -60,10 +59,6 @@ public:
 
 	template<typename T> requires std::derived_from<T, GameObjectBase>
 	[[nodiscard]] T* CreateRootGameObject(const std::string& typeName); // 루트 게임 오브젝트 생성 // 포인터 반환
-
-protected:
-	// 메인 카메라 게임 오브젝트 설정
-	virtual GameObjectBase* CreateCameraObject();
 
 private:
 	// 씬 초기화 // 씬 사용 전 반드시 호출해야 함

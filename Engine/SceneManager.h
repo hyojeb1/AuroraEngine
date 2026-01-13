@@ -9,7 +9,7 @@ class SceneManager : public Singleton<SceneManager>
 	std::unique_ptr<class Base> m_currentScene = nullptr;
 	std::unique_ptr<class Base> m_nextScene = nullptr;
 
-	double m_accumulator;
+	double m_accumulator = 0.0;
 
 public:
 	~SceneManager() = default;

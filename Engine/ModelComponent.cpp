@@ -4,6 +4,8 @@
 
 #include "Renderer.h"
 #include "ResourceManager.h"
+#include "GameObjectBase.h"
+#include "CameraComponent.h"
 
 using namespace std;
 using namespace DirectX;
@@ -13,61 +15,71 @@ REGISTER_TYPE(ModelComponent)
 void ModelComponent::Initialize()
 {
 	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
+	m_worldNormalData = &m_owner->GetWorldNormalBuffer();
 
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
 	CreateShaders();
 
+	m_worldMatrixConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal);
 	m_materialConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor);
 	m_model = resourceManager.LoadModel(m_modelFileName);
 }
 
 void ModelComponent::Render()
 {
-	ResourceManager& resourceManager = ResourceManager::GetInstance();
-	resourceManager.SetBlendState(m_blendState);
-	resourceManager.SetRasterState(m_rasterState);
+	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, m_blendState).emplace_back
+	(
+		// 투명한 오브젝트의 경우 카메라로부터의 거리 저장
+		m_blendState == BlendState::AlphaBlend ? XMVectorGetZ(XMVector3Dot(g_mainCamera->GetPosition() - m_worldNormalData->worldMatrix.r[3], g_mainCamera->GetForwardVector())) : 0.0f,
+		[&]()
+		{
+			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
 
-	m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
-	m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
-	m_deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
+			ResourceManager& resourceManager = ResourceManager::GetInstance();
+			resourceManager.SetRasterState(m_rasterState);
 
-	for (const auto& mesh : m_model->meshes)
-	{
-		// 나중에 메쉬별로 설정 가능하게 변경
-		m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
+			m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
+			m_deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 
-		// 메쉬 버퍼 설정
-		constexpr UINT stride = sizeof(Vertex);
-		constexpr UINT offset = 0;
-		m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
-		m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+			for (const Mesh& mesh : m_model->meshes)
+			{
+				resourceManager.SetPrimitiveTopology(mesh.topology);
 
-		// 재질 팩터 설정
-		m_deviceContext->UpdateSubresource(m_materialConstantBuffer.Get(), 0, nullptr, &m_materialFactorData, 0, 0);
+				// 메쉬 버퍼 설정
+				constexpr UINT stride = sizeof(Vertex);
+				constexpr UINT offset = 0;
+				m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-		// 재질 텍스처 셰이더에 설정
-		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
-		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, mesh.materialTexture.ORMTextureSRV.GetAddressOf());
-		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, mesh.materialTexture.normalTextureSRV.GetAddressOf());
+				// 재질 팩터 설정
+				m_deviceContext->UpdateSubresource(m_materialConstantBuffer.Get(), 0, nullptr, &m_materialFactorData, 0, 0);
 
-		m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
-	}
+				// 재질 텍스처 셰이더에 설정
+				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
+				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, mesh.materialTexture.ORMTextureSRV.GetAddressOf());
+				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, mesh.materialTexture.normalTextureSRV.GetAddressOf());
+
+				m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
+			}
+		}
+	);
 }
 
 void ModelComponent::RenderImGui()
 {
-	char modelFileNameBuffer[256];
-	strcpy_s(modelFileNameBuffer, m_modelFileName.c_str());
-	if (ImGui::InputText("Model File Name", modelFileNameBuffer, sizeof(modelFileNameBuffer))) m_modelFileName = modelFileNameBuffer;
+	array<char, 256> modelFileNameBuffer = {};
+	strcpy_s(modelFileNameBuffer.data(), modelFileNameBuffer.size(), m_modelFileName.c_str());
+	if (ImGui::InputText("Model File Name", modelFileNameBuffer.data(), sizeof(modelFileNameBuffer))) m_modelFileName = modelFileNameBuffer.data();
 
-	char vsShaderNameBuffer[256];
-	strcpy_s(vsShaderNameBuffer, m_vsShaderName.c_str());
-	if (ImGui::InputText("Vertex Shader Name", vsShaderNameBuffer, sizeof(vsShaderNameBuffer))) m_vsShaderName = vsShaderNameBuffer;
+	array<char, 256> vsShaderNameBuffer = {};
+	strcpy_s(vsShaderNameBuffer.data(), vsShaderNameBuffer.size(), m_vsShaderName.c_str());
+	if (ImGui::InputText("Vertex Shader Name", vsShaderNameBuffer.data(), sizeof(vsShaderNameBuffer))) m_vsShaderName = vsShaderNameBuffer.data();
 
-	char psShaderNameBuffer[256];
-	strcpy_s(psShaderNameBuffer, m_psShaderName.c_str());
-	if (ImGui::InputText("Pixel Shader Name", psShaderNameBuffer, sizeof(psShaderNameBuffer))) m_psShaderName = psShaderNameBuffer;
+	array<char, 256> psShaderNameBuffer = {};
+	strcpy_s(psShaderNameBuffer.data(), psShaderNameBuffer.size(), m_psShaderName.c_str());
+	if (ImGui::InputText("Pixel Shader Name", psShaderNameBuffer.data(), sizeof(psShaderNameBuffer))) m_psShaderName = psShaderNameBuffer.data();
 
 	if (ImGui::Button("Load"))
 	{

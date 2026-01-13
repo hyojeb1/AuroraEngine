@@ -14,5 +14,4 @@ public:
 
 protected:
 	virtual void Initialize() override;
-	GameObjectBase* CreateCameraObject() override;
 };

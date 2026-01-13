@@ -14,8 +14,6 @@ GameObjectBase::GameObjectBase()
 {
 	static UINT idIndex = 0;
 	m_id = idIndex++;
-
-	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
 }
 
 void GameObjectBase::MoveDirection(float distance, Direction direction)
@@ -148,8 +146,6 @@ void GameObjectBase::BaseInitialize()
 	m_type = GetTypeName(*this);
 	m_name = m_type + "_" + to_string(m_id);
 
-	m_worldMatrixConstantBuffer = ResourceManager::GetInstance().GetConstantBuffer(VSConstBuffers::WorldNormal);
-
 	#ifdef NDEBUG
 	Initialize();
 	#endif
@@ -182,16 +178,7 @@ void GameObjectBase::BaseRender()
 	#endif
 
 	// 컴포넌트 렌더링
-	if (!m_renderComponents.empty())
-	{
-		// 월드 및 WVP 행렬 상수 버퍼 업데이트 및 셰이더에 설정
-		m_worldData.worldMatrix = XMMatrixTranspose(m_worldMatrix);
-		m_worldData.normalMatrix = XMMatrixTranspose(m_inverseScaleSquareMatrix * m_worldMatrix);
-
-		m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, &m_worldData, 0, 0);
-
-		for (Base*& component : m_renderComponents) component->BaseRender();
-	}
+	for (Base*& component : m_renderComponents) component->BaseRender();
 
 	// 자식 게임 오브젝트 렌더링
 	for (auto& child : m_childrens) child->BaseRender();
@@ -437,6 +424,9 @@ const XMMATRIX& GameObjectBase::UpdateWorldMatrix()
 		}
 
 		m_isDirty = false;
+
+		m_worldData.worldMatrix = XMMatrixTranspose(m_worldMatrix);
+		m_worldData.normalMatrix = XMMatrixTranspose(m_inverseScaleSquareMatrix * m_worldMatrix);
 	}
 
 	return m_worldMatrix;

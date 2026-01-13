@@ -13,6 +13,9 @@ static const float TWO_PI = 6.28318530718f;
 static const float INV_PI = 0.31830988618f;
 static const float EPSILON = 1e-6f;
 
+static const float GAMMA = 2.2f;
+static const float INV_GAMMA = 1.0f / GAMMA;
+
 // --------------------------------------------------------
 // 2. 색상 공간 변환 (Color Space Conversion)
 // --------------------------------------------------------
@@ -22,14 +25,14 @@ static const float EPSILON = 1e-6f;
 float3 LinearToSRGB(float3 color)
 {
     // 근사치 (pow 1/2.2) 사용. 정확한 sRGB 변환 공식보다 빠름.
-    return pow(abs(color), 1.0f / 2.2f);
+    return pow(abs(color), INV_GAMMA);
 }
 
 // sRGB 공간 -> 선형 공간 (텍스처 로드 직후)
 // 알베도 텍스처 등 색상 데이터는 연산 전에 반드시 선형 공간으로 변환해야 함
 float3 SRGBToLinear(float3 color)
 {
-    return pow(abs(color), 2.2f);
+    return pow(abs(color), GAMMA);
 }
 
 // 휘도(Luminance) 계산 (인간의 눈이 느끼는 밝기)
