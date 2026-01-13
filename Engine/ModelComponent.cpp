@@ -27,36 +27,43 @@ void ModelComponent::Initialize()
 
 void ModelComponent::Render()
 {
-	m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
+	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene).emplace_back
+	(
+		0.0f,
+		[&]()
+		{
+			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
 
-	ResourceManager& resourceManager = ResourceManager::GetInstance();
-	resourceManager.SetBlendState(m_blendState);
-	resourceManager.SetRasterState(m_rasterState);
+			ResourceManager& resourceManager = ResourceManager::GetInstance();
+			resourceManager.SetBlendState(m_blendState);
+			resourceManager.SetRasterState(m_rasterState);
 
-	m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
-	m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
-	m_deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
+			m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
+			m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
+			m_deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 
-	for (const Mesh& mesh : m_model->meshes)
-	{
-		resourceManager.SetPrimitiveTopology(mesh.topology);
+			for (const Mesh& mesh : m_model->meshes)
+			{
+				resourceManager.SetPrimitiveTopology(mesh.topology);
 
-		// 메쉬 버퍼 설정
-		constexpr UINT stride = sizeof(Vertex);
-		constexpr UINT offset = 0;
-		m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
-		m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+				// 메쉬 버퍼 설정
+				constexpr UINT stride = sizeof(Vertex);
+				constexpr UINT offset = 0;
+				m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-		// 재질 팩터 설정
-		m_deviceContext->UpdateSubresource(m_materialConstantBuffer.Get(), 0, nullptr, &m_materialFactorData, 0, 0);
+				// 재질 팩터 설정
+				m_deviceContext->UpdateSubresource(m_materialConstantBuffer.Get(), 0, nullptr, &m_materialFactorData, 0, 0);
 
-		// 재질 텍스처 셰이더에 설정
-		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
-		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, mesh.materialTexture.ORMTextureSRV.GetAddressOf());
-		m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, mesh.materialTexture.normalTextureSRV.GetAddressOf());
+				// 재질 텍스처 셰이더에 설정
+				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
+				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, mesh.materialTexture.ORMTextureSRV.GetAddressOf());
+				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, mesh.materialTexture.normalTextureSRV.GetAddressOf());
 
-		m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
-	}
+				m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
+			}
+		}
+	);
 }
 
 void ModelComponent::RenderImGui()

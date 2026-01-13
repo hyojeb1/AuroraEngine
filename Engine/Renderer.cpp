@@ -20,17 +20,21 @@ void Renderer::Initialize()
 
 void Renderer::BeginFrame()
 {
-	// 래스터 상태 변경
-	ResourceManager::GetInstance().SetRasterState(RasterState::Solid);
+	RENDER_FUNCTION(RenderStage::BackBuffer).emplace_back
+	(
+		0.0f,
+		[&]()
+		{
+			// 씬 렌더 타겟 MSAA 해제 및 결과 텍스처 복사
+			ResolveSceneMSAA();
 
-	// 셰이더 리소스 해제
-	UnbindShaderResources();
+			// 래스터 상태 변경
+			ResourceManager::GetInstance().SetRasterState(RasterState::BackBuffer);
 
-	// 씬 렌더 타겟으로 설정
-	m_deviceContext->OMSetRenderTargets(1, m_sceneBuffer.renderTargetView.GetAddressOf(), m_sceneBuffer.depthStencilView.Get());
-
-	// 씬 렌더 타겟 클리어
-	ClearRenderTarget(m_sceneBuffer);
+			// 백 버퍼로 씬 렌더링
+			RenderSceneToBackBuffer();
+		}
+	);
 
 	#ifdef _DEBUG
 	// ImGui 프레임 시작
@@ -44,18 +48,20 @@ void Renderer::EndFrame()
 
 	for (auto& [renderTarget, renderCommands] : m_renderPass)
 	{
-		if (!renderTarget) continue;
-
 		// 픽셀 셰이더의 셰이더 리소스 뷰 해제
 		UnbindShaderResources();
 
 		// 백 버퍼 렌더 타겟으로 설정
-		m_deviceContext->OMSetRenderTargets(1, renderTarget->renderTargetView.GetAddressOf(), renderTarget->depthStencilView.Get());
+		m_deviceContext->OMSetRenderTargets(1, renderTarget.renderTargetView.GetAddressOf(), renderTarget.depthStencilView.Get());
 
 		// 백 버퍼 클리어
-		ClearRenderTarget(*renderTarget);
+		ClearRenderTarget(renderTarget);
 
+		// 렌더 명령어 실행
 		for (auto& [priority, command] : renderCommands) command();
+
+		// 렌더 명령어 클리어
+		renderCommands.clear();
 	}
 
 	#ifdef _DEBUG
@@ -92,14 +98,14 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 	m_deviceContext->Flush();
 
 	// 백 버퍼 리소스 해제
-	m_backBuffer.renderTarget.Reset();
-	m_backBuffer.renderTargetView.Reset();
+	RENDER_TARGET(RenderStage::BackBuffer).renderTarget.Reset();
+	RENDER_TARGET(RenderStage::BackBuffer).renderTargetView.Reset();
 
 	// 씬 버퍼 리소스 해제
-	m_sceneBuffer.renderTarget.Reset();
-	m_sceneBuffer.renderTargetView.Reset();
-	m_sceneBuffer.depthStencilTexture.Reset();
-	m_sceneBuffer.depthStencilView.Reset();
+	RENDER_TARGET(RenderStage::Scene).renderTarget.Reset();
+	RENDER_TARGET(RenderStage::Scene).renderTargetView.Reset();
+	RENDER_TARGET(RenderStage::Scene).depthStencilTexture.Reset();
+	RENDER_TARGET(RenderStage::Scene).depthStencilView.Reset();
 	m_sceneResultTexture.Reset();
 	m_sceneShaderResourceView.Reset();
 
@@ -189,7 +195,7 @@ void Renderer::CreateBackBufferRenderTarget()
 {
 	HRESULT hr = S_OK;
 
-	hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(&m_backBuffer.renderTarget));
+	hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(&RENDER_TARGET(RenderStage::BackBuffer).renderTarget));
 	CheckResult(hr, "스왑 체인 버퍼 얻기 실패.");
 
 	// 렌더 타겟 뷰 생성
@@ -198,25 +204,8 @@ void Renderer::CreateBackBufferRenderTarget()
 		.Format = m_swapChainDesc.Format,
 		.ViewDimension = m_swapChainDesc.SampleDesc.Count > 1 ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D
 	};
-	hr = m_device->CreateRenderTargetView(m_backBuffer.renderTarget.Get(), &rtvDesc, m_backBuffer.renderTargetView.GetAddressOf());
+	hr = m_device->CreateRenderTargetView(RENDER_TARGET(RenderStage::BackBuffer).renderTarget.Get(), &rtvDesc, RENDER_TARGET(RenderStage::BackBuffer).renderTargetView.GetAddressOf());
 	CheckResult(hr, "렌더 타겟 뷰 생성 실패.");
-
-	m_renderPass[static_cast<size_t>(RenderPassStage::BackBuffer)].first = &m_backBuffer;
-	m_renderPass[static_cast<size_t>(RenderPassStage::BackBuffer)].second.clear();
-	m_renderPass[static_cast<size_t>(RenderPassStage::BackBuffer)].second.emplace
-	(
-		0.0f,
-		[&]()
-		{
-			ResolveSceneMSAA();
-
-			// 래스터 상태 변경
-			ResourceManager::GetInstance().SetRasterState(RasterState::BackBuffer);
-
-			// 백 버퍼로 씬 렌더링
-			RenderSceneToBackBuffer();
-		}
-	);
 }
 
 void Renderer::CreateBackBufferResources()
@@ -274,7 +263,7 @@ void Renderer::CreateSceneRenderTarget()
 		.CPUAccessFlags = 0, // CPU 접근 없음
 		.MiscFlags = 0 // 기타 플래그 없음
 	};
-	hr = m_device->CreateTexture2D(&textureDesc, nullptr, m_sceneBuffer.renderTarget.GetAddressOf());
+	hr = m_device->CreateTexture2D(&textureDesc, nullptr, RENDER_TARGET(RenderStage::Scene).renderTarget.GetAddressOf());
 	CheckResult(hr, "씬 렌더 타겟 텍스처 생성 실패.");
 
 	// 렌더 타겟 뷰 생성
@@ -283,7 +272,7 @@ void Renderer::CreateSceneRenderTarget()
 		.Format = textureDesc.Format,
 		.ViewDimension = textureDesc.SampleDesc.Count > 1 ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D // 멀티샘플링 여부에 따른 뷰 차원
 	};
-	hr = m_device->CreateRenderTargetView(m_sceneBuffer.renderTarget.Get(), &rtvDesc, m_sceneBuffer.renderTargetView.GetAddressOf());
+	hr = m_device->CreateRenderTargetView(RENDER_TARGET(RenderStage::Scene).renderTarget.Get(), &rtvDesc, RENDER_TARGET(RenderStage::Scene).renderTargetView.GetAddressOf());
 	CheckResult(hr, "씬 렌더 타겟 뷰 생성 실패.");
 
 	// 깊이-스텐실 텍스처 및 뷰 생성
@@ -300,7 +289,7 @@ void Renderer::CreateSceneRenderTarget()
 		.CPUAccessFlags = 0,
 		.MiscFlags = 0
 	};
-	hr = m_device->CreateTexture2D(&depthStencilDesc, nullptr, m_sceneBuffer.depthStencilTexture.GetAddressOf());
+	hr = m_device->CreateTexture2D(&depthStencilDesc, nullptr, RENDER_TARGET(RenderStage::Scene).depthStencilTexture.GetAddressOf());
 	CheckResult(hr, "씬 깊이-스텐실 텍스처 생성 실패.");
 
 	// 깊이-스텐실 뷰 생성
@@ -310,7 +299,7 @@ void Renderer::CreateSceneRenderTarget()
 		.ViewDimension = depthStencilDesc.SampleDesc.Count > 1 ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D,
 		.Flags = 0
 	};
-	hr = m_device->CreateDepthStencilView(m_sceneBuffer.depthStencilTexture.Get(), &dsvDesc, m_sceneBuffer.depthStencilView.GetAddressOf());
+	hr = m_device->CreateDepthStencilView(RENDER_TARGET(RenderStage::Scene).depthStencilTexture.Get(), &dsvDesc, RENDER_TARGET(RenderStage::Scene).depthStencilView.GetAddressOf());
 	CheckResult(hr, "씬 깊이-스텐실 뷰 생성 실패.");
 
 	const D3D11_TEXTURE2D_DESC sceneResultDesc =
@@ -338,8 +327,6 @@ void Renderer::CreateSceneRenderTarget()
 	};
 	hr = m_device->CreateShaderResourceView(m_sceneResultTexture.Get(), &srvDesc, m_sceneShaderResourceView.GetAddressOf());
 	CheckResult(hr, "씬 셰이더 리소스 뷰 생성 실패.");
-
-	//m_renderPass[static_cast<size_t>(RenderPassStage::SceneOpaqueModel)].first = &m_sceneBuffer;
 }
 
 void Renderer::SetViewport()
@@ -379,8 +366,8 @@ void Renderer::ClearRenderTarget(RenderTarget& target)
 
 void Renderer::ResolveSceneMSAA()
 {
-	if (m_sceneBufferSampleDesc.Count > 1) m_deviceContext->ResolveSubresource(m_sceneResultTexture.Get(), 0, m_sceneBuffer.renderTarget.Get(), 0, m_swapChainDesc.Format);
-	else m_deviceContext->CopyResource(m_sceneResultTexture.Get(), m_sceneBuffer.renderTarget.Get());
+	if (m_sceneBufferSampleDesc.Count > 1) m_deviceContext->ResolveSubresource(m_sceneResultTexture.Get(), 0, RENDER_TARGET(RenderStage::Scene).renderTarget.Get(), 0, m_swapChainDesc.Format);
+	else m_deviceContext->CopyResource(m_sceneResultTexture.Get(), RENDER_TARGET(RenderStage::Scene).renderTarget.Get());
 }
 
 void Renderer::RenderSceneToBackBuffer()

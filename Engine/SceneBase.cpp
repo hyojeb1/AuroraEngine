@@ -94,21 +94,28 @@ void SceneBase::BaseUpdate()
 
 void SceneBase::BaseRender()
 {
-	// 상수 버퍼 업데이트 및 셰이더에 설정
-	UpdateConstantBuffers();
+	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene).emplace_back
+	(
+		0.0f,
+		[&]()
+		{
+			// 상수 버퍼 업데이트 및 셰이더에 설정
+			UpdateConstantBuffers();
 
-	// 환경 맵 설정
-	m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Environment), 1, m_environmentMapSRV.GetAddressOf());
+			// 환경 맵 설정
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Environment), 1, m_environmentMapSRV.GetAddressOf());
 
-	// 스카이박스 렌더링
-	RenderSkybox();
+			// 스카이박스 렌더링
+			RenderSkybox();
 
-	#ifdef _DEBUG
-	// 디버그 좌표축 렌더링 (디버그 모드에서만)
-	if (m_isRenderDebugCoordinates) RenderDebugCoordinates();
-	#else
-	Render();
-	#endif
+			#ifdef _DEBUG
+			// 디버그 좌표축 렌더링 (디버그 모드에서만)
+			if (m_isRenderDebugCoordinates) RenderDebugCoordinates();
+			#else
+			Render();
+			#endif
+		}
+	);
 
 	// 게임 오브젝트 렌더링
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseRender();

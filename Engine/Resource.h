@@ -10,6 +10,14 @@ struct RenderTarget
 	com_ptr<ID3D11DepthStencilView> depthStencilView = nullptr; // 깊이-스텐실 뷰
 };
 
+enum class RenderStage
+{
+	Scene,
+	BackBuffer,
+
+	Count
+};
+
 enum class DepthStencilState
 {
 	Default,
