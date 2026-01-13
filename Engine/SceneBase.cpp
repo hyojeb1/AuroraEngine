@@ -323,9 +323,9 @@ void SceneBase::RenderSkybox()
 
 	resourceManager.SetBlendState(BlendState::Opaque);
 	resourceManager.SetRasterState(RasterState::Solid);
+	resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	m_deviceContext->IASetInputLayout(m_skyboxVertexShaderAndInputLayout.second.Get());
-	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_deviceContext->VSSetShader(m_skyboxVertexShaderAndInputLayout.first.Get(), nullptr, 0);
 	m_deviceContext->PSSetShader(m_skyboxPixelShader.Get(), nullptr, 0);
 
@@ -346,9 +346,9 @@ void SceneBase::RenderDebugCoordinates()
 
 	resourceManager.SetBlendState(BlendState::Opaque);
 	resourceManager.SetRasterState(RasterState::Solid);
+	resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
 	m_deviceContext->IASetInputLayout(m_debugCoordinateVertexShaderAndInputLayout.second.Get());
-	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 	m_deviceContext->VSSetShader(m_debugCoordinateVertexShaderAndInputLayout.first.Get(), nullptr, 0);
 	m_deviceContext->PSSetShader(m_debugCoordinatePixelShader.Get(), nullptr, 0);
 

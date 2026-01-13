@@ -450,6 +450,8 @@ struct MaterialTexture
 
 struct Mesh
 {
+	D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
 	std::vector<Vertex> vertices = {};
 	std::vector<UINT> indices = {};
 	UINT indexCount = 0;

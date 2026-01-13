@@ -34,8 +34,7 @@ void ModelComponent::Render()
 
 	for (const auto& mesh : m_model->meshes)
 	{
-		// 나중에 메쉬별로 설정 가능하게 변경
-		m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		resourceManager.SetPrimitiveTopology(mesh.topology);
 
 		// 메쉬 버퍼 설정
 		constexpr UINT stride = sizeof(Vertex);
