@@ -233,6 +233,9 @@ enum class InputElement
 	Bitangent,
 	Tangent,
 
+	Blendweight,
+	Blendindex,
+
 	Count
 };
 constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement::Count)> INPUT_ELEMENT_DESC_TEMPLATES =
@@ -295,7 +298,34 @@ constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement:
 		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
 		.InstanceDataStepRate = 0
+	},
+
+	// Blendweight
+	D3D11_INPUT_ELEMENT_DESC
+	{
+		.SemanticName = "BLENDWEIGHT",
+		.SemanticIndex = 0,
+		.Format = DXGI_FORMAT_R32G32B32A32_FLOAT, // float4
+		.InputSlot = 0,
+		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+		.InstanceDataStepRate = 0
+	},
+
+	// Blendindex
+	D3D11_INPUT_ELEMENT_DESC
+	{
+		.SemanticName = "BLENDINDICES",
+		.SemanticIndex = 0,
+		.Format = DXGI_FORMAT_R32G32B32_FLOAT, // float3
+		.InputSlot = 0,
+		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+		.InstanceDataStepRate = 0
 	}
+
+
+
 };
 
 enum class VSConstBuffers
@@ -303,7 +333,7 @@ enum class VSConstBuffers
 	ViewProjection, // ViewProjectionBuffer
 	SkyboxViewProjection, // SkyboxViewProjectionBuffer
 	WorldNormal, // WorldBuffer
-
+	Bone,
 	Count
 };
 struct ViewProjectionBuffer // 뷰-투영 상수 버퍼 구조체
@@ -320,6 +350,11 @@ struct WorldNormalBuffer // 월드 및 WVP 행렬 상수 버퍼 구조체
 {
 	DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity(); // 월드 행렬
 	DirectX::XMMATRIX normalMatrix = DirectX::XMMatrixIdentity(); // 스케일 역행렬을 적용한 월드 행렬
+};
+#define MAX_BONES 256 // 80
+struct BoneBuffer
+{
+	DirectX::XMMATRIX boneMatrix[MAX_BONES];
 };
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Count)> VS_CONST_BUFFER_DESCS =
 {
@@ -349,6 +384,17 @@ constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Coun
 	D3D11_BUFFER_DESC
 	{
 		.ByteWidth = sizeof(WorldNormalBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	},
+
+	// BoneBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(BoneBuffer),
 		.Usage = D3D11_USAGE_DEFAULT,
 		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
 		.CPUAccessFlags = 0,
@@ -449,6 +495,38 @@ struct Vertex
 	DirectX::XMFLOAT3 tangent = {};
 };
 
+struct SkinnedVertex
+{
+	DirectX::XMFLOAT4 position = {};
+	DirectX::XMFLOAT2 UV = {};
+	DirectX::XMFLOAT3 normal = {};
+	DirectX::XMFLOAT3 bitangent = {};
+	DirectX::XMFLOAT3 tangent = {};
+
+	uint32_t boneIndex[4];
+	DirectX::XMFLOAT4    boneWeight;
+};
+
+struct BoneInfo
+{
+	uint32_t id = 0;
+	DirectX::XMFLOAT4X4 offset = {};
+};
+
+struct SkeletonNode
+{
+	std::string name = {};
+	DirectX::XMFLOAT4X4 localTransform = {};
+	std::vector<std::unique_ptr<SkeletonNode>> children = {};
+};
+
+struct Skeleton
+{
+	std::unordered_map<std::string, uint32_t> boneMapping = {};
+	std::vector<BoneInfo> bones = {};
+	std::unique_ptr<SkeletonNode> root = nullptr;
+};
+
 struct MaterialTexture
 {
 	com_ptr<ID3D11ShaderResourceView> albedoTextureSRV = nullptr;
@@ -472,9 +550,32 @@ struct Mesh
 	MaterialTexture materialTexture = {};
 };
 
+
+struct SkinnedMesh
+{
+	D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	std::vector<SkinnedVertex> vertices = {};
+	std::vector<UINT> indices = {};
+	UINT indexCount = 0;
+
+	DirectX::BoundingBox boundingBox = {};
+
+	com_ptr<ID3D11Buffer> vertexBuffer = nullptr;
+	com_ptr<ID3D11Buffer> indexBuffer = nullptr;
+
+	MaterialTexture materialTexture = {};
+};
+
 struct Model
 {
 	std::vector<Mesh> meshes = {};
+};
+
+struct SkinnedModel
+{
+	std::vector<SkinnedMesh> skinnedMeshes = {};
+	Skeleton skeleton = {};
 };
 
 /// Resource.h의 끝
