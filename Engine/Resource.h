@@ -475,6 +475,7 @@ struct Mesh
 struct Model
 {
 	std::vector<Mesh> meshes = {};
+	DirectX::BoundingBox boundingBox = {};
 };
 
 /// Resource.h의 끝

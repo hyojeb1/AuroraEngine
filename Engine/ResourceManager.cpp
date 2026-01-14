@@ -384,14 +384,14 @@ void ResourceManager::ProcessNode(const aiNode* node, const aiScene* scene, Mode
 	for (UINT i = 0; i < node->mNumMeshes; ++i)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		model.meshes.push_back(ProcessMesh(mesh, scene));
+		model.meshes.push_back(ProcessMesh(mesh, scene, model));
 	}
 
 	// 자식 노드 재귀 처리
 	for (UINT i = 0; i < node->mNumChildren; ++i) ProcessNode(node->mChildren[i], scene, model);
 }
 
-Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene)
+Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Model& model)
 {
 	Mesh resultMesh;
 
@@ -461,6 +461,8 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene)
 			(mesh->mAABB.mMax.z - mesh->mAABB.mMin.z) * 0.5f
 		}
 	};
+	// 모델 전체 바운딩 박스 갱신
+	BoundingBox::CreateMerged(model.boundingBox, model.boundingBox, resultMesh.boundingBox);
 
 	// 재질 처리
 	//if (mesh->mMaterialIndex >= 0)
