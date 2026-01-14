@@ -30,9 +30,9 @@ class SkinnedModelComponent : public ComponentBase
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_vertexShaderAndInputLayout = {}; // 정점 셰이더 및 입력 레이아웃
 	com_ptr<ID3D11PixelShader> m_pixelShader = nullptr; // 픽셀 셰이더
 
-	std::string m_modelFileName = "box.fbx"; // 기본 모델 파일 이름
+	std::string m_modelFileName = "Aurora.fbx"; // 기본 모델 파일 이름
 
-	const struct Model* m_model = nullptr;
+	const struct SkinnedModel* m_model = nullptr;
 
 	MaterialFactorBuffer m_materialFactorData = {}; // 재질 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_materialConstantBuffer = nullptr; // 재질 상수 버퍼

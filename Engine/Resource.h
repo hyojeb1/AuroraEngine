@@ -317,7 +317,7 @@ constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement:
 	{
 		.SemanticName = "BLENDINDICES",
 		.SemanticIndex = 0,
-		.Format = DXGI_FORMAT_R32G32B32_FLOAT, // float3
+		.Format = DXGI_FORMAT_R32G32B32A32_UINT, // uint4
 		.InputSlot = 0,
 		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
@@ -358,7 +358,7 @@ struct WorldNormalBuffer // 월드 및 WVP 행렬 상수 버퍼 구조체
 	DirectX::XMMATRIX normalMatrix = DirectX::XMMatrixIdentity(); // 스케일 역행렬을 적용한 월드 행렬
 
 };
-#define MAX_BONES 80
+#define MAX_BONES 256
 struct BoneBuffer
 {
 	DirectX::XMMATRIX boneMatrix[MAX_BONES];
@@ -534,6 +534,7 @@ struct SkeletonNode
 {
 	std::string name = {};
 	DirectX::XMFLOAT4X4 localTransform = {};
+	int boneIndex = -1;
 	std::vector<std::unique_ptr<SkeletonNode>> children = {};
 };
 

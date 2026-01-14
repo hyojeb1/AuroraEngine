@@ -25,7 +25,7 @@ void SkinnedModelComponent::Initialize()
 	m_worldMatrixConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal);
 	m_boneConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Bone);
 	m_materialConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor);
-	m_model = resourceManager.LoadModel(m_modelFileName);
+	m_model = resourceManager.LoadSkinnedModel(m_modelFileName);
 
 }
 
@@ -37,12 +37,14 @@ void SkinnedModelComponent::Render()
 		m_blendState == BlendState::AlphaBlend ? XMVectorGetZ(XMVector3Dot(g_mainCamera->GetPosition() - m_worldNormalData->worldMatrix.r[3], g_mainCamera->GetForwardVector())) : 0.0f,
 		[&]()
 		{
+			if (!m_model) return;
+
 			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
-			float animTime = TimeManager::GetInstance().GetTotalTime();
-			float swayA = sinf(animTime * 0.8f) * 0.2f;
+			//float animTime = TimeManager::GetInstance().GetTotalTime();
+			//float swayA = sinf(animTime * 0.8f) * 0.2f;
 			//float swayB = sinf(animTime * 1.1f + 1.5f) * 0.3f;
 			//float swayC = sinf(animTime * 1.4f + 2.1f) * 0.4f;
-			m_boneBufferData.boneMatrix[0] = XMMatrixRotationZ(swayA);
+			//m_boneBufferData.boneMatrix[0] = XMMatrixRotationZ(swayA);
 			//m_boneBufferData.boneMatrix[1] = XMMatrixRotationZ(swayB);
 			//m_boneBufferData.boneMatrix[2] = XMMatrixRotationZ(swayC);
 
@@ -56,12 +58,13 @@ void SkinnedModelComponent::Render()
 			m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
 			m_deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 
-			for (const Mesh& mesh : m_model->meshes)
+			
+			for (const SkinnedMesh& mesh : m_model->skinnedMeshes)
 			{
 				resourceManager.SetPrimitiveTopology(mesh.topology);
 
 				// 메쉬 버퍼 설정
-				constexpr UINT stride = sizeof(Vertex);
+				constexpr UINT stride = sizeof(SkinnedVertex);
 				constexpr UINT offset = 0;
 				m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
 				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
@@ -98,7 +101,7 @@ void SkinnedModelComponent::RenderImGui()
 
 	if (ImGui::Button("Load"))
 	{
-		m_model = ResourceManager::GetInstance().LoadModel(m_modelFileName);
+		m_model = ResourceManager::GetInstance().LoadSkinnedModel(m_modelFileName);
 		CreateShaders();
 	}
 

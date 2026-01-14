@@ -15,7 +15,7 @@
 #ifndef __COMMON_SKINNING_HLSLI__
 #define __COMMON_SKINNING_HLSLI__
 
-#define MAX_BONES 80
+#define MAX_BONES 256
 cbuffer BoneState : register(b3)
 {
     matrix BoneTransforms[MAX_BONES];
@@ -37,16 +37,16 @@ float4 Skinning(float4 pos, float4 weight, uint4 index)
 #else
 
     uint ix = (index.x < 20) ? index.x : 0;
-    uint iy = (index.y < 20) ? index.y : 1;
-    uint iz = (index.z < 20) ? index.z : 2;
+    uint iy = (index.y < 20) ? index.y : 0;
+    uint iz = (index.z < 20) ? index.z : 0;
     uint iw = (index.w < 20) ? index.w : 0;
     
                
     
-    float wx = (weight.x <= 1 || weight.x >= 0) ? weight.x : TimeParam.z / 2;
-    float wy = (weight.y <= 1 || weight.y >= 0) ? weight.y : 1 - TimeParam.z / 2 ;
-    float wz = (weight.z <= 1 || weight.z >= 0) ? weight.z : TimeParam.w / 2;
-    float ww = (weight.w <= 1 || weight.w >= 0) ? weight.w : 1 - TimeParam.w / 2;
+    float wx = (weight.x <= 1 && weight.x >= 0) ? weight.x : 0; //TimeParam.z / 2;
+    float wy = (weight.y <= 1 && weight.y >= 0) ? weight.y : 0; //1 - TimeParam.z / 2 ;
+    float wz = (weight.z <= 1 && weight.z >= 0) ? weight.z : 0; //TimeParam.w / 2;
+    float ww = (weight.w <= 1 && weight.w >= 0) ? weight.w : 0; //1 - TimeParam.w / 2;
     
 
    
