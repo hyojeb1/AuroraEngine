@@ -31,7 +31,7 @@ void ModelComponent::Render()
 	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, m_blendState).emplace_back
 	(
 		// 카메라로부터의 거리
-		XMVectorGetZ(XMVector3Dot(g_mainCamera->GetPosition() - m_owner->GetWorldPosition(), g_mainCamera->GetForwardVector()))
+		XMVectorGetZ(XMVector3Dot(g_mainCamera->GetPosition() - m_owner->GetWorldPosition(), g_mainCamera->GetForwardVector())),
 		[&]()
 		{
 			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);

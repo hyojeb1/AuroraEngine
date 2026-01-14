@@ -66,9 +66,9 @@ void Renderer::EndFrame()
 			// 블렌드 상태 설정
 			ResourceManager::GetInstance().SetBlendState(BLEND_STATE);
 
-			// 알파 블렌딩은 뒤에서부터 그려야 하므로 내림차순 정렬
-			if (BLEND_STATE == BlendState::AlphaBlend) sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
-			else sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first > b.first; }); // 기타 블렌드 상태는 오름차순 정렬
+			// 정렬
+			if (BLEND_STATE != BlendState::AlphaBlend) sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
+			else sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
 
 			// 렌더 명령어 실행
 			for (auto& [priority, command] : blendState) command();
