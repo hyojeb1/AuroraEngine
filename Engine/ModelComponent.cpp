@@ -30,8 +30,8 @@ void ModelComponent::Render()
 {
 	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, m_blendState).emplace_back
 	(
-		// 투명한 오브젝트의 경우 카메라로부터의 거리 저장
-		m_blendState == BlendState::AlphaBlend ? XMVectorGetZ(XMVector3Dot(g_mainCamera->GetPosition() - m_worldNormalData->worldMatrix.r[3], g_mainCamera->GetForwardVector())) : 0.0f,
+		// 카메라로부터의 거리
+		XMVectorGetZ(XMVector3Dot(g_mainCamera->GetPosition() - m_owner->GetWorldPosition(), g_mainCamera->GetForwardVector()))
 		[&]()
 		{
 			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
@@ -107,17 +107,9 @@ void ModelComponent::RenderImGui()
 
 	ImGui::Separator();
 	int blendStateInt = static_cast<int>(m_blendState);
-	if (ImGui::Combo("Blend State", &blendStateInt, "Opaque\0AlphaBlend\0AlphaToCoverage\0"))
-	{
-		m_blendState = static_cast<BlendState>(blendStateInt);
-		ResourceManager::GetInstance().SetBlendState(m_blendState);
-	}
+	if (ImGui::Combo("Blend State", &blendStateInt, "Opaque\0AlphaToCoverage\0AlphaBlend\0")) m_blendState = static_cast<BlendState>(blendStateInt);
 	int rasterStateInt = static_cast<int>(m_rasterState);
-	if (ImGui::Combo("Raster State", &rasterStateInt, "BackBuffer\0Solid\0Wireframe\0"))
-	{
-		m_rasterState = static_cast<RasterState>(rasterStateInt);
-		ResourceManager::GetInstance().SetRasterState(m_rasterState);
-	}
+	if (ImGui::Combo("Raster State", &rasterStateInt, "BackBuffer\0Solid\0Wireframe\0")) m_rasterState = static_cast<RasterState>(rasterStateInt);
 }
 
 nlohmann::json ModelComponent::Serialize()

@@ -60,6 +60,7 @@ public:
 	void MoveDirection(float distance, Direction direction);
 	// 위치 가져오기
 	const DirectX::XMVECTOR& GetPosition() const { return m_position; }
+	const DirectX::XMVECTOR& GetWorldPosition() const { return m_worldMatrix.r[3]; }
 
 	// 회전 지정
 	void SetRotation(const DirectX::XMVECTOR& rotation);
