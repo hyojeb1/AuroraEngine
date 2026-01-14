@@ -54,17 +54,21 @@ void Renderer::EndFrame()
 		// 백 버퍼 렌더 타겟으로 설정
 		m_deviceContext->OMSetRenderTargets(1, renderTarget.renderTargetView.GetAddressOf(), renderTarget.depthStencilView.Get());
 
-		// 백 버퍼 클리어
-		ClearRenderTarget(renderTarget);
+		const RenderStage RENDER_STAGE = static_cast<RenderStage>(&renderTarget - &m_renderPass[0].first);
+
+		// 렌더 타겟 클리어 // 백 버퍼는 클리어 안함
+		if (RENDER_STAGE != RenderStage::BackBuffer) ClearRenderTarget(renderTarget);
 
 		for (auto& blendState : blendStates)
 		{
-			BlendState state = static_cast<BlendState>(&blendState - &blendStates[0]);
+			const BlendState BLEND_STATE = static_cast<BlendState>(&blendState - &blendStates[0]);
 
 			// 블렌드 상태 설정
-			ResourceManager::GetInstance().SetBlendState(state);
-			// 알파 블렌딩은 뒤에서부터 그려야 하므로 내림차순 정렬
-			if (state == BlendState::AlphaBlend) sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
+			ResourceManager::GetInstance().SetBlendState(BLEND_STATE);
+
+			// 정렬
+			if (BLEND_STATE != BlendState::AlphaBlend) sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
+			else sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
 
 			// 렌더 명령어 실행
 			for (auto& [priority, command] : blendState) command();

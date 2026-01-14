@@ -33,8 +33,7 @@ class Renderer : public Singleton<Renderer>
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
 	com_ptr<IDXGISwapChain1> m_swapChain = nullptr; // 스왑 체인
 
-	//std::array<std::pair<RenderTarget, std::vector<std::pair<float, std::function<void()>>>>, static_cast<size_t>(RenderStage::Count)> m_renderPass = {};
-	std::array<std::pair<RenderTarget, std::array<std::vector<std::pair<float, std::function<void()>>>, static_cast<size_t>(RenderStage::Count)>>, static_cast<size_t>(RenderStage::Count)> m_renderPass = {};
+	std::array<std::pair<RenderTarget, std::array<std::vector<std::pair<float, std::function<void()>>>, static_cast<size_t>(BlendState::Count)>>, static_cast<size_t>(RenderStage::Count)> m_renderPass = {};
 
 	// 백 버퍼 렌더 타겟 관련 리소스
 	struct BackBufferVertex
