@@ -587,6 +587,7 @@ struct SkinnedMesh
 struct Model
 {
 	std::vector<Mesh> meshes = {};
+	DirectX::BoundingBox boundingBox = {};
 };
 
 struct SkinnedModel

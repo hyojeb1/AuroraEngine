@@ -67,8 +67,8 @@ void Renderer::EndFrame()
 			ResourceManager::GetInstance().SetBlendState(BLEND_STATE);
 
 			// 정렬
-			if (BLEND_STATE != BlendState::AlphaBlend) sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
-			else sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+			if (BLEND_STATE != BlendState::AlphaBlend) sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+			else sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
 
 			// 렌더 명령어 실행
 			for (auto& [priority, command] : blendState) command();
