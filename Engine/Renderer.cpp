@@ -54,7 +54,7 @@ void Renderer::EndFrame()
 		// 백 버퍼 렌더 타겟으로 설정
 		m_deviceContext->OMSetRenderTargets(1, renderTarget.renderTargetView.GetAddressOf(), renderTarget.depthStencilView.Get());
 
-		// 백 버퍼 클리어
+		// 렌더 타겟 클리어
 		ClearRenderTarget(renderTarget);
 
 		for (auto& blendState : blendStates)
