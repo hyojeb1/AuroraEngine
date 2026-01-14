@@ -17,7 +17,7 @@
             "childGameObjects": [],
             "components": [
                 {
-                    "blendState": 1,
+                    "blendState": 0,
                     "materialFactorData": {
                         "albedoFactor": [
                             1.0,
@@ -43,11 +43,11 @@
                     "modelFileName": "box.fbx",
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
-                    "type": "ModelComponent",
-                    "vsShaderName": "VSModel.hlsl"
+                    "type": "SkinnedModelComponent",
+                    "vsShaderName": "VSModelSkinAnim.hlsl"
                 }
             ],
-            "name": "HyojeTestObject_1",
+            "name": "HyojeTestObject_0",
             "position": [
                 0.0,
                 0.0,

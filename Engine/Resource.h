@@ -336,11 +336,17 @@ enum class VSConstBuffers
 	Bone,
 	Count
 };
-struct ViewProjectionBuffer // 뷰-투영 상수 버퍼 구조체
+struct ViewProjectionBuffer // 뷰-투영 상수 버퍼 구조체 
 {
 	DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixIdentity(); // 뷰 행렬 // 전치 안함
 	DirectX::XMMATRIX projectionMatrix = DirectX::XMMatrixIdentity(); // 투영 행렬 // 전치 안함
 	DirectX::XMMATRIX VPMatrix = DirectX::XMMatrixIdentity(); // VP 행렬 // 전치함
+
+	//시간 관련 데이터
+	// x: TotalTime (게임 시작 후 누적 시간) -> 쉐이더에서 물결, 흐름 등에 사용
+	// y: DeltaTime (프레임 간 시간 차이) -> 애니메이션 속도 보정에 사용
+	// z, w: 나중에 쓸 여유 공간 (Padding) 혹은 sin(Time), cos(Time) 등을 미리 계산해서 넣음
+	DirectX::XMFLOAT4 timeParams = { 0.0f, 0.0f, 0.0f, 0.0f };
 };
 struct SkyboxViewProjectionBuffer // 스카이박스 뷰-투영 상수 버퍼 구조체
 {
@@ -350,12 +356,23 @@ struct WorldNormalBuffer // 월드 및 WVP 행렬 상수 버퍼 구조체
 {
 	DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity(); // 월드 행렬
 	DirectX::XMMATRIX normalMatrix = DirectX::XMMatrixIdentity(); // 스케일 역행렬을 적용한 월드 행렬
+
 };
-#define MAX_BONES 256 // 80
+#define MAX_BONES 80
 struct BoneBuffer
 {
 	DirectX::XMMATRIX boneMatrix[MAX_BONES];
+
+	BoneBuffer() // 초기화는 생성자를 통해서.
+	{
+		for (int i = 0; i < MAX_BONES; ++i)
+		{
+			boneMatrix[i] = DirectX::XMMatrixIdentity();
+		}
+	}
 };
+
+
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Count)> VS_CONST_BUFFER_DESCS =
 {
 	// ViewProjectionBuffer

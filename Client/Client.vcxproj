@@ -121,6 +121,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalOptions>/WHOLEARCHIVE:Engine.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /E /I /Y "$(SolutionDir)Asset" "$(TargetDir)Asset"</Command>
@@ -151,10 +152,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BlenderCameraObject.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="CamRotObject.cpp" />
     <ClCompile Include="ClientTestScene.cpp" />
     <ClCompile Include="HostTestScene.cpp" />
@@ -167,10 +164,6 @@
     <ClCompile Include="YdmTestObject.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BlenderCameraObject.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="CamRotObject.h" />
     <ClInclude Include="HostTestScene.h" />
     <ClInclude Include="HyojeTestScene.h" />

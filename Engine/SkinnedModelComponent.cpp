@@ -1,9 +1,10 @@
-/// ModelComponent.cpp의 시작
+/// SkinnedModelComponent.cpp의 시작
 #include "stdafx.h"
 #include "SkinnedModelComponent.h"
 
 #include "Renderer.h"
 #include "ResourceManager.h"
+#include "TimeManager.h"
 #include "GameObjectBase.h"
 #include "CameraComponent.h"
 
@@ -22,8 +23,10 @@ void SkinnedModelComponent::Initialize()
 	CreateShaders();
 
 	m_worldMatrixConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal);
+	m_boneConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Bone);
 	m_materialConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor);
 	m_model = resourceManager.LoadModel(m_modelFileName);
+
 }
 
 void SkinnedModelComponent::Render()
@@ -35,6 +38,16 @@ void SkinnedModelComponent::Render()
 		[&]()
 		{
 			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
+			float animTime = TimeManager::GetInstance().GetTotalTime();
+			float swayA = sinf(animTime * 0.8f) * 0.2f;
+			//float swayB = sinf(animTime * 1.1f + 1.5f) * 0.3f;
+			//float swayC = sinf(animTime * 1.4f + 2.1f) * 0.4f;
+			m_boneBufferData.boneMatrix[0] = XMMatrixRotationZ(swayA);
+			//m_boneBufferData.boneMatrix[1] = XMMatrixRotationZ(swayB);
+			//m_boneBufferData.boneMatrix[2] = XMMatrixRotationZ(swayC);
+
+
+			m_deviceContext->UpdateSubresource(m_boneConstantBuffer.Get(), 0, nullptr, &m_boneBufferData, 0, 0);
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 			resourceManager.SetRasterState(m_rasterState);
@@ -60,6 +73,8 @@ void SkinnedModelComponent::Render()
 				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
 				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, mesh.materialTexture.ORMTextureSRV.GetAddressOf());
 				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, mesh.materialTexture.normalTextureSRV.GetAddressOf());
+
+
 
 				m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
 			}
@@ -118,6 +133,7 @@ void SkinnedModelComponent::RenderImGui()
 		m_rasterState = static_cast<RasterState>(rasterStateInt);
 		ResourceManager::GetInstance().SetRasterState(m_rasterState);
 	}
+
 }
 
 nlohmann::json SkinnedModelComponent::Serialize()
@@ -196,4 +212,4 @@ void SkinnedModelComponent::CreateShaders()
 	m_vertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout(m_vsShaderName, m_inputElements);
 	m_pixelShader = resourceManager.GetPixelShader(m_psShaderName);
 }
-/// ModelComponent.cpp의 끝
+/// SkinnedModelComponent.cpp의 끝

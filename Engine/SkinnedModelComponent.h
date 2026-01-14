@@ -36,6 +36,9 @@ class SkinnedModelComponent : public ComponentBase
 
 	MaterialFactorBuffer m_materialFactorData = {}; // 재질 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_materialConstantBuffer = nullptr; // 재질 상수 버퍼
+	
+	BoneBuffer m_boneBufferData = {}; // 뼈 상수 버퍼 데이터
+	com_ptr<ID3D11Buffer> m_boneConstantBuffer = nullptr; // 뼈 상수 버퍼
 
 	BlendState m_blendState = BlendState::Opaque; // 기본 블렌드 상태
 	RasterState m_rasterState = RasterState::Solid; // 기본 래스터 상태
