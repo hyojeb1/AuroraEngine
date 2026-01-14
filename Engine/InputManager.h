@@ -42,11 +42,10 @@ public:
 
 private:
     InputManager() = default;
-    ~InputManager() = default;
 
-    std::array<bool, 256> m_keyState;
-    std::array<bool, 256> m_keyDownState;
-    std::array<bool, 256> m_keyUpState;
+	std::array<bool, 256> m_keyState = {};
+	std::array<bool, 256> m_keyDownState = {};
+	std::array<bool, 256> m_keyUpState = {};
 
     MousePos m_mousePos = { 0, 0 };
     MousePos m_prevMousePos = { 0, 0 };

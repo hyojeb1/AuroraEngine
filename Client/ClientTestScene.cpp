@@ -13,9 +13,5 @@ REGISTER_TYPE(ClientTestScene)
 void ClientTestScene::Initialize()
 {
 	CreateRootGameObject("YdmTestObject");
-}
-
-GameObjectBase* ClientTestScene::CreateCameraObject()
-{
-	return CreateRootGameObject<CamRotObject>("CamRotObject")->CreateChildGameObject<TestCameraObject>();
+	CreateRootGameObject<CamRotObject>("CamRotObject")->CreateChildGameObject<TestCameraObject>();
 }

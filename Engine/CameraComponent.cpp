@@ -6,20 +6,27 @@
 
 REGISTER_TYPE(CameraComponent)
 
+using namespace std;
 using namespace DirectX;
+
+CameraComponent* g_mainCamera = nullptr;
 
 void CameraComponent::Initialize()
 {
+	if (g_mainCamera) cerr << "경고: 여러 개의 카메라가 생성되었습니다" << endl;
+	else g_mainCamera = this;
+
 	m_position = &m_owner->GetWorldMatrix().r[3];
 	UpdateProjectionMatrix();
 }
 
 void CameraComponent::UpdateViewMatrix()
 {
+	m_forwardVector = m_owner->GetWorldDirectionVector(Direction::Forward);
 	m_viewMatrix = XMMatrixLookAtLH
 	(
 		*m_position, // 카메라 위치
-		XMVectorAdd(*m_position, m_owner->GetWorldDirectionVector(Direction::Forward)), // 카메라 앞 방향
+		XMVectorAdd(*m_position, m_forwardVector), // 카메라 앞 방향
 		m_owner->GetWorldDirectionVector(Direction::Up) // 카메라 위 방향
 	);
 }
@@ -35,6 +42,11 @@ void CameraComponent::RenderImGui()
 	if (ImGui::DragFloat("FovY", &fovYInDegrees, 0.1f, 1.0f, 179.0f)) m_fovY = XMConvertToRadians(fovYInDegrees);
 	ImGui::DragFloat("NearZ", &m_nearZ, 0.01f, 0.01f, m_farZ - 0.01f);
 	ImGui::DragFloat("FarZ", &m_farZ, 1.0f, m_nearZ + 0.01f, 10000.0f);
+}
+
+void CameraComponent::Finalize()
+{
+	if (g_mainCamera == this) g_mainCamera = nullptr;
 }
 
 nlohmann::json CameraComponent::Serialize()

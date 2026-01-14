@@ -33,8 +33,9 @@ class Renderer : public Singleton<Renderer>
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
 	com_ptr<IDXGISwapChain1> m_swapChain = nullptr; // 스왑 체인
 
+	std::array<std::pair<RenderTarget, std::array<std::vector<std::pair<float, std::function<void()>>>, static_cast<size_t>(BlendState::Count)>>, static_cast<size_t>(RenderStage::Count)> m_renderPass = {};
+
 	// 백 버퍼 렌더 타겟 관련 리소스
-	RenderTarget m_backBuffer; // 백 버퍼 렌더 타겟 // 화면에 출력되는 버퍼 // UI만을 직접적으로 랜더
 	struct BackBufferVertex
 	{
 		DirectX::XMFLOAT4 position = {};
@@ -46,7 +47,6 @@ class Renderer : public Singleton<Renderer>
 
 	// 씬 렌더 타겟 관련 리소스
 	DXGI_SAMPLE_DESC m_sceneBufferSampleDesc = { 4, 0 }; // 씬 렌더 타겟용 샘플 설명 // 멀티샘플링 설정
-	RenderTarget m_sceneBuffer; // 씬 렌더 타겟 // 실제 게임 씬을 랜더링하는 버퍼
 	com_ptr<ID3D11Texture2D> m_sceneResultTexture = nullptr; // 씬 렌더 타겟의 결과 텍스처 // MSAA 다운샘플링 후 결과 저장
 	com_ptr<ID3D11ShaderResourceView> m_sceneShaderResourceView = nullptr; // 씬 렌더 타겟의 셰이더 리소스 뷰 // 백 버퍼에 적용하면서 후처리됨
 
@@ -63,6 +63,11 @@ public:
 
 	// 프레임 시작
 	void BeginFrame();
+
+	// 렌더 패스 관련 매크로 함수
+	constexpr RenderTarget& RENDER_TARGET(RenderStage stage) { return m_renderPass[static_cast<size_t>(stage)].first; }
+	constexpr std::vector<std::pair<float, std::function<void()>>>& RENDER_FUNCTION(RenderStage renderStage, BlendState blendState) { return m_renderPass[static_cast<size_t>(renderStage)].second[static_cast<size_t>(blendState)]; }
+
 	// 프레임 종료 // 화면에 내용 출력
 	void EndFrame();
 

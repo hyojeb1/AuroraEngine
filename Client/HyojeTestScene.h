@@ -15,6 +15,5 @@ public:
 
 protected:
 	virtual void Initialize() override;
-	GameObjectBase* CreateCameraObject() override;
 };
 /// HyojeTestScene.h의 끝

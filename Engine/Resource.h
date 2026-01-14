@@ -10,6 +10,14 @@ struct RenderTarget
 	com_ptr<ID3D11DepthStencilView> depthStencilView = nullptr; // 깊이-스텐실 뷰
 };
 
+enum class RenderStage
+{
+	Scene,
+	BackBuffer,
+
+	Count
+};
+
 enum class DepthStencilState
 {
 	Default,
@@ -49,8 +57,8 @@ constexpr std::array<D3D11_DEPTH_STENCIL_DESC, static_cast<size_t>(DepthStencilS
 enum class BlendState
 {
 	Opaque,
-	AlphaBlend,
 	AlphaToCoverage,
+	AlphaBlend,
 
 	Count
 };
@@ -77,27 +85,6 @@ constexpr std::array<D3D11_BLEND_DESC, static_cast<size_t>(BlendState::Count)> B
 		}
 	},
 
-	// AlphaBlend
-	D3D11_BLEND_DESC
-	{
-		.AlphaToCoverageEnable = FALSE,
-		.IndependentBlendEnable = FALSE,
-		.RenderTarget =
-		{
-			D3D11_RENDER_TARGET_BLEND_DESC
-			{
-				.BlendEnable = TRUE,
-				.SrcBlend = D3D11_BLEND_SRC_ALPHA, // 소스 알파로 소스 색상 곱하기
-				.DestBlend = D3D11_BLEND_INV_SRC_ALPHA, // (1 - 소스 알파)로 대상 색상 곱하기
-				.BlendOp = D3D11_BLEND_OP_ADD, // 두 값을 더하기
-				.SrcBlendAlpha = D3D11_BLEND_ONE, // 소스 알파 유지
-				.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA, // 대상 알파 혼합
-				.BlendOpAlpha = D3D11_BLEND_OP_ADD,
-				.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL
-			}
-		}
-	},
-
 	// AlphaToCoverage
 	D3D11_BLEND_DESC
 	{
@@ -113,6 +100,27 @@ constexpr std::array<D3D11_BLEND_DESC, static_cast<size_t>(BlendState::Count)> B
 				.BlendOp = D3D11_BLEND_OP_ADD,
 				.SrcBlendAlpha = D3D11_BLEND_ONE,
 				.DestBlendAlpha = D3D11_BLEND_ZERO,
+				.BlendOpAlpha = D3D11_BLEND_OP_ADD,
+				.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL
+			}
+		}
+	},
+
+	// AlphaBlend
+	D3D11_BLEND_DESC
+	{
+		.AlphaToCoverageEnable = FALSE,
+		.IndependentBlendEnable = FALSE,
+		.RenderTarget =
+		{
+			D3D11_RENDER_TARGET_BLEND_DESC
+			{
+				.BlendEnable = TRUE,
+				.SrcBlend = D3D11_BLEND_SRC_ALPHA, // 소스 알파로 소스 색상 곱하기
+				.DestBlend = D3D11_BLEND_INV_SRC_ALPHA, // (1 - 소스 알파)로 대상 색상 곱하기
+				.BlendOp = D3D11_BLEND_OP_ADD, // 두 값을 더하기
+				.SrcBlendAlpha = D3D11_BLEND_ONE, // 소스 알파 유지
+				.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA, // 대상 알파 혼합
 				.BlendOpAlpha = D3D11_BLEND_OP_ADD,
 				.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL
 			}
@@ -450,6 +458,8 @@ struct MaterialTexture
 
 struct Mesh
 {
+	D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
 	std::vector<Vertex> vertices = {};
 	std::vector<UINT> indices = {};
 	UINT indexCount = 0;
@@ -465,6 +475,7 @@ struct Mesh
 struct Model
 {
 	std::vector<Mesh> meshes = {};
+	DirectX::BoundingBox boundingBox = {};
 };
 
 /// Resource.h의 끝

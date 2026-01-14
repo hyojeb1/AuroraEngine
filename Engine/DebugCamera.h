@@ -7,7 +7,7 @@
 class DebugCamera : public GameObjectBase
 {
 private:
-    DirectX::XMFLOAT3 m_targetPosition;
+	DirectX::XMFLOAT3 m_targetPosition = { 0.0f, 0.0f, 0.0f }; // 타겟 위치
 
     // SPHERICAL: 타겟으로부터의 거리 및 각도
     float m_distance = 10.0f;

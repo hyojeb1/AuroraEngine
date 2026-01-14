@@ -24,16 +24,13 @@ class GameObjectBase : public Base
 	DirectX::XMMATRIX m_scaleMatrix = DirectX::XMMatrixIdentity(); // 스케일 행렬
 	DirectX::XMMATRIX m_inverseScaleSquareMatrix = DirectX::XMMatrixIdentity(); // 스케일 역행렬 제곱 (법선 행렬 계산용)
 
+	WorldNormalBuffer m_worldData = {}; // 월드 및 WVP 행렬 상수 버퍼 데이터
+
 	DirectX::XMVECTOR m_position = DirectX::XMVectorZero(); // 위치
 	DirectX::XMVECTOR m_quaternion = DirectX::XMQuaternionIdentity(); // 쿼터니언
 	DirectX::XMVECTOR m_euler = DirectX::XMVectorZero(); // 오일러
 	DirectX::XMVECTOR m_scale = DirectX::XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f); // 크기
 	bool m_isDirty = true; // 위치 갱신 필요 여부
-
-	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트 포인터
-
-	WorldNormalBuffer m_worldData = {}; // 월드 및 WVP 행렬 상수 버퍼 데이터
-	com_ptr<ID3D11Buffer> m_worldMatrixConstantBuffer = nullptr; // 월드, WVP 행렬 상수 버퍼
 
 	std::unordered_map<std::type_index, std::unique_ptr<Base>> m_components = {}; // 컴포넌트 맵
 	std::vector<Base*> m_updateComponents = {}; // 업데이트할 컴포넌트 배열
@@ -63,6 +60,7 @@ public:
 	void MoveDirection(float distance, Direction direction);
 	// 위치 가져오기
 	const DirectX::XMVECTOR& GetPosition() const { return m_position; }
+	const DirectX::XMVECTOR& GetWorldPosition() const { return m_worldMatrix.r[3]; }
 
 	// 회전 지정
 	void SetRotation(const DirectX::XMVECTOR& rotation);
@@ -85,6 +83,7 @@ public:
 	const DirectX::XMVECTOR& GetScale() const { return m_scale; }
 
 	const DirectX::XMMATRIX& GetWorldMatrix() const { return m_worldMatrix; }
+	const WorldNormalBuffer& GetWorldNormalBuffer() const { return m_worldData; }
 
 	// 컴포넌트 추가 // 컴포넌트 베이스 포인터 반환
 	ComponentBase* CreateComponent(const std::string& typeName);

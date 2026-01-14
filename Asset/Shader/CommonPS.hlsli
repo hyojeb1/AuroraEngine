@@ -28,7 +28,7 @@ cbuffer MaterialFactor : register(b2)
     float Ior;
     
     float NormalScale;
-    float HeightScalef;
+    float HeightScale;
 
     float LightFactor;
     float glowFactor;
