@@ -41,7 +41,7 @@
                         "roughnessFactor": 1.0
                     },
                     "modelFileName": "Aurora12.fbx",
-                    "psShaderName": "PSModel.hlsl",
+                    "psShaderName": "PSOnlyAlbedo.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",
                     "vsShaderName": "VSModelSkinAnim.hlsl"

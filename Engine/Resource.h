@@ -10,8 +10,10 @@ struct RenderTarget
 	com_ptr<ID3D11DepthStencilView> depthStencilView = nullptr; // 깊이-스텐실 뷰
 };
 
+constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 4096; // 방향성 광원 그림자 맵 크기
 enum class RenderStage
 {
+	DirectionalLightShadow,
 	Scene,
 	BackBuffer,
 
@@ -188,6 +190,7 @@ enum class SamplerState
 {
 	BackBuffer, // 백 버퍼 전용 샘플러 상태
 	Default,
+	ShadowMap,
 
 	Count
 };
@@ -219,6 +222,21 @@ constexpr std::array<D3D11_SAMPLER_DESC, static_cast<size_t>(SamplerState::Count
 		.MaxAnisotropy = 8, // 최대 이방성 필터링
 		.ComparisonFunc = D3D11_COMPARISON_NEVER,
 		.BorderColor = { 0.0f, 0.0f, 0.0f, 0.0f },
+		.MinLOD = 0,
+		.MaxLOD = D3D11_FLOAT32_MAX
+	},
+
+	// ShadowMap
+	D3D11_SAMPLER_DESC
+	{
+		.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT, // 그림자 맵용 비교 필터링
+		.AddressU = D3D11_TEXTURE_ADDRESS_BORDER, // U 좌표 테두리
+		.AddressV = D3D11_TEXTURE_ADDRESS_BORDER, // V 좌표 테두리
+		.AddressW = D3D11_TEXTURE_ADDRESS_BORDER, // W 좌표 테두리
+		.MipLODBias = 0.0f,
+		.MaxAnisotropy = 1,
+		.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL, // 비교 함수: 작거나 같음
+		.BorderColor = { 1.0f, 1.0f, 1.0f, 1.0f }, // 테두리 색상 흰색
 		.MinLOD = 0,
 		.MaxLOD = D3D11_FLOAT32_MAX
 	}
@@ -332,8 +350,12 @@ enum class VSConstBuffers
 {
 	ViewProjection, // ViewProjectionBuffer
 	SkyboxViewProjection, // SkyboxViewProjectionBuffer
+
 	WorldNormal, // WorldBuffer
+
+	Time, // TimeBuffer
 	Bone,
+
 	Count
 };
 struct ViewProjectionBuffer // 뷰-투영 상수 버퍼 구조체 
@@ -341,12 +363,6 @@ struct ViewProjectionBuffer // 뷰-투영 상수 버퍼 구조체
 	DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixIdentity(); // 뷰 행렬 // 전치 안함
 	DirectX::XMMATRIX projectionMatrix = DirectX::XMMatrixIdentity(); // 투영 행렬 // 전치 안함
 	DirectX::XMMATRIX VPMatrix = DirectX::XMMatrixIdentity(); // VP 행렬 // 전치함
-
-	//시간 관련 데이터
-	// x: TotalTime (게임 시작 후 누적 시간) -> 쉐이더에서 물결, 흐름 등에 사용
-	// y: DeltaTime (프레임 간 시간 차이) -> 애니메이션 속도 보정에 사용
-	// z, w: 나중에 쓸 여유 공간 (Padding) 혹은 sin(Time), cos(Time) 등을 미리 계산해서 넣음
-	DirectX::XMFLOAT4 timeParams = { 0.0f, 0.0f, 0.0f, 0.0f };
 };
 struct SkyboxViewProjectionBuffer // 스카이박스 뷰-투영 상수 버퍼 구조체
 {
@@ -358,21 +374,19 @@ struct WorldNormalBuffer // 월드 및 WVP 행렬 상수 버퍼 구조체
 	DirectX::XMMATRIX normalMatrix = DirectX::XMMatrixIdentity(); // 스케일 역행렬을 적용한 월드 행렬
 
 };
-#define MAX_BONES 256
+struct TimeBuffer
+{
+	float totalTime = 0.0f; // 누적 시간
+	float deltaTime = 0.0f; // 프레임 간 시간 차이
+	float sinTime = 0.0f; // 시간의 사인 값
+	float cosTime = 0.0f; // 시간의 코사인 값
+};
+constexpr int MAX_BONES = 256;
 struct BoneBuffer
 {
-	DirectX::XMMATRIX boneMatrix[MAX_BONES];
-
-	BoneBuffer() // 초기화는 생성자를 통해서.
-	{
-		for (int i = 0; i < MAX_BONES; ++i)
-		{
-			boneMatrix[i] = DirectX::XMMatrixIdentity();
-		}
-	}
+	std::array<DirectX::XMMATRIX, MAX_BONES> boneMatrix = {}; // 본 행렬 배열
+	BoneBuffer() { std::fill(boneMatrix.begin(), boneMatrix.end(), DirectX::XMMatrixIdentity()); }
 };
-
-
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Count)> VS_CONST_BUFFER_DESCS =
 {
 	// ViewProjectionBuffer
@@ -408,6 +422,17 @@ constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Coun
 		.StructureByteStride = 0
 	},
 
+	// TimeBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(TimeBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	},
+
 	// BoneBuffer
 	D3D11_BUFFER_DESC
 	{
@@ -436,6 +461,8 @@ struct GlobalLightBuffer // 방향광 상수 버퍼 구조체
 {
 	DirectX::XMFLOAT4 lightColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 방향광 색상 // w는 IBL 강도
 	DirectX::XMVECTOR lightDirection = DirectX::XMVectorSet(-0.5f, -1.0f, -0.5f, 1.0f); // 방향광 방향 // w는 방향광 강도
+
+	DirectX::XMMATRIX lightViewProjectionMatrix = DirectX::XMMatrixIdentity(); // 방향광 뷰-투영 행렬 // 전치함
 };
 struct MaterialFactorBuffer
 {
@@ -495,6 +522,7 @@ enum class TextureSlots
 {
 	BackBuffer,
 	Environment,
+	DirectionalLightShadow,
 
 	Albedo, // RGBA
 	ORM, // ambient occlusion(R) + roughness(G) + metallic(B)
@@ -594,6 +622,7 @@ struct Model
 struct SkinnedModel
 {
 	std::vector<SkinnedMesh> skinnedMeshes = {};
+	DirectX::BoundingBox boundingBox = {};
 	Skeleton skeleton = {};
 };
 

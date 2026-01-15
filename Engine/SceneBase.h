@@ -5,8 +5,6 @@
 #include "DebugCamera.h"
 #endif
 
-extern class CameraComponent* g_mainCamera; // 전역 메인 카메라 컴포넌트 포인터
-
 class SceneBase : public Base
 {
 	#ifdef _DEBUG
@@ -36,12 +34,16 @@ class SceneBase : public Base
 	SkyboxViewProjectionBuffer m_skyboxViewProjectionData = {}; // 스카이박스 뷰-투영 역행렬 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_skyboxViewProjectionConstantBuffer = nullptr; // 스카이박스 뷰-투영 역행렬 상수 버퍼
 
+	TimeBuffer m_timeData = {}; // 시간 상수 버퍼 데이터
+	com_ptr<ID3D11Buffer> m_timeConstantBuffer = nullptr; // 시간 상수 버퍼
+
 	// 픽셀 셰이더용 상수 버퍼
 	CameraPositionBuffer m_cameraPositionData = {}; // 카메라 위치 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_cameraPositionConstantBuffer = nullptr; // 카메라 위치 상수 버퍼
 
 	GlobalLightBuffer m_globalLightData = {}; // 환경광, 방향광 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_globalLightConstantBuffer = nullptr; // 환경광, 방향광 상수 버퍼
+	com_ptr<ID3D11PixelShader> m_shadowMapPixelShader = nullptr; // 그림자 맵 생성용 픽셀 셰이더
 
 public:
 	SceneBase();

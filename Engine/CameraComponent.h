@@ -1,6 +1,8 @@
 #pragma once
 #include "ComponentBase.h"
 
+extern class CameraComponent* g_mainCamera; // 전역 메인 카메라 컴포넌트 포인터
+
 class CameraComponent : public ComponentBase
 {
 	float m_fovY = DirectX::XM_PIDIV4; // 수직 시야각 (라디안 단위)
@@ -25,11 +27,15 @@ public:
 	CameraComponent& operator=(CameraComponent&&) = default;
 
 	void SetFovY(float fovY) { m_fovY = fovY; }
+	float GetFovY() const { return m_fovY; }
 	void SetNearZ(float nearZ) { m_nearZ = nearZ; }
+	float GetNearZ() const { return m_nearZ; }
 	void SetFarZ(float farZ) { m_farZ = farZ; }
+	float GetFarZ() const { return m_farZ; }
 
 	const DirectX::XMMATRIX& GetViewMatrix() const { return m_viewMatrix; }
 	const DirectX::XMMATRIX& GetProjectionMatrix() const { return m_projectionMatrix; }
+
 	const DirectX::XMVECTOR& GetPosition() const { return *m_position; }
 	const DirectX::XMVECTOR& GetForwardVector() const { return m_forwardVector; }
 

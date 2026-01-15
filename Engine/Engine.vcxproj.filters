@@ -191,6 +191,9 @@
     <FxCompile Include="..\Asset\Shader\VSModelSkinAnim.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
+    <FxCompile Include="..\Asset\Shader\PSShadow.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
     <FxCompile Include="..\Asset\Shader\PSOnlyAlbedo.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>

@@ -417,6 +417,12 @@ void ResourceManager::CreateAndSetConstantBuffers()
 	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::WorldNormal)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::WorldNormal)].GetAddressOf());
 	CheckResult(hr, "WorldNormal 상수 버퍼 생성 실패.");
 	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::WorldNormal), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::WorldNormal)].GetAddressOf());
+
+	// 애니메이션 관련 상수 버퍼
+	// 시간 상수 버퍼
+	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::Time)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Time)].GetAddressOf());
+	CheckResult(hr, "Time 상수 버퍼 생성 실패.");
+	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Time), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Time)].GetAddressOf());
 	// 뼈 버퍼
 	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::Bone)], nullptr,	m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Bone)].GetAddressOf());
 	CheckResult(hr, "Bone 상수 버퍼 생성 실패.");

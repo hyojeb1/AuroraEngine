@@ -13,6 +13,7 @@ void Renderer::Initialize()
 	CreateDeviceAndContext();
 	CreateSwapChain();
 	CreateBackBufferResources();
+	CreateShadowMapRenderTargets();
 
 	// 씬 매니저 초기화
 	SceneManager::GetInstance().Initialize();
@@ -20,6 +21,14 @@ void Renderer::Initialize()
 
 void Renderer::BeginFrame()
 {
+	// 방향성 광원 그림자 맵 셰이더 리소스 뷰 해제 명령어 등록
+	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
+	(
+		numeric_limits<float>::lowest(), // 우선순위 가장 높음
+		[&]() { m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::DirectionalLightShadow), 1, m_directionalLightShadowMapSRV.GetAddressOf()); }
+	);
+
+	// 백 버퍼 최종 렌더링 명령어 등록
 	RENDER_FUNCTION(RenderStage::BackBuffer, BlendState::Opaque).emplace_back
 	(
 		0.0f,
@@ -66,7 +75,7 @@ void Renderer::EndFrame()
 			// 블렌드 상태 설정
 			ResourceManager::GetInstance().SetBlendState(BLEND_STATE);
 
-			// 정렬
+			// 정렬 // 알파 블렌딩은 뒤에서 앞으로 // 그 외는 앞에서 뒤로
 			if (BLEND_STATE != BlendState::AlphaBlend) sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
 			else sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
 
@@ -79,7 +88,10 @@ void Renderer::EndFrame()
 	}
 
 	#ifdef _DEBUG
-	// ImGui 프레임 끝
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	ImGui::UpdatePlatformWindows();
+	ImGui::RenderPlatformWindowsDefault();
 	EndImGuiFrame();
 	#endif
 
@@ -120,6 +132,7 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 	RENDER_TARGET(RenderStage::Scene).renderTargetView.Reset();
 	RENDER_TARGET(RenderStage::Scene).depthStencilTexture.Reset();
 	RENDER_TARGET(RenderStage::Scene).depthStencilView.Reset();
+
 	m_sceneResultTexture.Reset();
 	m_sceneShaderResourceView.Reset();
 
@@ -146,6 +159,20 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 	SetViewport();
 
 	return hr;
+}
+
+void Renderer::SetViewport(FLOAT Width, FLOAT Height)
+{
+	const D3D11_VIEWPORT viewport =
+	{
+		.TopLeftX = 0.0f,
+		.TopLeftY = 0.0f,
+		.Width = Width,
+		.Height = Height,
+		.MinDepth = 0.0f,
+		.MaxDepth = 1.0f
+	};
+	m_deviceContext->RSSetViewports(1, &viewport);
 }
 
 void Renderer::CreateDeviceAndContext()
@@ -343,18 +370,43 @@ void Renderer::CreateSceneRenderTarget()
 	CheckResult(hr, "씬 셰이더 리소스 뷰 생성 실패.");
 }
 
-void Renderer::SetViewport()
+void Renderer::CreateShadowMapRenderTargets()
 {
-	const D3D11_VIEWPORT viewport =
+	// 방향성 광원 그림자 맵 텍스처 생성
+	const D3D11_TEXTURE2D_DESC shadowMapDesc =
 	{
-		.TopLeftX = 0.0f,
-		.TopLeftY = 0.0f,
-		.Width = static_cast<FLOAT>(m_swapChainDesc.Width),
-		.Height = static_cast<FLOAT>(m_swapChainDesc.Height),
-		.MinDepth = 0.0f,
-		.MaxDepth = 1.0f
+		.Width = DIRECTIAL_LIGHT_SHADOW_MAP_SIZE,
+		.Height = DIRECTIAL_LIGHT_SHADOW_MAP_SIZE,
+		.MipLevels = 1,
+		.ArraySize = 1,
+		.Format = DXGI_FORMAT_R32_TYPELESS,
+		.SampleDesc = { 1, 0 },
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0
 	};
-	m_deviceContext->RSSetViewports(1, &viewport);
+	HRESULT hr = m_device->CreateTexture2D(&shadowMapDesc, nullptr, RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilTexture.GetAddressOf());
+	CheckResult(hr, "방향성 광원 그림자 맵 텍스처 생성 실패.");
+
+	// 방향성 광원 그림자 맵 깊이-스텐실 뷰 생성
+	const D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc =
+	{
+		.Format = DXGI_FORMAT_D32_FLOAT,
+		.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D,
+		.Flags = 0,
+		.Texture2D = { 0 }
+	};
+	hr = m_device->CreateDepthStencilView(RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilTexture.Get(), &dsvDesc, RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilView.GetAddressOf());
+
+	// 방향성 광원 그림자 맵 셰이더 리소스 뷰 생성
+	const D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc =
+	{
+		.Format = DXGI_FORMAT_R32_FLOAT,
+		.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D,
+		.Texture2D = {.MostDetailedMip = 0, .MipLevels = 1 }
+	};
+	hr = m_device->CreateShaderResourceView(RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilTexture.Get(), &srvDesc, m_directionalLightShadowMapSRV.GetAddressOf());
 }
 
 void Renderer::BeginImGuiFrame()
@@ -374,7 +426,8 @@ void Renderer::UnbindShaderResources()
 void Renderer::ClearRenderTarget(RenderTarget& target)
 {
 	constexpr array<float, 4> clearColor = { 0.0f, 1.0f, 0.0f, 1.0f };
-	m_deviceContext->ClearRenderTargetView(target.renderTargetView.Get(), clearColor.data());
+
+	if (target.renderTargetView) m_deviceContext->ClearRenderTargetView(target.renderTargetView.Get(), clearColor.data());
 	if (target.depthStencilView) m_deviceContext->ClearDepthStencilView(target.depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 
@@ -387,10 +440,10 @@ void Renderer::ResolveSceneMSAA()
 void Renderer::RenderSceneToBackBuffer()
 {
 	// 전체 화면 삼각형 렌더링
-	constexpr UINT stride = sizeof(BackBufferVertex);
-	constexpr UINT offset = 0;
+	constexpr UINT STRIDE = sizeof(BackBufferVertex);
+	constexpr UINT OFFSET = 0;
 
-	m_deviceContext->IASetVertexBuffers(0, 1, m_backBufferVertexBuffer.GetAddressOf(), &stride, &offset);
+	m_deviceContext->IASetVertexBuffers(0, 1, m_backBufferVertexBuffer.GetAddressOf(), &STRIDE, &OFFSET);
 	m_deviceContext->IASetInputLayout(m_backBufferVertexShaderAndInputLayout.second.Get());
 	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

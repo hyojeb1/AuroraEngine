@@ -9,8 +9,6 @@ REGISTER_TYPE(CameraComponent)
 using namespace std;
 using namespace DirectX;
 
-CameraComponent* g_mainCamera = nullptr;
-
 void CameraComponent::Initialize()
 {
 	if (g_mainCamera) cerr << "경고: 여러 개의 카메라가 생성되었습니다" << endl;

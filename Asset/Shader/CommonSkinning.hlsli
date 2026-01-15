@@ -15,8 +15,16 @@
 #ifndef __COMMON_SKINNING_HLSLI__
 #define __COMMON_SKINNING_HLSLI__
 
+cbuffer TimeParam : register(b3)
+{
+    float totalTime;
+    float deltaTime;
+    float sinTime;
+    float cosTime;
+};
+
 #define MAX_BONES 256
-cbuffer BoneState : register(b3)
+cbuffer BoneState : register(b4)
 {
     matrix BoneTransforms[MAX_BONES];
 };
@@ -48,10 +56,10 @@ float4 Skinning(float4 pos, float4 weight, uint4 index)
     
                
     
-    float wx = (weight.x <= 1 && weight.x >= 0) ? weight.x : 0; //TimeParam.z / 2;
-    float wy = (weight.y <= 1 && weight.y >= 0) ? weight.y : 0; //1 - TimeParam.z / 2 ;
-    float wz = (weight.z <= 1 && weight.z >= 0) ? weight.z : 0; //TimeParam.w / 2;
-    float ww = (weight.w <= 1 && weight.w >= 0) ? weight.w : 0; //1 - TimeParam.w / 2;
+    float wx = (weight.x <= 1 || weight.x >= 0) ? weight.x : sinTime / 2;
+    float wy = (weight.y <= 1 || weight.y >= 0) ? weight.y : 1 - sinTime / 2;
+    float wz = (weight.z <= 1 || weight.z >= 0) ? weight.z : cosTime / 2;
+    float ww = (weight.w <= 1 || weight.w >= 0) ? weight.w : 1 - cosTime / 2;
     
 
    

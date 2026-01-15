@@ -35,10 +35,12 @@ void ModelComponent::Render()
 	XMVECTOR boxCenter = XMLoadFloat3(&transformedBoundingBox.Center);
 	XMVECTOR boxExtents = XMLoadFloat3(&transformedBoundingBox.Extents);
 
+	const XMVECTOR& sortPoint = Renderer::GetInstance().GetRenderSortPoint();
+
 	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, m_blendState).emplace_back
 	(
 		// 카메라로부터의 거리
-		XMVectorGetX(XMVector3LengthSq(g_mainCamera->GetPosition() - XMVectorClamp(g_mainCamera->GetPosition(), boxCenter - boxExtents, boxCenter + boxExtents))),
+		XMVectorGetX(XMVector3LengthSq(sortPoint - XMVectorClamp(sortPoint, boxCenter - boxExtents, boxCenter + boxExtents))),
 		[&]()
 		{
 			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
@@ -55,9 +57,9 @@ void ModelComponent::Render()
 				resourceManager.SetPrimitiveTopology(mesh.topology);
 
 				// 메쉬 버퍼 설정
-				constexpr UINT stride = sizeof(Vertex);
-				constexpr UINT offset = 0;
-				m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+				constexpr UINT STRIDE = sizeof(Vertex);
+				constexpr UINT OFFSET = 0;
+				m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &STRIDE, &OFFSET);
 				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 				// 재질 팩터 설정
@@ -66,6 +68,39 @@ void ModelComponent::Render()
 				// 재질 텍스처 셰이더에 설정
 				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
 				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, mesh.materialTexture.ORMTextureSRV.GetAddressOf());
+				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, mesh.materialTexture.normalTextureSRV.GetAddressOf());
+
+				m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
+			}
+		}
+	);
+
+	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::DirectionalLightShadow, m_blendState).emplace_back
+	(
+		// 광원으로부터의 거리
+		XMVectorGetX(XMVector3LengthSq(sortPoint - XMVectorClamp(sortPoint, boxCenter - boxExtents, boxCenter + boxExtents))),
+		[&]()
+		{
+			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
+
+			ResourceManager& resourceManager = ResourceManager::GetInstance();
+			resourceManager.SetRasterState(m_rasterState);
+
+			m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
+			m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
+
+			for (const Mesh& mesh : m_model->meshes)
+			{
+				resourceManager.SetPrimitiveTopology(mesh.topology);
+
+				// 메쉬 버퍼 설정
+				constexpr UINT STRIDE = sizeof(Vertex);
+				constexpr UINT OFFSET = 0;
+				m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &STRIDE, &OFFSET);
+				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+				// 재질 텍스처 셰이더에 설정
+				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
 				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, mesh.materialTexture.normalTextureSRV.GetAddressOf());
 
 				m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
