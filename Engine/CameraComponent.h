@@ -25,11 +25,15 @@ public:
 	CameraComponent& operator=(CameraComponent&&) = default;
 
 	void SetFovY(float fovY) { m_fovY = fovY; }
+	float GetFovY() const { return m_fovY; }
 	void SetNearZ(float nearZ) { m_nearZ = nearZ; }
+	float GetNearZ() const { return m_nearZ; }
 	void SetFarZ(float farZ) { m_farZ = farZ; }
+	float GetFarZ() const { return m_farZ; }
 
 	const DirectX::XMMATRIX& GetViewMatrix() const { return m_viewMatrix; }
 	const DirectX::XMMATRIX& GetProjectionMatrix() const { return m_projectionMatrix; }
+
 	const DirectX::XMVECTOR& GetPosition() const { return *m_position; }
 	const DirectX::XMVECTOR& GetForwardVector() const { return m_forwardVector; }
 

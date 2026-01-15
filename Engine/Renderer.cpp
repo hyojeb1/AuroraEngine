@@ -436,9 +436,9 @@ void Renderer::RenderSceneToBackBuffer()
 {
 	// 전체 화면 삼각형 렌더링
 	constexpr UINT stride = sizeof(BackBufferVertex);
-	constexpr UINT offset = 0;
+	constexpr UINT OFFSET = 0;
 
-	m_deviceContext->IASetVertexBuffers(0, 1, m_backBufferVertexBuffer.GetAddressOf(), &stride, &offset);
+	m_deviceContext->IASetVertexBuffers(0, 1, m_backBufferVertexBuffer.GetAddressOf(), &STRIDE, &OFFSET);
 	m_deviceContext->IASetInputLayout(m_backBufferVertexShaderAndInputLayout.second.Get());
 	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

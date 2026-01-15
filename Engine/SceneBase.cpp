@@ -93,16 +93,60 @@ void SceneBase::BaseUpdate()
 	#endif
 }
 
+//renderer->m_deviceContext->IASetInputLayout(renderer->m_vertexShaderMap[g_vertexShaderIdMap[L"VSOrthographicDepth"]].second.Get());
+//renderer->m_deviceContext->VSSetShader(renderer->m_vertexShaderMap[g_vertexShaderIdMap[L"VSOrthographicDepth"]].first.Get(), nullptr, 0);
+//renderer->m_deviceContext->PSSetShader(renderer->m_pixelShaderMap[g_pixelShaderIdMap[L"PSOrthographicDepth"]].Get(), nullptr, 0);
+//
+//const float cameraFarPlane = m_mainCamera->GetFarPlane();
+//XMVECTOR lightPosition = m_directionalLight.direction * -cameraFarPlane;
+//lightPosition += m_mainCameraPosition;
+//lightPosition = XMVectorSetW(lightPosition, 1.0f);
+//
+//constexpr XMVECTOR LIGHT_UP = { 0.0f, 1.0f, 0.0f, 0.0f };
+//const XMMATRIX lightViewMatrix = XMMatrixLookAtLH(lightPosition, m_mainCameraPosition, LIGHT_UP);
+//
+//const float lightRange = cameraFarPlane * 2.0f;
+//const XMMATRIX lightProjectionMatrix = XMMatrixOrthographicLH(lightRange, lightRange, 0.1f, lightRange);
+//
+//renderer->m_deviceContext->OMSetRenderTargets(0, renderer->m_shadowMapArrayRTV.GetAddressOf(), renderer->m_shadowMapDSV.Get());
+//renderer->m_deviceContext->ClearDepthStencilView(renderer->m_shadowMapDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+//
+//MatrixConstBuffer lightMatrixBuffer = {};
+//lightMatrixBuffer.view = XMMatrixTranspose(lightViewMatrix);
+//lightMatrixBuffer.projection = XMMatrixTranspose(lightProjectionMatrix);
+//
+//m_lightViewProjectionMatrix = XMMatrixTranspose(lightMatrixBuffer.projection * lightMatrixBuffer.view);
+//
+//RenderShadows(renderer, &lightMatrixBuffer);
+
 void SceneBase::BaseRender()
 {
-	// 상수 버퍼 업데이트 및 셰이더에 설정
-	UpdateConstantBuffers();
+	// 방향성 광원 그림자 맵 렌더링
+	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::DirectionalLightShadow, BlendState::Opaque).emplace_back
+	(
+		numeric_limits<float>::lowest(), // 우선순위 가장 높음
+		[&]()
+		{
+			// 뷰-투영 상수 버퍼 방향광 기준으로 업데이트
+			const float cameraFarPlane = g_mainCamera->GetFarZ();
+			XMVECTOR lightPosition = (m_globalLightData.lightDirection * -cameraFarPlane) + g_mainCamera->GetPosition();
+			lightPosition = XMVectorSetW(lightPosition, 1.0f);
 
+			constexpr XMVECTOR LIGHT_UP = { 0.0f, 1.0f, 0.0f, 0.0f };
+
+			m_deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
+		}
+	);
+
+	// 씬 렌더링
 	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
 	(
 		numeric_limits<float>::lowest(), // 우선순위 가장 높음
 		[&]()
 		{
+			// 상수 버퍼 업데이트 및 셰이더에 설정
+			UpdateConstantBuffers();
+
 			// 환경 맵 설정
 			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Environment), 1, m_environmentMapSRV.GetAddressOf());
 			// 스카이박스 렌더링
@@ -334,10 +378,10 @@ void SceneBase::RenderSkybox()
 	m_deviceContext->VSSetShader(m_skyboxVertexShaderAndInputLayout.first.Get(), nullptr, 0);
 	m_deviceContext->PSSetShader(m_skyboxPixelShader.Get(), nullptr, 0);
 
-	constexpr UINT stride = 0;
-	constexpr UINT offset = 0;
+	constexpr UINT STRIDE = 0;
+	constexpr UINT OFFSET = 0;
 	constexpr ID3D11Buffer* nullBuffer = nullptr;
-	m_deviceContext->IASetVertexBuffers(0, 1, &nullBuffer, &stride, &offset);
+	m_deviceContext->IASetVertexBuffers(0, 1, &nullBuffer, &STRIDE, &OFFSET);
 
 	m_deviceContext->Draw(3, 0);
 
@@ -356,10 +400,10 @@ void SceneBase::RenderDebugCoordinates()
 	m_deviceContext->VSSetShader(m_debugCoordinateVertexShaderAndInputLayout.first.Get(), nullptr, 0);
 	m_deviceContext->PSSetShader(m_debugCoordinatePixelShader.Get(), nullptr, 0);
 
-	constexpr UINT stride = 0;
-	constexpr UINT offset = 0;
+	constexpr UINT STRIDE = 0;
+	constexpr UINT OFFSET = 0;
 	constexpr ID3D11Buffer* nullBuffer = nullptr;
-	m_deviceContext->IASetVertexBuffers(0, 1, &nullBuffer, &stride, &offset);
+	m_deviceContext->IASetVertexBuffers(0, 1, &nullBuffer, &STRIDE, &OFFSET);
 
 	m_deviceContext->DrawInstanced(2, 204, 0, 0);
 }
