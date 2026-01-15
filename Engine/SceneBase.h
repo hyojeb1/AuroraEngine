@@ -36,6 +36,9 @@ class SceneBase : public Base
 	SkyboxViewProjectionBuffer m_skyboxViewProjectionData = {}; // 스카이박스 뷰-투영 역행렬 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_skyboxViewProjectionConstantBuffer = nullptr; // 스카이박스 뷰-투영 역행렬 상수 버퍼
 
+	TimeBuffer m_timeData = {}; // 시간 상수 버퍼 데이터
+	com_ptr<ID3D11Buffer> m_timeConstantBuffer = nullptr; // 시간 상수 버퍼
+
 	// 픽셀 셰이더용 상수 버퍼
 	CameraPositionBuffer m_cameraPositionData = {}; // 카메라 위치 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_cameraPositionConstantBuffer = nullptr; // 카메라 위치 상수 버퍼

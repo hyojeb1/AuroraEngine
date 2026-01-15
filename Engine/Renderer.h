@@ -50,6 +50,11 @@ class Renderer : public Singleton<Renderer>
 	com_ptr<ID3D11Texture2D> m_sceneResultTexture = nullptr; // 씬 렌더 타겟의 결과 텍스처 // MSAA 다운샘플링 후 결과 저장
 	com_ptr<ID3D11ShaderResourceView> m_sceneShaderResourceView = nullptr; // 씬 렌더 타겟의 셰이더 리소스 뷰 // 백 버퍼에 적용하면서 후처리됨
 
+	// 그림자 맵 렌더 타겟 관련 리소스
+	std::pair<UINT, UINT> m_directionalLightShadowMapSize = { 1024, 1024 }; // 방향성 광원 그림자 맵 크기
+	com_ptr<ID3D11Texture2D> m_directionalLightShadowMapTexture = nullptr; // 방향성 광원 그림자 맵 텍스처
+	com_ptr<ID3D11ShaderResourceView> m_directionalLightShadowMapSRV = nullptr; // 방향성 광원 그림자 맵 셰이더 리소스 뷰
+
 public:
 	Renderer() = default;
 	~Renderer() = default;
@@ -99,6 +104,8 @@ private:
 	void CreateBackBufferResources();
 	// 씬 렌더 타겟 생성
 	void CreateSceneRenderTarget();
+	// 그림자 맵 렌더 타겟 생성
+	void CreateShadowMapRenderTargets();
 	// 뷰포트 설정
 	void SetViewport();
 

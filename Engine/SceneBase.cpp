@@ -95,17 +95,16 @@ void SceneBase::BaseUpdate()
 
 void SceneBase::BaseRender()
 {
+	// 상수 버퍼 업데이트 및 셰이더에 설정
+	UpdateConstantBuffers();
+
 	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
 	(
-		0.0f,
+		numeric_limits<float>::lowest(), // 우선순위 가장 높음
 		[&]()
 		{
-			// 상수 버퍼 업데이트 및 셰이더에 설정
-			UpdateConstantBuffers();
-
 			// 환경 맵 설정
 			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Environment), 1, m_environmentMapSRV.GetAddressOf());
-
 			// 스카이박스 렌더링
 			RenderSkybox();
 
@@ -287,6 +286,7 @@ void SceneBase::GetResources()
 
 	m_viewProjectionConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::ViewProjection); // 뷰-투영 상수 버퍼 생성
 	m_skyboxViewProjectionConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::SkyboxViewProjection); // 스카이박스 뷰-투영 역행렬 상수 버퍼 생성
+	m_timeConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Time); // 시간 상수 버퍼 생성
 
 	m_cameraPositionConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::CameraPosition); // 카메라 위치 상수 버퍼 생성
 	m_globalLightConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::GlobalLight); // 방향광 상수 버퍼 생성
@@ -298,20 +298,19 @@ void SceneBase::UpdateConstantBuffers()
 	m_viewProjectionData.viewMatrix = g_mainCamera->GetViewMatrix();
 	m_viewProjectionData.projectionMatrix = g_mainCamera->GetProjectionMatrix();
 	m_viewProjectionData.VPMatrix = XMMatrixTranspose(m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix);
-	{
-		float tt = TimeManager::GetInstance().GetTotalTime();
-		float dt = TimeManager::GetInstance().GetDeltaTime();
-		m_viewProjectionData.timeParams.x = tt;
-		m_viewProjectionData.timeParams.y = dt;
-		m_viewProjectionData.timeParams.z = sin(tt); 
-		m_viewProjectionData.timeParams.w = cos(tt); 
-	}
 	m_deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
 
 	// 스카이박스 뷰-투영 역행렬 상수 버퍼 업데이트 및 셰이더에 설정 // m_viewProjectionData 재활용
 	m_viewProjectionData.viewMatrix.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // 뷰 행렬의 위치 성분 제거
 	m_skyboxViewProjectionData.skyboxVPMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix));
 	m_deviceContext->UpdateSubresource(m_skyboxViewProjectionConstantBuffer.Get(), 0, nullptr, &m_skyboxViewProjectionData, 0, 0);
+
+	// 시간 상수 버퍼 업데이트 및 셰이더에 설정
+	m_timeData.totalTime = TimeManager::GetInstance().GetTotalTime();
+	m_timeData.deltaTime = TimeManager::GetInstance().GetDeltaTime();
+	m_timeData.sinTime = sinf(m_timeData.totalTime);
+	m_timeData.cosTime = cosf(m_timeData.totalTime);
+	m_deviceContext->UpdateSubresource(m_timeConstantBuffer.Get(), 0, nullptr, &m_timeData, 0, 0);
 
 	// 카메라 위치 상수 버퍼 업데이트 및 셰이더에 설정
 	m_cameraPositionData.cameraPosition = g_mainCamera->GetPosition();
@@ -350,7 +349,6 @@ void SceneBase::RenderDebugCoordinates()
 {
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-	resourceManager.SetBlendState(BlendState::Opaque);
 	resourceManager.SetRasterState(RasterState::Solid);
 	resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
