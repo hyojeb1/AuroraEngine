@@ -40,13 +40,13 @@ void SkinnedModelComponent::Render()
 			if (!m_model) return;
 
 			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
-			//float animTime = TimeManager::GetInstance().GetTotalTime();
-			//float swayA = sinf(animTime * 0.8f) * 0.2f;
-			//float swayB = sinf(animTime * 1.1f + 1.5f) * 0.3f;
-			//float swayC = sinf(animTime * 1.4f + 2.1f) * 0.4f;
-			//m_boneBufferData.boneMatrix[0] = XMMatrixRotationZ(swayA);
-			//m_boneBufferData.boneMatrix[1] = XMMatrixRotationZ(swayB);
-			//m_boneBufferData.boneMatrix[2] = XMMatrixRotationZ(swayC);
+			float animTime = TimeManager::GetInstance().GetTotalTime();
+			float swayA = sinf(animTime * 0.8f) * 0.2f;
+			float swayB = sinf(animTime * 1.1f + 1.5f) * 0.3f;
+			float swayC = sinf(animTime * 1.4f + 2.1f) * 0.4f;
+			m_boneBufferData.boneMatrix[0] = XMMatrixRotationZ(swayA);
+			m_boneBufferData.boneMatrix[1] = XMMatrixRotationZ(swayB);
+			m_boneBufferData.boneMatrix[2] = XMMatrixRotationZ(swayC);
 
 
 			m_deviceContext->UpdateSubresource(m_boneConstantBuffer.Get(), 0, nullptr, &m_boneBufferData, 0, 0);

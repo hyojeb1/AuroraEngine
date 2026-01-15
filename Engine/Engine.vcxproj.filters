@@ -194,6 +194,12 @@
     <FxCompile Include="..\Asset\Shader\PSOnlyAlbedo.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
+    <FxCompile Include="..\Asset\Shader\PSJointLine.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Asset\Shader\VSJointLine.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Asset\Shader\CommonVS.hlsli">

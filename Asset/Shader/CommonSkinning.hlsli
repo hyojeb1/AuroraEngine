@@ -36,10 +36,15 @@ float4 Skinning(float4 pos, float4 weight, uint4 index)
         
 #else
 
+    //uint ix = (index.x < 20) ? index.x : 0;
+    //uint iy = (index.y < 20) ? index.y : 0;
+    //uint iz = (index.z < 20) ? index.z : 0;
+    //uint iw = (index.w < 20) ? index.w : 0;
+
     uint ix = (index.x < 20) ? index.x : 0;
-    uint iy = (index.y < 20) ? index.y : 0;
-    uint iz = (index.z < 20) ? index.z : 0;
-    uint iw = (index.w < 20) ? index.w : 0;
+    uint iy = (index.y < 20) ? index.y : 1;
+    uint iz = (index.z < 20) ? index.z : 2;
+    uint iw = (index.w < 20) ? index.w : 3;
     
                
     
