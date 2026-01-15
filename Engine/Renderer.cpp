@@ -88,21 +88,10 @@ void Renderer::EndFrame()
 	}
 
 	#ifdef _DEBUG
-	if (m_directionalLightShadowMapSRV)
-	{
-		ImGui::Begin("Directional Light Shadow Map");
-		ImGui::Image
-		(
-			(ImTextureID)m_directionalLightShadowMapSRV.Get(),
-			ImVec2(static_cast<float>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE), static_cast<float>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE))
-		);
-		ImGui::End();
-		// ImGui 프레임 끝
-		ImGui::Render();
-		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-		ImGui::UpdatePlatformWindows();
-		ImGui::RenderPlatformWindowsDefault();
-	}
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	ImGui::UpdatePlatformWindows();
+	ImGui::RenderPlatformWindowsDefault();
 	EndImGuiFrame();
 	#endif
 
