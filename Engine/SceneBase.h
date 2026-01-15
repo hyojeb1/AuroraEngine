@@ -5,8 +5,6 @@
 #include "DebugCamera.h"
 #endif
 
-extern class CameraComponent* g_mainCamera; // 전역 메인 카메라 컴포넌트 포인터
-
 class SceneBase : public Base
 {
 	#ifdef _DEBUG
@@ -45,6 +43,7 @@ class SceneBase : public Base
 
 	GlobalLightBuffer m_globalLightData = {}; // 환경광, 방향광 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_globalLightConstantBuffer = nullptr; // 환경광, 방향광 상수 버퍼
+	com_ptr<ID3D11PixelShader> m_shadowMapPixelShader = nullptr; // 그림자 맵 생성용 픽셀 셰이더
 
 public:
 	SceneBase();

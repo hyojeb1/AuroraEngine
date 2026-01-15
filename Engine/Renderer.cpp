@@ -13,6 +13,7 @@ void Renderer::Initialize()
 	CreateDeviceAndContext();
 	CreateSwapChain();
 	CreateBackBufferResources();
+	CreateShadowMapRenderTargets();
 
 	// 씬 매니저 초기화
 	SceneManager::GetInstance().Initialize();
@@ -87,7 +88,10 @@ void Renderer::EndFrame()
 	}
 
 	#ifdef _DEBUG
-	// ImGui 프레임 끝
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	ImGui::UpdatePlatformWindows();
+	ImGui::RenderPlatformWindowsDefault();
 	EndImGuiFrame();
 	#endif
 
@@ -128,6 +132,7 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 	RENDER_TARGET(RenderStage::Scene).renderTargetView.Reset();
 	RENDER_TARGET(RenderStage::Scene).depthStencilTexture.Reset();
 	RENDER_TARGET(RenderStage::Scene).depthStencilView.Reset();
+
 	m_sceneResultTexture.Reset();
 	m_sceneShaderResourceView.Reset();
 
@@ -154,6 +159,20 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 	SetViewport();
 
 	return hr;
+}
+
+void Renderer::SetViewport(FLOAT Width, FLOAT Height)
+{
+	const D3D11_VIEWPORT viewport =
+	{
+		.TopLeftX = 0.0f,
+		.TopLeftY = 0.0f,
+		.Width = Width,
+		.Height = Height,
+		.MinDepth = 0.0f,
+		.MaxDepth = 1.0f
+	};
+	m_deviceContext->RSSetViewports(1, &viewport);
 }
 
 void Renderer::CreateDeviceAndContext()
@@ -356,8 +375,8 @@ void Renderer::CreateShadowMapRenderTargets()
 	// 방향성 광원 그림자 맵 텍스처 생성
 	const D3D11_TEXTURE2D_DESC shadowMapDesc =
 	{
-		.Width = m_directionalLightShadowMapSize.first,
-		.Height = m_directionalLightShadowMapSize.second,
+		.Width = DIRECTIAL_LIGHT_SHADOW_MAP_SIZE,
+		.Height = DIRECTIAL_LIGHT_SHADOW_MAP_SIZE,
 		.MipLevels = 1,
 		.ArraySize = 1,
 		.Format = DXGI_FORMAT_R32_TYPELESS,
@@ -367,7 +386,7 @@ void Renderer::CreateShadowMapRenderTargets()
 		.CPUAccessFlags = 0,
 		.MiscFlags = 0
 	};
-	HRESULT hr = m_device->CreateTexture2D(&shadowMapDesc, nullptr, m_directionalLightShadowMapTexture.GetAddressOf());
+	HRESULT hr = m_device->CreateTexture2D(&shadowMapDesc, nullptr, RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilTexture.GetAddressOf());
 	CheckResult(hr, "방향성 광원 그림자 맵 텍스처 생성 실패.");
 
 	// 방향성 광원 그림자 맵 깊이-스텐실 뷰 생성
@@ -378,7 +397,7 @@ void Renderer::CreateShadowMapRenderTargets()
 		.Flags = 0,
 		.Texture2D = { 0 }
 	};
-	hr = m_device->CreateDepthStencilView(m_directionalLightShadowMapTexture.Get(), &dsvDesc, RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilView.GetAddressOf());
+	hr = m_device->CreateDepthStencilView(RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilTexture.Get(), &dsvDesc, RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilView.GetAddressOf());
 
 	// 방향성 광원 그림자 맵 셰이더 리소스 뷰 생성
 	const D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc =
@@ -387,21 +406,7 @@ void Renderer::CreateShadowMapRenderTargets()
 		.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D,
 		.Texture2D = {.MostDetailedMip = 0, .MipLevels = 1 }
 	};
-	hr = m_device->CreateShaderResourceView(m_directionalLightShadowMapTexture.Get(), &srvDesc, m_directionalLightShadowMapSRV.GetAddressOf());
-}
-
-void Renderer::SetViewport()
-{
-	const D3D11_VIEWPORT viewport =
-	{
-		.TopLeftX = 0.0f,
-		.TopLeftY = 0.0f,
-		.Width = static_cast<FLOAT>(m_swapChainDesc.Width),
-		.Height = static_cast<FLOAT>(m_swapChainDesc.Height),
-		.MinDepth = 0.0f,
-		.MaxDepth = 1.0f
-	};
-	m_deviceContext->RSSetViewports(1, &viewport);
+	hr = m_device->CreateShaderResourceView(RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilTexture.Get(), &srvDesc, m_directionalLightShadowMapSRV.GetAddressOf());
 }
 
 void Renderer::BeginImGuiFrame()

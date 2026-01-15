@@ -15,6 +15,8 @@ cbuffer GlobalLight : register(b1)
 {
     float4 LightColor; // w는 IBL 강도
     float4 LightDirection; // 정규화된 방향 벡터 // w는 방향광 강도
+    
+    matrix LightViewProjectionMatrix;
 };
 
 cbuffer MaterialFactor : register(b2)
@@ -42,6 +44,7 @@ cbuffer MaterialFactor : register(b2)
 
 SamplerState SamplerPointClamp : register(s0); // PostProcess
 SamplerState SamplerLinearWrap : register(s1); // Model, Skybox
+SamplerComparisonState SamplerComparisonClamp : register(s2); // Shadow Map
 
 
 // --------------------------------------------------------
@@ -49,7 +52,7 @@ SamplerState SamplerLinearWrap : register(s1); // Model, Skybox
 // --------------------------------------------------------
 Texture2D sceneTexture : register(t0);
 TextureCube environmentMapTexture : register(t1);
-Texture2D DirectionalShadowMapTexture : register(t2);
+Texture2D directionalShadowMapTexture : register(t2);
 
 // PBR 재질
 Texture2D albedoTexture : register(t3);
@@ -62,8 +65,8 @@ Texture2D normalTexture : register(t5); // normal map(rgb) + height map(a)
 
 struct PS_INPUT_STD
 {
-    float4 WorldPosition : POSITION0;
     float4 Position : SV_POSITION;
+    float4 WorldPosition : POSITION0;
     float2 UV : TEXCOORD0;
     float3x3 TBN : TBN0;
 };
