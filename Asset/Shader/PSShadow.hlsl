@@ -4,7 +4,7 @@
 void main(PS_INPUT_STD input)
 {
     float3 V = normalize(CameraPosition.xyz - input.WorldPosition.xyz); // 뷰 벡터
-    float3 V_TBN = normalize(mul(V, transpose(input.TBN))); // 뷰 벡터를 탄젠트 공간으로 변환
+    float3 V_TBN = normalize(mul(V, input.TBN)); // 뷰 벡터를 탄젠트 공간으로 변환
     float height = normalTexture.Sample(SamplerLinearWrap, input.UV).a * HeightScale;
     
     float2 parallaxUV = input.UV - V_TBN.xy * height; // 시차 매핑으로 UV 오프셋 계산

@@ -7,7 +7,7 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float3 L = -LightDirection.xyz; // 라이트 벡터
     float3 H = normalize(V + L); // 하프 벡터
     
-    float3 V_TBN = normalize(mul(V, transpose(input.TBN))); // 뷰 벡터를 탄젠트 공간으로 변환
+    float3 V_TBN = normalize(mul(V, input.TBN)); // 뷰 벡터를 탄젠트 공간으로 변환
     float height = normalTexture.Sample(SamplerLinearWrap, input.UV).a * HeightScale;
     float2 parallaxUV = input.UV - V_TBN.xy * height; // 시차 매핑으로 UV 오프셋 계산
     
@@ -37,6 +37,7 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float denominator = 4.0f * NdotV * NdotL + 0.0001f; // 분모
     float3 specular = numerator / denominator; // 스페큘러 반사
     
+    // 섀도우 맵 샘플링 // TODO: 나중에 함수로 빼야함
     float4 lightSpacePos = mul(input.WorldPosition, LightViewProjectionMatrix);
     float2 shadowTexCoord = float2(lightSpacePos.x * 0.5f + 0.5f, -lightSpacePos.y * 0.5f + 0.5f);
     float currentDepth = lightSpacePos.z * 0.999f;
@@ -60,7 +61,6 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float3 envDiffuse = environmentMapTexture.SampleLevel(SamplerLinearWrap, N, 8.0f).rgb;
     
     float3 indirectDiffuse = envDiffuse * albedo.rgb * kD_env; // 환경광 디퓨즈
-    
     float3 indirectSpecular = envReflection * F_env; // 환경광 스페큘러
     
     // IBL 최종 기여도
