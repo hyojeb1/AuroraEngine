@@ -10,6 +10,7 @@ struct RenderTarget
 	com_ptr<ID3D11DepthStencilView> depthStencilView = nullptr; // 깊이-스텐실 뷰
 };
 
+constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 2048; // 방향성 광원 그림자 맵 크기
 enum class RenderStage
 {
 	DirectionalLightShadow,
@@ -444,6 +445,8 @@ struct GlobalLightBuffer // 방향광 상수 버퍼 구조체
 {
 	DirectX::XMFLOAT4 lightColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 방향광 색상 // w는 IBL 강도
 	DirectX::XMVECTOR lightDirection = DirectX::XMVectorSet(-0.5f, -1.0f, -0.5f, 1.0f); // 방향광 방향 // w는 방향광 강도
+
+	DirectX::XMMATRIX lightViewProjectionMatrix = DirectX::XMMatrixIdentity(); // 방향광 뷰-투영 행렬 // 전치함
 };
 struct MaterialFactorBuffer
 {

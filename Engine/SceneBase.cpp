@@ -14,6 +14,8 @@
 using namespace std;
 using namespace DirectX;
 
+CameraComponent* g_mainCamera = nullptr;
+
 SceneBase::SceneBase()
 {
 	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
@@ -93,32 +95,6 @@ void SceneBase::BaseUpdate()
 	#endif
 }
 
-//renderer->m_deviceContext->IASetInputLayout(renderer->m_vertexShaderMap[g_vertexShaderIdMap[L"VSOrthographicDepth"]].second.Get());
-//renderer->m_deviceContext->VSSetShader(renderer->m_vertexShaderMap[g_vertexShaderIdMap[L"VSOrthographicDepth"]].first.Get(), nullptr, 0);
-//renderer->m_deviceContext->PSSetShader(renderer->m_pixelShaderMap[g_pixelShaderIdMap[L"PSOrthographicDepth"]].Get(), nullptr, 0);
-//
-//const float cameraFarPlane = m_mainCamera->GetFarPlane();
-//XMVECTOR lightPosition = m_directionalLight.direction * -cameraFarPlane;
-//lightPosition += m_mainCameraPosition;
-//lightPosition = XMVectorSetW(lightPosition, 1.0f);
-//
-//constexpr XMVECTOR LIGHT_UP = { 0.0f, 1.0f, 0.0f, 0.0f };
-//const XMMATRIX lightViewMatrix = XMMatrixLookAtLH(lightPosition, m_mainCameraPosition, LIGHT_UP);
-//
-//const float lightRange = cameraFarPlane * 2.0f;
-//const XMMATRIX lightProjectionMatrix = XMMatrixOrthographicLH(lightRange, lightRange, 0.1f, lightRange);
-//
-//renderer->m_deviceContext->OMSetRenderTargets(0, renderer->m_shadowMapArrayRTV.GetAddressOf(), renderer->m_shadowMapDSV.Get());
-//renderer->m_deviceContext->ClearDepthStencilView(renderer->m_shadowMapDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-//
-//MatrixConstBuffer lightMatrixBuffer = {};
-//lightMatrixBuffer.view = XMMatrixTranspose(lightViewMatrix);
-//lightMatrixBuffer.projection = XMMatrixTranspose(lightProjectionMatrix);
-//
-//m_lightViewProjectionMatrix = XMMatrixTranspose(lightMatrixBuffer.projection * lightMatrixBuffer.view);
-//
-//RenderShadows(renderer, &lightMatrixBuffer);
-
 void SceneBase::BaseRender()
 {
 	// 방향성 광원 그림자 맵 렌더링
@@ -129,12 +105,24 @@ void SceneBase::BaseRender()
 		{
 			// 뷰-투영 상수 버퍼 방향광 기준으로 업데이트
 			const float cameraFarPlane = g_mainCamera->GetFarZ();
+
 			XMVECTOR lightPosition = (m_globalLightData.lightDirection * -cameraFarPlane) + g_mainCamera->GetPosition();
 			lightPosition = XMVectorSetW(lightPosition, 1.0f);
+			Renderer::GetInstance().SetRenderSortPoint(lightPosition); // 정렬 기준점도 라이트 위치로 설정
 
 			constexpr XMVECTOR LIGHT_UP = { 0.0f, 1.0f, 0.0f, 0.0f };
+			m_viewProjectionData.viewMatrix = XMMatrixLookAtLH(lightPosition, g_mainCamera->GetPosition(), LIGHT_UP);
+
+			const float lightRange = cameraFarPlane * 2.0f;
+			m_viewProjectionData.projectionMatrix = XMMatrixOrthographicLH(static_cast<float>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE), static_cast<float>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE), 0.1f, lightRange);
+
+			m_viewProjectionData.VPMatrix = XMMatrixTranspose(m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix);
+			m_globalLightData.lightViewProjectionMatrix = m_viewProjectionData.VPMatrix;
 
 			m_deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
+
+			// 상수 버퍼 설정
+			m_deviceContext->PSSetShader(m_shadowMapPixelShader.Get(), nullptr, 0);
 		}
 	);
 
@@ -144,6 +132,9 @@ void SceneBase::BaseRender()
 		numeric_limits<float>::lowest(), // 우선순위 가장 높음
 		[&]()
 		{
+			// 정렬 기준점 카메라 위치로 설정
+			Renderer::GetInstance().SetRenderSortPoint(g_mainCamera->GetPosition());
+
 			// 상수 버퍼 업데이트 및 셰이더에 설정
 			UpdateConstantBuffers();
 
@@ -320,6 +311,7 @@ void SceneBase::GetResources()
 
 	m_skyboxVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSSkybox.hlsl"); // 스카이박스 정점 셰이더 얻기
 	m_skyboxPixelShader = resourceManager.GetPixelShader("PSSkybox.hlsl"); // 스카이박스 픽셀 셰이더 얻기
+	m_shadowMapPixelShader = resourceManager.GetPixelShader("PSShadow.hlsl"); // 그림자 맵 생성용 픽셀 셰이더 얻기
 
 	#ifdef _DEBUG
 	m_debugCoordinateVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSCoordinateLine.hlsl"); // 디버그 좌표 정점 셰이더 얻기

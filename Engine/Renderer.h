@@ -32,7 +32,8 @@ class Renderer : public Singleton<Renderer>
 	com_ptr<ID3D11Device> m_device = nullptr; // 디바이스
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
 	com_ptr<IDXGISwapChain1> m_swapChain = nullptr; // 스왑 체인
-
+	
+	DirectX::XMVECTOR m_renderSortPoint = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // 랜저 정렬 기준점
 	std::array<std::pair<RenderTarget, std::array<std::vector<std::pair<float, std::function<void()>>>, static_cast<size_t>(BlendState::Count)>>, static_cast<size_t>(RenderStage::Count)> m_renderPass = {};
 
 	// 백 버퍼 렌더 타겟 관련 리소스
@@ -51,8 +52,6 @@ class Renderer : public Singleton<Renderer>
 	com_ptr<ID3D11ShaderResourceView> m_sceneShaderResourceView = nullptr; // 씬 렌더 타겟의 셰이더 리소스 뷰 // 백 버퍼에 적용하면서 후처리됨
 
 	// 그림자 맵 렌더 타겟 관련 리소스
-	std::pair<UINT, UINT> m_directionalLightShadowMapSize = { 1024, 1024 }; // 방향성 광원 그림자 맵 크기
-	com_ptr<ID3D11Texture2D> m_directionalLightShadowMapTexture = nullptr; // 방향성 광원 그림자 맵 텍스처
 	com_ptr<ID3D11ShaderResourceView> m_directionalLightShadowMapSRV = nullptr; // 방향성 광원 그림자 맵 셰이더 리소스 뷰
 
 public:
@@ -70,6 +69,9 @@ public:
 	void BeginFrame();
 
 	// 렌더 패스 관련 매크로 함수
+	void SetRenderSortPoint(const DirectX::XMVECTOR& point) { m_renderSortPoint = point; }
+	const DirectX::XMVECTOR& GetRenderSortPoint() const { return m_renderSortPoint; }
+
 	constexpr RenderTarget& RENDER_TARGET(RenderStage stage) { return m_renderPass[static_cast<size_t>(stage)].first; }
 	constexpr std::vector<std::pair<float, std::function<void()>>>& RENDER_FUNCTION(RenderStage renderStage, BlendState blendState) { return m_renderPass[static_cast<size_t>(renderStage)].second[static_cast<size_t>(blendState)]; }
 
