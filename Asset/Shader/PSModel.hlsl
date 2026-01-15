@@ -37,8 +37,13 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float denominator = 4.0f * NdotV * NdotL + 0.0001f; // 분모
     float3 specular = numerator / denominator; // 스페큘러 반사
     
+    float4 lightSpacePos = mul(input.WorldPosition, LightViewProjectionMatrix);
+    float2 shadowTexCoord = float2(lightSpacePos.x * 0.5f + 0.5f, -lightSpacePos.y * 0.5f + 0.5f);
+    float currentDepth = lightSpacePos.z * 0.999f;
+    float shadow = directionalShadowMapTexture.SampleCmpLevelZero(SamplerComparisonClamp, shadowTexCoord, currentDepth);
+    
     // 조명 계산
-    float3 radiance = LightColor.rgb * LightDirection.w; // 조명 세기
+    float3 radiance = LightColor.rgb * shadow * LightDirection.w; // 조명 세기
     float3 kD = (float3(1.0f, 1.0f, 1.0f) - F) * (1.0f - orm.b); // 디퓨즈 반사
     float3 Lo = (kD * albedo.rgb * INV_PI + specular) * radiance * NdotL; // PBR 직접광
     
@@ -55,6 +60,7 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float3 envDiffuse = environmentMapTexture.SampleLevel(SamplerLinearWrap, N, 8.0f).rgb;
     
     float3 indirectDiffuse = envDiffuse * albedo.rgb * kD_env; // 환경광 디퓨즈
+    
     float3 indirectSpecular = envReflection * F_env; // 환경광 스페큘러
     
     // IBL 최종 기여도

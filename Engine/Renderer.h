@@ -86,6 +86,10 @@ public:
 
 	// 화면 크기 조정
 	HRESULT Resize(UINT width, UINT height);
+	// 뷰포트 설정
+	void SetViewport(FLOAT Width, FLOAT Height);
+	// 뷰포트 설정 (현재 스왑 체인 크기로)
+	void SetViewport() { SetViewport(static_cast<FLOAT>(m_swapChainDesc.Width), static_cast<FLOAT>(m_swapChainDesc.Height)); }
 	// 화면 종횡비 조회
 	float GetAspectRatio() const { return m_aspectRatio; }
 
@@ -108,8 +112,6 @@ private:
 	void CreateSceneRenderTarget();
 	// 그림자 맵 렌더 타겟 생성
 	void CreateShadowMapRenderTargets();
-	// 뷰포트 설정
-	void SetViewport();
 
 	// 랜더링 파이프라인 함수
 	// ImGui 프레임 시작

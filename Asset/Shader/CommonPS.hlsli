@@ -52,7 +52,7 @@ SamplerComparisonState SamplerComparisonClamp : register(s2); // Shadow Map
 // --------------------------------------------------------
 Texture2D sceneTexture : register(t0);
 TextureCube environmentMapTexture : register(t1);
-Texture2D DirectionalShadowMapTexture : register(t2);
+Texture2D directionalShadowMapTexture : register(t2);
 
 // PBR 재질
 Texture2D albedoTexture : register(t3);

@@ -143,6 +143,7 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 	RENDER_TARGET(RenderStage::Scene).renderTargetView.Reset();
 	RENDER_TARGET(RenderStage::Scene).depthStencilTexture.Reset();
 	RENDER_TARGET(RenderStage::Scene).depthStencilView.Reset();
+
 	m_sceneResultTexture.Reset();
 	m_sceneShaderResourceView.Reset();
 
@@ -169,6 +170,20 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 	SetViewport();
 
 	return hr;
+}
+
+void Renderer::SetViewport(FLOAT Width, FLOAT Height)
+{
+	const D3D11_VIEWPORT viewport =
+	{
+		.TopLeftX = 0.0f,
+		.TopLeftY = 0.0f,
+		.Width = Width,
+		.Height = Height,
+		.MinDepth = 0.0f,
+		.MaxDepth = 1.0f
+	};
+	m_deviceContext->RSSetViewports(1, &viewport);
 }
 
 void Renderer::CreateDeviceAndContext()
@@ -403,20 +418,6 @@ void Renderer::CreateShadowMapRenderTargets()
 		.Texture2D = {.MostDetailedMip = 0, .MipLevels = 1 }
 	};
 	hr = m_device->CreateShaderResourceView(RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilTexture.Get(), &srvDesc, m_directionalLightShadowMapSRV.GetAddressOf());
-}
-
-void Renderer::SetViewport()
-{
-	const D3D11_VIEWPORT viewport =
-	{
-		.TopLeftX = 0.0f,
-		.TopLeftY = 0.0f,
-		.Width = static_cast<FLOAT>(m_swapChainDesc.Width),
-		.Height = static_cast<FLOAT>(m_swapChainDesc.Height),
-		.MinDepth = 0.0f,
-		.MaxDepth = 1.0f
-	};
-	m_deviceContext->RSSetViewports(1, &viewport);
 }
 
 void Renderer::BeginImGuiFrame()

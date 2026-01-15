@@ -10,7 +10,7 @@ struct RenderTarget
 	com_ptr<ID3D11DepthStencilView> depthStencilView = nullptr; // 깊이-스텐실 뷰
 };
 
-constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 2048; // 방향성 광원 그림자 맵 크기
+constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 4096; // 방향성 광원 그림자 맵 크기
 enum class RenderStage
 {
 	DirectionalLightShadow,

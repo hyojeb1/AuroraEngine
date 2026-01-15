@@ -103,12 +103,16 @@ void SceneBase::BaseRender()
 		numeric_limits<float>::lowest(), // 우선순위 가장 높음
 		[&]()
 		{
+			Renderer& renderer = Renderer::GetInstance();
+
+			renderer.SetViewport(static_cast<FLOAT>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE), static_cast<FLOAT>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE));
+
 			// 뷰-투영 상수 버퍼 방향광 기준으로 업데이트
-			const float cameraFarPlane = g_mainCamera->GetFarZ();
+			const float cameraFarPlane = g_mainCamera->GetFarZ() * 0.1f;
 
 			XMVECTOR lightPosition = (m_globalLightData.lightDirection * -cameraFarPlane) + g_mainCamera->GetPosition();
 			lightPosition = XMVectorSetW(lightPosition, 1.0f);
-			Renderer::GetInstance().SetRenderSortPoint(lightPosition); // 정렬 기준점도 라이트 위치로 설정
+			renderer.SetRenderSortPoint(lightPosition); // 정렬 기준점도 라이트 위치로 설정
 
 			constexpr XMVECTOR LIGHT_UP = { 0.0f, 1.0f, 0.0f, 0.0f };
 			m_viewProjectionData.viewMatrix = XMMatrixLookAtLH(lightPosition, g_mainCamera->GetPosition(), LIGHT_UP);
@@ -132,8 +136,12 @@ void SceneBase::BaseRender()
 		numeric_limits<float>::lowest(), // 우선순위 가장 높음
 		[&]()
 		{
+			Renderer& renderer = Renderer::GetInstance();
+
+			renderer.SetViewport();
+
 			// 정렬 기준점 카메라 위치로 설정
-			Renderer::GetInstance().SetRenderSortPoint(g_mainCamera->GetPosition());
+			renderer.SetRenderSortPoint(g_mainCamera->GetPosition());
 
 			// 상수 버퍼 업데이트 및 셰이더에 설정
 			UpdateConstantBuffers();

@@ -70,8 +70,8 @@ struct VS_INPUT_POS
 // 스키닝 애니메이션도 이거 씁니다.
 struct VS_OUTPUT_STD
 {
-    float4 WorldPosition : POSITION0;
     float4 Position : SV_POSITION;
+    float4 WorldPosition : POSITION0;
     float2 UV : TEXCOORD0;
     float3x3 TBN : TBN0;
 };
