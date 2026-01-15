@@ -14,9 +14,8 @@
 
 #include <windows.h>
 #include <mmsystem.h>
-#pragma comment(lib, "winmm.lib") // timeGetTime�Լ� ����� ���� ���̺귯��
+#pragma comment(lib, "winmm.lib") // timeGetTime
 #include <wrl/client.h>
-//~�߰�
 
 // STL 헤더
 #include <array>
@@ -26,8 +25,8 @@
 #include <iostream>
 #include <typeindex>
 #include <unordered_map>
-#include <queue>		//�߰�
-#include <optional>		//�߰�
+#include <queue>
+#include <optional>
 
 // DirectX 헤더
 #include <d3d11.h>
@@ -56,7 +55,7 @@
 // JSON 헤더
 #include <nlohmann/json.hpp>
 
-// boost-asio ���//�߰�
+// boost-asio
 #include <boost/asio.hpp>
 #include <boost/asio/executor_work_guard.hpp>
 
