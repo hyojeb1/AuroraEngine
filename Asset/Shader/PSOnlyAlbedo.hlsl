@@ -2,7 +2,7 @@
 #include "CommonPS.hlsli"
 #include "CommonMath.hlsli"
 
-//#define ONLYALBEDO
+#define ONLYALBEDO
 
 #ifdef ONLYALBEDO
 

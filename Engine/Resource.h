@@ -527,7 +527,7 @@ struct SkinnedVertex
 struct BoneInfo
 {
 	uint32_t id = 0;
-	DirectX::XMFLOAT4X4 offset = {};
+	DirectX::XMFLOAT4X4 offset = {}; // 난 여기서만 쓰고 있었네;;
 };
 
 struct SkeletonNode

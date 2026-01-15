@@ -799,9 +799,9 @@ SkinnedMesh ResourceManager::ProcessSkinnedMesh(const aiMesh* mesh, const aiScen
 		}
 		else
 		{
-			resultMesh.materialTexture.albedoTextureSRV = GetTexture("Base.png");
-			resultMesh.materialTexture.ORMTextureSRV = GetTexture("black1px.png");
-			resultMesh.materialTexture.normalTextureSRV = GetTexture("Base_normal.png");
+			resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.dds");
+			resultMesh.materialTexture.ORMTextureSRV = GetTexture("SampleORM.dds");
+			resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleBump.dds");
 		}
 
 		if (material->GetTexture(aiTextureType_NORMALS, 0, &texturePath) == AI_SUCCESS)

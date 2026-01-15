@@ -11,7 +11,139 @@
 using namespace std;
 using namespace DirectX;
 
+
 REGISTER_TYPE(SkinnedModelComponent)
+
+namespace
+{
+	struct JointLineVertex
+	{
+		XMFLOAT4 position = {};
+	};
+
+	void CollectSkeletonData(const SkeletonNode& node,
+		const XMMATRIX& parentWorld,
+		vector<JointLineVertex>& lineVertices,
+		vector<XMFLOAT3>& jointPositions)
+	{
+		const XMMATRIX localTransform = XMLoadFloat4x4(&node.localTransform);
+		//const XMMATRIX worldTransform = XMMatrixMultiply(parentWorld, localTransform); 
+		const XMMATRIX worldTransform = XMMatrixMultiply(localTransform, parentWorld);
+
+		XMFLOAT3 worldPosition = {};
+		XMStoreFloat3(&worldPosition, worldTransform.r[3]);
+		jointPositions.push_back(worldPosition);
+
+		for (const auto& child : node.children)
+		{
+			const XMMATRIX childLocalTransform = XMLoadFloat4x4(&child->localTransform);
+			//const XMMATRIX childWorldTransform = XMMatrixMultiply(worldTransform, childLocalTransform);
+			const XMMATRIX childWorldTransform = XMMatrixMultiply(childLocalTransform, worldTransform);
+
+			XMFLOAT3 childWorldPosition = {};
+			XMStoreFloat3(&childWorldPosition, childWorldTransform.r[3]);
+
+			lineVertices.push_back({ XMFLOAT4(worldPosition.x, worldPosition.y, worldPosition.z, 1.0f) });
+			lineVertices.push_back({ XMFLOAT4(childWorldPosition.x, childWorldPosition.y, childWorldPosition.z, 1.0f) });
+
+			CollectSkeletonData(*child, worldTransform, lineVertices, jointPositions);
+		}
+	}
+
+	void DrawSkeletonTreeImGui(const SkeletonNode& node)
+	{
+		const string label = node.boneIndex >= 0
+			? node.name + " (bone " + to_string(node.boneIndex) + ")"
+			: node.name;
+
+		if (node.children.empty())
+		{
+			ImGui::BulletText("%s", label.c_str());
+			return;
+		}
+
+		if (ImGui::TreeNode(label.c_str()))
+		{
+			for (const auto& child : node.children)
+			{
+				DrawSkeletonTreeImGui(*child);
+			}
+			ImGui::TreePop();
+		}
+	}
+
+	// 벡터 출력을 위한 간단한 헬퍼
+	void PrintVector(const char* label, XMVECTOR v)
+	{
+		XMFLOAT3 f;
+		XMStoreFloat3(&f, v);
+		std::cout << label << ": ["
+			<< std::setw(8) << std::fixed << std::setprecision(3) << f.x << ", "
+			<< std::setw(8) << std::fixed << std::setprecision(3) << f.y << ", "
+			<< std::setw(8) << std::fixed << std::setprecision(3) << f.z << "]";
+	}
+
+	// 재귀적으로 스켈레톤 정보를 출력하는 함수
+	void DebugPrintRecursive(const SkeletonNode* node, XMMATRIX parentWorld, int depth)
+	{
+		if (!node) return;
+
+		XMMATRIX localTransform = XMLoadFloat4x4(&node->localTransform);
+
+		// [중요] 행렬 곱 순서: Local * Parent
+		XMMATRIX worldTransform = XMMatrixMultiply(localTransform, parentWorld);
+
+		// 분해 (Decompose)
+		XMVECTOR scale, rotQuat, trans;
+		XMMatrixDecompose(&scale, &rotQuat, &trans, worldTransform);
+
+		XMVECTOR localScale, localRot, localTrans;
+		XMMatrixDecompose(&localScale, &localRot, &localTrans, localTransform);
+
+		// 쿼터니언 -> 오일러 각 변환 (디버깅용, 라디안 -> 도)
+		XMFLOAT4 q;
+		XMStoreFloat4(&q, localRot);
+		// 간단한 Pitch/Yaw/Roll 변환 (정확하지 않아도 회전 유무 확인 가능)
+		float pitch = asinf(-2.0f * (q.y * q.z - q.w * q.x));
+		float yaw = atan2f(2.0f * (q.x * q.z + q.w * q.y), q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z);
+		float roll = atan2f(2.0f * (q.x * q.y + q.w * q.z), q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z);
+
+		// 라디안 -> 도
+		auto ToDeg = [](float r) { return r * 180.0f / 3.141592f; };
+
+		// 출력 포맷
+		std::string indent(depth * 2, ' ');
+		std::string prefix = indent + (depth > 0 ? "|- " : "");
+
+		std::cout << prefix << "Node: " << node->name;
+		if (node->boneIndex != -1) std::cout << " (Bone ID: " << node->boneIndex << ")";
+		std::cout << std::endl;
+
+		std::cout << indent << "   Local Pos: ["
+			<< std::setw(6) << std::fixed << std::setprecision(3) << XMVectorGetX(localTrans) << ", "
+			<< std::setw(6) << std::fixed << std::setprecision(3) << XMVectorGetY(localTrans) << ", "
+			<< std::setw(6) << std::fixed << std::setprecision(3) << XMVectorGetZ(localTrans) << "]"
+			<< " | Rot(Deg): ["
+			<< std::setw(5) << ToDeg(pitch) << ", "
+			<< std::setw(5) << ToDeg(yaw) << ", "
+			<< std::setw(5) << ToDeg(roll) << "]"
+			<< std::endl;
+
+		std::cout << indent << "   World Pos: ["
+			<< std::setw(6) << std::fixed << std::setprecision(3) << XMVectorGetX(trans) << ", "
+			<< std::setw(6) << std::fixed << std::setprecision(3) << XMVectorGetY(trans) << ", "
+			<< std::setw(6) << std::fixed << std::setprecision(3) << XMVectorGetZ(trans) << "]"
+			<< std::endl;
+
+		for (const auto& child : node->children)
+		{
+			DebugPrintRecursive(child.get(), worldTransform, depth + 1);
+		}
+	}
+
+} //End fo Scope : namespace
+
+
 
 void SkinnedModelComponent::Initialize()
 {
@@ -29,6 +161,7 @@ void SkinnedModelComponent::Initialize()
 
 }
 
+
 void SkinnedModelComponent::Render()
 {
 	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, m_blendState).emplace_back
@@ -40,14 +173,6 @@ void SkinnedModelComponent::Render()
 			if (!m_model) return;
 
 			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
-			float animTime = TimeManager::GetInstance().GetTotalTime();
-			float swayA = sinf(animTime * 0.8f) * 0.2f;
-			float swayB = sinf(animTime * 1.1f + 1.5f) * 0.3f;
-			float swayC = sinf(animTime * 1.4f + 2.1f) * 0.4f;
-			m_boneBufferData.boneMatrix[0] = XMMatrixRotationZ(swayA);
-			m_boneBufferData.boneMatrix[1] = XMMatrixRotationZ(swayB);
-			m_boneBufferData.boneMatrix[2] = XMMatrixRotationZ(swayC);
-
 
 			m_deviceContext->UpdateSubresource(m_boneConstantBuffer.Get(), 0, nullptr, &m_boneBufferData, 0, 0);
 
@@ -81,9 +206,47 @@ void SkinnedModelComponent::Render()
 
 				m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
 			}
+
+
+			if (m_bRenderSkeletonLines && m_model->skeleton.root)
+			{
+				vector<JointLineVertex> lineVertices = {};
+				vector<XMFLOAT3> jointPositions = {};
+				CollectSkeletonData(*m_model->skeleton.root, m_worldNormalData->worldMatrix, lineVertices, jointPositions);
+
+				if (!lineVertices.empty())
+				{
+					if (m_jointLineVertexCapacity < lineVertices.size())
+					{
+						m_jointLineVertexBuffer = resourceManager.CreateVertexBuffer(nullptr, sizeof(JointLineVertex), static_cast<UINT>(lineVertices.size()), true);
+						m_jointLineVertexCapacity = lineVertices.size();
+					}
+
+					D3D11_MAPPED_SUBRESOURCE mapped = {};
+					if (SUCCEEDED(m_deviceContext->Map(m_jointLineVertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
+					{
+						memcpy(mapped.pData, lineVertices.data(), sizeof(JointLineVertex) * lineVertices.size());
+						m_deviceContext->Unmap(m_jointLineVertexBuffer.Get(), 0);
+					}
+
+					resourceManager.SetBlendState(BlendState::Opaque);
+					resourceManager.SetRasterState(RasterState::Solid);
+					resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+					m_deviceContext->IASetInputLayout(m_jointLineVertexShaderAndInputLayout.second.Get());
+					m_deviceContext->VSSetShader(m_jointLineVertexShaderAndInputLayout.first.Get(), nullptr, 0);
+					m_deviceContext->PSSetShader(m_jointLinePixelShader.Get(), nullptr, 0);
+
+					constexpr UINT stride = sizeof(JointLineVertex);
+					constexpr UINT offset = 0;
+					m_deviceContext->IASetVertexBuffers(0, 1, m_jointLineVertexBuffer.GetAddressOf(), &stride, &offset);
+					m_deviceContext->Draw(static_cast<UINT>(lineVertices.size()), 0);
+				}
+			}
 		}
 	);
 }
+
 
 void SkinnedModelComponent::RenderImGui()
 {
@@ -135,6 +298,68 @@ void SkinnedModelComponent::RenderImGui()
 	{
 		m_rasterState = static_cast<RasterState>(rasterStateInt);
 		ResourceManager::GetInstance().SetRasterState(m_rasterState);
+	}
+
+	ImGui::Separator();
+	// 기존 체크박스들...
+	ImGui::Checkbox("Render Skeleton Lines", &m_bRenderSkeletonLines);
+	ImGui::Checkbox("Show Skeleton Tree", &m_bShowSkeletonTree);
+	ImGui::Checkbox("Show Joint Overlay", &m_bShowJointOverlay);
+
+	// [추가된 디버그 버튼]
+	if (ImGui::Button("Debug: Print Skeleton Info to Console"))
+	{
+		if (m_model && m_model->skeleton.root)
+		{
+			std::cout << "\n========== Skeleton Debug Info Start ==========\n";
+
+			// 루트의 부모 행렬은 현재 컴포넌트(오브젝트)의 월드 행렬
+			XMMATRIX objectWorld = m_worldNormalData->worldMatrix;
+
+			// 재귀 출력 시작
+			DebugPrintRecursive(m_model->skeleton.root.get(), objectWorld, 0);
+
+			std::cout << "========== Skeleton Debug Info End ============\n" << std::endl;
+		}
+		else
+		{
+			std::cout << "Error: Model or Skeleton Root is null!" << std::endl;
+		}
+	}
+
+	if (m_bShowSkeletonTree && m_model && m_model->skeleton.root)
+	{
+		ImGui::SeparatorText("Skeleton Hierarchy");
+		DrawSkeletonTreeImGui(*m_model->skeleton.root);
+	}
+
+	if (m_bShowJointOverlay && m_model && m_model->skeleton.root && g_mainCamera)
+	{
+		vector<JointLineVertex> lineVertices = {};
+		vector<XMFLOAT3> jointPositions = {};
+		CollectSkeletonData(*m_model->skeleton.root, m_worldNormalData->worldMatrix, lineVertices, jointPositions);
+
+		const XMMATRIX viewProjection = XMMatrixMultiply(g_mainCamera->GetViewMatrix(), g_mainCamera->GetProjectionMatrix());
+		ImDrawList* drawList = ImGui::GetForegroundDrawList();
+		const ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+		for (const XMFLOAT3& jointPosition : jointPositions)
+		{
+			const XMVECTOR worldPos = XMVectorSet(jointPosition.x, jointPosition.y, jointPosition.z, 1.0f);
+			const XMVECTOR clipPos = XMVector3TransformCoord(worldPos, viewProjection);
+
+			XMFLOAT3 ndc = {};
+			XMStoreFloat3(&ndc, clipPos);
+
+			if (ndc.z < 0.0f || ndc.z > 1.0f) continue;
+			if (ndc.x < -1.0f || ndc.x > 1.0f) continue;
+			if (ndc.y < -1.0f || ndc.y > 1.0f) continue;
+
+			const float screenX = (ndc.x * 0.5f + 0.5f) * displaySize.x;
+			const float screenY = (1.0f - (ndc.y * 0.5f + 0.5f)) * displaySize.y;
+
+			drawList->AddCircleFilled(ImVec2(screenX, screenY), 3.0f, IM_COL32(255, 200, 0, 255));
+		}
 	}
 
 }
@@ -214,5 +439,8 @@ void SkinnedModelComponent::CreateShaders()
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_vertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout(m_vsShaderName, m_inputElements);
 	m_pixelShader = resourceManager.GetPixelShader(m_psShaderName);
+
+	m_jointLineVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout(m_jointLineVSShaderName, m_jointLineInputElements);
+	m_jointLinePixelShader = resourceManager.GetPixelShader(m_jointLinePSShaderName);
 }
 /// SkinnedModelComponent.cpp의 끝
