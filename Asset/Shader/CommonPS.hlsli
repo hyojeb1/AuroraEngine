@@ -44,6 +44,7 @@ cbuffer MaterialFactor : register(b2)
 
 SamplerState SamplerPointClamp : register(s0); // PostProcess
 SamplerState SamplerLinearWrap : register(s1); // Model, Skybox
+SamplerComparisonState SamplerComparisonClamp : register(s2); // Shadow Map
 
 
 // --------------------------------------------------------
@@ -64,8 +65,8 @@ Texture2D normalTexture : register(t5); // normal map(rgb) + height map(a)
 
 struct PS_INPUT_STD
 {
-    float4 WorldPosition : POSITION0;
     float4 Position : SV_POSITION;
+    float4 WorldPosition : POSITION0;
     float2 UV : TEXCOORD0;
     float3x3 TBN : TBN0;
 };

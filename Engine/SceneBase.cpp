@@ -114,7 +114,7 @@ void SceneBase::BaseRender()
 			m_viewProjectionData.viewMatrix = XMMatrixLookAtLH(lightPosition, g_mainCamera->GetPosition(), LIGHT_UP);
 
 			const float lightRange = cameraFarPlane * 2.0f;
-			m_viewProjectionData.projectionMatrix = XMMatrixOrthographicLH(static_cast<float>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE), static_cast<float>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE), 0.1f, lightRange);
+			m_viewProjectionData.projectionMatrix = XMMatrixOrthographicLH(lightRange, lightRange, 0.1f, lightRange);
 
 			m_viewProjectionData.VPMatrix = XMMatrixTranspose(m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix);
 			m_globalLightData.lightViewProjectionMatrix = m_viewProjectionData.VPMatrix;

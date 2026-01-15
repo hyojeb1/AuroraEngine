@@ -119,5 +119,25 @@ float GeometrySmith(float NdotL, float NdotV, float roughness)
     return ggx1 * ggx2;
 }
 
+// --------------------------------------------------------
+// 6. 그림자 매핑 유틸리티 (Shadow Mapping Utils)
+// --------------------------------------------------------
+
+float CalculateDirectionalShadow(matrix directionalLightVP, float4 worldPos, Texture2D shadowMap, SamplerComparisonState shadowSampler)
+{
+    float4 lightSpacePos = mul(directionalLightVP, worldPos);
+    
+    float2 shadowTexCoord;
+    shadowTexCoord.x = lightSpacePos.x * 0.5f + 0.5f;
+    shadowTexCoord.y = -lightSpacePos.y * 0.5f + 0.5f;
+    
+    if (shadowTexCoord.x < 0.0f || shadowTexCoord.x > 1.0f || shadowTexCoord.y < 0.0f || shadowTexCoord.y > 1.0f) return 1.0f;
+    
+    float currentDepth = lightSpacePos.z - 0.001f;
+    float shadow = shadowMap.SampleCmpLevelZero(shadowSampler, shadowTexCoord, currentDepth);
+    
+    return shadow;
+}
+
 #endif // __COMMON_MATH_HLSLI__
 /// CommonMath.hlsli의 끝

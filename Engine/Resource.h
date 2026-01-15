@@ -190,6 +190,7 @@ enum class SamplerState
 {
 	BackBuffer, // 백 버퍼 전용 샘플러 상태
 	Default,
+	ShadowMap,
 
 	Count
 };
@@ -221,6 +222,21 @@ constexpr std::array<D3D11_SAMPLER_DESC, static_cast<size_t>(SamplerState::Count
 		.MaxAnisotropy = 8, // 최대 이방성 필터링
 		.ComparisonFunc = D3D11_COMPARISON_NEVER,
 		.BorderColor = { 0.0f, 0.0f, 0.0f, 0.0f },
+		.MinLOD = 0,
+		.MaxLOD = D3D11_FLOAT32_MAX
+	},
+
+	// ShadowMap
+	D3D11_SAMPLER_DESC
+	{
+		.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT, // 그림자 맵용 비교 필터링
+		.AddressU = D3D11_TEXTURE_ADDRESS_BORDER, // U 좌표 테두리
+		.AddressV = D3D11_TEXTURE_ADDRESS_BORDER, // V 좌표 테두리
+		.AddressW = D3D11_TEXTURE_ADDRESS_BORDER, // W 좌표 테두리
+		.MipLODBias = 0.0f,
+		.MaxAnisotropy = 1,
+		.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL, // 비교 함수: 작거나 같음
+		.BorderColor = { 1.0f, 1.0f, 1.0f, 1.0f }, // 테두리 색상 흰색
 		.MinLOD = 0,
 		.MaxLOD = D3D11_FLOAT32_MAX
 	}
