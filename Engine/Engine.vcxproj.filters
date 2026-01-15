@@ -87,6 +87,9 @@
     <ClCompile Include="SoundManager.cpp">
       <Filter>Manager</Filter>
     </ClCompile>
+    <ClCompile Include="SkinnedModelComponent.cpp">
+      <Filter>Base\Component</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -155,6 +158,9 @@
     </ClInclude>
     <ClInclude Include="SoundManager.h">
       <Filter>Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinnedModelComponent.h">
+      <Filter>Base\Component</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

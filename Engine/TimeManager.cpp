@@ -12,6 +12,6 @@ void TimeManager::UpdateTime()
 
 	constexpr float millisecondsToSeconds = 1.0f / 1000.0f;
 	m_deltaTime = static_cast<float>(m_currentTime - m_previousTime) * millisecondsToSeconds * m_timeScale;
-
+	m_totalTime += m_deltaTime;
 	m_previousTime = m_currentTime;
 }

@@ -322,6 +322,10 @@ void ResourceManager::CreateAndSetConstantBuffers()
 	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::WorldNormal)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::WorldNormal)].GetAddressOf());
 	CheckResult(hr, "WorldNormal 상수 버퍼 생성 실패.");
 	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::WorldNormal), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::WorldNormal)].GetAddressOf());
+	// 뼈 버퍼
+	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::Bone)], nullptr,	m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Bone)].GetAddressOf());
+	CheckResult(hr, "Bone 상수 버퍼 생성 실패.");
+	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Bone), 1,m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Bone)].GetAddressOf());
 
 	// 픽셀 셰이더용 상수 버퍼 생성 및 설정
 	// 카메라 위치 상수 버퍼

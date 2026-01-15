@@ -10,6 +10,7 @@ class TimeManager : public Singleton<TimeManager>
 
 	float m_timeScale = 1.0f; // 시간 배율
 	float m_deltaTime = 0.0f; // 델타 타임 // 초 단위
+	float m_totalTime = 0.0f; //
 
 public:
 	~TimeManager() = default;
@@ -26,7 +27,7 @@ public:
 	void SetTimeScale(float timeScale) { m_timeScale = timeScale; }
 	// 델타 타임 얻기
 	float GetDeltaTime() const { return m_deltaTime; }
-
+	float GetTotalTime() const { return m_totalTime; }
 private:
 	TimeManager() = default;
 };

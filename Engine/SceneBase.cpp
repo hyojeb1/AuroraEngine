@@ -5,6 +5,7 @@
 #include "CameraComponent.h"
 #include "Renderer.h"
 #include "ResourceManager.h"
+#include "TimeManager.h"
 
 #ifdef _DEBUG
 #include "InputManager.h"
@@ -297,6 +298,14 @@ void SceneBase::UpdateConstantBuffers()
 	m_viewProjectionData.viewMatrix = g_mainCamera->GetViewMatrix();
 	m_viewProjectionData.projectionMatrix = g_mainCamera->GetProjectionMatrix();
 	m_viewProjectionData.VPMatrix = XMMatrixTranspose(m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix);
+	{
+		float tt = TimeManager::GetInstance().GetTotalTime();
+		float dt = TimeManager::GetInstance().GetDeltaTime();
+		m_viewProjectionData.timeParams.x = tt;
+		m_viewProjectionData.timeParams.y = dt;
+		m_viewProjectionData.timeParams.z = sin(tt); 
+		m_viewProjectionData.timeParams.w = cos(tt); 
+	}
 	m_deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
 
 	// 스카이박스 뷰-투영 역행렬 상수 버퍼 업데이트 및 셰이더에 설정 // m_viewProjectionData 재활용
