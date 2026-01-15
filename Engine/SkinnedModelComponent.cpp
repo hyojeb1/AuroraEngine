@@ -68,7 +68,7 @@ void SkinnedModelComponent::Render()
 				resourceManager.SetPrimitiveTopology(mesh.topology);
 
 				// 메쉬 버퍼 설정
-				constexpr UINT stride = sizeof(Vertex);
+				constexpr UINT STRIDE = sizeof(Vertex);
 				constexpr UINT OFFSET = 0;
 				m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &STRIDE, &OFFSET);
 				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
