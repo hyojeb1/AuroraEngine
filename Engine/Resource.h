@@ -367,7 +367,8 @@ struct TimeBuffer
 constexpr int MAX_BONES = 80;
 struct BoneBuffer
 {
-	std::array<DirectX::XMMATRIX, MAX_BONES> boneMatrix = { DirectX::XMMatrixIdentity() }; // 본 행렬 배열
+	std::array<DirectX::XMMATRIX, MAX_BONES> boneMatrix = {}; // 본 행렬 배열
+	BoneBuffer() { std::fill(boneMatrix.begin(), boneMatrix.end(), DirectX::XMMatrixIdentity()); }
 };
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Count)> VS_CONST_BUFFER_DESCS =
 {
