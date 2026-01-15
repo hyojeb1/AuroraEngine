@@ -293,11 +293,11 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 	if (SceneHasBones(scene))
 	{
 #ifdef _DEBUG
-		cerr << "스킨드 모델 감지: " << fileName << " (LoadSkinnedModel 사용)" << endl;
+		cerr << "스킨드 모델 감지: " << fileName << " (LoadSkinnedModel을 사용할 수 있습니다.)" << endl;
 #else
 		MessageBoxA(nullptr, ("스킨드 모델 감지: " + fileName + " (LoadSkinnedModel 사용)").c_str(), "오류", MB_OK | MB_ICONERROR);
 #endif
-		return nullptr;
+		//return nullptr;
 	}
 
 
@@ -355,11 +355,11 @@ const SkinnedModel* ResourceManager::LoadSkinnedModel(const string& fileName)
 	if (!SceneHasBones(scene))
 	{
 #ifdef _DEBUG
-		cerr << "스키닝 데이터 없음: " << fileName << " (LoadModel 사용)" << endl;
+		cerr << "스키닝 데이터 없음: " << fileName << " (LoadModel의 사용을 권합니다.)" << endl;
 #else
 		MessageBoxA(nullptr, ("스키닝 데이터 없음: " + fileName + " (LoadModel 사용)").c_str(), "오류", MB_OK | MB_ICONERROR);
 #endif
-		return nullptr;
+		//return nullptr;
 	}
 
 	SkinnedModel& model = m_skinnedModels[fileName];

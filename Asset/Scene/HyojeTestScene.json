@@ -40,9 +40,9 @@
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
                     },
-                    "modelFileName": "Arm.fbx",
-                    "psShaderName": "PSOnlyAlbedo.hlsl",
-                    "rasterState": 2,
+                    "modelFileName": "Aurora12.fbx",
+                    "psShaderName": "PSModel.hlsl",
+                    "rasterState": 1,
                     "type": "SkinnedModelComponent",
                     "vsShaderName": "VSModelSkinAnim.hlsl"
                 }
@@ -55,10 +55,10 @@
                 0.0
             ],
             "rotation": [
-                0.7071067690849304,
                 0.0,
+                0.013089596293866634,
                 0.0,
-                0.7071067094802856
+                0.9999143481254578
             ],
             "scale": [
                 0.10000000149011612,
