@@ -49,11 +49,12 @@ SamplerState SamplerLinearWrap : register(s1); // Model, Skybox
 // --------------------------------------------------------
 Texture2D sceneTexture : register(t0);
 TextureCube environmentMapTexture : register(t1);
+Texture2D DirectionalShadowMapTexture : register(t2);
 
 // PBR 재질
-Texture2D albedoTexture : register(t2);
-Texture2D ORMTexture : register(t3); // ambient occlusion(R) + roughness(G) + metallic(B)
-Texture2D normalTexture : register(t4); // normal map(rgb) + height map(a)
+Texture2D albedoTexture : register(t3);
+Texture2D ORMTexture : register(t4); // ambient occlusion(R) + roughness(G) + metallic(B)
+Texture2D normalTexture : register(t5); // normal map(rgb) + height map(a)
 
 // --------------------------------------------------------
 // Input Structures (VS 출력과 매칭되어야 함)
