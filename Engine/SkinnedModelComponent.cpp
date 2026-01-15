@@ -212,7 +212,8 @@ void SkinnedModelComponent::Render()
 			{
 				vector<JointLineVertex> lineVertices = {};
 				vector<XMFLOAT3> jointPositions = {};
-				CollectSkeletonData(*m_model->skeleton.root, m_worldNormalData->worldMatrix, lineVertices, jointPositions);
+				//CollectSkeletonData(*m_model->skeleton.root, m_worldNormalData->worldMatrix, lineVertices, jointPositions);
+				CollectSkeletonData(*m_model->skeleton.root, m_owner->GetWorldMatrix(), lineVertices, jointPositions);
 
 				if (!lineVertices.empty())
 				{
@@ -314,7 +315,8 @@ void SkinnedModelComponent::RenderImGui()
 			std::cout << "\n========== Skeleton Debug Info Start ==========\n";
 
 			// 루트의 부모 행렬은 현재 컴포넌트(오브젝트)의 월드 행렬
-			XMMATRIX objectWorld = m_worldNormalData->worldMatrix;
+			//XMMATRIX objectWorld = m_worldNormalData->worldMatrix;
+			XMMATRIX objectWorld = m_owner->GetWorldMatrix();
 
 			// 재귀 출력 시작
 			DebugPrintRecursive(m_model->skeleton.root.get(), objectWorld, 0);
@@ -337,7 +339,8 @@ void SkinnedModelComponent::RenderImGui()
 	{
 		vector<JointLineVertex> lineVertices = {};
 		vector<XMFLOAT3> jointPositions = {};
-		CollectSkeletonData(*m_model->skeleton.root, m_worldNormalData->worldMatrix, lineVertices, jointPositions);
+		//CollectSkeletonData(*m_model->skeleton.root, m_worldNormalData->worldMatrix, lineVertices, jointPositions);
+		CollectSkeletonData(*m_model->skeleton.root, m_owner->GetWorldMatrix(), lineVertices, jointPositions);
 
 		const XMMATRIX viewProjection = XMMatrixMultiply(g_mainCamera->GetViewMatrix(), g_mainCamera->GetProjectionMatrix());
 		ImDrawList* drawList = ImGui::GetForegroundDrawList();
