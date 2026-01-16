@@ -171,10 +171,12 @@ void SkinnedModelComponent::Render()
 	XMVECTOR boxCenter = XMLoadFloat3(&transformedBoundingBox.Center);
 	XMVECTOR boxExtents = XMLoadFloat3(&transformedBoundingBox.Extents);
 
+	const XMVECTOR& sortPoint = Renderer::GetInstance().GetRenderSortPoint();
+
 	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, m_blendState).emplace_back
 	(
 		// 카메라로부터의 거리
-		XMVectorGetX(XMVector3LengthSq(g_mainCamera->GetPosition() - XMVectorClamp(g_mainCamera->GetPosition(), boxCenter - boxExtents, boxCenter + boxExtents))),
+		XMVectorGetX(XMVector3LengthSq(sortPoint - XMVectorClamp(sortPoint, boxCenter - boxExtents, boxCenter + boxExtents))),
 		[&]()
 		{
 			if (!m_model) return;
