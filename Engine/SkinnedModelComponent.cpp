@@ -225,8 +225,7 @@ void SkinnedModelComponent::Render()
 			m_deviceContext->VSSetShader(m_lineVertexShaderAndInputLayout.first.Get(), nullptr, 0);
 			m_deviceContext->PSSetShader(m_linePixelShader.Get(), nullptr, 0);
 
-			ResourceManager& resourceManager = ResourceManager::GetInstance();
-			resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+			ResourceManager::GetInstance().SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
 			for (size_t i = 0; i < lineVertices.size(); i += 2)
 			{
