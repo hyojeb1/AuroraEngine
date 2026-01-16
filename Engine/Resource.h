@@ -10,7 +10,7 @@ struct RenderTarget
 	com_ptr<ID3D11DepthStencilView> depthStencilView = nullptr; // 깊이-스텐실 뷰
 };
 
-constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 4096; // 방향성 광원 그림자 맵 크기
+constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 8192; // 방향성 광원 그림자 맵 크기
 enum class RenderStage
 {
 	DirectionalLightShadow,
@@ -388,7 +388,7 @@ struct BoneBuffer
 };
 struct LineBuffer
 {
-	std::array<DirectX::XMVECTOR, 2> linePoints = { DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f), DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f) }; // 선 시작 및 끝 위치
+	std::array<DirectX::XMFLOAT4, 2> linePoints = { DirectX::XMFLOAT4{0.0f, 0.0f, 0.0f, 1.0f}, DirectX::XMFLOAT4{0.0f, 0.0f, 0.0f, 1.0f} }; // 선 시작 및 끝 점 위치
 	std::array<DirectX::XMFLOAT4, 2> lineColors = { DirectX::XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f}, DirectX::XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f} }; // 선 시작 및 끝 색상
 };
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Count)> VS_CONST_BUFFER_DESCS =
@@ -639,6 +639,13 @@ struct SkinnedModel
 	std::vector<SkinnedMesh> skinnedMeshes = {};
 	DirectX::BoundingBox boundingBox = {};
 	Skeleton skeleton = {};
+};
+
+constexpr std::array<std::pair<size_t, size_t>, 12> BOX_LINE_INDICES =
+{
+	std::pair<size_t, size_t>{ 0, 1 }, std::pair<size_t, size_t>{ 1, 2 }, std::pair<size_t, size_t>{ 2, 3 }, std::pair<size_t, size_t>{ 3, 0 },
+	std::pair<size_t, size_t>{ 4, 5 }, std::pair<size_t, size_t>{ 5, 6 }, std::pair<size_t, size_t>{ 6, 7 }, std::pair<size_t, size_t>{ 7, 4 },
+	std::pair<size_t, size_t>{ 0, 4 }, std::pair<size_t, size_t>{ 1, 5 }, std::pair<size_t, size_t>{ 2, 6 }, std::pair<size_t, size_t>{ 3, 7 }
 };
 
 /// Resource.h의 끝

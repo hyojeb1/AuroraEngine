@@ -29,12 +29,20 @@ class ModelComponent : public ComponentBase
 	std::string m_modelFileName = "box.fbx"; // 기본 모델 파일 이름
 
 	const struct Model* m_model = nullptr;
+	DirectX::BoundingBox m_boundingBox = {}; // 변환된 경계 상자
 
 	MaterialFactorBuffer m_materialFactorData = {}; // 재질 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_materialConstantBuffer = nullptr; // 재질 상수 버퍼
 
 	BlendState m_blendState = BlendState::Opaque; // 기본 블렌드 상태
 	RasterState m_rasterState = RasterState::Solid; // 기본 래스터 상태
+
+	#ifdef _DEBUG
+	bool m_renderBoundingBox = true; // 경계 상자 렌더링 여부
+	bool m_renderSubMeshBoundingBoxes = false; // 서브 메시 경계 상자 렌더링 여부
+	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_boundingBoxVertexShaderAndInputLayout = {}; // 경계 상자 정점 셰이더 및 입력 레이아웃
+	com_ptr<ID3D11PixelShader> m_boundingBoxPixelShader = nullptr; // 경계 상자 픽셀 셰이더
+	#endif
 
 public:
 	ModelComponent() = default;
@@ -52,11 +60,13 @@ public:
 	const std::string& GetModelFileName() const { return m_modelFileName; }
 	void SetModelFileName(const std::string& modelFileName) { m_modelFileName = modelFileName; }
 
-	bool NeedsUpdate() const override { return false; }
+	bool NeedsFixedUpdate() const override { return false; }
+	bool NeedsUpdate() const override { return true; }
 	bool NeedsRender() const override { return true; }
 
 private:
 	void Initialize() override;
+	void Update() override;
 	void Render() override;
 	void RenderImGui() override;
 
