@@ -555,7 +555,36 @@ struct SkinnedVertex
 struct BoneInfo
 {
 	uint32_t id = 0;
-	DirectX::XMFLOAT4X4 offset = {}; // 난 여기서만 쓰고 있었네;;
+	DirectX::XMFLOAT4X4 offset = {};
+};
+
+//////////////////////////////////////////////
+//! 
+//! 이렇게 받을 것인가
+//! 아트팀이 무엇을 주든 받게끔? 일단 지피티가 주는 대로 짜고 이후에  고민을 해보자. 
+//! 
+//! 현재는 24프레임 모두 받아 처리하는 게 아니잖슴!
+//! 
+//
+struct VectorKeyframe
+{
+	float timePos = 0.0f;
+	DirectX::XMFLOAT3 value = { 0.0f, 0.0f, 0.0f };
+};
+
+struct QuaternionKeyframe
+{
+	float timePos = 0.0f;
+	DirectX::XMFLOAT4 value = { 0.0f, 0.0f, 0.0f, 1.0f };
+};
+
+struct BoneAnimationChannel
+{
+	std::string boneName = {};
+	int boneIndex = -1;
+	std::vector<VectorKeyframe> positionKeys = {};
+	std::vector<QuaternionKeyframe> rotationKeys = {};
+	std::vector<VectorKeyframe> scaleKeys = {};
 };
 
 struct SkeletonNode
@@ -571,6 +600,14 @@ struct Skeleton
 	std::unordered_map<std::string, uint32_t> boneMapping = {};
 	std::vector<BoneInfo> bones = {};
 	std::unique_ptr<SkeletonNode> root = nullptr;
+};
+
+struct AnimationClip
+{
+	std::string name = {};
+	float duration = 0.0f;
+	float ticksPerSecond = 0.f; // 틱 준비
+	std::unordered_map<std::string, BoneAnimationChannel> channels;
 };
 
 struct MaterialTexture
@@ -624,6 +661,7 @@ struct SkinnedModel
 	std::vector<SkinnedMesh> skinnedMeshes = {};
 	DirectX::BoundingBox boundingBox = {};
 	Skeleton skeleton = {};
+	std::vector<AnimationClip> animations = {};
 };
 
 /// Resource.h의 끝

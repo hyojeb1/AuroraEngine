@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Animator.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="ComponentBase.h" />
     <ClInclude Include="DebugCamera.h" />
@@ -184,6 +185,7 @@
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="SkinnedModelComponent.cpp" />
     <ClCompile Include="SoundManager.cpp" />
+    <ClCompile Include="Animator.cpp" />
     <ClCompile Include="TimeManager.cpp" />
     <ClCompile Include="TypeRegistry.cpp" />
     <ClCompile Include="WindowManager.cpp" />
