@@ -77,5 +77,11 @@ struct PS_INPUT_POS_UV
     float2 UV : TEXCOORD;
 };
 
+struct PS_INPUT_POS_COLOR
+{
+    float4 Position : SV_POSITION;
+    float4 Color : COLOR0;
+};
+
 #endif // __COMMON_PS_HLSLI__
 /// CommonPS.hlsli의 끝

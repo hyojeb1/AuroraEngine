@@ -5,7 +5,6 @@
 
 #include "TestScene.h"
 #include "HyojeTestScene.h"
-#include "ClientTestScene.h"
 
 #ifdef _DEBUG
 int main()

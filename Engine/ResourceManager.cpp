@@ -427,6 +427,11 @@ void ResourceManager::CreateAndSetConstantBuffers()
 	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::Bone)], nullptr,	m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Bone)].GetAddressOf());
 	CheckResult(hr, "Bone 상수 버퍼 생성 실패.");
 	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Bone), 1,m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Bone)].GetAddressOf());
+	
+	//선 그리기용 상수 버퍼
+	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::Line)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Line)].GetAddressOf());
+	CheckResult(hr, "LineColor 상수 버퍼 생성 실패.");
+	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Line), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Line)].GetAddressOf());
 
 	// 픽셀 셰이더용 상수 버퍼 생성 및 설정
 	// 카메라 위치 상수 버퍼
@@ -579,17 +584,6 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 	};
 	// 모델 전체 바운딩 박스 갱신
 	BoundingBox::CreateMerged(model.boundingBox, model.boundingBox, resultMesh.boundingBox);
-
-	// 재질 처리
-	//if (mesh->mMaterialIndex >= 0)
-	//{
-	//	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-	//	resultMesh.materialFactor = ProcessMaterialFactor(material);
-
-	//	resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.dds");
-	//	resultMesh.materialTexture.ORMTextureSRV = GetTexture("SampleORM.dds");
-	//	resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleNormal.dds");
-	//}
 
 	// [재질 및 텍스처 처리 수정]
 	if (mesh->mMaterialIndex >= 0)

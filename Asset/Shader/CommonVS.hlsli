@@ -23,6 +23,26 @@ cbuffer World : register(b2)
     matrix NormalMatrix; // 스케일 역행렬을 적용한 월드 행렬
 }
 
+cbuffer TimeParam : register(b3)
+{
+    float TotalTime;
+    float DeltaTime;
+    float SinTime;
+    float CosTime;
+};
+
+#define MAX_BONES 256
+cbuffer BoneState : register(b4)
+{
+    matrix BoneTransforms[MAX_BONES];
+};
+
+cbuffer Line : register(b5)
+{
+    float4 LinePoints[2];
+    float4 LineColors[2];
+};
+
 // --------------------------------------------------------
 // Input Structures
 // --------------------------------------------------------
@@ -80,6 +100,12 @@ struct VS_OUTPUT_POS_UV
 {
     float4 Position : SV_POSITION;
     float2 UV : TEXCOORD0;
+};
+
+struct VS_OUTPUT_POS_COLOR
+{
+    float4 Position : SV_POSITION;
+    float4 Color : COLOR0;
 };
 
 #endif // __COMMON_VS_HLSLI__
