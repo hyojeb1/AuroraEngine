@@ -92,7 +92,7 @@ void Renderer::EndFrame()
 	ImGui::Image
 	(
 		(ImTextureID)m_directionalLightShadowMapSRV.Get(),
-		ImVec2(static_cast<float>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE), static_cast<float>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE))
+		ImVec2(500.0f, 500.0f)
 	);
 	ImGui::End();
 	ImGui::Render();
