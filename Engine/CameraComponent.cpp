@@ -3,6 +3,7 @@
 
 #include "GameObjectBase.h"
 #include "Renderer.h"
+#include "ResourceManager.h"
 
 REGISTER_TYPE(CameraComponent)
 
@@ -21,6 +22,12 @@ void CameraComponent::Initialize()
 {
 	if (g_mainCamera) cerr << "경고: 여러 개의 카메라가 생성되었습니다" << endl;
 	else g_mainCamera = this;
+
+	#ifdef _DEBUG
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
+	m_boundingFrustumVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
+	m_boundingFrustumPixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
+	#endif
 
 	m_position = &m_owner->GetWorldMatrix().r[3];
 	UpdateProjectionMatrix();
@@ -41,6 +48,49 @@ void CameraComponent::UpdateProjectionMatrix()
 {
 	m_projectionMatrix = XMMatrixPerspectiveFovLH(m_fovY, Renderer::GetInstance().GetAspectRatio(), m_nearZ, m_farZ);
 	m_boundingFrustum = BoundingFrustum(m_projectionMatrix);
+}
+
+void CameraComponent::Render()
+{
+	#ifdef _DEBUG
+	Renderer& renderer = Renderer::GetInstance();
+	renderer.RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
+	(
+		numeric_limits<float>::max(),
+		[&]()
+		{
+			BoundingFrustum frustum = GetBoundingFrustum();
+
+			// 프러스텀 컬링
+			if (frustum.Intersects(g_mainCamera->GetBoundingFrustum()) == false) return;
+
+			ResourceManager& resourceManager = ResourceManager::GetInstance();
+			com_ptr<ID3D11DeviceContext> deviceContext = renderer.GetDeviceContext();
+
+			deviceContext->IASetInputLayout(m_boundingFrustumVertexShaderAndInputLayout.second.Get());
+			deviceContext->VSSetShader(m_boundingFrustumVertexShaderAndInputLayout.first.Get(), nullptr, 0);
+			deviceContext->PSSetShader(m_boundingFrustumPixelShader.Get(), nullptr, 0);
+
+			ResourceManager::GetInstance().SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+			// 경계 상자 그리기
+			array<XMFLOAT3, 8> boxVertices = {};
+			frustum.GetCorners(boxVertices.data());
+
+			LineBuffer lineBufferData = {};
+
+			for (const auto& [startIndex, endIndex] : BOX_LINE_INDICES)
+			{
+				lineBufferData.linePoints[0] = XMFLOAT4{ boxVertices[startIndex].x, boxVertices[startIndex].y, boxVertices[startIndex].z, 1.0f };
+				lineBufferData.linePoints[1] = XMFLOAT4{ boxVertices[endIndex].x, boxVertices[endIndex].y, boxVertices[endIndex].z, 1.0f };
+				lineBufferData.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+				lineBufferData.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+				deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
+				deviceContext->Draw(2, 0);
+			}
+		}
+	);
+	#endif
 }
 
 void CameraComponent::RenderImGui()

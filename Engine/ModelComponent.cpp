@@ -144,13 +144,6 @@ void ModelComponent::Render()
 			array<XMFLOAT3, 8> boxVertices = {};
 			m_boundingBox.GetCorners(boxVertices.data());
 
-			constexpr array<pair<size_t, size_t>, 12> BOX_LINE_INDICES =
-			{
-				pair<size_t, size_t>{ 0, 1 }, pair<size_t, size_t>{ 1, 2 }, pair<size_t, size_t>{ 2, 3 }, pair<size_t, size_t>{ 3, 0 },
-				pair<size_t, size_t>{ 4, 5 }, pair<size_t, size_t>{ 5, 6 }, pair<size_t, size_t>{ 6, 7 }, pair<size_t, size_t>{ 7, 4 },
-				pair<size_t, size_t>{ 0, 4 }, pair<size_t, size_t>{ 1, 5 }, pair<size_t, size_t>{ 2, 6 }, pair<size_t, size_t>{ 3, 7 }
-			};
-
 			LineBuffer lineBufferData = {};
 			if (m_renderBoundingBox)
 			{

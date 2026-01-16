@@ -12,7 +12,6 @@ REGISTER_TYPE(TestScene)
 
 void TestScene::Initialize()
 {
-	CreateRootGameObject<CamRotObject>("CamRotObject")->CreateChildGameObject<TestCameraObject>();
 }
 
 /// TestScene.cpp의 끝

@@ -641,4 +641,11 @@ struct SkinnedModel
 	Skeleton skeleton = {};
 };
 
+constexpr std::array<std::pair<size_t, size_t>, 12> BOX_LINE_INDICES =
+{
+	std::pair<size_t, size_t>{ 0, 1 }, std::pair<size_t, size_t>{ 1, 2 }, std::pair<size_t, size_t>{ 2, 3 }, std::pair<size_t, size_t>{ 3, 0 },
+	std::pair<size_t, size_t>{ 4, 5 }, std::pair<size_t, size_t>{ 5, 6 }, std::pair<size_t, size_t>{ 6, 7 }, std::pair<size_t, size_t>{ 7, 4 },
+	std::pair<size_t, size_t>{ 0, 4 }, std::pair<size_t, size_t>{ 1, 5 }, std::pair<size_t, size_t>{ 2, 6 }, std::pair<size_t, size_t>{ 3, 7 }
+};
+
 /// Resource.h의 끝

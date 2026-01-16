@@ -36,6 +36,13 @@ void SceneBase::BaseInitialize()
 {
 	m_type = GetTypeName(*this);
 
+	#ifdef _DEBUG
+	m_debugCamera = make_unique<DebugCamera>();
+	static_cast<Base*>(m_debugCamera.get())->BaseInitialize();
+	m_debugCamera->Initialize();
+	static_cast<GameObjectBase*>(m_debugCamera.get())->CreateComponent<CameraComponent>();
+	#endif
+
 	// 저장된 씬 파일 불러오기
 	const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
 	if (filesystem::exists(sceneFilePath))
@@ -49,12 +56,7 @@ void SceneBase::BaseInitialize()
 
 	GetResources();
 
-	#ifdef _DEBUG
-	m_debugCamera = make_unique<DebugCamera>();
-	static_cast<Base*>(m_debugCamera.get())->BaseInitialize();
-	m_debugCamera->Initialize();
-	static_cast<GameObjectBase*>(m_debugCamera.get())->CreateComponent<CameraComponent>();
-	#else
+	#ifdef NDEBUG
 	Initialize();
 	#endif
 }
