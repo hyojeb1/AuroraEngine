@@ -526,7 +526,7 @@ enum class TextureSlots
 
 	Albedo, // RGBA
 	ORM, // ambient occlusion(R) + roughness(G) + metallic(B)
-	Normal, // X(R) + Y(G) + Z(B)
+	Normal, // XYZ(RGB) + height(A)
 
 	Count
 };
