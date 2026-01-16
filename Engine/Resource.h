@@ -548,8 +548,8 @@ struct SkinnedVertex
 	DirectX::XMFLOAT3 bitangent = {};
 	DirectX::XMFLOAT3 tangent = {};
 
-	uint32_t boneIndex[4];
-	DirectX::XMFLOAT4    boneWeight;
+	std::array<uint32_t, 4> boneIndex = {};
+	DirectX::XMFLOAT4 boneWeight = {};
 };
 
 struct BoneInfo
