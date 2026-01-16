@@ -11,23 +11,13 @@
 using namespace std;
 using namespace DirectX;
 
-
 REGISTER_TYPE(SkinnedModelComponent)
 
 namespace
 {
-	struct JointLineVertex
-	{
-		XMFLOAT4 position = {};
-	};
-
-	void CollectSkeletonData(const SkeletonNode& node,
-		const XMMATRIX& parentWorld,
-		vector<JointLineVertex>& lineVertices,
-		vector<XMFLOAT3>& jointPositions)
+	void CollectSkeletonData(const SkeletonNode& node, const XMMATRIX& parentWorld, vector<XMFLOAT4>& lineVertices, vector<XMFLOAT3>& jointPositions)
 	{
 		const XMMATRIX localTransform = XMLoadFloat4x4(&node.localTransform);
-		//const XMMATRIX worldTransform = XMMatrixMultiply(parentWorld, localTransform); 
 		const XMMATRIX worldTransform = XMMatrixMultiply(localTransform, parentWorld);
 
 		XMFLOAT3 worldPosition = {};
@@ -37,7 +27,6 @@ namespace
 		for (const auto& child : node.children)
 		{
 			const XMMATRIX childLocalTransform = XMLoadFloat4x4(&child->localTransform);
-			//const XMMATRIX childWorldTransform = XMMatrixMultiply(worldTransform, childLocalTransform);
 			const XMMATRIX childWorldTransform = XMMatrixMultiply(childLocalTransform, worldTransform);
 
 			XMFLOAT3 childWorldPosition = {};
@@ -225,7 +214,7 @@ void SkinnedModelComponent::Render()
 		{
 			if (!m_bRenderSkeletonLines || !m_model->skeleton.root) return;
 
-			vector<JointLineVertex> lineVertices = {};
+			vector<XMFLOAT4> lineVertices = {};
 			vector<XMFLOAT3> jointPositions = {};
 			CollectSkeletonData(*m_model->skeleton.root, m_owner->GetWorldMatrix(), lineVertices, jointPositions);
 
@@ -242,8 +231,8 @@ void SkinnedModelComponent::Render()
 			for (size_t i = 0; i < lineVertices.size(); i += 2)
 			{
 				LineBuffer lineBufferData = {};
-				lineBufferData.linePoints[0] = XMVectorSet(lineVertices[i].position.x, lineVertices[i].position.y, lineVertices[i].position.z, 1.0f);
-				lineBufferData.linePoints[1] = XMVectorSet(lineVertices[i + 1].position.x, lineVertices[i + 1].position.y, lineVertices[i + 1].position.z, 1.0f);
+				lineBufferData.linePoints[0] = XMVectorSet(lineVertices[i].x, lineVertices[i].y, lineVertices[i].z, 1.0f);
+				lineBufferData.linePoints[1] = XMVectorSet(lineVertices[i + 1].x, lineVertices[i + 1].y, lineVertices[i + 1].z, 1.0f);
 				lineBufferData.lineColors[0] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
 				lineBufferData.lineColors[1] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f };
 
@@ -335,9 +324,8 @@ void SkinnedModelComponent::RenderImGui()
 
 	if (m_bShowJointOverlay && m_model && m_model->skeleton.root && g_mainCamera)
 	{
-		vector<JointLineVertex> lineVertices = {};
+		vector<XMFLOAT4> lineVertices = {};
 		vector<XMFLOAT3> jointPositions = {};
-		//CollectSkeletonData(*m_model->skeleton.root, m_worldNormalData->worldMatrix, lineVertices, jointPositions);
 		CollectSkeletonData(*m_model->skeleton.root, m_owner->GetWorldMatrix(), lineVertices, jointPositions);
 
 		const XMMATRIX viewProjection = XMMatrixMultiply(g_mainCamera->GetViewMatrix(), g_mainCamera->GetProjectionMatrix());
