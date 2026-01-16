@@ -154,27 +154,21 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CamRotObject.cpp" />
-    <ClCompile Include="ClientTestScene.cpp" />
-    <ClCompile Include="HostTestScene.cpp" />
     <ClCompile Include="HyojeTestObject.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="HyojeTestScene.cpp" />
     <ClCompile Include="TestCameraObject.cpp" />
     <ClCompile Include="TestObject.cpp" />
     <ClCompile Include="TestScene.cpp" />
-    <ClCompile Include="YdmTestObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CamRotObject.h" />
-    <ClInclude Include="HostTestScene.h" />
     <ClInclude Include="HyojeTestScene.h" />
     <ClInclude Include="HyojeTestObject.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TestCameraObject.h" />
     <ClInclude Include="TestObject.h" />
     <ClInclude Include="TestScene.h" />
-    <ClInclude Include="YdmTestObject.h" />
-    <ClInclude Include="ClientTestScene.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Asset\Scene\HyojeTestScene.json" />
