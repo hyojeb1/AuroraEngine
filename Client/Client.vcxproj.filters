@@ -20,15 +20,6 @@
     <ClCompile Include="CamRotObject.cpp">
       <Filter>GameObject\Camera</Filter>
     </ClCompile>
-    <ClCompile Include="YdmTestObject.cpp">
-      <Filter>GameObject</Filter>
-    </ClCompile>
-    <ClCompile Include="ClientTestScene.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="HostTestScene.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -49,15 +40,6 @@
     </ClInclude>
     <ClInclude Include="CamRotObject.h">
       <Filter>GameObject\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="ClientTestScene.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="YdmTestObject.h">
-      <Filter>GameObject</Filter>
-    </ClInclude>
-    <ClInclude Include="HostTestScene.h">
-      <Filter>Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
