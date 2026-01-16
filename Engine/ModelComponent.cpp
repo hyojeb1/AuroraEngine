@@ -29,6 +29,12 @@ void ModelComponent::Initialize()
 void ModelComponent::Update()
 {
 	m_model->boundingBox.Transform(m_boundingBox, m_owner->GetWorldMatrix());
+
+	float dist = 0.0f;
+	//if (m_boundingBox.Intersects(g_mainCamera->GetPosition(), g_mainCamera->GetForwardVector(), dist) && InputManager::GetInstance().GetKeyDown(KeyCode::MouseLeft))
+	//{
+	//	m_materialFactorData.albedoFactor.w -= 0.25f;
+	//}
 }
 
 void ModelComponent::Render()
@@ -70,20 +76,7 @@ void ModelComponent::Render()
 				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 				// 재질 팩터 설정
-				float dist = 0.0f;
-				if (m_boundingBox.Intersects(g_mainCamera->GetPosition(), g_mainCamera->GetForwardVector(), dist))
-				{
-					XMFLOAT4 prevAlbedoFactor = m_materialFactorData.albedoFactor;
-					XMFLOAT4 prevEmissionFactor = m_materialFactorData.emissionFactor;
-
-					m_materialFactorData.albedoFactor = XMFLOAT4{ 0.0f, 1.0f, 1.0f, 1.0f };
-					m_materialFactorData.emissionFactor = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 0.0f };
-					m_deviceContext->UpdateSubresource(m_materialConstantBuffer.Get(), 0, nullptr, &m_materialFactorData, 0, 0);
-
-					m_materialFactorData.albedoFactor = prevAlbedoFactor;
-					m_materialFactorData.emissionFactor = prevEmissionFactor;
-				}
-				else m_deviceContext->UpdateSubresource(m_materialConstantBuffer.Get(), 0, nullptr, &m_materialFactorData, 0, 0);
+				m_deviceContext->UpdateSubresource(m_materialConstantBuffer.Get(), 0, nullptr, &m_materialFactorData, 0, 0);
 
 				// 재질 텍스처 셰이더에 설정
 				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
