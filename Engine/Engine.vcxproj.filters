@@ -185,7 +185,7 @@
     <FxCompile Include="..\Asset\Shader\VSCoordinateLine.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
-    <FxCompile Include="..\Asset\Shader\PSCoordinateLine.hlsl">
+    <FxCompile Include="..\Asset\Shader\PSColor.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
     <FxCompile Include="..\Asset\Shader\VSModelSkinAnim.hlsl">
@@ -197,10 +197,7 @@
     <FxCompile Include="..\Asset\Shader\PSOnlyAlbedo.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
-    <FxCompile Include="..\Asset\Shader\PSJointLine.hlsl">
-      <Filter>Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Asset\Shader\VSJointLine.hlsl">
+    <FxCompile Include="..\Asset\Shader\VSLine.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
   </ItemGroup>
