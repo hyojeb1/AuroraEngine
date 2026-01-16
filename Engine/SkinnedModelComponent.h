@@ -71,6 +71,7 @@ public:
 	const std::string& GetModelFileName() const { return m_modelFileName; }
 	void SetModelFileName(const std::string& modelFileName) { m_modelFileName = modelFileName; }
 
+	bool NeedsFixedUpdate() const override { return false; }
 	bool NeedsUpdate() const override { return false; }
 	bool NeedsRender() const override { return true; }
 

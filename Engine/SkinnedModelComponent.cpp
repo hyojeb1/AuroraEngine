@@ -225,14 +225,13 @@ void SkinnedModelComponent::Render()
 			m_deviceContext->VSSetShader(m_lineVertexShaderAndInputLayout.first.Get(), nullptr, 0);
 			m_deviceContext->PSSetShader(m_linePixelShader.Get(), nullptr, 0);
 
-			ResourceManager& resourceManager = ResourceManager::GetInstance();
-			resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+			ResourceManager::GetInstance().SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
 			for (size_t i = 0; i < lineVertices.size(); i += 2)
 			{
 				LineBuffer lineBufferData = {};
-				lineBufferData.linePoints[0] = XMVectorSet(lineVertices[i].x, lineVertices[i].y, lineVertices[i].z, 1.0f);
-				lineBufferData.linePoints[1] = XMVectorSet(lineVertices[i + 1].x, lineVertices[i + 1].y, lineVertices[i + 1].z, 1.0f);
+				lineBufferData.linePoints[0] = lineVertices[i];
+				lineBufferData.linePoints[1] = lineVertices[i + 1];
 				lineBufferData.lineColors[0] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
 				lineBufferData.lineColors[1] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f };
 
