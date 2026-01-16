@@ -40,8 +40,8 @@
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
                     },
-                    "modelFileName": "box.fbx",
-                    "psShaderName": "PSModel.hlsl",
+                    "modelFileName": "Aurora12.fbx",
+                    "psShaderName": "PSOnlyAlbedo.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",
                     "vsShaderName": "VSModelSkinAnim.hlsl"
@@ -56,14 +56,14 @@
             ],
             "rotation": [
                 0.0,
+                0.013089596293866634,
                 0.0,
-                0.0,
-                1.0
+                0.9999143481254578
             ],
             "scale": [
-                1.0,
-                1.0,
-                1.0,
+                0.10000000149011612,
+                0.10000000149011612,
+                0.10000000149011612,
                 1.0
             ],
             "type": "HyojeTestObject"

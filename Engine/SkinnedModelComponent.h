@@ -30,9 +30,9 @@ class SkinnedModelComponent : public ComponentBase
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_vertexShaderAndInputLayout = {}; // 정점 셰이더 및 입력 레이아웃
 	com_ptr<ID3D11PixelShader> m_pixelShader = nullptr; // 픽셀 셰이더
 
-	std::string m_modelFileName = "box.fbx"; // 기본 모델 파일 이름
+	std::string m_modelFileName = "Aurora.fbx"; // 기본 모델 파일 이름
 
-	const struct Model* m_model = nullptr;
+	const struct SkinnedModel* m_model = nullptr;
 
 	MaterialFactorBuffer m_materialFactorData = {}; // 재질 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_materialConstantBuffer = nullptr; // 재질 상수 버퍼
@@ -42,6 +42,20 @@ class SkinnedModelComponent : public ComponentBase
 
 	BlendState m_blendState = BlendState::Opaque; // 기본 블렌드 상태
 	RasterState m_rasterState = RasterState::Solid; // 기본 래스터 상태
+
+	// 조인트 표시할려고... 만들어보자.
+	std::string m_jointLineVSShaderName = "VSJointLine.hlsl";
+	std::string m_jointLinePSShaderName = "PSJointLine.hlsl";
+	std::vector<InputElement> m_jointLineInputElements = { InputElement::Position };
+	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_jointLineVertexShaderAndInputLayout = {};
+	com_ptr<ID3D11PixelShader> m_jointLinePixelShader = nullptr;
+	com_ptr<ID3D11Buffer> m_jointLineVertexBuffer = nullptr;
+	size_t m_jointLineVertexCapacity = 0;
+
+	bool m_bRenderSkeletonLines = true;
+	bool m_bShowSkeletonTree = true;
+	bool m_bShowJointOverlay = true;
+
 
 public:
 	SkinnedModelComponent() = default;

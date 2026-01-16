@@ -70,5 +70,13 @@
     <Filter Include="GameObject\Camera">
       <UniqueIdentifier>{cbfb4604-31c4-409a-ab7f-a427d2aa44a6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scene\JSON">
+      <UniqueIdentifier>{ebcf55c0-b195-40e1-9fbb-20909ace718c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Asset\Scene\HyojeTestScene.json">
+      <Filter>Scene\JSON</Filter>
+    </None>
   </ItemGroup>
 </Project>

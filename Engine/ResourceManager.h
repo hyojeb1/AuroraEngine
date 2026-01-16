@@ -32,6 +32,7 @@ class ResourceManager : public Singleton<ResourceManager>
 	std::unordered_map<std::string, com_ptr<ID3D11ShaderResourceView>> m_textures = {}; // 텍스처 맵 // 키: 텍스처 파일 이름
 
 	std::unordered_map<std::string, Model> m_models = {}; // 모델 맵 // 키: 모델 파일 경로
+	std::unordered_map<std::string, SkinnedModel> m_skinnedModels = {}; // 스킨드 모델 맵 // 키: 모델 파일 경로
 
 public:
 	~ResourceManager() = default;
@@ -72,6 +73,8 @@ public:
 	com_ptr<ID3D11ShaderResourceView> GetTexture(const std::string& fileName);
 	// 모델 파일로부터 모델 로드
 	const Model* LoadModel(const std::string& fileName);
+	// 모델 파일로부터 스킨드 모델 로드
+	const SkinnedModel* LoadSkinnedModel(const std::string& fileName);
 
 private:
 	ResourceManager() = default;
@@ -98,6 +101,18 @@ private:
 	Mesh ProcessMesh(const aiMesh* mesh, const aiScene* scene, Model& model);
 	// 메쉬 버퍼(GPU) 생성 함수
 	void CreateMeshBuffers(Mesh& mesh);
+	// 스킨드 노드 처리 함수
+	void ProcessSkinnedNode(const aiNode* node, const aiScene* scene, SkinnedModel& model);
+	// 스킨드 메쉬 처리 함수
+	SkinnedMesh ProcessSkinnedMesh(const aiMesh* mesh, const aiScene* scene, SkinnedModel& model);
+	// 스킨드 메쉬 버퍼(GPU) 생성 함수
+	void CreateSkinnedMeshBuffers(SkinnedMesh& mesh);
+	// 스켈레톤 노드 생성 함수
+	std::unique_ptr<SkeletonNode> BuildSkeletonNode(const aiNode* node, Skeleton& skeleton);
+	// aiMatrix → XMFLOAT4X4 변환 함수
+	static DirectX::XMFLOAT4X4 ToXMFLOAT4X4(const aiMatrix4x4& matrix);
+	// 씬 본 유무 확인 함수
+	static bool SceneHasBones(const aiScene* scene);
 
 	// 셰이더 컴파일 함수
 	com_ptr<ID3DBlob> CompileShader(const std::string& shaderName, const char* shaderModel);

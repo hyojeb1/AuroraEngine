@@ -176,6 +176,9 @@
     <ClInclude Include="YdmTestObject.h" />
     <ClInclude Include="ClientTestScene.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Asset\Scene\HyojeTestScene.json" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

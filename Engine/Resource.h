@@ -335,7 +335,7 @@ constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement:
 	{
 		.SemanticName = "BLENDINDICES",
 		.SemanticIndex = 0,
-		.Format = DXGI_FORMAT_R32G32B32_FLOAT, // float3
+		.Format = DXGI_FORMAT_R32G32B32A32_UINT, // uint4
 		.InputSlot = 0,
 		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
@@ -381,7 +381,7 @@ struct TimeBuffer
 	float sinTime = 0.0f; // 시간의 사인 값
 	float cosTime = 0.0f; // 시간의 코사인 값
 };
-constexpr int MAX_BONES = 80;
+constexpr int MAX_BONES = 256;
 struct BoneBuffer
 {
 	std::array<DirectX::XMMATRIX, MAX_BONES> boneMatrix = {}; // 본 행렬 배열
@@ -555,13 +555,14 @@ struct SkinnedVertex
 struct BoneInfo
 {
 	uint32_t id = 0;
-	DirectX::XMFLOAT4X4 offset = {};
+	DirectX::XMFLOAT4X4 offset = {}; // 난 여기서만 쓰고 있었네;;
 };
 
 struct SkeletonNode
 {
 	std::string name = {};
 	DirectX::XMFLOAT4X4 localTransform = {};
+	int boneIndex = -1;
 	std::vector<std::unique_ptr<SkeletonNode>> children = {};
 };
 
@@ -621,6 +622,7 @@ struct Model
 struct SkinnedModel
 {
 	std::vector<SkinnedMesh> skinnedMeshes = {};
+	DirectX::BoundingBox boundingBox = {};
 	Skeleton skeleton = {};
 };
 
