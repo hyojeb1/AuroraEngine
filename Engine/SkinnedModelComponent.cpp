@@ -189,8 +189,8 @@ void SkinnedModelComponent::Render()
 
 				// 메쉬 버퍼 설정
 				constexpr UINT stride = sizeof(SkinnedVertex);
-				constexpr UINT offset = 0;
-				m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+				constexpr UINT offset_matrix = 0;
+				m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset_matrix);
 				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 				// 재질 팩터 설정

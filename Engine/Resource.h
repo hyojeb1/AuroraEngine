@@ -567,10 +567,20 @@ struct SkinnedVertex
 	DirectX::XMFLOAT4 boneWeight = {};
 };
 
+/// <summary>
+/// 뼈(Bone)의 정보를 담는 구조체입니다.
+/// </summary>=Inverse Bind Pose Matrix)은 **"메쉬를 T-Pose 상태에서 원점으로 되돌리는 행렬"**입니다.
 struct BoneInfo
 {
 	uint32_t id = 0;
-	DirectX::XMFLOAT4X4 offset = {};
+
+	/// <summary>
+	/// 오프셋 행렬(Inverse Bind Pose Matrix)입니다.
+	/// <para>
+	/// 메쉬를 T-Pose 상태에서 로컬 공간의 원점으로 되돌리는(변환하는) 행렬입니다.
+	/// </para>
+	/// </summary>
+	DirectX::XMFLOAT4X4 offset_matrix = {};
 };
 
 //////////////////////////////////////////////
@@ -583,13 +593,13 @@ struct BoneInfo
 //
 struct VectorKeyframe
 {
-	float timePos = 0.0f;
+	float time_position = 0.0f;
 	DirectX::XMFLOAT3 value = { 0.0f, 0.0f, 0.0f };
 };
 
 struct QuaternionKeyframe
 {
-	float timePos = 0.0f;
+	float time_position = 0.0f;
 	DirectX::XMFLOAT4 value = { 0.0f, 0.0f, 0.0f, 1.0f };
 };
 
@@ -597,9 +607,9 @@ struct BoneAnimationChannel
 {
 	std::string boneName = {};
 	int boneIndex = -1;
-	std::vector<VectorKeyframe> positionKeys = {};
-	std::vector<QuaternionKeyframe> rotationKeys = {};
-	std::vector<VectorKeyframe> scaleKeys = {};
+	std::vector<VectorKeyframe> position_keys = {};
+	std::vector<QuaternionKeyframe> rotation_keys = {};
+	std::vector<VectorKeyframe> scale_keys = {};
 };
 
 struct SkeletonNode
@@ -607,21 +617,21 @@ struct SkeletonNode
 	std::string name = {};
 	DirectX::XMFLOAT4X4 localTransform = {};
 	int boneIndex = -1;
-	std::vector<std::unique_ptr<SkeletonNode>> children = {};
+	std::vector<std::shared_ptr<SkeletonNode>> children = {};
 };
 
 struct Skeleton
 {
 	std::unordered_map<std::string, uint32_t> boneMapping = {};
 	std::vector<BoneInfo> bones = {};
-	std::unique_ptr<SkeletonNode> root = nullptr;
+	std::shared_ptr<SkeletonNode> root = nullptr;
 };
 
 struct AnimationClip
 {
 	std::string name = {};
 	float duration = 0.0f;
-	float ticksPerSecond = 0.f; // 틱 준비
+	float ticks_per_second = 0.f; // 틱 준비
 	std::unordered_map<std::string, BoneAnimationChannel> channels;
 };
 

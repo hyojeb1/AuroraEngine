@@ -737,7 +737,7 @@ SkinnedMesh ResourceManager::ProcessSkinnedMesh(const aiMesh* mesh, const aiScen
 
 			BoneInfo info = {};
 			info.id = boneIndex;
-			info.offset = ToXMFLOAT4X4(bone->mOffsetMatrix);
+			info.offset_matrix = ToXMFLOAT4X4(bone->mOffsetMatrix);
 			model.skeleton.bones.push_back(info);
 		}
 		else
