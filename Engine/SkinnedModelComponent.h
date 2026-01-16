@@ -44,13 +44,11 @@ class SkinnedModelComponent : public ComponentBase
 	RasterState m_rasterState = RasterState::Solid; // 기본 래스터 상태
 
 	// 조인트 표시할려고... 만들어보자.
-	std::string m_jointLineVSShaderName = "VSJointLine.hlsl";
-	std::string m_jointLinePSShaderName = "PSJointLine.hlsl";
-	std::vector<InputElement> m_jointLineInputElements = { InputElement::Position };
-	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_jointLineVertexShaderAndInputLayout = {};
-	com_ptr<ID3D11PixelShader> m_jointLinePixelShader = nullptr;
-	com_ptr<ID3D11Buffer> m_jointLineVertexBuffer = nullptr;
-	size_t m_jointLineVertexCapacity = 0;
+	std::string m_lineVSShaderName = "VSLine.hlsl";
+	std::string m_linePSShaderName = "PSColor.hlsl";
+	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_lineVertexShaderAndInputLayout = {}; // 정점 셰이더 및 입력 레이아웃
+	com_ptr<ID3D11PixelShader> m_linePixelShader = nullptr; // 픽셀 셰이더
+	com_ptr<ID3D11Buffer> m_lineConstantBuffer = nullptr;
 
 	bool m_bRenderSkeletonLines = true;
 	bool m_bShowSkeletonTree = true;

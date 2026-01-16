@@ -323,7 +323,7 @@ void SceneBase::GetResources()
 
 	#ifdef _DEBUG
 	m_debugCoordinateVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSCoordinateLine.hlsl"); // 디버그 좌표 정점 셰이더 얻기
-	m_debugCoordinatePixelShader = resourceManager.GetPixelShader("PSCoordinateLine.hlsl"); // 디버그 좌표 픽셀 셰이더 얻기
+	m_debugCoordinatePixelShader = resourceManager.GetPixelShader("PSColor.hlsl"); // 디버그 좌표 픽셀 셰이더 얻기
 	#endif
 
 	m_environmentMapSRV = resourceManager.GetTexture(m_environmentMapFileName); // 환경 맵 로드
