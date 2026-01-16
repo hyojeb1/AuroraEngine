@@ -142,6 +142,7 @@ void SceneBase::BaseRender()
 
 			// 정렬 기준점 카메라 위치로 설정
 			renderer.SetRenderSortPoint(g_mainCamera->GetPosition());
+			renderer.SetCameraFrustum(g_mainCamera->GetBoundingFrustum());
 
 			// 상수 버퍼 업데이트 및 셰이더에 설정
 			UpdateConstantBuffers();

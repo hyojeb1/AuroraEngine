@@ -9,6 +9,14 @@ REGISTER_TYPE(CameraComponent)
 using namespace std;
 using namespace DirectX;
 
+const BoundingFrustum CameraComponent::GetBoundingFrustum() const
+{
+	BoundingFrustum frustum = {};
+	m_boundingFrustum.Transform(frustum, m_owner->GetWorldMatrix());
+
+	return frustum;
+}
+
 void CameraComponent::Initialize()
 {
 	if (g_mainCamera) cerr << "경고: 여러 개의 카메라가 생성되었습니다" << endl;
@@ -32,6 +40,7 @@ void CameraComponent::UpdateViewMatrix()
 void CameraComponent::UpdateProjectionMatrix()
 {
 	m_projectionMatrix = XMMatrixPerspectiveFovLH(m_fovY, Renderer::GetInstance().GetAspectRatio(), m_nearZ, m_farZ);
+	m_boundingFrustum = BoundingFrustum(m_projectionMatrix);
 }
 
 void CameraComponent::RenderImGui()

@@ -33,18 +33,23 @@ void ModelComponent::Update()
 
 void ModelComponent::Render()
 {
+	Renderer& renderer = Renderer::GetInstance();
+
 	XMVECTOR boxCenter = XMLoadFloat3(&m_boundingBox.Center);
 	XMVECTOR boxExtents = XMLoadFloat3(&m_boundingBox.Extents);
 
-	const XMVECTOR& sortPoint = Renderer::GetInstance().GetRenderSortPoint();
+	const XMVECTOR& sortPoint = renderer.GetRenderSortPoint();
 
 	// 일반 렌더링
-	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, m_blendState).emplace_back
+	renderer.RENDER_FUNCTION(RenderStage::Scene, m_blendState).emplace_back
 	(
 		// 카메라로부터의 거리
 		XMVectorGetX(XMVector3LengthSq(sortPoint - XMVectorClamp(sortPoint, boxCenter - boxExtents, boxCenter + boxExtents))),
 		[&]()
 		{
+			// 프러스텀 컬링
+			if (m_boundingBox.Intersects(renderer.GetCameraFrustum()) == false) return;
+
 			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
@@ -78,7 +83,7 @@ void ModelComponent::Render()
 	);
 
 	// 섀도우 맵 렌더링
-	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::DirectionalLightShadow, m_blendState).emplace_back
+	renderer.RENDER_FUNCTION(RenderStage::DirectionalLightShadow, m_blendState).emplace_back
 	(
 		// 광원으로부터의 거리
 		XMVectorGetX(XMVector3LengthSq(sortPoint - XMVectorClamp(sortPoint, boxCenter - boxExtents, boxCenter + boxExtents))),
@@ -113,35 +118,38 @@ void ModelComponent::Render()
 
 	// 디버그 - 경계 상자 렌더링
 	#ifdef _DEBUG
-	if (m_renderBoundingBox)
-	{
-		Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
-		(
-			numeric_limits<float>::max(),
-			[&]()
+	renderer.RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
+	(
+		numeric_limits<float>::max(),
+		[&]()
+		{
+			// 프러스텀 컬링
+			if (m_boundingBox.Intersects(renderer.GetCameraFrustum()) == false) return;
+
+			ResourceManager& resourceManager = ResourceManager::GetInstance();
+
+			m_deviceContext->IASetInputLayout(m_boundingBoxVertexShaderAndInputLayout.second.Get());
+			m_deviceContext->VSSetShader(m_boundingBoxVertexShaderAndInputLayout.first.Get(), nullptr, 0);
+			m_deviceContext->PSSetShader(m_boundingBoxPixelShader.Get(), nullptr, 0);
+
+			ResourceManager::GetInstance().SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+			// 경계 상자 그리기
+			array<XMFLOAT3, 8> boxVertices = {};
+			m_boundingBox.GetCorners(boxVertices.data());
+
+			constexpr array<pair<size_t, size_t>, 12> BOX_LINE_INDICES =
 			{
-				ResourceManager& resourceManager = ResourceManager::GetInstance();
+				pair<size_t, size_t>{ 0, 1 }, pair<size_t, size_t>{ 1, 2 }, pair<size_t, size_t>{ 2, 3 }, pair<size_t, size_t>{ 3, 0 },
+				pair<size_t, size_t>{ 4, 5 }, pair<size_t, size_t>{ 5, 6 }, pair<size_t, size_t>{ 6, 7 }, pair<size_t, size_t>{ 7, 4 },
+				pair<size_t, size_t>{ 0, 4 }, pair<size_t, size_t>{ 1, 5 }, pair<size_t, size_t>{ 2, 6 }, pair<size_t, size_t>{ 3, 7 }
+			};
 
-				m_deviceContext->IASetInputLayout(m_boundingBoxVertexShaderAndInputLayout.second.Get());
-				m_deviceContext->VSSetShader(m_boundingBoxVertexShaderAndInputLayout.first.Get(), nullptr, 0);
-				m_deviceContext->PSSetShader(m_boundingBoxPixelShader.Get(), nullptr, 0);
-
-				ResourceManager::GetInstance().SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-
-				// 경계 상자 그리기
-				array<XMFLOAT3, 8> boxVertices = {};
-				m_boundingBox.GetCorners(boxVertices.data());
-
-				constexpr array<pair<size_t, size_t>, 12> BOX_LINE_INDICES =
-				{
-					pair<size_t, size_t>{ 0, 1 }, pair<size_t, size_t>{ 1, 2 }, pair<size_t, size_t>{ 2, 3 }, pair<size_t, size_t>{ 3, 0 },
-					pair<size_t, size_t>{ 4, 5 }, pair<size_t, size_t>{ 5, 6 }, pair<size_t, size_t>{ 6, 7 }, pair<size_t, size_t>{ 7, 4 },
-					pair<size_t, size_t>{ 0, 4 }, pair<size_t, size_t>{ 1, 5 }, pair<size_t, size_t>{ 2, 6 }, pair<size_t, size_t>{ 3, 7 }
-				};
-
+			LineBuffer lineBufferData = {};
+			if (m_renderBoundingBox)
+			{
 				for (const auto& [startIndex, endIndex] : BOX_LINE_INDICES)
 				{
-					LineBuffer lineBufferData = {};
 					lineBufferData.linePoints[0] = XMFLOAT4{ boxVertices[startIndex].x, boxVertices[startIndex].y, boxVertices[startIndex].z, 1.0f };
 					lineBufferData.linePoints[1] = XMFLOAT4{ boxVertices[endIndex].x, boxVertices[endIndex].y, boxVertices[endIndex].z, 1.0f };
 					lineBufferData.lineColors[0] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f };
@@ -150,8 +158,29 @@ void ModelComponent::Render()
 					m_deviceContext->Draw(2, 0);
 				}
 			}
-		);
-	}
+
+			if (m_renderSubMeshBoundingBoxes)
+			{
+				for (const Mesh& mesh : m_model->meshes)
+				{
+					BoundingBox meshTransformedBox = {};
+					mesh.boundingBox.Transform(meshTransformedBox, m_owner->GetWorldMatrix());
+					array<XMFLOAT3, 8> meshBoxVertices = {};
+					meshTransformedBox.GetCorners(meshBoxVertices.data());
+
+					for (const auto& [startIndex, endIndex] : BOX_LINE_INDICES)
+					{
+						lineBufferData.linePoints[0] = XMFLOAT4{ meshBoxVertices[startIndex].x, meshBoxVertices[startIndex].y, meshBoxVertices[startIndex].z, 1.0f };
+						lineBufferData.linePoints[1] = XMFLOAT4{ meshBoxVertices[endIndex].x, meshBoxVertices[endIndex].y, meshBoxVertices[endIndex].z, 1.0f };
+						lineBufferData.lineColors[0] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
+						lineBufferData.lineColors[1] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
+						m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
+						m_deviceContext->Draw(2, 0);
+					}
+				}
+			}
+		}
+	);
 	#endif
 }
 
@@ -202,6 +231,7 @@ void ModelComponent::RenderImGui()
 	#ifdef _DEBUG
 	ImGui::Separator();
 	ImGui::Checkbox("Render Bounding Box", &m_renderBoundingBox);
+	ImGui::Checkbox("Render SubMesh Bounding Boxes", &m_renderSubMeshBoundingBoxes);
 	#endif
 }
 

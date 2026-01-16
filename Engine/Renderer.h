@@ -34,6 +34,7 @@ class Renderer : public Singleton<Renderer>
 	com_ptr<IDXGISwapChain1> m_swapChain = nullptr; // 스왑 체인
 	
 	DirectX::XMVECTOR m_renderSortPoint = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // 랜저 정렬 기준점
+	DirectX::BoundingFrustum m_cameraFrustum = {}; // 카메라 프러스텀
 	std::array<std::pair<RenderTarget, std::array<std::vector<std::pair<float, std::function<void()>>>, static_cast<size_t>(BlendState::Count)>>, static_cast<size_t>(RenderStage::Count)> m_renderPass = {};
 
 	// 백 버퍼 렌더 타겟 관련 리소스
@@ -71,6 +72,8 @@ public:
 	// 렌더 패스 관련 매크로 함수
 	void SetRenderSortPoint(const DirectX::XMVECTOR& point) { m_renderSortPoint = point; }
 	const DirectX::XMVECTOR& GetRenderSortPoint() const { return m_renderSortPoint; }
+	void SetCameraFrustum(const DirectX::BoundingFrustum& frustum) { m_cameraFrustum = frustum; }
+	const DirectX::BoundingFrustum& GetCameraFrustum() const { return m_cameraFrustum; }
 
 	constexpr RenderTarget& RENDER_TARGET(RenderStage stage) { return m_renderPass[static_cast<size_t>(stage)].first; }
 	constexpr std::vector<std::pair<float, std::function<void()>>>& RENDER_FUNCTION(RenderStage renderStage, BlendState blendState) { return m_renderPass[static_cast<size_t>(renderStage)].second[static_cast<size_t>(blendState)]; }
