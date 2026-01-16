@@ -11,23 +11,13 @@
 using namespace std;
 using namespace DirectX;
 
-
 REGISTER_TYPE(SkinnedModelComponent)
 
 namespace
 {
-	struct JointLineVertex
-	{
-		XMFLOAT4 position = {};
-	};
-
-	void CollectSkeletonData(const SkeletonNode& node,
-		const XMMATRIX& parentWorld,
-		vector<JointLineVertex>& lineVertices,
-		vector<XMFLOAT3>& jointPositions)
+	void CollectSkeletonData(const SkeletonNode& node, const XMMATRIX& parentWorld, vector<XMFLOAT4>& lineVertices, vector<XMFLOAT3>& jointPositions)
 	{
 		const XMMATRIX localTransform = XMLoadFloat4x4(&node.localTransform);
-		//const XMMATRIX worldTransform = XMMatrixMultiply(parentWorld, localTransform); 
 		const XMMATRIX worldTransform = XMMatrixMultiply(localTransform, parentWorld);
 
 		XMFLOAT3 worldPosition = {};
@@ -37,7 +27,6 @@ namespace
 		for (const auto& child : node.children)
 		{
 			const XMMATRIX childLocalTransform = XMLoadFloat4x4(&child->localTransform);
-			//const XMMATRIX childWorldTransform = XMMatrixMultiply(worldTransform, childLocalTransform);
 			const XMMATRIX childWorldTransform = XMMatrixMultiply(childLocalTransform, worldTransform);
 
 			XMFLOAT3 childWorldPosition = {};
@@ -157,6 +146,7 @@ void SkinnedModelComponent::Initialize()
 	m_worldMatrixConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal);
 	m_boneConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Bone);
 	m_materialConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor);
+	m_lineConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Line);
 	m_model = resourceManager.LoadSkinnedModel(m_modelFileName);
 
 }
@@ -215,43 +205,39 @@ void SkinnedModelComponent::Render()
 
 				m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
 			}
+		}
+	);
+	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
+	(
+		numeric_limits<float>::max(),
+		[&]()
+		{
+			if (!m_bRenderSkeletonLines || !m_model->skeleton.root) return;
 
+			vector<XMFLOAT4> lineVertices = {};
+			vector<XMFLOAT3> jointPositions = {};
+			CollectSkeletonData(*m_model->skeleton.root, m_owner->GetWorldMatrix(), lineVertices, jointPositions);
 
-			if (m_bRenderSkeletonLines && m_model->skeleton.root)
+			if (lineVertices.empty()) return;
+
+			// 라인 셰이더 설정
+			m_deviceContext->IASetInputLayout(m_lineVertexShaderAndInputLayout.second.Get());
+			m_deviceContext->VSSetShader(m_lineVertexShaderAndInputLayout.first.Get(), nullptr, 0);
+			m_deviceContext->PSSetShader(m_linePixelShader.Get(), nullptr, 0);
+
+			ResourceManager& resourceManager = ResourceManager::GetInstance();
+			resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+			for (size_t i = 0; i < lineVertices.size(); i += 2)
 			{
-				vector<JointLineVertex> lineVertices = {};
-				vector<XMFLOAT3> jointPositions = {};
-				//CollectSkeletonData(*m_model->skeleton.root, m_worldNormalData->worldMatrix, lineVertices, jointPositions);
-				CollectSkeletonData(*m_model->skeleton.root, m_owner->GetWorldMatrix(), lineVertices, jointPositions);
+				LineBuffer lineBufferData = {};
+				lineBufferData.linePoints[0] = XMVectorSet(lineVertices[i].x, lineVertices[i].y, lineVertices[i].z, 1.0f);
+				lineBufferData.linePoints[1] = XMVectorSet(lineVertices[i + 1].x, lineVertices[i + 1].y, lineVertices[i + 1].z, 1.0f);
+				lineBufferData.lineColors[0] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
+				lineBufferData.lineColors[1] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f };
 
-				if (!lineVertices.empty())
-				{
-					if (m_jointLineVertexCapacity < lineVertices.size())
-					{
-						m_jointLineVertexBuffer = resourceManager.CreateVertexBuffer(nullptr, sizeof(JointLineVertex), static_cast<UINT>(lineVertices.size()), true);
-						m_jointLineVertexCapacity = lineVertices.size();
-					}
-
-					D3D11_MAPPED_SUBRESOURCE mapped = {};
-					if (SUCCEEDED(m_deviceContext->Map(m_jointLineVertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
-					{
-						memcpy(mapped.pData, lineVertices.data(), sizeof(JointLineVertex) * lineVertices.size());
-						m_deviceContext->Unmap(m_jointLineVertexBuffer.Get(), 0);
-					}
-
-					resourceManager.SetBlendState(BlendState::Opaque);
-					resourceManager.SetRasterState(RasterState::Solid);
-					resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-
-					m_deviceContext->IASetInputLayout(m_jointLineVertexShaderAndInputLayout.second.Get());
-					m_deviceContext->VSSetShader(m_jointLineVertexShaderAndInputLayout.first.Get(), nullptr, 0);
-					m_deviceContext->PSSetShader(m_jointLinePixelShader.Get(), nullptr, 0);
-
-					constexpr UINT stride = sizeof(JointLineVertex);
-					constexpr UINT offset = 0;
-					m_deviceContext->IASetVertexBuffers(0, 1, m_jointLineVertexBuffer.GetAddressOf(), &stride, &offset);
-					m_deviceContext->Draw(static_cast<UINT>(lineVertices.size()), 0);
-				}
+				m_deviceContext->UpdateSubresource(m_lineConstantBuffer.Get(), 0, nullptr, &lineBufferData, 0, 0);
+				m_deviceContext->Draw(2, 0);
 			}
 		}
 	);
@@ -338,9 +324,8 @@ void SkinnedModelComponent::RenderImGui()
 
 	if (m_bShowJointOverlay && m_model && m_model->skeleton.root && g_mainCamera)
 	{
-		vector<JointLineVertex> lineVertices = {};
+		vector<XMFLOAT4> lineVertices = {};
 		vector<XMFLOAT3> jointPositions = {};
-		//CollectSkeletonData(*m_model->skeleton.root, m_worldNormalData->worldMatrix, lineVertices, jointPositions);
 		CollectSkeletonData(*m_model->skeleton.root, m_owner->GetWorldMatrix(), lineVertices, jointPositions);
 
 		const XMMATRIX viewProjection = XMMatrixMultiply(g_mainCamera->GetViewMatrix(), g_mainCamera->GetProjectionMatrix());
@@ -444,7 +429,7 @@ void SkinnedModelComponent::CreateShaders()
 	m_vertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout(m_vsShaderName, m_inputElements);
 	m_pixelShader = resourceManager.GetPixelShader(m_psShaderName);
 
-	m_jointLineVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout(m_jointLineVSShaderName, m_jointLineInputElements);
-	m_jointLinePixelShader = resourceManager.GetPixelShader(m_jointLinePSShaderName);
+	m_lineVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout(m_lineVSShaderName);
+	m_linePixelShader = resourceManager.GetPixelShader(m_linePSShaderName);
 }
 /// SkinnedModelComponent.cpp의 끝

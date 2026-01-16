@@ -341,9 +341,6 @@ constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement:
 		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
 		.InstanceDataStepRate = 0
 	}
-
-
-
 };
 
 enum class VSConstBuffers
@@ -355,6 +352,8 @@ enum class VSConstBuffers
 
 	Time, // TimeBuffer
 	Bone,
+
+	Line,
 
 	Count
 };
@@ -386,6 +385,11 @@ struct BoneBuffer
 {
 	std::array<DirectX::XMMATRIX, MAX_BONES> boneMatrix = {}; // 본 행렬 배열
 	BoneBuffer() { std::fill(boneMatrix.begin(), boneMatrix.end(), DirectX::XMMatrixIdentity()); }
+};
+struct LineBuffer
+{
+	std::array<DirectX::XMVECTOR, 2> linePoints = { DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f), DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f) }; // 선 시작 및 끝 위치
+	std::array<DirectX::XMFLOAT4, 2> lineColors = { DirectX::XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f}, DirectX::XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f} }; // 선 시작 및 끝 색상
 };
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Count)> VS_CONST_BUFFER_DESCS =
 {
@@ -437,6 +441,17 @@ constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Coun
 	D3D11_BUFFER_DESC
 	{
 		.ByteWidth = sizeof(BoneBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	},
+
+	// LineBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(LineBuffer),
 		.Usage = D3D11_USAGE_DEFAULT,
 		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
 		.CPUAccessFlags = 0,
@@ -526,7 +541,7 @@ enum class TextureSlots
 
 	Albedo, // RGBA
 	ORM, // ambient occlusion(R) + roughness(G) + metallic(B)
-	Normal, // X(R) + Y(G) + Z(B)
+	Normal, // XYZ(RGB) + height(A)
 
 	Count
 };
@@ -548,8 +563,8 @@ struct SkinnedVertex
 	DirectX::XMFLOAT3 bitangent = {};
 	DirectX::XMFLOAT3 tangent = {};
 
-	uint32_t boneIndex[4];
-	DirectX::XMFLOAT4    boneWeight;
+	std::array<uint32_t, 4> boneIndex = {};
+	DirectX::XMFLOAT4 boneWeight = {};
 };
 
 struct BoneInfo
