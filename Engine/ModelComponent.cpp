@@ -26,14 +26,15 @@ void ModelComponent::Initialize()
 	m_model = resourceManager.LoadModel(m_modelFileName);
 }
 
+void ModelComponent::Update()
+{
+	m_model->boundingBox.Transform(m_boundingBox, m_owner->GetWorldMatrix());
+}
+
 void ModelComponent::Render()
 {
-	const XMMATRIX worldMatrix = m_owner->GetWorldMatrix();
-
-	BoundingBox transformedBoundingBox = {};
-	m_model->boundingBox.Transform(transformedBoundingBox, worldMatrix);
-	XMVECTOR boxCenter = XMLoadFloat3(&transformedBoundingBox.Center);
-	XMVECTOR boxExtents = XMLoadFloat3(&transformedBoundingBox.Extents);
+	XMVECTOR boxCenter = XMLoadFloat3(&m_boundingBox.Center);
+	XMVECTOR boxExtents = XMLoadFloat3(&m_boundingBox.Extents);
 
 	const XMVECTOR& sortPoint = Renderer::GetInstance().GetRenderSortPoint();
 
@@ -117,7 +118,7 @@ void ModelComponent::Render()
 		Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
 		(
 			numeric_limits<float>::max(),
-			[&, transformedBoundingBox]()
+			[&]()
 			{
 				ResourceManager& resourceManager = ResourceManager::GetInstance();
 
@@ -129,7 +130,7 @@ void ModelComponent::Render()
 
 				// 경계 상자 그리기
 				array<XMFLOAT3, 8> boxVertices = {};
-				transformedBoundingBox.GetCorners(boxVertices.data());
+				m_boundingBox.GetCorners(boxVertices.data());
 
 				constexpr array<pair<size_t, size_t>, 12> BOX_LINE_INDICES =
 				{

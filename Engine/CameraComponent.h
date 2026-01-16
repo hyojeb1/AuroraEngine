@@ -39,6 +39,7 @@ public:
 	const DirectX::XMVECTOR& GetPosition() const { return *m_position; }
 	const DirectX::XMVECTOR& GetForwardVector() const { return m_forwardVector; }
 
+	bool NeedsFixedUpdate() const override { return false; }
 	bool NeedsUpdate() const override { return true; }
 	bool NeedsRender() const override { return false; }
 

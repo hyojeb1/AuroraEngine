@@ -33,6 +33,7 @@ class GameObjectBase : public Base
 	bool m_isDirty = true; // 위치 갱신 필요 여부
 
 	std::unordered_map<std::type_index, std::unique_ptr<Base>> m_components = {}; // 컴포넌트 맵
+	std::vector<Base*> m_fixedUpdateComponents = {}; // 고정 업데이트할 컴포넌트 배열
 	std::vector<Base*> m_updateComponents = {}; // 업데이트할 컴포넌트 배열
 	std::vector<Base*> m_renderComponents = {}; // 렌더링할 컴포넌트 배열
 
@@ -105,7 +106,7 @@ private:
 	// 게임 오브젝트 초기화
 	void BaseInitialize() override;
 	// 게임 오브젝트 고정 업데이트
-	void BaseFixedUpdate() override { FixedUpdate(); }
+	void BaseFixedUpdate() override;
 	// 게임 오브젝트 업데이트
 	void BaseUpdate() override;
 	// 게임 오브젝트 렌더링
@@ -146,6 +147,7 @@ inline T* GameObjectBase::CreateComponent()
 
 	component->SetOwner(this);
 
+	if (component->NeedsFixedUpdate()) m_fixedUpdateComponents.push_back(component.get());
 	if (component->NeedsUpdate()) m_updateComponents.push_back(component.get());
 	if (component->NeedsRender()) m_renderComponents.push_back(component.get());
 

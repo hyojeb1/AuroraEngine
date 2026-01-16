@@ -29,6 +29,7 @@ class ModelComponent : public ComponentBase
 	std::string m_modelFileName = "box.fbx"; // 기본 모델 파일 이름
 
 	const struct Model* m_model = nullptr;
+	DirectX::BoundingBox m_boundingBox = {}; // 변환된 경계 상자
 
 	MaterialFactorBuffer m_materialFactorData = {}; // 재질 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_materialConstantBuffer = nullptr; // 재질 상수 버퍼
@@ -58,11 +59,13 @@ public:
 	const std::string& GetModelFileName() const { return m_modelFileName; }
 	void SetModelFileName(const std::string& modelFileName) { m_modelFileName = modelFileName; }
 
-	bool NeedsUpdate() const override { return false; }
+	bool NeedsFixedUpdate() const override { return false; }
+	bool NeedsUpdate() const override { return true; }
 	bool NeedsRender() const override { return true; }
 
 private:
 	void Initialize() override;
+	void Update() override;
 	void Render() override;
 	void RenderImGui() override;
 

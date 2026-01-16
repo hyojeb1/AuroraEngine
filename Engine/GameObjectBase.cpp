@@ -151,6 +151,19 @@ void GameObjectBase::BaseInitialize()
 	#endif
 }
 
+void GameObjectBase::BaseFixedUpdate()
+{
+	#ifdef NDEBUG
+	FixedUpdate();
+	#endif
+
+	// 컴포넌트 고정 업데이트
+	for (Base*& component : m_fixedUpdateComponents) component->BaseFixedUpdate();
+
+	// 자식 게임 오브젝트 고정 업데이트
+	for (auto& child : m_childrens) child->BaseFixedUpdate();
+}
+
 void GameObjectBase::BaseUpdate()
 {
 	#ifdef NDEBUG
@@ -387,6 +400,7 @@ void GameObjectBase::RemovePending()
 				
 				// 업데이트 및 렌더링 목록에서 제거
 				ComponentBase* compBasePtr = dynamic_cast<ComponentBase*>(component.second.get());
+				if (compBasePtr->NeedsFixedUpdate()) erase_if(m_fixedUpdateComponents, [&](Base* fixedUpdateComponent) { return fixedUpdateComponent == compBasePtr; });
 				if (compBasePtr->NeedsUpdate()) erase_if(m_updateComponents, [&](Base* updateComponent) { return updateComponent == compBasePtr; });
 				if (compBasePtr->NeedsRender()) erase_if(m_renderComponents, [&](Base* renderComponent) { return renderComponent == compBasePtr; });
 
