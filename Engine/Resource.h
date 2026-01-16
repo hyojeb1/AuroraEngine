@@ -567,10 +567,49 @@ struct SkinnedVertex
 	DirectX::XMFLOAT4 boneWeight = {};
 };
 
+/// <summary>
+/// 뼈(Bone)의 정보를 담는 구조체입니다.
+/// </summary>=Inverse Bind Pose Matrix)은 **"메쉬를 T-Pose 상태에서 원점으로 되돌리는 행렬"**입니다.
 struct BoneInfo
 {
 	uint32_t id = 0;
-	DirectX::XMFLOAT4X4 offset = {}; // 난 여기서만 쓰고 있었네;;
+
+	/// <summary>
+	/// 오프셋 행렬(Inverse Bind Pose Matrix)입니다.
+	/// <para>
+	/// 메쉬를 T-Pose 상태에서 로컬 공간의 원점으로 되돌리는(변환하는) 행렬입니다.
+	/// </para>
+	/// </summary>
+	DirectX::XMFLOAT4X4 offset_matrix = {};
+};
+
+//////////////////////////////////////////////
+//! 
+//! 이렇게 받을 것인가
+//! 아트팀이 무엇을 주든 받게끔? 일단 지피티가 주는 대로 짜고 이후에  고민을 해보자. 
+//! 
+//! 현재는 24프레임 모두 받아 처리하는 게 아니잖슴!
+//! 
+//
+struct VectorKeyframe
+{
+	float time_position = 0.0f;
+	DirectX::XMFLOAT3 value = { 0.0f, 0.0f, 0.0f };
+};
+
+struct QuaternionKeyframe
+{
+	float time_position = 0.0f;
+	DirectX::XMFLOAT4 value = { 0.0f, 0.0f, 0.0f, 1.0f };
+};
+
+struct BoneAnimationChannel
+{
+	std::string boneName = {};
+	int boneIndex = -1;
+	std::vector<VectorKeyframe> position_keys = {};
+	std::vector<QuaternionKeyframe> rotation_keys = {};
+	std::vector<VectorKeyframe> scale_keys = {};
 };
 
 struct SkeletonNode
@@ -578,14 +617,22 @@ struct SkeletonNode
 	std::string name = {};
 	DirectX::XMFLOAT4X4 localTransform = {};
 	int boneIndex = -1;
-	std::vector<std::unique_ptr<SkeletonNode>> children = {};
+	std::vector<std::shared_ptr<SkeletonNode>> children = {};
 };
 
 struct Skeleton
 {
 	std::unordered_map<std::string, uint32_t> boneMapping = {};
 	std::vector<BoneInfo> bones = {};
-	std::unique_ptr<SkeletonNode> root = nullptr;
+	std::shared_ptr<SkeletonNode> root = nullptr;
+};
+
+struct AnimationClip
+{
+	std::string name = {};
+	float duration = 0.0f;
+	float ticks_per_second = 0.f; // 틱 준비
+	std::unordered_map<std::string, BoneAnimationChannel> channels;
 };
 
 struct MaterialTexture
@@ -639,6 +686,7 @@ struct SkinnedModel
 	std::vector<SkinnedMesh> skinnedMeshes = {};
 	DirectX::BoundingBox boundingBox = {};
 	Skeleton skeleton = {};
+	std::vector<AnimationClip> animations = {};
 };
 
 constexpr std::array<std::pair<size_t, size_t>, 12> BOX_LINE_INDICES =
