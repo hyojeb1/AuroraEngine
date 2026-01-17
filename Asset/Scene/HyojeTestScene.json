@@ -41,13 +41,13 @@
                         "roughnessFactor": 1.0
                     },
                     "modelFileName": "Arm.fbx",
-                    "psShaderName": "PSOnlyAlbedo.hlsl",
+                    "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",
                     "vsShaderName": "VSModelSkinAnim.hlsl"
                 }
             ],
-            "name": "HyojeTestObject_0",
+            "name": "HyojeTestObject_1",
             "position": [
                 0.0,
                 0.0,

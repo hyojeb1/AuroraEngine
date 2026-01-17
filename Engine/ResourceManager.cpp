@@ -187,7 +187,7 @@ com_ptr<ID3D11PixelShader> ResourceManager::GetPixelShader(const string& shaderN
 	return m_pixelShaders[shaderName];
 }
 
-com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& fileName)
+com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& fileName, TextureType type)
 {
 	// 기존에 생성된 텍스처가 있으면 재사용
 	auto it = m_textures.find(fileName);
@@ -199,12 +199,30 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 	const auto cacheIt = m_textureCaches.find(fileName);
 	if (cacheIt == m_textureCaches.end())
 	{
-		#ifdef _DEBUG
-		cerr << "텍스처 데이터 캐시 없음: " << fileName << endl;
-		#else
-		MessageBoxA(nullptr, ("텍스처 데이터 캐시 없음: " + fileName).c_str(), "오류", MB_OK | MB_ICONERROR);
-		#endif
-		exit(EXIT_FAILURE);
+		string fallbackName = "";
+
+		// 타입에 따라 대체할 파일명 결정
+		switch (type)
+		{
+		case TextureType::Albedo: fallbackName = "FallbackAlbedo.png"; break;
+		case TextureType::Normal: fallbackName = "FallbackNormal.png"; break;
+		case TextureType::ORM:    fallbackName = "FallbackORM.png";    break;
+		default:
+			// Fallback 타입이 None인데 파일도 없다면? 이건 진짜 에러 (예: Fallback 텍스처 파일 자체가 없음)
+#ifdef _DEBUG
+			cerr << "[CRITICAL] 텍스처 로드 실패 (복구 불가): " << fileName << endl;
+#else
+			MessageBoxA(nullptr, ("텍스처 로드 실패 (복구 불가): " + fileName).c_str(), "Fatal Error", MB_OK | MB_ICONERROR);
+#endif
+			exit(EXIT_FAILURE);
+		}
+#ifdef _DEBUG
+		// 경고 메시지 출력 (개발자가 알 수 있게)
+		cout << "[WARNING] 텍스처 누락됨: " << fileName << " -> 대체됨: " << fallbackName << endl;
+#endif
+		// [재귀 호출] 대체 텍스처로 다시 시도 (type을 None으로 주어 무한 재귀 방지)
+		// 만약 FallbackAlbedo.png 도 없으면 위의 default 문에 걸려서 종료됨
+		return GetTexture(fallbackName, TextureType::None);
 	}
 
 	// 파일 확장자 확인
@@ -605,50 +623,78 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 	// [재질 및 텍스처 처리 수정]
 	if (mesh->mMaterialIndex >= 0)
 	{
+		string albedoName = "FallbackAlbedo.png";
+		string normalName = "FallbackNormal.png";
+		string ormName = "FallbackORM.png";
+
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
 		aiString texturePath;
-		std::string textureFileName;
 
 		// 1. Albedo (Base Color) 처리
-		// glTF는 BASE_COLOR, FBX는 DIFFUSE를 주로 씁니다. 둘 다 확인합니다.
 		if (material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS ||
 			material->GetTexture(aiTextureType_BASE_COLOR, 0, &texturePath) == AI_SUCCESS)
 		{
 			// 텍스처가 있다! (Aurora.fbx -> Base.png)
-			// 경로가 포함되어 있을 수 있으니 파일명만 딱 떼어냅니다.
-			textureFileName = std::filesystem::path(texturePath.C_Str()).filename().string();
-			resultMesh.materialTexture.albedoTextureSRV = GetTexture(textureFileName);
-		}
-		else
-		{
-			// 텍스처가 없다! (일반 FBX -> 샘플 사용)
-			resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.dds");
+			albedoName = std::filesystem::path(texturePath.C_Str()).filename().string();
 		}
 
-		// 2. Normal Map 처리
+		// 2. Normal
 		if (material->GetTexture(aiTextureType_NORMALS, 0, &texturePath) == AI_SUCCESS)
 		{
-			// 텍스처가 있다! (Aurora.gltf -> Weapon.png or similar)
-			textureFileName = std::filesystem::path(texturePath.C_Str()).filename().string();
-			resultMesh.materialTexture.normalTextureSRV = GetTexture(textureFileName);
+			normalName = filesystem::path(texturePath.C_Str()).filename().string();
 		}
-		else
+
+		// 3. ORM 탐색
+		bool foundORM = false;
+		
 		{
-			// 텍스처가 없다!
-			resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleBump.dds");
+			// [우선순위 1] PBR 표준 슬롯 (혹시 Exporter가 똑똑해서 여기에 넣었을 경우)
+			if (!foundORM && material->GetTexture(aiTextureType_UNKNOWN, 0, &texturePath) == AI_SUCCESS)
+			{
+				ormName = filesystem::path(texturePath.C_Str()).filename().string();
+				foundORM = true;
+			}
+			if (!foundORM && material->GetTexture(aiTextureType_METALNESS, 0, &texturePath) == AI_SUCCESS)
+			{
+				ormName = filesystem::path(texturePath.C_Str()).filename().string();
+				foundORM = true;
+			}
+			if (!foundORM && material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texturePath) == AI_SUCCESS)
+			{
+				ormName = filesystem::path(texturePath.C_Str()).filename().string();
+				foundORM = true;
+			}
+
+			// [우선순위 2] FBX 레거시 슬롯 (여기가 FBX의 핵심입니다!)
+			// 많은 FBX Exporter가 PBR 텍스처를 Specular나 Shininess 슬롯에 우겨넣습니다.
+			if (!foundORM && material->GetTexture(aiTextureType_SPECULAR, 0, &texturePath) == AI_SUCCESS)
+			{
+				ormName = filesystem::path(texturePath.C_Str()).filename().string();
+				foundORM = true;
+			}
+			if (!foundORM && material->GetTexture(aiTextureType_SHININESS, 0, &texturePath) == AI_SUCCESS)
+			{
+				ormName = filesystem::path(texturePath.C_Str()).filename().string();
+				foundORM = true;
+			}
+			if (!foundORM && material->GetTexture(aiTextureType_AMBIENT, 0, &texturePath) == AI_SUCCESS)
+			{
+				ormName = filesystem::path(texturePath.C_Str()).filename().string();
+				foundORM = true;
+			}
 		}
 
-		// 3. ORM (Occlusion, Roughness, Metallic) 처리
-		resultMesh.materialTexture.ORMTextureSRV = GetTexture("SampleORM.dds");
-
+		resultMesh.materialTexture.albedoTextureSRV = GetTexture(albedoName, TextureType::Albedo);
+		resultMesh.materialTexture.normalTextureSRV = GetTexture(normalName, TextureType::Normal);
+		resultMesh.materialTexture.ORMTextureSRV = GetTexture(ormName, TextureType::ORM);
 	}
 	else
 	{
 		// 재질 자체가 없는 경우 (완전 깡통)
-		resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.dds");
-		resultMesh.materialTexture.ORMTextureSRV = GetTexture("SampleORM.dds");
-		resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleBump.dds");
+		resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.dds", TextureType::Albedo);
+		resultMesh.materialTexture.ORMTextureSRV = GetTexture("SampleORM.dds" , TextureType::ORM);
+		resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleBump.dds" , TextureType::Normal);
 	}
 
 	CreateMeshBuffers(resultMesh);

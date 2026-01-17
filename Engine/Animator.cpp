@@ -123,23 +123,25 @@ void Animator::UpdateAnimation(float delta_time)
 	//-------------------------
 	// 애니메이션 블렌딩 처리
 	//-------------------------
-	if (!is_blending_ || !previous_clip_) return;
-	// 이전 애니메이션 시간 갱신
-	const float previous_ticks = (previous_clip_->ticks_per_second > 0.0f) ? previous_clip_->ticks_per_second : 24.0f;
-	previous_time_ += delta_time * previous_ticks;
+	if (is_blending_ && previous_clip_)
+	{
+		// 이전 애니메이션 시간 갱신
+		const float previous_ticks = (previous_clip_->ticks_per_second > 0.0f) ? previous_clip_->ticks_per_second : 24.0f;
+		previous_time_ += delta_time * previous_ticks;
 
-	if (is_loop_)										previous_time_ = WrapAnimationTime(previous_time_, previous_clip_->duration);
-	else if (previous_time_ > previous_clip_->duration)	previous_time_ = current_clip_->duration;
+		if (is_previous_loop_)											previous_time_ = WrapAnimationTime(previous_time_, previous_clip_->duration);
+		else if (previous_time_ > previous_clip_->duration)				previous_time_ = previous_clip_->duration;
 
-	// 블렌딩 비율 증가
-	if (blend_duration_ > 0.f) blend_factor_ += delta_time / blend_duration_;
-	else blend_factor_ = 1.f;
+		// 블렌딩 비율 증가
+		if (blend_duration_ > 0.f) blend_factor_ += delta_time / blend_duration_;
+		else blend_factor_ = 1.f;
 
-	// 블랜딩 종료
-	if (blend_factor_ >= 1.0f){
-		blend_factor_ = 1.0f;
-		is_blending_ = false;
-		previous_clip_ = nullptr;
+		// 블랜딩 종료
+		if (blend_factor_ >= 1.0f) {
+			blend_factor_ = 1.0f;
+			is_blending_ = false;
+			previous_clip_ = nullptr;
+		}
 	}
 
 	CalculateBoneTransform(model_context_->skeleton.root, XMMatrixIdentity());

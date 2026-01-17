@@ -72,8 +72,16 @@ public:
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> GetVertexShaderAndInputLayout(const std::string& shaderName, const std::vector<InputElement>& inputElements = {});
 	// 픽셀 셰이더 얻기
 	com_ptr<ID3D11PixelShader> GetPixelShader(const std::string& shaderName);
+	
+	enum class TextureType
+	{
+		Albedo,
+		Normal,
+		ORM,
+		None // Fallback을 사용하지 않음 (반드시 있어야 하는 텍스처)
+	};
 	// 텍스처 파일로부터 텍스처 로드
-	com_ptr<ID3D11ShaderResourceView> GetTexture(const std::string& fileName);
+	com_ptr<ID3D11ShaderResourceView> GetTexture(const std::string& fileName, TextureType type = TextureType::None);
 	// 모델 파일로부터 모델 로드
 	const Model* LoadModel(const std::string& fileName);
 
