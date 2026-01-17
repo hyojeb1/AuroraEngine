@@ -32,7 +32,8 @@ class SkinnedModelComponent : public ComponentBase
 
 	std::string m_modelFileName = "Aurora.fbx"; // 기본 모델 파일 이름
 
-	const struct SkinnedModel* m_model = nullptr;
+	const SkinnedModel* m_model = nullptr;
+	std::shared_ptr<Animator> animator_ = nullptr;
 
 	MaterialFactorBuffer m_materialFactorData = {}; // 재질 상수 버퍼 데이터
 	com_ptr<ID3D11Buffer> m_materialConstantBuffer = nullptr; // 재질 상수 버퍼
@@ -72,11 +73,12 @@ public:
 	void SetModelFileName(const std::string& modelFileName) { m_modelFileName = modelFileName; }
 
 	bool NeedsFixedUpdate() const override { return false; }
-	bool NeedsUpdate() const override { return false; }
+	bool NeedsUpdate() const override { return true; }
 	bool NeedsRender() const override { return true; }
 
 private:
 	void Initialize() override;
+	void Update() override;
 	void Render() override;
 	void RenderImGui() override;
 

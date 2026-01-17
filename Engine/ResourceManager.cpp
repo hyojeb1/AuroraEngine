@@ -15,6 +15,16 @@ XMFLOAT4X4 ResourceManager::ToXMFLOAT4X4(const aiMatrix4x4& matrix)
 	);
 }
 
+DirectX::XMFLOAT3 ResourceManager::ToXMFLOAT3(const aiVector3D& vec3)
+{
+	return DirectX::XMFLOAT3(vec3.x, vec3.y, vec3.z);
+}
+
+DirectX::XMFLOAT4 ResourceManager::ToXMFLOAT4(const aiQuaternion& quar)
+{
+	return DirectX::XMFLOAT4(quar.x, quar.y, quar.z, quar.w);
+}
+
 bool ResourceManager::SceneHasBones(const aiScene* scene)
 {
 	if (!scene) return false;
@@ -365,6 +375,7 @@ const SkinnedModel* ResourceManager::LoadSkinnedModel(const string& fileName)
 	SkinnedModel& model = m_skinnedModels[fileName];
 	ProcessSkinnedNode(scene->mRootNode, scene, model);
 	model.skeleton.root = BuildSkeletonNode(scene->mRootNode, model.skeleton);
+	LoadAnimations(scene, model);
 
 	return &m_skinnedModels[fileName];
 }
@@ -929,6 +940,91 @@ std::unique_ptr<SkeletonNode> ResourceManager::BuildSkeletonNode(const aiNode* n
 	}
 
 	return skeletonNode;
+}
+
+/// <summary>
+/// Assimp 라이브러리로 읽어들인 원본 데이터(aiScene)를 우리 엔진 전용 포맷(SkinnedModel)으로 변환(Parsing)하는 함수
+/// </summary>
+/// <param name="scene">[in] 원본 데이터(aiScene)</param>
+/// <param name="model">[out] 우리 엔진 전용 포맷(SkinnedModel)</param>
+void ResourceManager::LoadAnimations(const aiScene* scene, SkinnedModel& model)
+{
+	model.animations.clear();
+	if (!scene || scene->mNumAnimations == 0) return;
+
+	model.animations.reserve(scene->mNumAnimations);
+
+	//1. 애니메이션 순회 (겉 포장지 뜯기)
+	for (UINT anim_index = 0; anim_index < scene->mNumAnimations; ++anim_index)
+	{
+		//aiAnimation: Assimp에서 애니메이션 하나(예: "Run", "Walk", "Attack")를 의미하는 구조체입니다.
+		const aiAnimation* animation = scene->mAnimations[anim_index];
+		if (!animation) continue;
+
+		AnimationClip clip = {};
+		clip.name					= animation->mName.C_Str();
+		if (clip.name.empty()) clip.name = "Animation_" + to_string(anim_index);
+		clip.duration				= static_cast<float>(animation->mDuration);
+		clip.ticks_per_second		= static_cast<float>(animation->mTicksPerSecond);
+		if (clip.ticks_per_second <= 0.0f) clip.ticks_per_second = AnimationClip::DEFAULT_FPS;
+		
+
+		//2. 채널 순회 (누가 움직이는가?)
+		//aiNodeAnim (Channel): 이게 핵심입니다. "특정 뼈 하나에 대한 움직임 데이터 묶음"입니다.
+		//하나의 애니메이션(예: 달리기) 안에는 수십 개의 채널(왼팔 채널, 오른다리 채널, 머리 채널...)이 들어있습니다.
+		for (UINT channel_index = 0; channel_index < animation->mNumChannels; ++channel_index)
+		{
+			const aiNodeAnim* node_anim = animation->mChannels[channel_index];
+			if (!node_anim) continue;
+
+			BoneAnimationChannel channel = {};
+			channel.boneName = node_anim->mNodeName.C_Str();
+
+			//3. 본 매핑(이름표 확인)
+			auto mapping_iter = model.skeleton.boneMapping.find(channel.boneName);
+			if (mapping_iter != model.skeleton.boneMapping.end())
+			{
+				channel.boneIndex = static_cast<int>(mapping_iter->second);
+			}
+
+
+			//4. 키프레임 복사 (움직임 기록)
+			//(1)
+			channel.position_keys.reserve(node_anim->mNumPositionKeys);
+			for (UINT i = 0; i < node_anim->mNumPositionKeys; ++i)
+			{
+				VectorKeyframe key = {};
+				key.time_position	= static_cast<float>(node_anim->mPositionKeys[i].mTime);
+				key.value			= ToXMFLOAT3(node_anim->mPositionKeys[i].mValue);
+				channel.position_keys.push_back(key);
+			}
+
+			//(2)
+			channel.rotation_keys.reserve(node_anim->mNumRotationKeys);
+			for (UINT i = 0; i < node_anim->mNumRotationKeys; ++i)
+			{
+				QuaternionKeyframe key = {};
+				key.time_position	= static_cast<float>(node_anim->mRotationKeys[i].mTime);
+				key.value			= ToXMFLOAT4(node_anim->mRotationKeys[i].mValue);
+				channel.rotation_keys.push_back(key);
+			}
+
+			//(3)
+			channel.scale_keys.reserve(node_anim->mNumScalingKeys);
+			for (UINT i = 0; i < node_anim->mNumScalingKeys; ++i)
+			{
+				VectorKeyframe key = {};
+				key.time_position	= static_cast<float>(node_anim->mScalingKeys[i].mTime);
+				key.value			= ToXMFLOAT3(node_anim->mScalingKeys[i].mValue);
+				channel.scale_keys.push_back(key);
+			}
+
+			clip.channels[channel.boneName] = move(channel);
+		}
+		
+		//5. 저장 (가방에 넣기)
+		model.animations.push_back(move(clip));
+	}
 }
 
 

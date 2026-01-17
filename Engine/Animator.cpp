@@ -104,7 +104,7 @@ QuaternionKeyframe GetQuaternionKeyframe(const std::vector<QuaternionKeyframe>& 
 using namespace HELPER_IN_ANIMATOR_CPP;
 
 
-Animator::Animator(const shared_ptr<SkinnedModel> model) : model_context_(model)
+Animator::Animator(const SkinnedModel* model) : model_context_(model)
 {
 	if (model_context_) final_bone_matrices_.resize(model_context_->skeleton.bones.size(), XMMatrixIdentity());
 }
@@ -114,7 +114,7 @@ void Animator::UpdateAnimation(float delta_time)
 	if (!current_clip_ || !model_context_ || !model_context_->skeleton.root) return;
 
 	// 현재 애니메이션 시간 갱신 : 블랜더 24fps
-	const float current_ticks = (current_clip_->ticks_per_second > 0.0f) ? current_clip_->ticks_per_second : 24.0f; 
+	const float current_ticks = (current_clip_->ticks_per_second > 0.0f) ? current_clip_->ticks_per_second : AnimationClip::DEFAULT_FPS;
 	current_time_ += delta_time * current_ticks;
 	
 	if (is_loop_)										current_time_ = WrapAnimationTime(current_time_, current_clip_->duration);
@@ -151,7 +151,7 @@ void Animator::PlayAnimation(const std::string& clip_name, bool is_loop, float b
 
 	AnimationClip* next_clip = FindClipByName(clip_name);
 	if (!next_clip)			return;
-	if (current_clip_.get() == next_clip){
+	if (current_clip_ == next_clip){
 		is_loop_ = is_loop;
 		return;
 	}
@@ -160,7 +160,7 @@ void Animator::PlayAnimation(const std::string& clip_name, bool is_loop, float b
 	previous_time_		= current_time_;
 	is_previous_loop_	= is_loop_;
 
-	current_clip_		= make_shared<AnimationClip>(*next_clip); 
+	current_clip_		= next_clip; 
 	current_time_		= 0.f;
 	is_loop_			= is_loop;
 
@@ -182,8 +182,11 @@ AnimationClip* Animator::FindClipByName(const std::string& clip_name) const
 {
 	if (!model_context_) return nullptr;
 
-	for (AnimationClip& clip : model_context_->animations) {
-		if (clip.name == clip_name) return &clip;
+	for (const auto& clip : model_context_->animations) {
+		if (clip.name == clip_name) {
+			// 원본 데이터(벡터 안에 있는 놈)의 주소를 리턴해야 합니다.
+			return const_cast<AnimationClip*>(&clip);
+		}
 	}
 
 	return nullptr;
@@ -225,7 +228,7 @@ void Animator::CalculateBoneTransform(const std::shared_ptr<SkeletonNode>& node,
 	}
 }
 
-TransformData Animator::SampleTransform(const std::shared_ptr<AnimationClip> clip, const std::shared_ptr<SkeletonNode> node, float time_position)
+TransformData Animator::SampleTransform(const AnimationClip* clip, const std::shared_ptr<SkeletonNode> node, float time_position)
 {
 	if (!node)	 return {};
 	if (!clip)	 return DecomposeTransform(XMLoadFloat4x4(&node->localTransform)); // 재생 중인 애니메이션이 없으면? -> 뼈를 원점으로 구겨넣는 게 아니라, 기본 자세(Bind Pose)를 유지

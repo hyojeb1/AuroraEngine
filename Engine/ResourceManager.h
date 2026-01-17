@@ -109,8 +109,16 @@ private:
 	void CreateSkinnedMeshBuffers(SkinnedMesh& mesh);
 	// 스켈레톤 노드 생성 함수
 	std::unique_ptr<SkeletonNode> BuildSkeletonNode(const aiNode* node, Skeleton& skeleton);
+	
+	void LoadAnimations(const aiScene* scene, SkinnedModel& model);
 	// aiMatrix → XMFLOAT4X4 변환 함수
 	static DirectX::XMFLOAT4X4 ToXMFLOAT4X4(const aiMatrix4x4& matrix);
+	// aiVector3D → XMFLOAT3 변환 함수
+	static DirectX::XMFLOAT3 ToXMFLOAT3(const aiVector3D& vec3);
+	// aiQuaternion → XMFLOAT4 변환 함수
+	static DirectX::XMFLOAT4 ToXMFLOAT4(const aiQuaternion& quar);
+
+
 	// 씬 본 유무 확인 함수
 	static bool SceneHasBones(const aiScene* scene);
 

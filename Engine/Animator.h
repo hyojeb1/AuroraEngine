@@ -24,13 +24,14 @@ class Animator
 {
 private:
 	// 이게 현재의 클립
-	std::shared_ptr<AnimationClip>			current_clip_	= nullptr;	// shared : 모던 + 공유가능한 애니메이션?
+	//std::shared_ptr<AnimationClip>			current_clip_	= nullptr;	// shared : 모던 + 공유가능한 애니메이션?
+	AnimationClip* current_clip_	= nullptr;	// shared : 모던 + 공유가능한 애니메이션?
 	float	current_time_									= 0.0f;		
 	bool	is_loop_										= true; 
 
 	// 이게 이전의 클립
 	// 이는 블랜딩을 위한 준비구나!
-	std::shared_ptr<AnimationClip>			previous_clip_	= nullptr;
+	AnimationClip* previous_clip_	= nullptr;
 	float	previous_time_									= 0.0f;
 	bool	is_previous_loop_								= true;	
 	float	blend_factor_									= 0.0f;
@@ -38,10 +39,10 @@ private:
 	bool	is_blending_									= false;
 
 	std::vector<DirectX::XMMATRIX>	final_bone_matrices_	= {};		// 최종적으로 본들의 행렬
-	std::shared_ptr<SkinnedModel>			model_context_	= nullptr;	// 비유- 모델(배우), 이 변수(대본): 여기에는 매쉬 + 스켈레톤 + 애니메_클립, 3개가 다 있음
+	const SkinnedModel*				model_context_			= nullptr;	// 비유- 모델(배우), 이 변수(대본): 여기에는 매쉬 + 스켈레톤 + 애니메_클립, 3개가 다 있음
 
 public:
-	explicit Animator(const std::shared_ptr<SkinnedModel>model);
+	explicit Animator(const SkinnedModel* model);
 	
 	void UpdateAnimation(float delta_time);
 	void PlayAnimation(const std::string& clip_name, bool is_loop = true, float blend_time = 0.2f);
@@ -52,7 +53,7 @@ private:
 	AnimationClip* FindClipByName(const std::string& clip_name) const;
 	void CalculateBoneTransform(const std::shared_ptr<SkeletonNode>& node, const DirectX::XMMATRIX& parent_transform);
 
-	static TransformData SampleTransform(const std::shared_ptr <AnimationClip> clip, const std::shared_ptr<SkeletonNode> node, float time_position);
+	static TransformData SampleTransform(const AnimationClip* clip, const std::shared_ptr<SkeletonNode> node, float time_position);
 	static TransformData BlendTransform(const TransformData& from, const TransformData& to, float blend_factor);
 	static TransformData DecomposeTransform(const DirectX::XMMATRIX& matrix);
 	static DirectX::XMMATRIX ComposeTransform(const TransformData& transform);

@@ -1,5 +1,6 @@
 /// SkinnedModelComponent.cpp의 시작
 #include "stdafx.h"
+#include "Animator.h"
 #include "SkinnedModelComponent.h"
 
 #include "Renderer.h"
@@ -13,7 +14,7 @@ using namespace DirectX;
 
 REGISTER_TYPE(SkinnedModelComponent)
 
-namespace
+namespace HELPER_IN_SkinnedModelComponent_CPP
 {
 	void CollectSkeletonData(const SkeletonNode& node, const XMMATRIX& parentWorld, vector<XMFLOAT4>& lineVertices, vector<XMFLOAT3>& jointPositions)
 	{
@@ -130,8 +131,9 @@ namespace
 		}
 	}
 
-} //End fo Scope : namespace
+} //End fo Scope : namespace HELPER_IN_SkinnedModelComponent_CPP
 
+using namespace HELPER_IN_SkinnedModelComponent_CPP;
 
 
 void SkinnedModelComponent::Initialize()
@@ -148,9 +150,23 @@ void SkinnedModelComponent::Initialize()
 	m_materialConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor);
 	m_lineConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Line);
 	m_model = resourceManager.LoadSkinnedModel(m_modelFileName);
-
+	if (m_model)
+	{
+		animator_ = make_shared<Animator>(m_model);
+		if (!m_model->animations.empty())
+		{
+			animator_->PlayAnimation(m_model->animations.front().name);
+		}
+	}
 }
 
+void SkinnedModelComponent::Update()
+{
+	if (!animator_) return;
+
+	const float delta_time = TimeManager::GetInstance().GetDeltaTime();
+	animator_->UpdateAnimation(delta_time);
+}
 
 void SkinnedModelComponent::Render()
 {
@@ -172,6 +188,17 @@ void SkinnedModelComponent::Render()
 			if (!m_model) return;
 
 			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
+			
+			if (animator_)
+			{
+				const auto& final_matrices = animator_->GetFinalBoneMatrices();
+				const size_t bone_count = min(final_matrices.size(), static_cast<size_t>(MAX_BONES));
+				for (size_t i = 0; i <bone_count ; ++i)
+				{
+					m_boneBufferData.boneMatrix[i] = final_matrices[i];
+				}
+			}
+
 
 			m_deviceContext->UpdateSubresource(m_boneConstantBuffer.Get(), 0, nullptr, &m_boneBufferData, 0, 0);
 
@@ -261,6 +288,18 @@ void SkinnedModelComponent::RenderImGui()
 	{
 		m_model = ResourceManager::GetInstance().LoadSkinnedModel(m_modelFileName);
 		CreateShaders();
+		if (m_model)
+		{
+			animator_ = make_shared<Animator>(m_model);
+			if (!m_model->animations.empty())
+			{
+				animator_->PlayAnimation(m_model->animations.front().name);
+			}
+		}
+		else
+		{
+			animator_.reset();
+		}
 	}
 
 	ImGui::Separator();
@@ -313,6 +352,49 @@ void SkinnedModelComponent::RenderImGui()
 		{
 			std::cout << "Error: Model or Skeleton Root is null!" << std::endl;
 		}
+	}
+
+	// [기존 코드 아래에 추가]
+	if (ImGui::Button("Debug: Print Animation Info"))
+	{
+		std::cout << "\n========== Animation Debug Info Start ==========\n";
+
+		if (m_model)
+		{
+			size_t animCount = m_model->animations.size();
+			std::cout << "Target Model: " << m_modelFileName << "\n";
+			std::cout << "Total Animations Loaded: " << animCount << "\n\n";
+
+			if (animCount > 0)
+			{
+				// 보기 좋게 표 형식으로 출력
+				std::cout << std::left << std::setw(5) << "ID"
+					<< std::setw(30) << "Clip Name"
+					<< std::setw(15) << "Duration(Ticks)"
+					<< std::setw(10) << "FPS" << "\n";
+				std::cout << "------------------------------------------------------------\n";
+
+				for (size_t i = 0; i < animCount; ++i)
+				{
+					const auto& clip = m_model->animations[i];
+					std::cout << std::left << std::setw(5) << i
+						<< std::setw(30) << clip.name
+						<< std::setw(15) << std::fixed << std::setprecision(2) << clip.duration
+						<< std::setw(10) << clip.ticks_per_second << "\n";
+				}
+				std::cout << "------------------------------------------------------------\n";
+			}
+			else
+			{
+				std::cout << "Warning: Model is loaded, but 'animations' vector is empty.\n";
+			}
+		}
+		else
+		{
+			std::cout << "[Error] m_model is NULL. Please load a model first.\n";
+		}
+
+		std::cout << "========== Animation Debug Info End ============\n" << std::endl;
 	}
 
 	if (m_bShowSkeletonTree && m_model && m_model->skeleton.root)

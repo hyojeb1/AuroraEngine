@@ -40,7 +40,7 @@
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
                     },
-                    "modelFileName": "Aurora12.fbx",
+                    "modelFileName": "Arm.fbx",
                     "psShaderName": "PSOnlyAlbedo.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",
