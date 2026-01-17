@@ -104,7 +104,7 @@ QuaternionKeyframe GetQuaternionKeyframe(const std::vector<QuaternionKeyframe>& 
 using namespace HELPER_IN_ANIMATOR_CPP;
 
 
-Animator::Animator(const SkinnedModel* model) : model_context_(model)
+Animator::Animator(const Model* model) : model_context_(model)
 {
 	if (model_context_) final_bone_matrices_.resize(model_context_->skeleton.bones.size(), XMMatrixIdentity());
 }

@@ -553,33 +553,16 @@ struct Vertex
 	DirectX::XMFLOAT3 normal = {};
 	DirectX::XMFLOAT3 bitangent = {};
 	DirectX::XMFLOAT3 tangent = {};
+
+	// 스키닝 데이터 추가 (정적 메쉬는 0으로 초기화됨)
+	std::array<uint32_t, 4> boneIndex = { 0, 0, 0, 0 };
+	DirectX::XMFLOAT4 boneWeight = { 0.f, 0.f, 0.f, 0.f };
 };
 
-struct SkinnedVertex
-{
-	DirectX::XMFLOAT4 position = {};
-	DirectX::XMFLOAT2 UV = {};
-	DirectX::XMFLOAT3 normal = {};
-	DirectX::XMFLOAT3 bitangent = {};
-	DirectX::XMFLOAT3 tangent = {};
 
-	std::array<uint32_t, 4> boneIndex = {};
-	DirectX::XMFLOAT4 boneWeight = {};
-};
-
-/// <summary>
-/// 뼈(Bone)의 정보를 담는 구조체입니다.
-/// </summary>=Inverse Bind Pose Matrix)은 **"메쉬를 T-Pose 상태에서 원점으로 되돌리는 행렬"**입니다.
 struct BoneInfo
 {
 	uint32_t id = 0;
-
-	/// <summary>
-	/// 오프셋 행렬(Inverse Bind Pose Matrix)입니다.
-	/// <para>
-	/// 메쉬를 T-Pose 상태에서 로컬 공간의 원점으로 되돌리는(변환하는) 행렬입니다.
-	/// </para>
-	/// </summary>
 	DirectX::XMFLOAT4X4 offset_matrix = {};
 };
 
@@ -659,33 +642,21 @@ struct Mesh
 	MaterialTexture materialTexture = {};
 };
 
-
-struct SkinnedMesh
+enum class ModelType
 {
-	D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-
-	std::vector<SkinnedVertex> vertices = {};
-	std::vector<UINT> indices = {};
-	UINT indexCount = 0;
-
-	DirectX::BoundingBox boundingBox = {};
-
-	com_ptr<ID3D11Buffer> vertexBuffer = nullptr;
-	com_ptr<ID3D11Buffer> indexBuffer = nullptr;
-
-	MaterialTexture materialTexture = {};
+	Static,
+	Skinned,
+	Rigid,
+	Count
 };
 
 struct Model
 {
+	ModelType type = ModelType::Static;
 	std::vector<Mesh> meshes = {};
 	DirectX::BoundingBox boundingBox = {};
-};
 
-struct SkinnedModel
-{
-	std::vector<SkinnedMesh> skinnedMeshes = {};
-	DirectX::BoundingBox boundingBox = {};
+	// 애니메이션 데이터 (정적 모델인 경우 비워둠)
 	Skeleton skeleton = {};
 	std::vector<AnimationClip> animations = {};
 };

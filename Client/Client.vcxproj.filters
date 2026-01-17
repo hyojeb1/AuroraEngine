@@ -60,5 +60,8 @@
     <None Include="..\Asset\Scene\HyojeTestScene.json">
       <Filter>Scene\JSON</Filter>
     </None>
+    <None Include="..\Asset\Scene\TestScene.json">
+      <Filter>Scene\JSON</Filter>
+    </None>
   </ItemGroup>
 </Project>

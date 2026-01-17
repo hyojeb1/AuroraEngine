@@ -39,10 +39,10 @@ private:
 	bool	is_blending_									= false;
 
 	std::vector<DirectX::XMMATRIX>	final_bone_matrices_	= {};		// 최종적으로 본들의 행렬
-	const SkinnedModel*				model_context_			= nullptr;	// 비유- 모델(배우), 이 변수(대본): 여기에는 매쉬 + 스켈레톤 + 애니메_클립, 3개가 다 있음
+	const Model*				model_context_			= nullptr;	// 비유- 모델(배우), 이 변수(대본): 여기에는 매쉬 + 스켈레톤 + 애니메_클립, 3개가 다 있음
 
 public:
-	explicit Animator(const SkinnedModel* model);
+	explicit Animator(const Model* model);
 	
 	void UpdateAnimation(float delta_time);
 	void PlayAnimation(const std::string& clip_name, bool is_loop = true, float blend_time = 0.2f);
