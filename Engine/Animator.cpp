@@ -223,7 +223,8 @@ void Animator::CalculateBoneTransform(const std::shared_ptr<SkeletonNode>& node,
 		XMMATRIX offset_matrix = XMLoadFloat4x4(&model_context_->skeleton.bones[node->boneIndex].offset_matrix);
 		XMMATRIX global_inverse = XMLoadFloat4x4(&model_context_->skeleton.globalInverseTransform);
 
-		final_bone_matrices_[node->boneIndex] = offset_matrix * global_transform * global_inverse;
+		//final_bone_matrices_[node->boneIndex] = offset_matrix * global_transform;// *global_inverse; // 왜 있으나 마나지...?
+		final_bone_matrices_[node->boneIndex] = offset_matrix * global_transform *global_inverse;
 	}
 
 	// 자식 뼈들에게 "나의 globalTransform이 너희들의 parentTransform이다"라고 알림

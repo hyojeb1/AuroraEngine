@@ -286,6 +286,7 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 	if (it != m_models.end()) return &it->second;
 
 	Assimp::Importer importer;
+	importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
 	const string fullPath = "../Asset/Model/" + fileName;
 
 	const aiScene* scene = importer.ReadFile

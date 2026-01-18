@@ -21,9 +21,9 @@ private:
 	com_ptr<ID3D11PixelShader> m_linePixelShader = nullptr; // 픽셀 셰이더
 	com_ptr<ID3D11Buffer> m_lineConstantBuffer = nullptr;
 
-	bool m_bRenderSkeletonLines = true;
-	bool m_bShowSkeletonTree = true;
-	bool m_bShowJointOverlay = true;
+	bool m_bRenderSkeletonLines = false;
+	bool m_bShowSkeletonTree = false;
+	bool m_bShowJointOverlay = false;
 
 
 public:

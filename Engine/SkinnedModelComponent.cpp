@@ -140,6 +140,7 @@ SkinnedModelComponent::SkinnedModelComponent()
 {
 	// 스킨드 모델용 기본 셰이더로 변경
 	m_vsShaderName = "VSModelSkinAnim.hlsl";
+	m_modelFileName = "CastleGuard01_Walking.fbx";
 
 	// 레이아웃 변경
 	m_inputElements.push_back(InputElement::Blendindex);  // 1. Index 먼저 (Offset 60, UINT)
