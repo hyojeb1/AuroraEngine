@@ -86,7 +86,8 @@ QuaternionKeyframe GetQuaternionKeyframe(const std::vector<QuaternionKeyframe>& 
 				XMVECTOR from				= XMLoadFloat4(&keys[i].value);
 				XMVECTOR to					= XMLoadFloat4(&keys[i + 1].value);
 
-				XMVECTOR blended			= XMVectorLerp(from, to, scale_factor);
+				XMVECTOR blended			= XMQuaternionSlerp(from, to, scale_factor);
+				blended						= XMQuaternionNormalize(blended);
 
 				QuaternionKeyframe result		= {};
 				result.time_position		= time_position;
