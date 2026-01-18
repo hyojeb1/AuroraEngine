@@ -5,14 +5,21 @@
 using namespace std;
 using namespace DirectX;
 
-// 전치
+// 전치 함 VS 안함
 XMFLOAT4X4 ResourceManager::ToXMFLOAT4X4(const aiMatrix4x4& matrix)
 {
+	//return XMFLOAT4X4(
+	//	matrix.a1, matrix.b1, matrix.c1, matrix.d1,
+	//	matrix.a2, matrix.b2, matrix.c2, matrix.d2,
+	//	matrix.a3, matrix.b3, matrix.c3, matrix.d3,
+	//	matrix.a4, matrix.b4, matrix.c4, matrix.d4
+	//);
+
 	return XMFLOAT4X4(
-		matrix.a1, matrix.b1, matrix.c1, matrix.d1,
-		matrix.a2, matrix.b2, matrix.c2, matrix.d2,
-		matrix.a3, matrix.b3, matrix.c3, matrix.d3,
-		matrix.a4, matrix.b4, matrix.c4, matrix.d4
+		matrix.a1, matrix.a2, matrix.a3, matrix.a4,
+		matrix.b1, matrix.b2, matrix.b3, matrix.b4,
+		matrix.c1, matrix.c2, matrix.c3, matrix.c4,
+		matrix.d1, matrix.d2, matrix.d3, matrix.d4
 	);
 }
 
@@ -301,11 +308,12 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 		aiProcess_TransformUVCoords | // UV 좌표 변환 적용 // 뭐하는건지 모르겠음
 		aiProcess_FindInstances | // 중복 메쉬 찾기
 		aiProcess_OptimizeMeshes | // 메쉬 최적화
-		aiProcess_OptimizeGraph | // 씬 그래프 최적화 // 애니메이션이나 본이 없는 노드 병합 // 좀 위험할 수 있으니 유의
+		//aiProcess_OptimizeGraph | // 씬 그래프 최적화 // 애니메이션이나 본이 없는 노드 병합 // 좀 위험할 수 있으니 유의
 		aiProcess_SplitByBoneCount | // 본 개수로 메쉬 분할 // 한 메쉬에 본이 너무 많으면 여러 메쉬로 나눔 // 뭐하는건지 모르겠음
-		aiProcess_Debone | // 사용하지 않는 더미 본 제거
+		//aiProcess_Debone | // 사용하지 않는 더미 본 제거
 		aiProcess_DropNormals | // aiProcess_JoinIdenticalVertices 와 같이 사용 // 정점 노말 제거
 		aiProcess_GenBoundingBoxes | // 바운딩 박스 생성
+		aiProcess_LimitBoneWeights |
 		aiProcess_ConvertToLeftHanded // DirectX 좌표계(왼손 좌표계)로 변환
 	);
 
@@ -846,7 +854,8 @@ void ResourceManager::LoadAnimations(const aiScene* scene, Model& model)
 				channel.scale_keys.push_back(key);
 			}
 
-			clip.channels[channel.boneName] = move(channel);
+			string keyName = channel.boneName; // 이름을 미리 복사
+			clip.channels[keyName] = move(channel); // 안전하게 이동
 		}
 		
 		//5. 저장 (가방에 넣기)

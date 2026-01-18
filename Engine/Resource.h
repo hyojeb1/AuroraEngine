@@ -251,8 +251,8 @@ enum class InputElement
 	Bitangent,
 	Tangent,
 
-	Blendweight,
 	Blendindex,
+	Blendweight,
 
 	Count
 };
@@ -318,24 +318,24 @@ constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement:
 		.InstanceDataStepRate = 0
 	},
 
-	// Blendweight
-	D3D11_INPUT_ELEMENT_DESC
-	{
-		.SemanticName = "BLENDWEIGHT",
-		.SemanticIndex = 0,
-		.Format = DXGI_FORMAT_R32G32B32A32_FLOAT, // float4
-		.InputSlot = 0,
-		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
-		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
-		.InstanceDataStepRate = 0
-	},
-
 	// Blendindex
 	D3D11_INPUT_ELEMENT_DESC
 	{
 		.SemanticName = "BLENDINDICES",
 		.SemanticIndex = 0,
 		.Format = DXGI_FORMAT_R32G32B32A32_UINT, // uint4
+		.InputSlot = 0,
+		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+		.InstanceDataStepRate = 0
+	},
+
+	// Blendweight
+	D3D11_INPUT_ELEMENT_DESC
+	{
+		.SemanticName = "BLENDWEIGHT",
+		.SemanticIndex = 0,
+		.Format = DXGI_FORMAT_R32G32B32A32_FLOAT, // float4
 		.InputSlot = 0,
 		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,

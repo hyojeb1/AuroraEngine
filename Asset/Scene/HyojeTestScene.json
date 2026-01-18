@@ -40,7 +40,7 @@
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
                     },
-                    "modelFileName": "Arm.fbx",
+                    "modelFileName": "CastleGuard01_Walking.fbx",
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",

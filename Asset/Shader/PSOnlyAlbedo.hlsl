@@ -2,7 +2,7 @@
 #include "CommonPS.hlsli"
 #include "CommonMath.hlsli"
 
-#define ONLYALBEDO
+//#define ONLYALBEDO
 
 #ifdef ONLYALBEDO
 
@@ -49,10 +49,7 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
 
     // 최종 색상 합성
     float3 finalColor = (diffuse + specular) * radiance + ambient;
-
-    // 감마 보정 (첫 번째 파일의 로직에 맞춰 Linear -> SRGB 변환)
-    finalColor = LinearToSRGB(finalColor);
-
+    
     return float4(finalColor, albedo.a);
 }
 

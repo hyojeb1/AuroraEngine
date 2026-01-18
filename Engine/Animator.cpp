@@ -215,12 +215,18 @@ void Animator::CalculateBoneTransform(const std::shared_ptr<SkeletonNode>& node,
 
 	// 행렬 결합 (Local -> Global)
 	XMMATRIX local_matrix		= ComposeTransform(local_transform);
-	XMMATRIX global_transform	= local_matrix * parent_transform;
+	//XMMATRIX global_transform	= local_matrix * parent_transform;
+	XMMATRIX global_transform = XMMatrixIdentity();
 
 	// 스키닝 행렬 계산 (Offset Matrix 적용) ★
 	if (node->boneIndex >= 0 && static_cast<size_t>(node->boneIndex) < final_bone_matrices_.size()){
 		XMMATRIX offset_matrix = XMLoadFloat4x4(&model_context_->skeleton.bones[node->boneIndex].offset_matrix);
-		final_bone_matrices_[node->boneIndex] = offset_matrix * global_transform;
+
+		// 1. 완전 초기화 테스트: 아래 줄을 주석 해제하면 캐릭터가 원점에 뭉쳐야 함
+		//final_bone_matrices_[node->boneIndex] = XMMatrixIdentity(); 
+
+		 // 2. 바인드 포즈 테스트: 오프셋만 적용
+		 final_bone_matrices_[node->boneIndex] = offset_matrix * global_transform;
 	}
 
 	// 자식 뼈들에게 "나의 globalTransform이 너희들의 parentTransform이다"라고 알림
@@ -235,8 +241,27 @@ TransformData Animator::SampleTransform(const AnimationClip* clip, const std::sh
 	if (!node)	 return {};
 	if (!clip)	 return DecomposeTransform(XMLoadFloat4x4(&node->localTransform)); // 재생 중인 애니메이션이 없으면? -> 뼈를 원점으로 구겨넣는 게 아니라, 기본 자세(Bind Pose)를 유지
 
-	auto channel_iterator = clip->channels.find(node->name);
-	if (channel_iterator == clip->channels.end()) return DecomposeTransform(XMLoadFloat4x4(&node->localTransform)); // 모든 뼈가 움직이지 않을 수 않는다. -> 뼈를 원점으로 구겨넣는 게 아니라, 기본 자세(Bind Pose)를 유지
+	// ▼▼▼ [추가할 로직: 이름 정제] ▼▼▼
+	std::string searchName = node->name; // 원본 이름 복사
+
+	//// "_$AssimpFbx$" 문자열이 포함되어 있는지 확인
+	//size_t dummyPos = searchName.find("_$AssimpFbx$");
+	//if (dummyPos != std::string::npos)
+	//{
+	//	// 접미사가 있다면 잘라냄 (예: "Hips_$AssimpFbx$_PreRotation" -> "Hips")
+	//	searchName = searchName.substr(0, dummyPos);
+	//}
+	//// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+	// [수정된 코드] node->name 대신 searchName(정제된 이름)으로 검색
+	auto channel_iterator = clip->channels.find(searchName);
+
+	// 채널을 못 찾았다면? -> 기본 자세(Local Transform) 유지
+	if (channel_iterator == clip->channels.end())
+	{
+		return DecomposeTransform(XMLoadFloat4x4(&node->localTransform));
+	}
+	// 모든 뼈가 움직이지 않을 수 않는다. -> 뼈를 원점으로 구겨넣는 게 아니라, 기본 자세(Bind Pose)를 유지
 
 	const BoneAnimationChannel& channel = channel_iterator->second;
 	const XMFLOAT3 default_position = { 0.f, 0.f, 0.f };

@@ -12,57 +12,22 @@
 // 256개(1024 벡터)로 선언했으므로 크기는 이상 없음
 // 상수버퍼 슬롯에 대한 고민이 또 있다. 
 #include "CommonVS.hlsli"
+
 #ifndef __COMMON_SKINNING_HLSLI__
 #define __COMMON_SKINNING_HLSLI__
 
-// feature:     4성분 벡터 섞는 함수
-// parameter:   pos는 nrm, bi_nrm, tan 역시 와야 함
 float4 Skinning(float4 pos, float4 weight, uint4 index)
 {
-    float4 skinVtx;
-#ifdef defense
-    
-    float4 v0 = mul(weight.x, mul(pos, BoneTransforms[index.x]));
-    float4 v1 = mul(weight.y, mul(pos, BoneTransforms[index.y]));
-    float4 v2 = mul(weight.z, mul(pos, BoneTransforms[index.z]));
-    float4 v3 = mul(weight.w, mul(pos, BoneTransforms[index.w]));
-        
-#else
+    float4 skinVtx = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-    //uint ix = (index.x < 20) ? index.x : 0;
-    //uint iy = (index.y < 20) ? index.y : 0;
-    //uint iz = (index.z < 20) ? index.z : 0;
-    //uint iw = (index.w < 20) ? index.w : 0;
+    // Standard Skinning Logic
+    // index values are safe as long as they are < MAX_BONES (256) defined in CommonVS
+    skinVtx += weight.x * mul(pos, BoneTransforms[index.x]);
+    skinVtx += weight.y * mul(pos, BoneTransforms[index.y]);
+    skinVtx += weight.z * mul(pos, BoneTransforms[index.z]);
+    skinVtx += weight.w * mul(pos, BoneTransforms[index.w]);
 
-    uint ix = (index.x < 20) ? index.x : 0;
-    uint iy = (index.y < 20) ? index.y : 1;
-    uint iz = (index.z < 20) ? index.z : 2;
-    uint iw = (index.w < 20) ? index.w : 3;
-    
-               
-    
-    float wx = (weight.x <= 1 || weight.x >= 0) ? weight.x : SinTime / 2;
-    float wy = (weight.y <= 1 || weight.y >= 0) ? weight.y : 1 - SinTime / 2;
-    float wz = (weight.z <= 1 || weight.z >= 0) ? weight.z : CosTime / 2;
-    float ww = (weight.w <= 1 || weight.w >= 0) ? weight.w : 1 - CosTime / 2;
-    
-
-   
-    float4 v0 = mul(wx, mul(pos, BoneTransforms[ix]));
-    float4 v1 = mul(wy, mul(pos, BoneTransforms[iy]));
-    float4 v2 = mul(wz, mul(pos, BoneTransforms[iz]));
-    float4 v3 = mul(ww, mul(pos, BoneTransforms[iw]));
-#endif
-    
-               
-               
-    skinVtx = v0 + v1 + v2 + v3;
-    
-    
-    
     return skinVtx;
 }
-
-
 #endif
 /// EOF CommonSkinning.hlsli
