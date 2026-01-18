@@ -180,15 +180,14 @@ void SkinnedModelComponent::Update()
 
 void SkinnedModelComponent::Render()
 {
-	// [수정] 뼈 행렬 계산은 렌더링 람다 내부나 외부 어디든 상관없으나,
-	// GPU 버퍼 업데이트 직전에 최신화되어 있어야 합니다.
 	if (animator_)
 	{
 		const auto& final_matrices = animator_->GetFinalBoneMatrices();
 		const size_t bone_count = min(final_matrices.size(), static_cast<size_t>(MAX_BONES));
 		for (size_t i = 0; i < bone_count; ++i)
 		{
-			m_boneBufferData.boneMatrix[i] = final_matrices[i];
+			//m_boneBufferData.boneMatrix[i] = final_matrices[i];
+			m_boneBufferData.boneMatrix[i] = XMMatrixTranspose(final_matrices[i]);
 		}
 	}
 

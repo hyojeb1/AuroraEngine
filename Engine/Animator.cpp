@@ -215,8 +215,8 @@ void Animator::CalculateBoneTransform(const std::shared_ptr<SkeletonNode>& node,
 
 	// 행렬 결합 (Local -> Global)
 	XMMATRIX local_matrix		= ComposeTransform(local_transform);
-	//XMMATRIX global_transform	= local_matrix * parent_transform;
-	XMMATRIX global_transform = XMMatrixIdentity();
+	XMMATRIX global_transform	= local_matrix * parent_transform;
+	//XMMATRIX global_transform = XMMatrixIdentity();
 
 	// 스키닝 행렬 계산 (Offset Matrix 적용) ★
 	if (node->boneIndex >= 0 && static_cast<size_t>(node->boneIndex) < final_bone_matrices_.size()){
