@@ -566,14 +566,6 @@ struct BoneInfo
 	DirectX::XMFLOAT4X4 offset_matrix = {};
 };
 
-//////////////////////////////////////////////
-//! 
-//! 이렇게 받을 것인가
-//! 아트팀이 무엇을 주든 받게끔? 일단 지피티가 주는 대로 짜고 이후에  고민을 해보자. 
-//! 
-//! 현재는 24프레임 모두 받아 처리하는 게 아니잖슴!
-//! 
-//
 struct VectorKeyframe
 {
 	float time_position = 0.0f;
@@ -607,6 +599,7 @@ struct Skeleton
 {
 	std::unordered_map<std::string, uint32_t> boneMapping = {};
 	std::vector<BoneInfo> bones = {};
+	DirectX::XMFLOAT4X4 globalInverseTransform = {};
 	std::shared_ptr<SkeletonNode> root = nullptr;
 };
 

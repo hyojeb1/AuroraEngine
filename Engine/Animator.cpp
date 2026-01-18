@@ -218,15 +218,12 @@ void Animator::CalculateBoneTransform(const std::shared_ptr<SkeletonNode>& node,
 	XMMATRIX global_transform	= local_matrix * parent_transform;
 	//XMMATRIX global_transform = XMMatrixIdentity();
 
-	// 스키닝 행렬 계산 (Offset Matrix 적용) ★
+	// 스키닝 행렬 계산 (Offset Matrix과 global_inverse을 적용)
 	if (node->boneIndex >= 0 && static_cast<size_t>(node->boneIndex) < final_bone_matrices_.size()){
 		XMMATRIX offset_matrix = XMLoadFloat4x4(&model_context_->skeleton.bones[node->boneIndex].offset_matrix);
+		XMMATRIX global_inverse = XMLoadFloat4x4(&model_context_->skeleton.globalInverseTransform);
 
-		// 1. 완전 초기화 테스트: 아래 줄을 주석 해제하면 캐릭터가 원점에 뭉쳐야 함
-		//final_bone_matrices_[node->boneIndex] = XMMatrixIdentity(); 
-
-		 // 2. 바인드 포즈 테스트: 오프셋만 적용
-		 final_bone_matrices_[node->boneIndex] = offset_matrix * global_transform;
+		final_bone_matrices_[node->boneIndex] = offset_matrix * global_transform * global_inverse;
 	}
 
 	// 자식 뼈들에게 "나의 globalTransform이 너희들의 parentTransform이다"라고 알림

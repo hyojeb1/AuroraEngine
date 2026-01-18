@@ -314,6 +314,7 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 		aiProcess_DropNormals | // aiProcess_JoinIdenticalVertices 와 같이 사용 // 정점 노말 제거
 		aiProcess_GenBoundingBoxes | // 바운딩 박스 생성
 		aiProcess_LimitBoneWeights |
+		aiProcess_GlobalScale |
 		aiProcess_ConvertToLeftHanded // DirectX 좌표계(왼손 좌표계)로 변환
 	);
 
@@ -336,6 +337,9 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 	// SceneHasBones 체크 혹은 model.skeleton.bones가 비어있지 않은지 확인
 	if (SceneHasBones(scene))
 	{
+		aiMatrix4x4 inverse_root_transform = scene->mRootNode->mTransformation;
+		inverse_root_transform.Inverse();
+		model.skeleton.globalInverseTransform = ToXMFLOAT4X4(inverse_root_transform);
 		model.skeleton.root = BuildSkeletonNode(scene->mRootNode, model.skeleton);
 		model.type = ModelType::Skinned; // 필요하다면 타입 마킹
 	}
