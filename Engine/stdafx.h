@@ -60,6 +60,19 @@
 #include <boost/asio.hpp>
 #include <boost/asio/executor_work_guard.hpp>
 
+//fmod
+#ifdef _DEBUG
+//#pragma comment(lib, "fmodstudioL_vc.lib")
+#pragma comment(lib, "fmodL_vc.lib")
+#else
+//#pragma comment(lib, "fmodstudio_vc.lib")
+#pragma comment(lib, "fmod_vc.lib")
+#endif
+
+#include <fmod.hpp>
+#include <fmod_error_wrap.h>
+//fmod end
+
 // 메크로 정의
 // com_ptr 매크로
 #define com_ptr Microsoft::WRL::ComPtr
