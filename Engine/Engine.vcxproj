@@ -136,6 +136,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Create</PrecompiledHeader>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\fmod\api\core\inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -147,10 +148,12 @@
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="ComponentBase.h" />
     <ClInclude Include="DebugCamera.h" />
+    <ClInclude Include="EmitterComponent.h" />
     <ClInclude Include="GameObjectBase.h" />
     <ClInclude Include="Base.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="KeyCode.h" />
+    <ClInclude Include="ListenerComponent.h" />
     <ClInclude Include="ModelComponent.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="ResourceManager.h" />
@@ -169,9 +172,11 @@
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="ComponentBase.cpp" />
     <ClCompile Include="DebugCamera.cpp" />
+    <ClCompile Include="EmitterComponent.cpp" />
     <ClCompile Include="GameObjectBase.cpp" />
     <ClCompile Include="Base.cpp" />
     <ClCompile Include="InputManager.cpp" />
+    <ClCompile Include="ListenerComponent.cpp" />
     <ClCompile Include="ModelComponent.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="ResourceManager.cpp" />

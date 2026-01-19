@@ -1,6 +1,8 @@
 #pragma once
-
 #include "Singleton.h"
+
+class ListenerComponent;
+class XMVECTOR;
 
 class SoundManager : public Singleton<SoundManager>
 {
@@ -24,10 +26,15 @@ public:
 	float GetVolume_SFX() { return m_Volume_SFX; }
 	float GetVolume_UI() { return m_Volume_UI; }
 
+	void ConvertBGMSource(bool isStream);
+	void ConvertSFXSource();
+	void ConvertUISource ();
 
-	void ConvertBGMSource(std::string filename, bool isStream);
-	void ConvertSFXSource(std::string filename);
-	void ConvertUISource (std::string filename);
+	void SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename);
+
+	void UpdateListener(ListenerComponent* listener);
+
+	FMOD_VECTOR ToFMOD(DirectX::XMVECTOR vector);
 
 	FMOD::System* GetCoreSystem() { return m_CoreSystem; }
 private:
@@ -47,8 +54,8 @@ private:
 	float m_Volume_SFX = 1.0f;
 	float m_Volume_UI = 1.0f;
 
-	std::unordered_map<std::string, FMOD::Sound*> L_BGM;
-	std::unordered_map<std::string, FMOD::Sound*> L_SFX;
-	std::unordered_map<std::string, FMOD::Sound*> L_UI;
+	std::unordered_map<std::string, FMOD::Sound*> BGM_List;
+	std::unordered_map<std::string, FMOD::Sound*> SFX_List;
+	std::unordered_map<std::string, FMOD::Sound*> UI_List;
 };
 

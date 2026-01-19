@@ -2,6 +2,7 @@
 
 #include "WindowManager.h"
 #include "SceneManager.h"
+#include <SoundManager.h>
 
 #include "TestScene.h"
 #include "HyojeTestScene.h"
@@ -26,6 +27,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
 	sceneManager.ChangeScene("HyojeTestScene");
+
+	SoundManager& soundManager = SoundManager::GetInstance();
+	soundManager.Initialize();
 
 	while (windowManager.ProcessMessages()) sceneManager.Run();
 

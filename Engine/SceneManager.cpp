@@ -4,6 +4,7 @@
 
 #include "Renderer.h"
 #include "TimeManager.h"
+#include "SoundManager.h"
 
 using namespace std;
 
@@ -28,6 +29,7 @@ void SceneManager::Run()
 	}
 
 	TimeManager::GetInstance().UpdateTime();
+	SoundManager::GetInstance().Update();
 
 	m_accumulator += TimeManager::GetInstance().GetDeltaTime();
 

@@ -152,6 +152,7 @@ xcopy /Y /D "$(SolutionDir)ThirdParty\fmod\api\core\lib\x64\fmodL.dll" "$(Target
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalOptions>/WHOLEARCHIVE:Engine.lib %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\fmod\api\core\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Y /D "$(SolutionDir)ThirdParty\fmod\api\core\lib\x64\fmod.dll" "$(TargetDir)"</Command>

@@ -43,6 +43,19 @@
 // JSON 헤더
 #include <nlohmann/json.hpp>
 
+//fmod
+#ifdef _DEBUG
+//#pragma comment(lib, "fmodstudioL_vc.lib")
+#pragma comment(lib, "fmodL_vc.lib")
+#else
+//#pragma comment(lib, "fmodstudio_vc.lib")
+#pragma comment(lib, "fmod_vc.lib")
+#endif
+
+#include <fmod.hpp>
+#include <fmod_error_wrap.h>
+//fmod end
+
 // using 정의
 #ifdef _DEBUG
 using std::cout;

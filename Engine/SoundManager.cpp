@@ -1,20 +1,13 @@
 #include "stdafx.h"
 
-//fmod
-#ifdef _DEBUG
-//#pragma comment(lib, "fmodstudioL_vc.lib")
-#pragma comment(lib, "fmodL_vc.lib")
-#else
-//#pragma comment(lib, "fmodstudio_vc.lib")
-#pragma comment(lib, "fmod_vc.lib")
-#endif
-
-#include <fmod.hpp>
-#include <fmod_error_wrap.h>
-//fmod end
-
 #include <filesystem>
+#include <DirectXMath.h>
+
+#include "GameObjectBase.h"
+#include "ListenerComponent.h"
+
 #include "SoundManager.h"
+
 
 constexpr size_t ChannelCount = 64; //profiling 필요
 
@@ -55,6 +48,15 @@ void SoundManager::Initialize()
 		m_MainGroup->addGroup(m_BGMGroup);
 		m_MainGroup->addGroup(m_SFXGroup);
 		m_MainGroup->addGroup(m_UIGroup);
+
+		ConvertBGMSource(false);
+		ConvertSFXSource();
+		ConvertUISource();
+
+		for (auto& n : SFX_List)
+		{
+			std::cout << n.first << std::endl;
+		}
 
 		m_CoreSystem->update();
 	}
@@ -127,7 +129,7 @@ void SoundManager::SetVolume_UI(float volume)
 	m_UIGroup->setVolume(m_Volume_UI);
 }
 
-void SoundManager::ConvertBGMSource(std::string filename, bool isStream = true)
+void SoundManager::ConvertBGMSource(bool isStream)
 {
 	const std::filesystem::path BGMDirectory = "../Asset/Sound/BGM/";
 
@@ -151,12 +153,12 @@ void SoundManager::ConvertBGMSource(std::string filename, bool isStream = true)
 															FMOD_ACCURATETIME,nullptr, & temp);
 			}
 			
-			L_BGM.emplace(filename, temp);
+			BGM_List.emplace(fileName, temp);
 		}
 	}
 }
 
-void SoundManager::ConvertSFXSource(std::string filename)
+void SoundManager::ConvertSFXSource()
 {
 	const std::filesystem::path SFXDirectory = "../Asset/Sound/SFX/";
 
@@ -167,14 +169,15 @@ void SoundManager::ConvertSFXSource(std::string filename)
 			const std::string fileName = std::filesystem::relative(dirEntry.path(), SFXDirectory).string();
 
 			FMOD::Sound* temp;
-			m_CoreSystem->createSound(fileName.c_str(), FMOD_DEFAULT | FMOD_3D, nullptr, &temp);
+			const std::string fullPath = dirEntry.path().string();
+			m_CoreSystem->createSound(fullPath.c_str(), FMOD_DEFAULT | FMOD_3D, nullptr, &temp);
 
-			L_SFX.emplace(filename, temp);
+			SFX_List.emplace(fileName, temp);
 		}
 	}
 }
 
-void SoundManager::ConvertUISource(std::string filename)
+void SoundManager::ConvertUISource()
 {
 	const std::filesystem::path UIDirectory = "../Asset/Sound/UI/";
 
@@ -185,9 +188,50 @@ void SoundManager::ConvertUISource(std::string filename)
 			const std::string fileName = std::filesystem::relative(dirEntry.path(), UIDirectory).string();
 
 			FMOD::Sound* temp;
-			m_CoreSystem->createSound(fileName.c_str(), FMOD_DEFAULT | FMOD_2D, nullptr, &temp);
+			const std::string fullPath = dirEntry.path().string();
+			m_CoreSystem->createSound(fullPath.c_str(), FMOD_DEFAULT | FMOD_2D, nullptr, &temp);
 
-			L_UI.emplace(filename, temp);
+			UI_List.emplace(fileName, temp);
 		}
 	}
 }
+
+void SoundManager::SFX_Shot(const DirectX::XMVECTOR pos,const std::string filename)
+{
+	FMOD::Channel* pChannel = nullptr;
+
+	auto it = SFX_List.find(filename);
+
+	if (it != SFX_List.end())
+	{
+		m_CoreSystem->playSound(it->second, m_SFXGroup, false, &pChannel);
+		FMOD_VECTOR tempPos = ToFMOD(pos);
+		FMOD_VECTOR vel{ 0,0,0 };
+		pChannel->set3DAttributes(&tempPos, &vel);
+	}
+}
+
+FMOD_VECTOR SoundManager::ToFMOD(DirectX::XMVECTOR vector)
+{
+	DirectX::XMFLOAT3 pos;
+	DirectX::XMStoreFloat3(&pos, vector);
+
+	FMOD_VECTOR FMOD_pos;
+	FMOD_pos.x = pos.x;
+	FMOD_pos.y = pos.y;
+	FMOD_pos.z = pos.z;
+
+	return FMOD_pos;
+}
+
+void SoundManager::UpdateListener(ListenerComponent* listener)
+{
+	FMOD_VECTOR pos = ToFMOD(listener->GetOwner()->GetPosition());
+	FMOD_VECTOR vel{ 0,0,0 };
+	FMOD_VECTOR fwd{ 0,0,1 };
+	FMOD_VECTOR up{ 0,1,0 };
+
+	m_CoreSystem->set3DListenerAttributes(0, &pos, &vel, &fwd, &up);
+}
+
+
