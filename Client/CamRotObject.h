@@ -1,3 +1,4 @@
+///BOF CamRotObject.h
 #pragma once
 #include "GameObjectBase.h"
 
@@ -15,3 +16,4 @@ private:
 	void Update() override;
 };
 
+///EOF CamRotObject.h

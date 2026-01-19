@@ -14,6 +14,7 @@ enum class Direction // 방향 열거형
 
 class GameObjectBase : public Base
 {
+protected:
 	UINT m_id = 0; // 고유 ID
 	std::string m_name = ""; // 이름
 

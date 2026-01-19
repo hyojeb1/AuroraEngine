@@ -2,8 +2,6 @@
 #pragma once
 #include "GameObjectBase.h"
 
-#ifndef HYOJE_BLENDER_CAMERA
-
 class DebugCamera : public GameObjectBase
 {
 private:
@@ -29,24 +27,4 @@ public:
 	void GetCameraBasis(DirectX::XMVECTOR& outRight, DirectX::XMVECTOR& outUp, DirectX::XMVECTOR& outForward);
 };
 
-#else
-
-class DebugCamera : public GameObjectBase
-{
-	float m_moveSpeed = 10.0f; // 이동 속도
-
-public:
-	DebugCamera() = default;
-	~DebugCamera() override = default;
-	DebugCamera(const DebugCamera&) = default;
-	DebugCamera& operator=(const DebugCamera&) = default;
-	DebugCamera(DebugCamera&&) = default;
-	DebugCamera& operator=(DebugCamera&&) = default;
-
-	void Initialize() override;
-	void Update() override;
-};
-
-#endif // HYOJE_BLENDER_CAMERA
-
-// EOF DebugCamera.h
+/// EOF DebugCamera.h

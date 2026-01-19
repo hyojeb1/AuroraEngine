@@ -1,3 +1,4 @@
+///BOF CamRotObject.cpp
 #include "stdafx.h"
 #include "CamRotObject.h"
 
@@ -25,3 +26,5 @@ void CamRotObject::Update()
 	if (input.GetKey(Space)) MoveDirection(deltaTime * 10.0f, Direction::Up);
 	if (input.GetKey(Shift)) MoveDirection(deltaTime * 10.0f, Direction::Down);
 }
+
+///EOF CamRotObject.cpp
