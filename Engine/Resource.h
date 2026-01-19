@@ -609,7 +609,7 @@ struct AnimationClip
 	std::string name = {};
 	float duration = 0.0f;
 	float ticks_per_second = 0.f; // 틱 준비
-	std::unordered_map<std::string, BoneAnimationChannel> channels;
+	std::unordered_map<std::string, BoneAnimationChannel> channels = {};
 };
 
 struct MaterialTexture
