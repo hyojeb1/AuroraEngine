@@ -20,8 +20,8 @@ void CamRotObject::Update()
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	auto& input = InputManager::GetInstance();
 
-	MousePos delta = input.GetMouseDelta();
-	XMVECTOR euler = GetRotation();
+	const MousePos& delta = input.GetMouseDelta();
+	const XMVECTOR& euler = GetRotation();
 
 	float yaw = XMVectorGetY(euler) + static_cast<float>(delta.x) * 0.1f;
 	float pitch = XMVectorGetX(euler) + static_cast<float>(delta.y) * 0.1f;

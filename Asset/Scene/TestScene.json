@@ -25,11 +25,11 @@
                             "type": "CameraComponent"
                         }
                     ],
-                    "name": "CamRotObject_5",
+                    "name": "CamRotObject_2",
                     "position": [
                         2.0,
                         8.649999618530273,
-                        -10.050000190734863,
+                        -6.150000095367432,
                         0.0
                     ],
                     "rotation": [
