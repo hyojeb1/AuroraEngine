@@ -10,6 +10,8 @@ REGISTER_TYPE(CameraComponent)
 using namespace std;
 using namespace DirectX;
 
+CameraComponent* CameraComponent::s_mainCamera = nullptr;
+
 const BoundingFrustum CameraComponent::GetBoundingFrustum() const
 {
 	BoundingFrustum frustum = {};
@@ -20,8 +22,8 @@ const BoundingFrustum CameraComponent::GetBoundingFrustum() const
 
 void CameraComponent::Initialize()
 {
-	if (g_mainCamera) cerr << "경고: 여러 개의 카메라가 생성되었습니다" << endl;
-	else g_mainCamera = this;
+	if (s_mainCamera) cerr << "경고: 여러 개의 카메라가 생성되었습니다" << endl;
+	else s_mainCamera = this;
 
 	#ifdef _DEBUG
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
@@ -62,7 +64,7 @@ void CameraComponent::Render()
 			BoundingFrustum frustum = GetBoundingFrustum();
 
 			// 프러스텀 컬링
-			if (frustum.Intersects(g_mainCamera->GetBoundingFrustum()) == false) return;
+			if (frustum.Intersects(s_mainCamera->GetBoundingFrustum()) == false) return;
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 			com_ptr<ID3D11DeviceContext> deviceContext = renderer.GetDeviceContext();
@@ -103,7 +105,7 @@ void CameraComponent::RenderImGui()
 
 void CameraComponent::Finalize()
 {
-	if (g_mainCamera == this) g_mainCamera = nullptr;
+	if (s_mainCamera == this) s_mainCamera = nullptr;
 }
 
 nlohmann::json CameraComponent::Serialize()

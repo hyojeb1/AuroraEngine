@@ -14,8 +14,6 @@
 using namespace std;
 using namespace DirectX;
 
-CameraComponent* g_mainCamera = nullptr;
-
 SceneBase::SceneBase()
 {
 	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
@@ -106,18 +104,19 @@ void SceneBase::BaseRender()
 		[&]()
 		{
 			Renderer& renderer = Renderer::GetInstance();
+			const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 
 			renderer.SetViewport(static_cast<FLOAT>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE), static_cast<FLOAT>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE));
 
 			// 뷰-투영 상수 버퍼 방향광 기준으로 업데이트
-			const float cameraFarPlane = g_mainCamera->GetFarZ() * 0.1f;
+			const float cameraFarPlane = mainCamera.GetFarZ() * 0.1f;
 
-			XMVECTOR lightPosition = (m_globalLightData.lightDirection * -cameraFarPlane) + g_mainCamera->GetPosition();
+			XMVECTOR lightPosition = (m_globalLightData.lightDirection * -cameraFarPlane) + mainCamera.GetPosition();
 			lightPosition = XMVectorSetW(lightPosition, 1.0f);
 			renderer.SetRenderSortPoint(lightPosition); // 정렬 기준점도 라이트 위치로 설정
 
 			constexpr XMVECTOR LIGHT_UP = { 0.0f, 1.0f, 0.0f, 0.0f };
-			m_viewProjectionData.viewMatrix = XMMatrixLookAtLH(lightPosition, g_mainCamera->GetPosition(), LIGHT_UP);
+			m_viewProjectionData.viewMatrix = XMMatrixLookAtLH(lightPosition, mainCamera.GetPosition(), LIGHT_UP);
 
 			const float lightRange = cameraFarPlane * 2.0f;
 			m_viewProjectionData.projectionMatrix = XMMatrixOrthographicLH(lightRange, lightRange, 0.1f, lightRange);
@@ -139,11 +138,12 @@ void SceneBase::BaseRender()
 		[&]()
 		{
 			Renderer& renderer = Renderer::GetInstance();
+			const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 
 			renderer.SetViewport();
 
 			// 정렬 기준점 카메라 위치로 설정
-			renderer.SetRenderSortPoint(g_mainCamera->GetPosition());
+			renderer.SetRenderSortPoint(mainCamera.GetPosition());
 
 			// 상수 버퍼 업데이트 및 셰이더에 설정
 			UpdateConstantBuffers();
@@ -340,9 +340,11 @@ void SceneBase::GetResources()
 
 void SceneBase::UpdateConstantBuffers()
 {
+	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
+
 	// 뷰-투영 상수 버퍼 업데이트 및 셰이더에 설정
-	m_viewProjectionData.viewMatrix = g_mainCamera->GetViewMatrix();
-	m_viewProjectionData.projectionMatrix = g_mainCamera->GetProjectionMatrix();
+	m_viewProjectionData.viewMatrix = mainCamera.GetViewMatrix();
+	m_viewProjectionData.projectionMatrix = mainCamera.GetProjectionMatrix();
 	m_viewProjectionData.VPMatrix = XMMatrixTranspose(m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix);
 	m_deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
 
@@ -359,7 +361,7 @@ void SceneBase::UpdateConstantBuffers()
 	m_deviceContext->UpdateSubresource(m_timeConstantBuffer.Get(), 0, nullptr, &m_timeData, 0, 0);
 
 	// 카메라 위치 상수 버퍼 업데이트 및 셰이더에 설정
-	m_cameraPositionData.cameraPosition = g_mainCamera->GetPosition();
+	m_cameraPositionData.cameraPosition = mainCamera.GetPosition();
 	m_deviceContext->UpdateSubresource(m_cameraPositionConstantBuffer.Get(), 0, nullptr, &m_cameraPositionData, 0, 0);
 
 	// 환경광, 방향광 상수 버퍼 업데이트 및 셰이더에 설정

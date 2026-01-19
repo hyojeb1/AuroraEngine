@@ -25,11 +25,11 @@
                             "type": "CameraComponent"
                         }
                     ],
-                    "name": "TestCameraObject_2",
+                    "name": "CamRotObject_2",
                     "position": [
-                        4.150000095367432,
-                        6.199999809265137,
-                        -10.25,
+                        2.0,
+                        8.649999618530273,
+                        -6.150000095367432,
                         0.0
                     ],
                     "rotation": [
@@ -44,7 +44,7 @@
                         1.0,
                         1.0
                     ],
-                    "type": "TestCameraObject"
+                    "type": "CamRotObject"
                 }
             ],
             "components": [

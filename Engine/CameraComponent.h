@@ -1,10 +1,10 @@
 #pragma once
 #include "ComponentBase.h"
 
-extern class CameraComponent* g_mainCamera; // 전역 메인 카메라 컴포넌트 포인터
-
 class CameraComponent : public ComponentBase
 {
+	static CameraComponent* s_mainCamera;
+
 	float m_fovY = DirectX::XM_PIDIV4; // 수직 시야각 (라디안 단위)
 
 	UINT m_screenWidth = 1280; // 화면 너비
@@ -39,6 +39,8 @@ public:
 	float GetNearZ() const { return m_nearZ; }
 	void SetFarZ(float farZ) { m_farZ = farZ; }
 	float GetFarZ() const { return m_farZ; }
+
+	static const CameraComponent& GetMainCamera() { return *s_mainCamera; }
 
 	const DirectX::XMMATRIX& GetViewMatrix() const { return m_viewMatrix; }
 	const DirectX::XMMATRIX& GetProjectionMatrix() const { return m_projectionMatrix; }
