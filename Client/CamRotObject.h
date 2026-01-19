@@ -13,6 +13,7 @@ public:
 	CamRotObject& operator=(CamRotObject&&) = default;
 
 private:
+	void Initialize() override;
 	void Update() override;
 };
 

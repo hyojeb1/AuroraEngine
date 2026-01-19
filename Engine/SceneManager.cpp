@@ -19,7 +19,6 @@ void SceneManager::Initialize()
 void SceneManager::Run()
 {
 	InputManager& inputManager = InputManager::GetInstance();
-	inputManager.Update();
 
 	if (m_nextScene)
 	{

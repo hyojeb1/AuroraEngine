@@ -7,24 +7,29 @@
 
 REGISTER_TYPE(CamRotObject)
 
+using namespace DirectX;
+
+void CamRotObject::Initialize()
+{
+	auto& input = InputManager::GetInstance();
+}
+
 void CamRotObject::Update()
 {
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
-
-	using enum KeyCode;
 	auto& input = InputManager::GetInstance();
 
-	if (input.GetKey(Left)) Rotate({ 0.0f, deltaTime * 45.0f, 0.0f });
-	if (input.GetKey(Right)) Rotate({ 0.0f, -deltaTime * 45.0f, 0.0f });
-	if (input.GetKey(Up)) Rotate({ deltaTime * 45.0f, 0.0f, 0.0f });
-	if (input.GetKey(Down)) Rotate({ -deltaTime * 45.0f, 0.0f, 0.0f });
+	const POINT& delta = input.GetMouseDelta();
+	const XMVECTOR& euler = GetRotation();
 
-	if (input.GetKey(A)) MoveDirection(deltaTime * 10.0f, Direction::Left);
-	if (input.GetKey(D)) MoveDirection(deltaTime * 10.0f, Direction::Right);
-	if (input.GetKey(W)) MoveDirection(deltaTime * 10.0f, Direction::Forward);
-	if (input.GetKey(S)) MoveDirection(deltaTime * 10.0f, Direction::Backward);
-	if (input.GetKey(Space)) MoveDirection(deltaTime * 10.0f, Direction::Up);
-	if (input.GetKey(Shift)) MoveDirection(deltaTime * 10.0f, Direction::Down);
+	float yaw = XMVectorGetY(euler) + static_cast<float>(delta.x) * 0.1f;
+	float pitch = XMVectorGetX(euler) + static_cast<float>(delta.y) * 0.1f;
+
+	constexpr float LIMIT = 90.0f - 1.0f;
+	if (pitch > LIMIT) pitch = LIMIT;
+	if (pitch < -LIMIT) pitch = -LIMIT;
+
+	SetRotation(XMVectorSet(pitch, yaw, 0.0f, 0.0f));
 }
 
 ///EOF CamRotObject.cpp

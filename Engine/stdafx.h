@@ -27,6 +27,7 @@
 #include <unordered_map>
 #include <queue>
 #include <optional>
+#include <cstdint>   
 
 // DirectX 헤더
 #include <d3d11.h>
