@@ -196,6 +196,7 @@ void SkinnedModelComponent::Render()
 	// 여기서 직접 렌더링 파이프라인을 설정해야 BoneBuffer를 바인딩할 수 있습니다.
 
 	Renderer& renderer = Renderer::GetInstance();
+	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 
 	// 바운딩 박스 변환 (Update에서 이미 수행되었지만 안전을 위해 확인)
 	BoundingBox transformedBoundingBox = {};
@@ -215,7 +216,7 @@ void SkinnedModelComponent::Render()
 		{
 			if (!m_model) return;
 			// 프러스텀 컬링 (필요시 추가)
-			// if (transformedBoundingBox.Intersects(g_mainCamera->GetBoundingFrustum()) == false) return;
+			// if (transformedBoundingBox.Intersects(mainCamera.GetBoundingFrustum()) == false) return;
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 			resourceManager.SetRasterState(m_rasterState);
@@ -304,7 +305,7 @@ void SkinnedModelComponent::Render()
 		[&]()
 		{
 			// 프러스텀 컬링
-			if (m_boundingBox.Intersects(g_mainCamera->GetBoundingFrustum()) == false) return;
+			if (m_boundingBox.Intersects(mainCamera.GetBoundingFrustum()) == false) return;
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 
@@ -360,6 +361,7 @@ void SkinnedModelComponent::Render()
 void SkinnedModelComponent::RenderImGui()
 {
 	ModelComponent::RenderImGui();
+	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 
 	// 기존 체크박스들...
 	ImGui::Checkbox("Render Skeleton Lines", &m_bRenderSkeletonLines);
@@ -447,13 +449,13 @@ void SkinnedModelComponent::RenderImGui()
 		DrawSkeletonTreeImGui(*m_model->skeleton.root);
 	}
 
-	if (m_bShowJointOverlay && m_model && m_model->skeleton.root && g_mainCamera)
+	if (m_bShowJointOverlay && m_model && m_model->skeleton.root)
 	{
 		vector<XMFLOAT4> lineVertices = {};
 		vector<XMFLOAT3> jointPositions = {};
 		CollectSkeletonData(*m_model->skeleton.root, m_owner->GetWorldMatrix(), lineVertices, jointPositions);
 
-		const XMMATRIX viewProjection = XMMatrixMultiply(g_mainCamera->GetViewMatrix(), g_mainCamera->GetProjectionMatrix());
+		const XMMATRIX viewProjection = XMMatrixMultiply(mainCamera.GetViewMatrix(), mainCamera.GetProjectionMatrix());
 		ImDrawList* drawList = ImGui::GetForegroundDrawList();
 		const ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 

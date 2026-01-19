@@ -15,21 +15,20 @@ void Player::Initialize()
 void Player::Update()
 {
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
-
-	using enum KeyCode;
 	auto& input = InputManager::GetInstance();
 
-	if (input.GetKey(W)) MoveDirection(deltaTime * 5.0f, Direction::Forward);
-	if (input.GetKey(S)) MoveDirection(deltaTime * 5.0f, Direction::Backward);
-	if (input.GetKey(A)) MoveDirection(deltaTime * 5.0f, Direction::Left);
-	if (input.GetKey(D)) MoveDirection(deltaTime * 5.0f, Direction::Right);
-	if (input.GetKey(Space)) MoveDirection(deltaTime * 5.0f, Direction::Up);
-	if (input.GetKey(Shift)) MoveDirection(deltaTime * 5.0f, Direction::Down);
+	if (input.GetKey(KeyCode::W)) MoveDirection(deltaTime * 5.0f, Direction::Forward);
+	if (input.GetKey(KeyCode::S)) MoveDirection(deltaTime * 5.0f, Direction::Backward);
+	if (input.GetKey(KeyCode::A)) MoveDirection(deltaTime * 5.0f, Direction::Left);
+	if (input.GetKey(KeyCode::D)) MoveDirection(deltaTime * 5.0f, Direction::Right);
+	if (input.GetKey(KeyCode::Space)) MoveDirection(deltaTime * 5.0f, Direction::Up);
+	if (input.GetKey(KeyCode::Shift)) MoveDirection(deltaTime * 5.0f, Direction::Down);
 
-	if (input.GetKeyDown(MouseLeft))
+	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
 		float distance = 0.0f;
-		GameObjectBase* hit = ColliderComponent::CheckCollision(g_mainCamera->GetPosition(), g_mainCamera->GetForwardVector(), distance);
+		const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
+		GameObjectBase* hit = ColliderComponent::CheckCollision(mainCamera.GetPosition(), mainCamera.GetForwardVector(), distance);
 		if (hit) hit->SetAlive(false);
 	}
 }
