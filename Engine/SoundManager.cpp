@@ -11,6 +11,8 @@
 
 constexpr size_t ChannelCount = 64; //profiling 필요
 
+
+
 void SoundManager::Initialize()
 {
 	m_Volume_Main = 1.0f;
@@ -49,7 +51,7 @@ void SoundManager::Initialize()
 		m_MainGroup->addGroup(m_SFXGroup);
 		m_MainGroup->addGroup(m_UIGroup);
 
-		ConvertBGMSource(false);
+		ConvertBGMSource();
 		ConvertSFXSource();
 		ConvertUISource();
 
@@ -217,6 +219,11 @@ FMOD_VECTOR SoundManager::ToFMOD(DirectX::XMVECTOR vector)
 	return FMOD_pos;
 }
 
+//void SoundManager::UpdateSoundResourceUsage()
+//{
+//	m_CoreSystem->getCPUUsage(&m_Usage);
+//}
+
 void SoundManager::UpdateListener(ListenerComponent* listener)
 {
 	FMOD_VECTOR pos = ToFMOD(listener->GetOwner()->GetPosition());
@@ -226,5 +233,3 @@ void SoundManager::UpdateListener(ListenerComponent* listener)
 
 	m_CoreSystem->set3DListenerAttributes(0, &pos, &vel, &fwd, &up);
 }
-
-
