@@ -29,6 +29,7 @@ void Player::Update()
 	if (input.GetKeyDown(MouseLeft))
 	{
 		float distance = 0.0f;
-		ColliderComponent::CheckCollision(g_mainCamera->GetPosition(), g_mainCamera->GetForwardVector(), distance)->SetAlive(false);
+		GameObjectBase* hit = ColliderComponent::CheckCollision(g_mainCamera->GetPosition(), g_mainCamera->GetForwardVector(), distance);
+		if (hit) hit->SetAlive(false)
 	}
 }
