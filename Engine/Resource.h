@@ -251,8 +251,8 @@ enum class InputElement
 	Bitangent,
 	Tangent,
 
-	Blendweight,
 	Blendindex,
+	Blendweight,
 
 	Count
 };
@@ -318,24 +318,24 @@ constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement:
 		.InstanceDataStepRate = 0
 	},
 
-	// Blendweight
-	D3D11_INPUT_ELEMENT_DESC
-	{
-		.SemanticName = "BLENDWEIGHT",
-		.SemanticIndex = 0,
-		.Format = DXGI_FORMAT_R32G32B32A32_FLOAT, // float4
-		.InputSlot = 0,
-		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
-		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
-		.InstanceDataStepRate = 0
-	},
-
 	// Blendindex
 	D3D11_INPUT_ELEMENT_DESC
 	{
 		.SemanticName = "BLENDINDICES",
 		.SemanticIndex = 0,
 		.Format = DXGI_FORMAT_R32G32B32A32_UINT, // uint4
+		.InputSlot = 0,
+		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+		.InstanceDataStepRate = 0
+	},
+
+	// Blendweight
+	D3D11_INPUT_ELEMENT_DESC
+	{
+		.SemanticName = "BLENDWEIGHT",
+		.SemanticIndex = 0,
+		.Format = DXGI_FORMAT_R32G32B32A32_FLOAT, // float4
 		.InputSlot = 0,
 		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
@@ -553,44 +553,19 @@ struct Vertex
 	DirectX::XMFLOAT3 normal = {};
 	DirectX::XMFLOAT3 bitangent = {};
 	DirectX::XMFLOAT3 tangent = {};
+
+	// 스키닝 데이터 추가 (정적 메쉬는 0으로 초기화됨)
+	std::array<uint32_t, 4> boneIndex = { 0, 0, 0, 0 };
+	DirectX::XMFLOAT4 boneWeight = { 0.f, 0.f, 0.f, 0.f };
 };
 
-struct SkinnedVertex
-{
-	DirectX::XMFLOAT4 position = {};
-	DirectX::XMFLOAT2 UV = {};
-	DirectX::XMFLOAT3 normal = {};
-	DirectX::XMFLOAT3 bitangent = {};
-	DirectX::XMFLOAT3 tangent = {};
 
-	std::array<uint32_t, 4> boneIndex = {};
-	DirectX::XMFLOAT4 boneWeight = {};
-};
-
-/// <summary>
-/// 뼈(Bone)의 정보를 담는 구조체입니다.
-/// </summary>=Inverse Bind Pose Matrix)은 **"메쉬를 T-Pose 상태에서 원점으로 되돌리는 행렬"**입니다.
 struct BoneInfo
 {
 	uint32_t id = 0;
-
-	/// <summary>
-	/// 오프셋 행렬(Inverse Bind Pose Matrix)입니다.
-	/// <para>
-	/// 메쉬를 T-Pose 상태에서 로컬 공간의 원점으로 되돌리는(변환하는) 행렬입니다.
-	/// </para>
-	/// </summary>
 	DirectX::XMFLOAT4X4 offset_matrix = {};
 };
 
-//////////////////////////////////////////////
-//! 
-//! 이렇게 받을 것인가
-//! 아트팀이 무엇을 주든 받게끔? 일단 지피티가 주는 대로 짜고 이후에  고민을 해보자. 
-//! 
-//! 현재는 24프레임 모두 받아 처리하는 게 아니잖슴!
-//! 
-//
 struct VectorKeyframe
 {
 	float time_position = 0.0f;
@@ -624,11 +599,13 @@ struct Skeleton
 {
 	std::unordered_map<std::string, uint32_t> boneMapping = {};
 	std::vector<BoneInfo> bones = {};
+	DirectX::XMFLOAT4X4 globalInverseTransform = {};
 	std::shared_ptr<SkeletonNode> root = nullptr;
 };
 
 struct AnimationClip
 {
+	static constexpr float DEFAULT_FPS = 24.0f;
 	std::string name = {};
 	float duration = 0.0f;
 	float ticks_per_second = 0.f; // 틱 준비
@@ -658,33 +635,21 @@ struct Mesh
 	MaterialTexture materialTexture = {};
 };
 
-
-struct SkinnedMesh
+enum class ModelType
 {
-	D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-
-	std::vector<SkinnedVertex> vertices = {};
-	std::vector<UINT> indices = {};
-	UINT indexCount = 0;
-
-	DirectX::BoundingBox boundingBox = {};
-
-	com_ptr<ID3D11Buffer> vertexBuffer = nullptr;
-	com_ptr<ID3D11Buffer> indexBuffer = nullptr;
-
-	MaterialTexture materialTexture = {};
+	Static,
+	Skinned,
+	Rigid,
+	Count
 };
 
 struct Model
 {
+	ModelType type = ModelType::Static;
 	std::vector<Mesh> meshes = {};
 	DirectX::BoundingBox boundingBox = {};
-};
 
-struct SkinnedModel
-{
-	std::vector<SkinnedMesh> skinnedMeshes = {};
-	DirectX::BoundingBox boundingBox = {};
+	// 애니메이션 데이터 (정적 모델인 경우 비워둠)
 	Skeleton skeleton = {};
 	std::vector<AnimationClip> animations = {};
 };

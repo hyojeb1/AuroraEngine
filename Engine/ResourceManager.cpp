@@ -5,6 +5,7 @@
 using namespace std;
 using namespace DirectX;
 
+// 전치 함(O) VS 안함
 XMFLOAT4X4 ResourceManager::ToXMFLOAT4X4(const aiMatrix4x4& matrix)
 {
 	return XMFLOAT4X4(
@@ -13,6 +14,23 @@ XMFLOAT4X4 ResourceManager::ToXMFLOAT4X4(const aiMatrix4x4& matrix)
 		matrix.a3, matrix.b3, matrix.c3, matrix.d3,
 		matrix.a4, matrix.b4, matrix.c4, matrix.d4
 	);
+
+	//return XMFLOAT4X4(
+	//	matrix.a1, matrix.a2, matrix.a3, matrix.a4,
+	//	matrix.b1, matrix.b2, matrix.b3, matrix.b4,
+	//	matrix.c1, matrix.c2, matrix.c3, matrix.c4,
+	//	matrix.d1, matrix.d2, matrix.d3, matrix.d4
+	//);
+}
+
+DirectX::XMFLOAT3 ResourceManager::ToXMFLOAT3(const aiVector3D& vec3)
+{
+	return DirectX::XMFLOAT3(vec3.x, vec3.y, vec3.z);
+}
+
+DirectX::XMFLOAT4 ResourceManager::ToXMFLOAT4(const aiQuaternion& quar)
+{
+	return DirectX::XMFLOAT4(quar.x, quar.y, quar.z, quar.w);
 }
 
 bool ResourceManager::SceneHasBones(const aiScene* scene)
@@ -176,7 +194,7 @@ com_ptr<ID3D11PixelShader> ResourceManager::GetPixelShader(const string& shaderN
 	return m_pixelShaders[shaderName];
 }
 
-com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& fileName)
+com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& fileName, TextureType type)
 {
 	// 기존에 생성된 텍스처가 있으면 재사용
 	auto it = m_textures.find(fileName);
@@ -188,12 +206,30 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 	const auto cacheIt = m_textureCaches.find(fileName);
 	if (cacheIt == m_textureCaches.end())
 	{
-		#ifdef _DEBUG
-		cerr << "텍스처 데이터 캐시 없음: " << fileName << endl;
-		#else
-		MessageBoxA(nullptr, ("텍스처 데이터 캐시 없음: " + fileName).c_str(), "오류", MB_OK | MB_ICONERROR);
-		#endif
-		exit(EXIT_FAILURE);
+		string fallbackName = "";
+
+		// 타입에 따라 대체할 파일명 결정
+		switch (type)
+		{
+		case TextureType::Albedo: fallbackName = "FallbackAlbedo.png"; break;
+		case TextureType::Normal: fallbackName = "FallbackNormal.png"; break;
+		case TextureType::ORM:    fallbackName = "FallbackORM.png";    break;
+		default:
+			// Fallback 타입이 None인데 파일도 없다면? 이건 진짜 에러 (예: Fallback 텍스처 파일 자체가 없음)
+#ifdef _DEBUG
+			cerr << "[CRITICAL] 텍스처 로드 실패 (복구 불가): " << fileName << endl;
+#else
+			MessageBoxA(nullptr, ("텍스처 로드 실패 (복구 불가): " + fileName).c_str(), "Fatal Error", MB_OK | MB_ICONERROR);
+#endif
+			exit(EXIT_FAILURE);
+		}
+#ifdef _DEBUG
+		// 경고 메시지 출력 (개발자가 알 수 있게)
+		cout << "[WARNING] 텍스처 누락됨: " << fileName << " -> 대체됨: " << fallbackName << endl;
+#endif
+		// [재귀 호출] 대체 텍스처로 다시 시도 (type을 None으로 주어 무한 재귀 방지)
+		// 만약 FallbackAlbedo.png 도 없으면 위의 default 문에 걸려서 종료됨
+		return GetTexture(fallbackName, TextureType::None);
 	}
 
 	// 파일 확장자 확인
@@ -250,7 +286,7 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 	if (it != m_models.end()) return &it->second;
 
 	Assimp::Importer importer;
-
+	importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
 	const string fullPath = "../Asset/Model/" + fileName;
 
 	const aiScene* scene = importer.ReadFile
@@ -273,100 +309,49 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 		aiProcess_TransformUVCoords | // UV 좌표 변환 적용 // 뭐하는건지 모르겠음
 		aiProcess_FindInstances | // 중복 메쉬 찾기
 		aiProcess_OptimizeMeshes | // 메쉬 최적화
-		aiProcess_OptimizeGraph | // 씬 그래프 최적화 // 애니메이션이나 본이 없는 노드 병합 // 좀 위험할 수 있으니 유의
+		//aiProcess_OptimizeGraph | // 씬 그래프 최적화 // 애니메이션이나 본이 없는 노드 병합 // 좀 위험할 수 있으니 유의
 		aiProcess_SplitByBoneCount | // 본 개수로 메쉬 분할 // 한 메쉬에 본이 너무 많으면 여러 메쉬로 나눔 // 뭐하는건지 모르겠음
-		aiProcess_Debone | // 사용하지 않는 더미 본 제거
+		//aiProcess_Debone | // 사용하지 않는 더미 본 제거
 		aiProcess_DropNormals | // aiProcess_JoinIdenticalVertices 와 같이 사용 // 정점 노말 제거
 		aiProcess_GenBoundingBoxes | // 바운딩 박스 생성
+		aiProcess_LimitBoneWeights |
+		aiProcess_GlobalScale |
 		aiProcess_ConvertToLeftHanded // DirectX 좌표계(왼손 좌표계)로 변환
 	);
+
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
-		#ifdef _DEBUG
+#ifdef _DEBUG
 		cerr << "모델 로드 실패: " << importer.GetErrorString() << endl;
-		#else
+#else
 		MessageBoxA(nullptr, ("모델 로드 실패: " + string(importer.GetErrorString())).c_str(), "오류", MB_OK | MB_ICONERROR);
-		#endif
+#endif
 		exit(EXIT_FAILURE);
 	}
 
+	Model& model = m_models[fileName];
+
+	// 1. 메쉬 및 노드 처리 (이 과정에서 본 정보가 있다면 Skeleton에 등록됨)
+	ProcessNode(scene->mRootNode, scene, model);
+
+	// 2. 스켈레톤 트리 구성 (본이 하나라도 발견되었을 경우)
+	// SceneHasBones 체크 혹은 model.skeleton.bones가 비어있지 않은지 확인
 	if (SceneHasBones(scene))
 	{
-#ifdef _DEBUG
-		cerr << "스킨드 모델 감지: " << fileName << " (LoadSkinnedModel을 사용할 수 있습니다.)" << endl;
-#else
-		MessageBoxA(nullptr, ("스킨드 모델 감지: " + fileName + " (LoadSkinnedModel 사용)").c_str(), "오류", MB_OK | MB_ICONERROR);
-#endif
-		//return nullptr;
+		aiMatrix4x4 inverse_root_transform = scene->mRootNode->mTransformation;
+		inverse_root_transform.Inverse();
+		model.skeleton.globalInverseTransform = ToXMFLOAT4X4(inverse_root_transform);
+		model.skeleton.root = BuildSkeletonNode(scene->mRootNode, model.skeleton);
+		model.type = ModelType::Skinned; // 필요하다면 타입 마킹
 	}
 
-
-	ProcessNode(scene->mRootNode, scene, m_models[fileName]);
+	// 3. 애니메이션 로드
+	if (scene->HasAnimations())
+	{
+		LoadAnimations(scene, model);
+	}
 
 	return &m_models[fileName];
-}
-
-const SkinnedModel* ResourceManager::LoadSkinnedModel(const string& fileName)
-{
-	auto it = m_skinnedModels.find(fileName);
-	if (it != m_skinnedModels.end()) return &it->second;
-
-	Assimp::Importer importer;
-
-	const string fullPath = "../Asset/Model/" + fileName;
-
-	const aiScene* scene = importer.ReadFile 
-	(
-		fullPath,
-		aiProcess_CalcTangentSpace |
-		aiProcess_JoinIdenticalVertices |
-		aiProcess_Triangulate |
-		aiProcess_GenSmoothNormals |
-		aiProcess_SplitLargeMeshes | 
-		aiProcess_ValidateDataStructure |
-		aiProcess_ImproveCacheLocality |
-		aiProcess_RemoveRedundantMaterials |
-		aiProcess_FixInfacingNormals |
-		aiProcess_PopulateArmatureData | // 애니메이션이 있는 모델에 필요!!!
-		aiProcess_SortByPType | 
-		aiProcess_FindDegenerates |
-		aiProcess_FindInvalidData |
-		aiProcess_GenUVCoords | 
-		aiProcess_TransformUVCoords |
-		aiProcess_FindInstances |
-		aiProcess_OptimizeMeshes |
-		aiProcess_OptimizeGraph |
-		aiProcess_SplitByBoneCount | 
-		aiProcess_Debone |
-		aiProcess_DropNormals |
-		aiProcess_GenBoundingBoxes |
-		aiProcess_ConvertToLeftHanded
-	);
-	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-	{
-#ifdef _DEBUG
-		cerr << "스킨드 모델 로드 실패: " << importer.GetErrorString() << endl;
-#else
-		MessageBoxA(nullptr, ("스킨드 모델 로드 실패: " + string(importer.GetErrorString())).c_str(), "오류", MB_OK | MB_ICONERROR);
-#endif
-		exit(EXIT_FAILURE);
-	}
-
-	if (!SceneHasBones(scene))
-	{
-#ifdef _DEBUG
-		cerr << "스키닝 데이터 없음: " << fileName << " (LoadModel의 사용을 권합니다.)" << endl;
-#else
-		MessageBoxA(nullptr, ("스키닝 데이터 없음: " + fileName + " (LoadModel 사용)").c_str(), "오류", MB_OK | MB_ICONERROR);
-#endif
-		//return nullptr;
-	}
-
-	SkinnedModel& model = m_skinnedModels[fileName];
-	ProcessSkinnedNode(scene->mRootNode, scene, model);
-	model.skeleton.root = BuildSkeletonNode(scene->mRootNode, model.skeleton);
-
-	return &m_skinnedModels[fileName];
 }
 
 void ResourceManager::CreateDepthStencilStates()
@@ -501,17 +486,6 @@ void ResourceManager::ProcessNode(const aiNode* node, const aiScene* scene, Mode
 	for (UINT i = 0; i < node->mNumChildren; ++i) ProcessNode(node->mChildren[i], scene, model);
 }
 
-void ResourceManager::ProcessSkinnedNode(const aiNode* node, const aiScene* scene, SkinnedModel& model)
-{
-	for (UINT i = 0; i < node->mNumMeshes; ++i)
-	{
-		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		model.skinnedMeshes.push_back(ProcessSkinnedMesh(mesh, scene, model));
-	}
-
-	for (UINT i = 0; i < node->mNumChildren; ++i) ProcessSkinnedNode(node->mChildren[i], scene, model);
-}
-
 Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Model& model)
 {
 	Mesh resultMesh;
@@ -536,9 +510,10 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 	}
 
 	// 정점 처리
+	resultMesh.vertices.reserve(mesh->mNumVertices);
 	for (UINT i = 0; i < mesh->mNumVertices; ++i)
 	{
-		Vertex vertex;
+		Vertex vertex = {};
 		// 위치
 		vertex.position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z, 1.0f };
 
@@ -555,8 +530,81 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 			vertex.tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
 		}
 
+		// 본 데이터 초기화 (정적 모델은 0으로 유지)
+		vertex.boneIndex = { 0, 0, 0, 0 };
+		vertex.boneWeight = { 0.f, 0.f, 0.f, 0.f };
+
 		resultMesh.vertices.push_back(vertex);
 	}
+
+	// 본(Bone) 가중치 처리 (본이 있는 경우에만 실행)
+	if (mesh->HasBones())
+	{
+		// 람다: 정점에 본 ID와 가중치를 추가하는 함수
+		auto addBoneData = [](Vertex& vertex, uint32_t boneIndex, float weight)
+			{
+				float* weights = &vertex.boneWeight.x;
+				uint32_t* indices = vertex.boneIndex.data();
+
+				// 빈 슬롯(가중치가 0인 곳)을 찾아 넣음
+				for (int i = 0; i < 4; ++i)
+				{
+					if (weights[i] == 0.0f)
+					{
+						indices[i] = boneIndex;
+						weights[i] = weight;
+						return;
+					}
+				}
+			};
+
+		for (UINT i = 0; i < mesh->mNumBones; ++i)
+		{
+			const aiBone* bone = mesh->mBones[i];
+			const string boneName = bone->mName.C_Str();
+
+			uint32_t boneIndex = 0;
+
+			// 모델의 스켈레톤에 본 등록
+			auto mappingIt = model.skeleton.boneMapping.find(boneName);
+			if (mappingIt == model.skeleton.boneMapping.end())
+			{
+				boneIndex = static_cast<uint32_t>(model.skeleton.bones.size());
+				model.skeleton.boneMapping[boneName] = boneIndex;
+
+				BoneInfo info = {};
+				info.id = boneIndex;
+				info.offset_matrix = ToXMFLOAT4X4(bone->mOffsetMatrix);
+				model.skeleton.bones.push_back(info);
+			}
+			else
+			{
+				boneIndex = mappingIt->second;
+			}
+
+			// 해당 본의 영향을 받는 정점들에 가중치 기록
+			for (UINT weightIndex = 0; weightIndex < bone->mNumWeights; ++weightIndex)
+			{
+				const aiVertexWeight& weight = bone->mWeights[weightIndex];
+				if (weight.mVertexId < resultMesh.vertices.size())
+				{
+					addBoneData(resultMesh.vertices[weight.mVertexId], boneIndex, weight.mWeight);
+				}
+			}
+		}
+
+		// 가중치 정규화 (합이 1.0이 되도록)
+		for (auto& vertex : resultMesh.vertices)
+		{
+			float* weights = &vertex.boneWeight.x;
+			float sum = weights[0] + weights[1] + weights[2] + weights[3];
+			if (sum > 0.0f)
+			{
+				for (int i = 0; i < 4; ++i) weights[i] /= sum;
+			}
+		}
+	}
+
 
 	// 인덱스 처리
 	for (UINT i = 0; i < mesh->mNumFaces; ++i)
@@ -588,53 +636,78 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 	// [재질 및 텍스처 처리 수정]
 	if (mesh->mMaterialIndex >= 0)
 	{
+		string albedoName = "FallbackAlbedo.png";
+		string normalName = "FallbackNormal.png";
+		string ormName = "FallbackORM.png";
+
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
 		aiString texturePath;
-		std::string textureFileName;
 
 		// 1. Albedo (Base Color) 처리
-		// glTF는 BASE_COLOR, FBX는 DIFFUSE를 주로 씁니다. 둘 다 확인합니다.
 		if (material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS ||
 			material->GetTexture(aiTextureType_BASE_COLOR, 0, &texturePath) == AI_SUCCESS)
 		{
-			// 텍스처가 있다! (Aurora.gltf -> Base.png)
-			// 경로가 포함되어 있을 수 있으니 파일명만 딱 떼어냅니다.
-			textureFileName = std::filesystem::path(texturePath.C_Str()).filename().string();
-			resultMesh.materialTexture.albedoTextureSRV = GetTexture(textureFileName);
-		}
-		else
-		{
-			// 텍스처가 없다! (일반 FBX -> 샘플 사용)
-			resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.dds");
-			resultMesh.materialTexture.ORMTextureSRV = GetTexture("SampleORM.dds");
-			resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleBump.dds");
+			// 텍스처가 있다! (Aurora.fbx -> Base.png)
+			albedoName = std::filesystem::path(texturePath.C_Str()).filename().string();
 		}
 
-		// 2. Normal Map 처리
+		// 2. Normal
 		if (material->GetTexture(aiTextureType_NORMALS, 0, &texturePath) == AI_SUCCESS)
 		{
-			// 텍스처가 있다! (Aurora.gltf -> Weapon.png or similar)
-			textureFileName = std::filesystem::path(texturePath.C_Str()).filename().string();
-			resultMesh.materialTexture.normalTextureSRV = GetTexture(textureFileName);
-		}
-		else
-		{
-			// 텍스처가 없다!
-			//resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleNormal.dds");
+			normalName = filesystem::path(texturePath.C_Str()).filename().string();
 		}
 
-		// 3. ORM (Occlusion, Roughness, Metallic) 처리
-		// glTF 표준은 PBR 정보를 텍스처로 주지만, Assimp 파싱이 복잡할 수 있으니 
-		// 일단은 ORM 맵은 샘플로 고정하거나 필요시 분기 추가 (지금은 샘플 유지 추천)
-		//resultMesh.materialTexture.ORMTextureSRV = GetTexture("SampleORM.dds");
+		// 3. ORM 탐색
+		bool foundORM = false;
+		
+		{
+			// [우선순위 1] PBR 표준 슬롯 (혹시 Exporter가 똑똑해서 여기에 넣었을 경우)
+			if (!foundORM && material->GetTexture(aiTextureType_UNKNOWN, 0, &texturePath) == AI_SUCCESS)
+			{
+				ormName = filesystem::path(texturePath.C_Str()).filename().string();
+				foundORM = true;
+			}
+			if (!foundORM && material->GetTexture(aiTextureType_METALNESS, 0, &texturePath) == AI_SUCCESS)
+			{
+				ormName = filesystem::path(texturePath.C_Str()).filename().string();
+				foundORM = true;
+			}
+			if (!foundORM && material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texturePath) == AI_SUCCESS)
+			{
+				ormName = filesystem::path(texturePath.C_Str()).filename().string();
+				foundORM = true;
+			}
+
+			// [우선순위 2] FBX 레거시 슬롯 (여기가 FBX의 핵심입니다!)
+			// 많은 FBX Exporter가 PBR 텍스처를 Specular나 Shininess 슬롯에 우겨넣습니다.
+			if (!foundORM && material->GetTexture(aiTextureType_SPECULAR, 0, &texturePath) == AI_SUCCESS)
+			{
+				ormName = filesystem::path(texturePath.C_Str()).filename().string();
+				foundORM = true;
+			}
+			if (!foundORM && material->GetTexture(aiTextureType_SHININESS, 0, &texturePath) == AI_SUCCESS)
+			{
+				ormName = filesystem::path(texturePath.C_Str()).filename().string();
+				foundORM = true;
+			}
+			if (!foundORM && material->GetTexture(aiTextureType_AMBIENT, 0, &texturePath) == AI_SUCCESS)
+			{
+				ormName = filesystem::path(texturePath.C_Str()).filename().string();
+				foundORM = true;
+			}
+		}
+
+		resultMesh.materialTexture.albedoTextureSRV = GetTexture(albedoName, TextureType::Albedo);
+		resultMesh.materialTexture.normalTextureSRV = GetTexture(normalName, TextureType::Normal);
+		resultMesh.materialTexture.ORMTextureSRV = GetTexture(ormName, TextureType::ORM);
 	}
 	else
 	{
 		// 재질 자체가 없는 경우 (완전 깡통)
-		resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.dds");
-		resultMesh.materialTexture.ORMTextureSRV = GetTexture("SampleORM.dds");
-		resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleBump.dds");
+		resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.dds", TextureType::Albedo);
+		resultMesh.materialTexture.ORMTextureSRV = GetTexture("SampleORM.dds" , TextureType::ORM);
+		resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleBump.dds" , TextureType::Normal);
 	}
 
 	CreateMeshBuffers(resultMesh);
@@ -643,184 +716,6 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 }
 
 
-SkinnedMesh ResourceManager::ProcessSkinnedMesh(const aiMesh* mesh, const aiScene* scene, SkinnedModel& model)
-{
-	SkinnedMesh resultMesh;
-
-	switch (mesh->mPrimitiveTypes)
-	{
-	case aiPrimitiveType_POINT:
-		resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
-		break;
-
-	case aiPrimitiveType_LINE:
-		resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-		break;
-
-	case aiPrimitiveType_TRIANGLE:
-		resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		break;
-
-	default:
-		resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
-		break;
-	}
-
-	resultMesh.vertices.reserve(mesh->mNumVertices);
-	for (UINT i = 0; i < mesh->mNumVertices; ++i)
-	{
-		SkinnedVertex vertex = {};
-		vertex.position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z, 1.0f };
-
-		if (mesh->mTextureCoords[0]) vertex.UV = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
-
-		if (mesh->HasNormals()) vertex.normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
-
-		if (mesh->HasTangentsAndBitangents())
-		{
-			vertex.bitangent = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
-			vertex.tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
-		}
-
-		for (int j = 0; j < 4; ++j) vertex.boneIndex[j] = 0;
-		vertex.boneWeight = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-		resultMesh.vertices.push_back(vertex);
-	}
-
-	auto addBoneData = [](SkinnedVertex& vertex, uint32_t boneIndex, float weight)
-		{
-			float* weights = &vertex.boneWeight.x;
-
-			for (int i = 0; i < 4; ++i)
-			{
-				if (weights[i] == 0.0f)
-				{
-					vertex.boneIndex[i] = boneIndex;
-					weights[i] = weight;
-					return;
-				}
-			}
-
-			int minIndex = 0;
-			for (int i = 1; i < 4; ++i)
-			{
-				if (weights[i] < weights[minIndex]) minIndex = i;
-			}
-
-			if (weight > weights[minIndex])
-			{
-				vertex.boneIndex[minIndex] = boneIndex;
-				weights[minIndex] = weight;
-			}
-		};
-
-	for (UINT i = 0; i < mesh->mNumBones; ++i)
-	{
-		const aiBone* bone = mesh->mBones[i];
-		const string boneName = bone->mName.C_Str();
-
-		uint32_t boneIndex = 0;
-		auto mappingIt = model.skeleton.boneMapping.find(boneName);
-		if (mappingIt == model.skeleton.boneMapping.end())
-		{
-			if (model.skeleton.bones.size() >= MAX_BONES)
-			{
-#ifdef _DEBUG
-				cerr << "본 개수 제한 초과: " << boneName << endl;
-#endif
-				continue;
-			}
-
-			boneIndex = static_cast<uint32_t>(model.skeleton.bones.size());
-			model.skeleton.boneMapping[boneName] = boneIndex;
-
-			BoneInfo info = {};
-			info.id = boneIndex;
-			info.offset_matrix = ToXMFLOAT4X4(bone->mOffsetMatrix);
-			model.skeleton.bones.push_back(info);
-		}
-		else
-		{
-			boneIndex = mappingIt->second;
-		}
-
-		for (UINT weightIndex = 0; weightIndex < bone->mNumWeights; ++weightIndex)
-		{
-			const aiVertexWeight& weight = bone->mWeights[weightIndex];
-			if (weight.mVertexId >= resultMesh.vertices.size()) continue;
-			addBoneData(resultMesh.vertices[weight.mVertexId], boneIndex, weight.mWeight);
-		}
-	}
-
-	for (auto& vertex : resultMesh.vertices)
-	{
-		float* weights = &vertex.boneWeight.x;
-		float sum = weights[0] + weights[1] + weights[2] + weights[3];
-		if (sum > 0.0f)
-		{
-			for (int i = 0; i < 4; ++i) weights[i] /= sum;
-		}
-	}
-
-	for (UINT i = 0; i < mesh->mNumFaces; ++i)
-	{
-		const aiFace& face = mesh->mFaces[i];
-		for (UINT j = 0; j < face.mNumIndices; ++j) resultMesh.indices.push_back(face.mIndices[j]);
-	}
-	resultMesh.indexCount = static_cast<UINT>(resultMesh.indices.size());
-
-	resultMesh.boundingBox =
-	{
-		{
-			(mesh->mAABB.mMin.x + mesh->mAABB.mMax.x) * 0.5f,
-			(mesh->mAABB.mMin.y + mesh->mAABB.mMax.y) * 0.5f,
-			(mesh->mAABB.mMin.z + mesh->mAABB.mMax.z) * 0.5f
-		},
-		{
-			(mesh->mAABB.mMax.x - mesh->mAABB.mMin.x) * 0.5f,
-			(mesh->mAABB.mMax.y - mesh->mAABB.mMin.y) * 0.5f,
-			(mesh->mAABB.mMax.z - mesh->mAABB.mMin.z) * 0.5f
-		}
-	};
-
-	if (mesh->mMaterialIndex >= 0)
-	{
-		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-
-		aiString texturePath;
-		std::string textureFileName;
-
-		if (material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS ||
-			material->GetTexture(aiTextureType_BASE_COLOR, 0, &texturePath) == AI_SUCCESS)
-		{
-			textureFileName = std::filesystem::path(texturePath.C_Str()).filename().string();
-			resultMesh.materialTexture.albedoTextureSRV = GetTexture(textureFileName);
-		}
-		else
-		{
-			resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.dds");
-			resultMesh.materialTexture.ORMTextureSRV = GetTexture("SampleORM.dds");
-			resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleBump.dds");
-		}
-
-		if (material->GetTexture(aiTextureType_NORMALS, 0, &texturePath) == AI_SUCCESS)
-		{
-			textureFileName = std::filesystem::path(texturePath.C_Str()).filename().string();
-			resultMesh.materialTexture.normalTextureSRV = GetTexture(textureFileName);
-		}
-	}
-	else
-	{
-		resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.dds");
-		resultMesh.materialTexture.ORMTextureSRV = GetTexture("SampleORM.dds");
-		resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleBump.dds");
-	}
-
-	CreateSkinnedMeshBuffers(resultMesh);
-
-	return resultMesh;
-}
 
 void ResourceManager::CreateMeshBuffers(Mesh& mesh)
 {
@@ -867,50 +762,6 @@ void ResourceManager::CreateMeshBuffers(Mesh& mesh)
 	CheckResult(hr, "메쉬 인덱스 버퍼 생성 실패.");
 }
 
-
-void ResourceManager::CreateSkinnedMeshBuffers(SkinnedMesh& mesh)
-{
-	HRESULT hr = S_OK;
-
-	if (mesh.vertices.empty()) return;
-	const D3D11_BUFFER_DESC vertexBufferDesc =
-	{
-		.ByteWidth = static_cast<UINT>(sizeof(SkinnedVertex) * mesh.vertices.size()),
-		.Usage = D3D11_USAGE_DEFAULT,
-		.BindFlags = D3D11_BIND_VERTEX_BUFFER,
-		.CPUAccessFlags = 0,
-		.MiscFlags = 0,
-		.StructureByteStride = 0
-	};
-	const D3D11_SUBRESOURCE_DATA vertexInitialData =
-	{
-		.pSysMem = mesh.vertices.data(),
-		.SysMemPitch = 0,
-		.SysMemSlicePitch = 0
-	};
-	hr = m_device->CreateBuffer(&vertexBufferDesc, &vertexInitialData, mesh.vertexBuffer.GetAddressOf());
-	CheckResult(hr, "스킨드 메쉬 정점 버퍼 생성 실패.");
-
-	if (mesh.indices.empty()) return;
-	const D3D11_BUFFER_DESC indexBufferDesc =
-	{
-		.ByteWidth = static_cast<UINT>(sizeof(UINT) * mesh.indices.size()),
-		.Usage = D3D11_USAGE_DEFAULT,
-		.BindFlags = D3D11_BIND_INDEX_BUFFER,
-		.CPUAccessFlags = 0,
-		.MiscFlags = 0,
-		.StructureByteStride = 0
-	};
-	const D3D11_SUBRESOURCE_DATA indexInitialData =
-	{
-		.pSysMem = mesh.indices.data(),
-		.SysMemPitch = 0,
-		.SysMemSlicePitch = 0
-	};
-	hr = m_device->CreateBuffer(&indexBufferDesc, &indexInitialData, mesh.indexBuffer.GetAddressOf());
-	CheckResult(hr, "스킨드 메쉬 인덱스 버퍼 생성 실패.");
-}
-
 std::unique_ptr<SkeletonNode> ResourceManager::BuildSkeletonNode(const aiNode* node, Skeleton& skeleton)
 {
 	auto skeletonNode = std::make_unique<SkeletonNode>();
@@ -929,6 +780,92 @@ std::unique_ptr<SkeletonNode> ResourceManager::BuildSkeletonNode(const aiNode* n
 	}
 
 	return skeletonNode;
+}
+
+/// <summary>
+/// Assimp 라이브러리로 읽어들인 원본 데이터(aiScene)를 우리 엔진 전용 포맷(Model)으로 변환(Parsing)하는 함수
+/// </summary>
+/// <param name="scene">[in] 원본 데이터(aiScene)</param>
+/// <param name="model">[out] 우리 엔진 전용 포맷(Model)</param>
+void ResourceManager::LoadAnimations(const aiScene* scene, Model& model)
+{
+	model.animations.clear();
+	if (!scene || scene->mNumAnimations == 0) return;
+
+	model.animations.reserve(scene->mNumAnimations);
+
+	//1. 애니메이션 순회 (겉 포장지 뜯기)
+	for (UINT anim_index = 0; anim_index < scene->mNumAnimations; ++anim_index)
+	{
+		//aiAnimation: Assimp에서 애니메이션 하나(예: "Run", "Walk", "Attack")를 의미하는 구조체입니다.
+		const aiAnimation* animation = scene->mAnimations[anim_index];
+		if (!animation) continue;
+
+		AnimationClip clip = {};
+		clip.name					= animation->mName.C_Str();
+		if (clip.name.empty()) clip.name = "Animation_" + to_string(anim_index);
+		clip.duration				= static_cast<float>(animation->mDuration);
+		clip.ticks_per_second		= static_cast<float>(animation->mTicksPerSecond);
+		if (clip.ticks_per_second <= 0.0f) clip.ticks_per_second = AnimationClip::DEFAULT_FPS;
+		
+
+		//2. 채널 순회 (누가 움직이는가?)
+		//aiNodeAnim (Channel): 이게 핵심입니다. "특정 뼈 하나에 대한 움직임 데이터 묶음"입니다.
+		//하나의 애니메이션(예: 달리기) 안에는 수십 개의 채널(왼팔 채널, 오른다리 채널, 머리 채널...)이 들어있습니다.
+		for (UINT channel_index = 0; channel_index < animation->mNumChannels; ++channel_index)
+		{
+			const aiNodeAnim* node_anim = animation->mChannels[channel_index];
+			if (!node_anim) continue;
+
+			BoneAnimationChannel channel = {};
+			channel.boneName = node_anim->mNodeName.C_Str();
+
+			//3. 본 매핑(이름표 확인)
+			auto mapping_iter = model.skeleton.boneMapping.find(channel.boneName);
+			if (mapping_iter != model.skeleton.boneMapping.end())
+			{
+				channel.boneIndex = static_cast<int>(mapping_iter->second);
+			}
+
+
+			//4. 키프레임 복사 (움직임 기록)
+			//(1)
+			channel.position_keys.reserve(node_anim->mNumPositionKeys);
+			for (UINT i = 0; i < node_anim->mNumPositionKeys; ++i)
+			{
+				VectorKeyframe key = {};
+				key.time_position	= static_cast<float>(node_anim->mPositionKeys[i].mTime);
+				key.value			= ToXMFLOAT3(node_anim->mPositionKeys[i].mValue);
+				channel.position_keys.push_back(key);
+			}
+
+			//(2)
+			channel.rotation_keys.reserve(node_anim->mNumRotationKeys);
+			for (UINT i = 0; i < node_anim->mNumRotationKeys; ++i)
+			{
+				QuaternionKeyframe key = {};
+				key.time_position	= static_cast<float>(node_anim->mRotationKeys[i].mTime);
+				key.value			= ToXMFLOAT4(node_anim->mRotationKeys[i].mValue);
+				channel.rotation_keys.push_back(key);
+			}
+
+			//(3)
+			channel.scale_keys.reserve(node_anim->mNumScalingKeys);
+			for (UINT i = 0; i < node_anim->mNumScalingKeys; ++i)
+			{
+				VectorKeyframe key = {};
+				key.time_position	= static_cast<float>(node_anim->mScalingKeys[i].mTime);
+				key.value			= ToXMFLOAT3(node_anim->mScalingKeys[i].mValue);
+				channel.scale_keys.push_back(key);
+			}
+
+			string keyName = channel.boneName; // 이름을 미리 복사
+			clip.channels[keyName] = move(channel); // 안전하게 이동
+		}
+		
+		//5. 저장 (가방에 넣기)
+		model.animations.push_back(move(clip));
+	}
 }
 
 

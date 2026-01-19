@@ -40,14 +40,14 @@
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
                     },
-                    "modelFileName": "Aurora12.fbx",
-                    "psShaderName": "PSOnlyAlbedo.hlsl",
+                    "modelFileName": "Alice_UmaUma.fbx",
+                    "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",
                     "vsShaderName": "VSModelSkinAnim.hlsl"
                 }
             ],
-            "name": "HyojeTestObject_0",
+            "name": "HyojeTestObject_1",
             "position": [
                 0.0,
                 0.0,
@@ -61,9 +61,119 @@
                 0.9999143481254578
             ],
             "scale": [
-                0.10000000149011612,
-                0.10000000149011612,
-                0.10000000149011612,
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "HyojeTestObject"
+        },
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "blendState": 0,
+                    "materialFactorData": {
+                        "albedoFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "ambientOcclusionFactor": 1.0,
+                        "emissionFactor": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "glowFactor": 0.0,
+                        "heightScale": 0.05000000074505806,
+                        "ior": 1.5,
+                        "lightFactor": 1.0,
+                        "metallicFactor": 1.0,
+                        "normalScale": 1.0,
+                        "roughnessFactor": 1.0
+                    },
+                    "modelFileName": "Arm.fbx",
+                    "psShaderName": "PSModel.hlsl",
+                    "rasterState": 1,
+                    "type": "SkinnedModelComponent",
+                    "vsShaderName": "VSModelSkinAnim.hlsl"
+                }
+            ],
+            "name": "HyojeTestObject_2",
+            "position": [
+                -3.200000047683716,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "HyojeTestObject"
+        },
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "blendState": 0,
+                    "materialFactorData": {
+                        "albedoFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "ambientOcclusionFactor": 1.0,
+                        "emissionFactor": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "glowFactor": 0.0,
+                        "heightScale": 0.05000000074505806,
+                        "ior": 1.5,
+                        "lightFactor": 1.0,
+                        "metallicFactor": 1.0,
+                        "normalScale": 1.0,
+                        "roughnessFactor": 1.0
+                    },
+                    "modelFileName": "CastleGuard01_Walking.fbx",
+                    "psShaderName": "PSModel.hlsl",
+                    "rasterState": 1,
+                    "type": "SkinnedModelComponent",
+                    "vsShaderName": "VSModelSkinAnim.hlsl"
+                }
+            ],
+            "name": "HyojeTestObject_3",
+            "position": [
+                3.049999952316284,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
                 1.0
             ],
             "type": "HyojeTestObject"

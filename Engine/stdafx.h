@@ -46,6 +46,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include <assimp/config.h>
 
 // ImGui 헤더
 #include <imgui.h>

@@ -86,7 +86,8 @@ QuaternionKeyframe GetQuaternionKeyframe(const std::vector<QuaternionKeyframe>& 
 				XMVECTOR from				= XMLoadFloat4(&keys[i].value);
 				XMVECTOR to					= XMLoadFloat4(&keys[i + 1].value);
 
-				XMVECTOR blended			= XMVectorLerp(from, to, scale_factor);
+				XMVECTOR blended			= XMQuaternionSlerp(from, to, scale_factor);
+				blended						= XMQuaternionNormalize(blended);
 
 				QuaternionKeyframe result		= {};
 				result.time_position		= time_position;
@@ -104,7 +105,7 @@ QuaternionKeyframe GetQuaternionKeyframe(const std::vector<QuaternionKeyframe>& 
 using namespace HELPER_IN_ANIMATOR_CPP;
 
 
-Animator::Animator(const shared_ptr<SkinnedModel> model) : model_context_(model)
+Animator::Animator(const Model* model) : model_context_(model)
 {
 	if (model_context_) final_bone_matrices_.resize(model_context_->skeleton.bones.size(), XMMatrixIdentity());
 }
@@ -114,7 +115,7 @@ void Animator::UpdateAnimation(float delta_time)
 	if (!current_clip_ || !model_context_ || !model_context_->skeleton.root) return;
 
 	// 현재 애니메이션 시간 갱신 : 블랜더 24fps
-	const float current_ticks = (current_clip_->ticks_per_second > 0.0f) ? current_clip_->ticks_per_second : 24.0f; 
+	const float current_ticks = (current_clip_->ticks_per_second > 0.0f) ? current_clip_->ticks_per_second : AnimationClip::DEFAULT_FPS;
 	current_time_ += delta_time * current_ticks;
 	
 	if (is_loop_)										current_time_ = WrapAnimationTime(current_time_, current_clip_->duration);
@@ -123,23 +124,25 @@ void Animator::UpdateAnimation(float delta_time)
 	//-------------------------
 	// 애니메이션 블렌딩 처리
 	//-------------------------
-	if (!is_blending_ || !previous_clip_) return;
-	// 이전 애니메이션 시간 갱신
-	const float previous_ticks = (previous_clip_->ticks_per_second > 0.0f) ? previous_clip_->ticks_per_second : 24.0f;
-	previous_time_ += delta_time * previous_ticks;
+	if (is_blending_ && previous_clip_)
+	{
+		// 이전 애니메이션 시간 갱신
+		const float previous_ticks = (previous_clip_->ticks_per_second > 0.0f) ? previous_clip_->ticks_per_second : 24.0f;
+		previous_time_ += delta_time * previous_ticks;
 
-	if (is_loop_)										previous_time_ = WrapAnimationTime(previous_time_, previous_clip_->duration);
-	else if (previous_time_ > previous_clip_->duration)	previous_time_ = current_clip_->duration;
+		if (is_previous_loop_)											previous_time_ = WrapAnimationTime(previous_time_, previous_clip_->duration);
+		else if (previous_time_ > previous_clip_->duration)				previous_time_ = previous_clip_->duration;
 
-	// 블렌딩 비율 증가
-	if (blend_duration_ > 0.f) blend_factor_ += delta_time / blend_duration_;
-	else blend_factor_ = 1.f;
+		// 블렌딩 비율 증가
+		if (blend_duration_ > 0.f) blend_factor_ += delta_time / blend_duration_;
+		else blend_factor_ = 1.f;
 
-	// 블랜딩 종료
-	if (blend_factor_ >= 1.0f){
-		blend_factor_ = 1.0f;
-		is_blending_ = false;
-		previous_clip_ = nullptr;
+		// 블랜딩 종료
+		if (blend_factor_ >= 1.0f) {
+			blend_factor_ = 1.0f;
+			is_blending_ = false;
+			previous_clip_ = nullptr;
+		}
 	}
 
 	CalculateBoneTransform(model_context_->skeleton.root, XMMatrixIdentity());
@@ -151,7 +154,7 @@ void Animator::PlayAnimation(const std::string& clip_name, bool is_loop, float b
 
 	AnimationClip* next_clip = FindClipByName(clip_name);
 	if (!next_clip)			return;
-	if (current_clip_.get() == next_clip){
+	if (current_clip_ == next_clip){
 		is_loop_ = is_loop;
 		return;
 	}
@@ -160,7 +163,7 @@ void Animator::PlayAnimation(const std::string& clip_name, bool is_loop, float b
 	previous_time_		= current_time_;
 	is_previous_loop_	= is_loop_;
 
-	current_clip_		= make_shared<AnimationClip>(*next_clip); 
+	current_clip_		= next_clip; 
 	current_time_		= 0.f;
 	is_loop_			= is_loop;
 
@@ -182,8 +185,11 @@ AnimationClip* Animator::FindClipByName(const std::string& clip_name) const
 {
 	if (!model_context_) return nullptr;
 
-	for (AnimationClip& clip : model_context_->animations) {
-		if (clip.name == clip_name) return &clip;
+	for (const auto& clip : model_context_->animations) {
+		if (clip.name == clip_name) {
+			// 원본 데이터(벡터 안에 있는 놈)의 주소를 리턴해야 합니다.
+			return const_cast<AnimationClip*>(&clip);
+		}
 	}
 
 	return nullptr;
@@ -211,11 +217,15 @@ void Animator::CalculateBoneTransform(const std::shared_ptr<SkeletonNode>& node,
 	// 행렬 결합 (Local -> Global)
 	XMMATRIX local_matrix		= ComposeTransform(local_transform);
 	XMMATRIX global_transform	= local_matrix * parent_transform;
+	//XMMATRIX global_transform = XMMatrixIdentity();
 
-	// 스키닝 행렬 계산 (Offset Matrix 적용) ★
+	// 스키닝 행렬 계산 (Offset Matrix과 global_inverse을 적용)
 	if (node->boneIndex >= 0 && static_cast<size_t>(node->boneIndex) < final_bone_matrices_.size()){
 		XMMATRIX offset_matrix = XMLoadFloat4x4(&model_context_->skeleton.bones[node->boneIndex].offset_matrix);
-		final_bone_matrices_[node->boneIndex] = offset_matrix * global_transform;
+		XMMATRIX global_inverse = XMLoadFloat4x4(&model_context_->skeleton.globalInverseTransform);
+
+		//final_bone_matrices_[node->boneIndex] = offset_matrix * global_transform;// *global_inverse; // 왜 있으나 마나지...?
+		final_bone_matrices_[node->boneIndex] = offset_matrix * global_transform *global_inverse;
 	}
 
 	// 자식 뼈들에게 "나의 globalTransform이 너희들의 parentTransform이다"라고 알림
@@ -225,13 +235,32 @@ void Animator::CalculateBoneTransform(const std::shared_ptr<SkeletonNode>& node,
 	}
 }
 
-TransformData Animator::SampleTransform(const std::shared_ptr<AnimationClip> clip, const std::shared_ptr<SkeletonNode> node, float time_position)
+TransformData Animator::SampleTransform(const AnimationClip* clip, const std::shared_ptr<SkeletonNode> node, float time_position)
 {
 	if (!node)	 return {};
 	if (!clip)	 return DecomposeTransform(XMLoadFloat4x4(&node->localTransform)); // 재생 중인 애니메이션이 없으면? -> 뼈를 원점으로 구겨넣는 게 아니라, 기본 자세(Bind Pose)를 유지
 
-	auto channel_iterator = clip->channels.find(node->name);
-	if (channel_iterator == clip->channels.end()) return DecomposeTransform(XMLoadFloat4x4(&node->localTransform)); // 모든 뼈가 움직이지 않을 수 않는다. -> 뼈를 원점으로 구겨넣는 게 아니라, 기본 자세(Bind Pose)를 유지
+	// ▼▼▼ [추가할 로직: 이름 정제] ▼▼▼
+	std::string searchName = node->name; // 원본 이름 복사
+
+	//// "_$AssimpFbx$" 문자열이 포함되어 있는지 확인
+	//size_t dummyPos = searchName.find("_$AssimpFbx$");
+	//if (dummyPos != std::string::npos)
+	//{
+	//	// 접미사가 있다면 잘라냄 (예: "Hips_$AssimpFbx$_PreRotation" -> "Hips")
+	//	searchName = searchName.substr(0, dummyPos);
+	//}
+	//// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+	// [수정된 코드] node->name 대신 searchName(정제된 이름)으로 검색
+	auto channel_iterator = clip->channels.find(searchName);
+
+	// 채널을 못 찾았다면? -> 기본 자세(Local Transform) 유지
+	if (channel_iterator == clip->channels.end())
+	{
+		return DecomposeTransform(XMLoadFloat4x4(&node->localTransform));
+	}
+	// 모든 뼈가 움직이지 않을 수 않는다. -> 뼈를 원점으로 구겨넣는 게 아니라, 기본 자세(Bind Pose)를 유지
 
 	const BoneAnimationChannel& channel = channel_iterator->second;
 	const XMFLOAT3 default_position = { 0.f, 0.f, 0.f };

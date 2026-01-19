@@ -67,8 +67,8 @@ struct VS_INPUT_STD_ANIM
     float3 Bitangent : BITANGENT;
     float3 Tangent : TANGENT;
     
-    float4 BlendWeights : BLENDWEIGHT;
     uint4 BlendIndices : BLENDINDICES;
+    float4 BlendWeights : BLENDWEIGHT;
 };
 
 

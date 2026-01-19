@@ -6,6 +6,7 @@ extern class CameraComponent* g_mainCamera; // 전역 메인 카메라 컴포넌
 
 class ModelComponent : public ComponentBase
 {
+protected:
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
 
 	const WorldNormalBuffer* m_worldNormalData = nullptr; // 월드, 월드 역행렬 상수 버퍼 데이터
@@ -37,16 +38,16 @@ class ModelComponent : public ComponentBase
 	BlendState m_blendState = BlendState::Opaque; // 기본 블렌드 상태
 	RasterState m_rasterState = RasterState::Solid; // 기본 래스터 상태
 
-	#ifdef _DEBUG
+#ifdef _DEBUG
 	bool m_renderBoundingBox = true; // 경계 상자 렌더링 여부
 	bool m_renderSubMeshBoundingBoxes = false; // 서브 메시 경계 상자 렌더링 여부
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_boundingBoxVertexShaderAndInputLayout = {}; // 경계 상자 정점 셰이더 및 입력 레이아웃
 	com_ptr<ID3D11PixelShader> m_boundingBoxPixelShader = nullptr; // 경계 상자 픽셀 셰이더
-	#endif
+#endif
 
 public:
 	ModelComponent() = default;
-	~ModelComponent() override = default;
+	virtual ~ModelComponent() override = default;
 	ModelComponent(const ModelComponent&) = default;
 	ModelComponent& operator=(const ModelComponent&) = default;
 	ModelComponent(ModelComponent&&) = default;
@@ -64,16 +65,16 @@ public:
 	bool NeedsUpdate() const override { return true; }
 	bool NeedsRender() const override { return true; }
 
-private:
-	void Initialize() override;
-	void Update() override;
-	void Render() override;
-	void RenderImGui() override;
+protected:
+	virtual void Initialize() override;
+	virtual void Update() override;
+	virtual void Render() override;
+	virtual void RenderImGui() override;
 
 	nlohmann::json Serialize() override;
 	void Deserialize(const nlohmann::json& jsonData) override;
 
 	// 셰이더 생성
-	void CreateShaders();
+	virtual void CreateShaders();
 };
 /// ModelComponent.h의 끝

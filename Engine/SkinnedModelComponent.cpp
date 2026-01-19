@@ -1,5 +1,6 @@
 /// SkinnedModelComponent.cpp의 시작
 #include "stdafx.h"
+#include "Animator.h"
 #include "SkinnedModelComponent.h"
 
 #include "Renderer.h"
@@ -13,7 +14,7 @@ using namespace DirectX;
 
 REGISTER_TYPE(SkinnedModelComponent)
 
-namespace
+namespace HELPER_IN_SkinnedModelComponent_CPP
 {
 	void CollectSkeletonData(const SkeletonNode& node, const XMMATRIX& parentWorld, vector<XMFLOAT4>& lineVertices, vector<XMFLOAT3>& jointPositions)
 	{
@@ -130,89 +131,141 @@ namespace
 		}
 	}
 
-} //End fo Scope : namespace
+} //End fo Scope : namespace HELPER_IN_SkinnedModelComponent_CPP
+
+using namespace HELPER_IN_SkinnedModelComponent_CPP;
 
 
+SkinnedModelComponent::SkinnedModelComponent()
+{
+	// 스킨드 모델용 기본 셰이더로 변경
+	m_vsShaderName = "VSModelSkinAnim.hlsl";
+	m_modelFileName = "CastleGuard01_Walking.fbx";
+
+	// 레이아웃 변경
+	m_inputElements.push_back(InputElement::Blendindex);  // 1. Index 먼저 (Offset 60, UINT)
+	m_inputElements.push_back(InputElement::Blendweight); // 2. Weight 나중 (Offset 76, FLOAT)
+}
 
 void SkinnedModelComponent::Initialize()
 {
-	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
-	m_worldNormalData = &m_owner->GetWorldNormalBuffer();
+	// 부모 초기화 (셰이더 생성 및 모델 로드)
+	ModelComponent::Initialize();
 
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-	CreateShaders();
-
-	m_worldMatrixConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal);
+	// 애니메이션 관련 추가 초기화
 	m_boneConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Bone);
-	m_materialConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor);
 	m_lineConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Line);
-	m_model = resourceManager.LoadSkinnedModel(m_modelFileName);
 
+	// 부모가 로드한 m_model을 사용하여 Animator 생성
+	if (m_model)
+	{
+		animator_ = make_shared<Animator>(m_model);
+		if (!m_model->animations.empty())
+		{
+			animator_->PlayAnimation(m_model->animations.front().name);
+		}
+	}
 }
 
+void SkinnedModelComponent::Update()
+{
+	ModelComponent::Update();
+
+	if (!animator_) return;
+
+	const float delta_time = TimeManager::GetInstance().GetDeltaTime();
+	animator_->UpdateAnimation(delta_time);
+}
 
 void SkinnedModelComponent::Render()
 {
-	const XMMATRIX worldMatrix = m_owner->GetWorldMatrix();
+	if (animator_)
+	{
+		const auto& final_matrices = animator_->GetFinalBoneMatrices();
+		const size_t bone_count = min(final_matrices.size(), static_cast<size_t>(MAX_BONES));
+		for (size_t i = 0; i < bone_count; ++i)
+		{
+			//m_boneBufferData.boneMatrix[i] = final_matrices[i];
+			m_boneBufferData.boneMatrix[i] = XMMatrixTranspose(final_matrices[i]);
+		}
+	}
 
+	// [중요] 부모의 ModelComponent::Render()를 호출하지 않고,
+	// 여기서 직접 렌더링 파이프라인을 설정해야 BoneBuffer를 바인딩할 수 있습니다.
+
+	Renderer& renderer = Renderer::GetInstance();
+
+	// 바운딩 박스 변환 (Update에서 이미 수행되었지만 안전을 위해 확인)
 	BoundingBox transformedBoundingBox = {};
-	m_model->boundingBox.Transform(transformedBoundingBox, worldMatrix);
+	m_model->boundingBox.Transform(transformedBoundingBox, m_owner->GetWorldMatrix());
 	XMVECTOR boxCenter = XMLoadFloat3(&transformedBoundingBox.Center);
 	XMVECTOR boxExtents = XMLoadFloat3(&transformedBoundingBox.Extents);
 
-	const XMVECTOR& sortPoint = Renderer::GetInstance().GetRenderSortPoint();
+	const XMVECTOR& sortPoint = renderer.GetRenderSortPoint();
 
-	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, m_blendState).emplace_back
+	// ==========================================================
+	// 1. 일반 씬 렌더링 (Skinned Mesh 전용)
+	// ==========================================================
+	renderer.RENDER_FUNCTION(RenderStage::Scene, m_blendState).emplace_back
 	(
-		// 카메라로부터의 거리
 		XMVectorGetX(XMVector3LengthSq(sortPoint - XMVectorClamp(sortPoint, boxCenter - boxExtents, boxCenter + boxExtents))),
 		[&]()
 		{
 			if (!m_model) return;
+			// 프러스텀 컬링 (필요시 추가)
+			// if (transformedBoundingBox.Intersects(g_mainCamera->GetBoundingFrustum()) == false) return;
 
+			// 1. 월드 행렬 업데이트
 			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
 
+			// 2. [핵심] 뼈 행렬 버퍼 업데이트 및 바인딩 (이게 없어서 터진 것임)
 			m_deviceContext->UpdateSubresource(m_boneConstantBuffer.Get(), 0, nullptr, &m_boneBufferData, 0, 0);
+			// VSSetConstantBuffers는 ResourceManager::Initialize에서 한번 설정되지만, 
+			// 확실하게 하기 위해 리소스 매니저 설계를 확인해야 함. 
+			// (현재 ResourceManager 구조상 Init때 Set하고 그 뒤로 UpdateSubresource만 하므로 바인딩은 유지됨.
+			// 하지만 다른 객체가 슬롯을 덮어썼을 가능성에 대비하려면 여기서 바인딩해주는 게 안전함. 
+			// 일단 기존 구조를 존중하여 Update만 수행)
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 			resourceManager.SetRasterState(m_rasterState);
 
+			// 3. 셰이더 설정 (VSModelSkinAnim)
 			m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
 			m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
 			m_deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 
-			
-			for (const SkinnedMesh& mesh : m_model->skinnedMeshes)
+			for (const Mesh& mesh : m_model->meshes)
 			{
 				resourceManager.SetPrimitiveTopology(mesh.topology);
 
-				// 메쉬 버퍼 설정
-				constexpr UINT stride = sizeof(SkinnedVertex);
-				constexpr UINT offset_matrix = 0;
-				m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset_matrix);
+				constexpr UINT stride = sizeof(Vertex);
+				constexpr UINT offset = 0;
+				m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
 				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-				// 재질 팩터 설정
+				// 재질 팩터 업데이트
 				m_deviceContext->UpdateSubresource(m_materialConstantBuffer.Get(), 0, nullptr, &m_materialFactorData, 0, 0);
 
-				// 재질 텍스처 셰이더에 설정
 				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
 				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, mesh.materialTexture.ORMTextureSRV.GetAddressOf());
 				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, mesh.materialTexture.normalTextureSRV.GetAddressOf());
-
-
 
 				m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
 			}
 		}
 	);
-	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
+
+	// ==========================================================
+	// 2. 뼈대(Skeleton) 디버그 라인 그리기
+	// ==========================================================
+	renderer.RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
 	(
 		numeric_limits<float>::max(),
 		[&]()
 		{
-			if (!m_bRenderSkeletonLines || !m_model->skeleton.root) return;
+			if (!m_bRenderSkeletonLines || !m_model || !m_model->skeleton.root) return;
 
 			vector<XMFLOAT4> lineVertices = {};
 			vector<XMFLOAT3> jointPositions = {};
@@ -220,7 +273,6 @@ void SkinnedModelComponent::Render()
 
 			if (lineVertices.empty()) return;
 
-			// 라인 셰이더 설정
 			m_deviceContext->IASetInputLayout(m_lineVertexShaderAndInputLayout.second.Get());
 			m_deviceContext->VSSetShader(m_lineVertexShaderAndInputLayout.first.Get(), nullptr, 0);
 			m_deviceContext->PSSetShader(m_linePixelShader.Get(), nullptr, 0);
@@ -240,54 +292,76 @@ void SkinnedModelComponent::Render()
 			}
 		}
 	);
-}
 
+	// ==========================================================
+	// 3. 디버그 박스
+	// ==========================================================
+
+#ifdef _DEBUG
+	renderer.RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
+	(
+		numeric_limits<float>::max(),
+		[&]()
+		{
+			// 프러스텀 컬링
+			if (m_boundingBox.Intersects(g_mainCamera->GetBoundingFrustum()) == false) return;
+
+			ResourceManager& resourceManager = ResourceManager::GetInstance();
+
+			m_deviceContext->IASetInputLayout(m_boundingBoxVertexShaderAndInputLayout.second.Get());
+			m_deviceContext->VSSetShader(m_boundingBoxVertexShaderAndInputLayout.first.Get(), nullptr, 0);
+			m_deviceContext->PSSetShader(m_boundingBoxPixelShader.Get(), nullptr, 0);
+
+			ResourceManager::GetInstance().SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+			// 경계 상자 그리기
+			array<XMFLOAT3, 8> boxVertices = {};
+			m_boundingBox.GetCorners(boxVertices.data());
+
+			LineBuffer lineBufferData = {};
+			if (m_renderBoundingBox)
+			{
+				for (const auto& [startIndex, endIndex] : BOX_LINE_INDICES)
+				{
+					lineBufferData.linePoints[0] = XMFLOAT4{ boxVertices[startIndex].x, boxVertices[startIndex].y, boxVertices[startIndex].z, 1.0f };
+					lineBufferData.linePoints[1] = XMFLOAT4{ boxVertices[endIndex].x, boxVertices[endIndex].y, boxVertices[endIndex].z, 1.0f };
+					lineBufferData.lineColors[0] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f };
+					lineBufferData.lineColors[1] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f };
+					m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
+					m_deviceContext->Draw(2, 0);
+				}
+			}
+
+			if (m_renderSubMeshBoundingBoxes)
+			{
+				for (const Mesh& mesh : m_model->meshes)
+				{
+					BoundingBox meshTransformedBox = {};
+					mesh.boundingBox.Transform(meshTransformedBox, m_owner->GetWorldMatrix());
+					array<XMFLOAT3, 8> meshBoxVertices = {};
+					meshTransformedBox.GetCorners(meshBoxVertices.data());
+
+					for (const auto& [startIndex, endIndex] : BOX_LINE_INDICES)
+					{
+						lineBufferData.linePoints[0] = XMFLOAT4{ meshBoxVertices[startIndex].x, meshBoxVertices[startIndex].y, meshBoxVertices[startIndex].z, 1.0f };
+						lineBufferData.linePoints[1] = XMFLOAT4{ meshBoxVertices[endIndex].x, meshBoxVertices[endIndex].y, meshBoxVertices[endIndex].z, 1.0f };
+						lineBufferData.lineColors[0] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
+						lineBufferData.lineColors[1] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
+						m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
+						m_deviceContext->Draw(2, 0);
+					}
+				}
+			}
+		}
+	);
+#endif
+
+}
 
 void SkinnedModelComponent::RenderImGui()
 {
-	array<char, 256> modelFileNameBuffer = {};
-	strcpy_s(modelFileNameBuffer.data(), modelFileNameBuffer.size(), m_modelFileName.c_str());
-	if (ImGui::InputText("Model File Name", modelFileNameBuffer.data(), sizeof(modelFileNameBuffer))) m_modelFileName = modelFileNameBuffer.data();
+	ModelComponent::RenderImGui();
 
-	array<char, 256> vsShaderNameBuffer = {};
-	strcpy_s(vsShaderNameBuffer.data(), vsShaderNameBuffer.size(), m_vsShaderName.c_str());
-	if (ImGui::InputText("Vertex Shader Name", vsShaderNameBuffer.data(), sizeof(vsShaderNameBuffer))) m_vsShaderName = vsShaderNameBuffer.data();
-
-	array<char, 256> psShaderNameBuffer = {};
-	strcpy_s(psShaderNameBuffer.data(), psShaderNameBuffer.size(), m_psShaderName.c_str());
-	if (ImGui::InputText("Pixel Shader Name", psShaderNameBuffer.data(), sizeof(psShaderNameBuffer))) m_psShaderName = psShaderNameBuffer.data();
-
-	if (ImGui::Button("Load"))
-	{
-		m_model = ResourceManager::GetInstance().LoadSkinnedModel(m_modelFileName);
-		CreateShaders();
-	}
-
-	ImGui::Separator();
-	// 재질 팩터
-	ImGui::ColorEdit4("Albedo Factor", &m_materialFactorData.albedoFactor.x);
-
-	ImGui::DragFloat("Ambient Occlusion Factor", &m_materialFactorData.ambientOcclusionFactor, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("Roughness Factor", &m_materialFactorData.roughnessFactor, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("Metallic Factor", &m_materialFactorData.metallicFactor, 0.01f, 0.0f, 1.0f);
-
-	ImGui::DragFloat("IOR", &m_materialFactorData.ior, 0.01f, 1.0f, 3.0f);
-
-	ImGui::DragFloat("Normal Scale", &m_materialFactorData.normalScale, 0.01f, 0.0f, 5.0f);
-	ImGui::DragFloat("Height Scale", &m_materialFactorData.heightScale, 0.001f, 0.0f, 0.2f);
-
-	ImGui::DragFloat("Light Factor", &m_materialFactorData.lightFactor, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("Glow Factor", &m_materialFactorData.glowFactor, 0.01f, 0.0f, 1.0f);
-
-	ImGui::ColorEdit4("Emission Factor", &m_materialFactorData.emissionFactor.x);
-
-	ImGui::Separator();
-	int blendStateInt = static_cast<int>(m_blendState);
-	if (ImGui::Combo("Blend State", &blendStateInt, "Opaque\0AlphaToCoverage\0AlphaBlend\0")) m_blendState = static_cast<BlendState>(blendStateInt);
-	int rasterStateInt = static_cast<int>(m_rasterState);
-	if (ImGui::Combo("Raster State", &rasterStateInt, "BackBuffer\0Solid\0Wireframe\0")) m_rasterState = static_cast<RasterState>(rasterStateInt);
-
-	ImGui::Separator();
 	// 기존 체크박스들...
 	ImGui::Checkbox("Render Skeleton Lines", &m_bRenderSkeletonLines);
 	ImGui::Checkbox("Show Skeleton Tree", &m_bShowSkeletonTree);
@@ -313,6 +387,59 @@ void SkinnedModelComponent::RenderImGui()
 		{
 			std::cout << "Error: Model or Skeleton Root is null!" << std::endl;
 		}
+	}
+
+	// [기존 코드 아래에 추가]
+	if (ImGui::Button("Debug: Print Animation Info"))
+	{
+		std::cout << "\n========== Animation Debug Info Start ==========\n";
+
+		if (m_model)
+		{
+			size_t animCount = m_model->animations.size();
+			std::cout << "Target Model: " << m_modelFileName << "\n";
+			std::cout << "Total Animations Loaded: " << animCount << "\n\n";
+
+			if (animCount > 0)
+			{
+				// 보기 좋게 표 형식으로 출력
+				std::cout << std::left << std::setw(5) << "ID"
+					<< std::setw(30) << "Clip Name"
+					<< std::setw(15) << "Duration(Ticks)"
+					<< std::setw(10) << "FPS" << "\n";
+				std::cout << "------------------------------------------------------------\n";
+
+				for (size_t i = 0; i < animCount; ++i)
+				{
+					const auto& clip = m_model->animations[i];
+					std::cout << std::left << std::setw(5) << i
+						<< std::setw(30) << clip.name
+						<< std::setw(15) << std::fixed << std::setprecision(2) << clip.duration
+						<< std::setw(10) << clip.ticks_per_second << "\n";
+					std::cout << "  [Channel List] (" << clip.channels.size() << " channels)\n";
+					for (const auto& pair : clip.channels)
+					{
+						// 채널 이름과 키프레임 개수 출력
+						std::cout << "   - Name: " << pair.first
+							<< " | Pos: " << pair.second.position_keys.size()
+							<< " | Rot: " << pair.second.rotation_keys.size() << "\n";
+					}
+				}
+				std::cout << "------------------------------------------------------------\n";
+			}
+			else
+			{
+				std::cout << "Warning: Model is loaded, but 'animations' vector is empty.\n";
+			}
+		}
+		else
+		{
+			std::cout << "[Error] m_model is NULL. Please load a model first.\n";
+		}
+
+
+
+		std::cout << "========== Animation Debug Info End ============\n" << std::endl;
 	}
 
 	if (m_bShowSkeletonTree && m_model && m_model->skeleton.root)
@@ -354,81 +481,23 @@ void SkinnedModelComponent::RenderImGui()
 
 nlohmann::json SkinnedModelComponent::Serialize()
 {
-	nlohmann::json jsonData;
-
-	jsonData["vsShaderName"] = m_vsShaderName;
-	jsonData["psShaderName"] = m_psShaderName;
-	jsonData["modelFileName"] = m_modelFileName;
-
-	// 재질 팩터
-	jsonData["materialFactorData"]["albedoFactor"] = { m_materialFactorData.albedoFactor.x, m_materialFactorData.albedoFactor.y, m_materialFactorData.albedoFactor.z, m_materialFactorData.albedoFactor.w };
-	
-	jsonData["materialFactorData"]["ambientOcclusionFactor"] = m_materialFactorData.ambientOcclusionFactor;
-	jsonData["materialFactorData"]["roughnessFactor"] = m_materialFactorData.roughnessFactor;
-	jsonData["materialFactorData"]["metallicFactor"] = m_materialFactorData.metallicFactor;
-
-	jsonData["materialFactorData"]["ior"] = m_materialFactorData.ior;
-
-	jsonData["materialFactorData"]["normalScale"] = m_materialFactorData.normalScale;
-	jsonData["materialFactorData"]["heightScale"] = m_materialFactorData.heightScale;
-
-	jsonData["materialFactorData"]["lightFactor"] = m_materialFactorData.lightFactor;
-	jsonData["materialFactorData"]["glowFactor"] = m_materialFactorData.glowFactor;
-
-	jsonData["materialFactorData"]["emissionFactor"] = { m_materialFactorData.emissionFactor.x, m_materialFactorData.emissionFactor.y, m_materialFactorData.emissionFactor.z, m_materialFactorData.emissionFactor.w };
-
-	jsonData["blendState"] = static_cast<int>(m_blendState);
-	jsonData["rasterState"] = static_cast<int>(m_rasterState);
+	nlohmann::json jsonData = ModelComponent::Serialize();
 
 	return jsonData;
 }
 
 void SkinnedModelComponent::Deserialize(const nlohmann::json& jsonData)
 {
-	m_vsShaderName = jsonData["vsShaderName"].get<string>();
-	m_psShaderName = jsonData["psShaderName"].get<string>();
-	m_modelFileName = jsonData["modelFileName"].get<string>();
-
-	// 재질 팩터
-	m_materialFactorData.albedoFactor = XMFLOAT4
-	(
-		jsonData["materialFactorData"]["albedoFactor"][0].get<float>(),
-		jsonData["materialFactorData"]["albedoFactor"][1].get<float>(),
-		jsonData["materialFactorData"]["albedoFactor"][2].get<float>(),
-		jsonData["materialFactorData"]["albedoFactor"][3].get<float>()
-	);
-
-	m_materialFactorData.ambientOcclusionFactor = jsonData["materialFactorData"]["ambientOcclusionFactor"].get<float>();
-	m_materialFactorData.roughnessFactor = jsonData["materialFactorData"]["roughnessFactor"].get<float>();
-	m_materialFactorData.metallicFactor = jsonData["materialFactorData"]["metallicFactor"].get<float>();
-
-	m_materialFactorData.ior = jsonData["materialFactorData"]["ior"].get<float>();
-
-	m_materialFactorData.normalScale = jsonData["materialFactorData"]["normalScale"].get<float>();
-	m_materialFactorData.heightScale = jsonData["materialFactorData"]["heightScale"].get<float>();
-
-	m_materialFactorData.lightFactor = jsonData["materialFactorData"]["lightFactor"].get<float>();
-	m_materialFactorData.glowFactor = jsonData["materialFactorData"]["glowFactor"].get<float>();
-
-	m_materialFactorData.emissionFactor = XMFLOAT4
-	(
-		jsonData["materialFactorData"]["emissionFactor"][0].get<float>(),
-		jsonData["materialFactorData"]["emissionFactor"][1].get<float>(),
-		jsonData["materialFactorData"]["emissionFactor"][2].get<float>(),
-		jsonData["materialFactorData"]["emissionFactor"][3].get<float>()
-	);
-
-	m_blendState = static_cast<BlendState>(jsonData["blendState"].get<int>());
-	m_rasterState = static_cast<RasterState>(jsonData["rasterState"].get<int>());
+	ModelComponent::Deserialize(jsonData);
 }
 
 void SkinnedModelComponent::CreateShaders()
 {
-	ResourceManager& resourceManager = ResourceManager::GetInstance();
-	m_vertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout(m_vsShaderName, m_inputElements);
-	m_pixelShader = resourceManager.GetPixelShader(m_psShaderName);
+	ModelComponent::CreateShaders();
 
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_lineVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout(m_lineVSShaderName);
 	m_linePixelShader = resourceManager.GetPixelShader(m_linePSShaderName);
+
 }
 /// SkinnedModelComponent.cpp의 끝
