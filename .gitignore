@@ -59,4 +59,5 @@ Engine/VcpkgLocal.props
 *.ini
 
 #sound
-Asset/Sound
+*.mp3
+*.wav

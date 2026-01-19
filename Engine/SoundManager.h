@@ -26,7 +26,7 @@ public:
 	float GetVolume_SFX() { return m_Volume_SFX; }
 	float GetVolume_UI() { return m_Volume_UI; }
 
-	void ConvertBGMSource(bool isStream);
+	void ConvertBGMSource();
 	void ConvertSFXSource();
 	void ConvertUISource ();
 
