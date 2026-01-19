@@ -54,32 +54,32 @@ void TestCameraObject::Update()
         XMVECTOR camRight, camUp, camForward;
         GetCameraBasis(camRight, camUp, camForward);
 
-        XMVECTOR moveDir = XMVectorSet(0.f, 0.f, 0.f, 0.f);
+        //XMVECTOR moveDir = XMVectorSet(0.f, 0.f, 0.f, 0.f);
 
-        // W, S : 앞뒤 이동 (바라보는 방향 기준)
-        if (input.GetKey(KeyCode::W)) moveDir += camForward;
-        if (input.GetKey(KeyCode::S)) moveDir -= camForward;
+        //// W, S : 앞뒤 이동 (바라보는 방향 기준)
+        //if (input.GetKey(KeyCode::W)) moveDir += camForward;
+        //if (input.GetKey(KeyCode::S)) moveDir -= camForward;
 
-        // A, D : 좌우 이동 (오른쪽 벡터 기준)
-        if (input.GetKey(KeyCode::D)) moveDir += camRight;
-        if (input.GetKey(KeyCode::A)) moveDir -= camRight;
+        //// A, D : 좌우 이동 (오른쪽 벡터 기준)
+        //if (input.GetKey(KeyCode::D)) moveDir += camRight;
+        //if (input.GetKey(KeyCode::A)) moveDir -= camRight;
 
-        // Q, E : 수직 상승/하강 (옵션, Global Y축 혹은 로컬 Up)
-        // 비행 모드처럼 하려면 Global Up(0,1,0)을 쓰는게 편합니다.
-        if (input.GetKey(KeyCode::E)) moveDir += XMVectorSet(0.f, 1.f, 0.f, 0.f); // 위로
-        if (input.GetKey(KeyCode::Q)) moveDir -= XMVectorSet(0.f, 1.f, 0.f, 0.f); // 아래로
+        //// Q, E : 수직 상승/하강 (옵션, Global Y축 혹은 로컬 Up)
+        //// 비행 모드처럼 하려면 Global Up(0,1,0)을 쓰는게 편합니다.
+        //if (input.GetKey(KeyCode::E)) moveDir += XMVectorSet(0.f, 1.f, 0.f, 0.f); // 위로
+        //if (input.GetKey(KeyCode::Q)) moveDir -= XMVectorSet(0.f, 1.f, 0.f, 0.f); // 아래로
 
-        // 벡터 정규화 (대각선 이동 시 속도 빨라짐 방지)
-        moveDir = XMVector3Normalize(moveDir);
+        //// 벡터 정규화 (대각선 이동 시 속도 빨라짐 방지)
+        //moveDir = XMVector3Normalize(moveDir);
 
-        // 최종 위치 적용
-        XMVECTOR currentPos = GetPosition();
-        XMVECTOR velocity = moveDir * m_moveSpeed * deltaTime;
+        //// 최종 위치 적용
+        //XMVECTOR currentPos = GetPosition();
+        //XMVECTOR velocity = moveDir * m_moveSpeed * deltaTime;
 
-        // Shift 키를 누르면 부스트 (속도 2배) - 디버그 시 유용
-        if (input.GetKey(KeyCode::Shift)) velocity *= 2.0f;
+        //// Shift 키를 누르면 부스트 (속도 2배) - 디버그 시 유용
+        //if (input.GetKey(KeyCode::Shift)) velocity *= 2.0f;
 
-        SetPosition(currentPos + velocity);
+        //SetPosition(currentPos + velocity);
     }
 
     // ===========================================================
