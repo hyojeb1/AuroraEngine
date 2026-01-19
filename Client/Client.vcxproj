@@ -158,36 +158,26 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BlenderCameraObject.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="CamRotObject.cpp" />
-    <ClCompile Include="ClientTestScene.cpp" />
-    <ClCompile Include="HostTestScene.cpp" />
     <ClCompile Include="HyojeTestObject.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="HyojeTestScene.cpp" />
     <ClCompile Include="TestCameraObject.cpp" />
     <ClCompile Include="TestObject.cpp" />
     <ClCompile Include="TestScene.cpp" />
-    <ClCompile Include="YdmTestObject.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BlenderCameraObject.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="CamRotObject.h" />
-    <ClInclude Include="HostTestScene.h" />
     <ClInclude Include="HyojeTestScene.h" />
     <ClInclude Include="HyojeTestObject.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TestCameraObject.h" />
     <ClInclude Include="TestObject.h" />
     <ClInclude Include="TestScene.h" />
-    <ClInclude Include="YdmTestObject.h" />
-    <ClInclude Include="ClientTestScene.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Asset\Scene\HyojeTestScene.json" />
+    <None Include="..\Asset\Scene\TestScene.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

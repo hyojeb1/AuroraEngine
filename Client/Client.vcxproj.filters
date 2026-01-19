@@ -20,18 +20,6 @@
     <ClCompile Include="CamRotObject.cpp">
       <Filter>GameObject\Camera</Filter>
     </ClCompile>
-    <ClCompile Include="BlenderCameraObject.cpp">
-      <Filter>GameObject\Camera</Filter>
-    </ClCompile>
-    <ClCompile Include="YdmTestObject.cpp">
-      <Filter>GameObject</Filter>
-    </ClCompile>
-    <ClCompile Include="ClientTestScene.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="HostTestScene.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -53,18 +41,6 @@
     <ClInclude Include="CamRotObject.h">
       <Filter>GameObject\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="BlenderCameraObject.h">
-      <Filter>GameObject\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="ClientTestScene.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="YdmTestObject.h">
-      <Filter>GameObject</Filter>
-    </ClInclude>
-    <ClInclude Include="HostTestScene.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Scene">
@@ -76,5 +52,16 @@
     <Filter Include="GameObject\Camera">
       <UniqueIdentifier>{cbfb4604-31c4-409a-ab7f-a427d2aa44a6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scene\JSON">
+      <UniqueIdentifier>{ebcf55c0-b195-40e1-9fbb-20909ace718c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Asset\Scene\HyojeTestScene.json">
+      <Filter>Scene\JSON</Filter>
+    </None>
+    <None Include="..\Asset\Scene\TestScene.json">
+      <Filter>Scene\JSON</Filter>
+    </None>
   </ItemGroup>
 </Project>

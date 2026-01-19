@@ -16,6 +16,8 @@ public:
 
 	void SetOwner(GameObjectBase* owner) { m_owner = owner; }
 	GameObjectBase* GetOwner() const { return m_owner; }
+
+	virtual bool NeedsFixedUpdate() const = 0;
 	virtual bool NeedsUpdate() const = 0;
 	virtual bool NeedsRender() const = 0;
   

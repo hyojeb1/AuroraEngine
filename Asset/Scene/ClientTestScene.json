@@ -7,10 +7,10 @@
         1.0
     ],
     "lightDirection": [
-        -0.5,
-        -1.0,
-        -0.5,
-        1.0
+        -0.40905970335006714,
+        -0.30744242668151855,
+        0.8591561913490295,
+        0.9020420908927917
     ],
     "rootGameObjects": [
         {
@@ -88,11 +88,11 @@
                             0.0
                         ],
                         "glowFactor": 0.0,
-                        "heightScale": 0.05000000074505806,
+                        "heightScale": 0.041999999433755875,
                         "ior": 1.5,
                         "lightFactor": 1.0,
-                        "metallicFactor": 1.0,
-                        "normalScale": 1.0,
+                        "metallicFactor": 0.0,
+                        "normalScale": 0.9399999976158142,
                         "roughnessFactor": 1.0
                     },
                     "modelFileName": "box.fbx",

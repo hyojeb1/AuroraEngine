@@ -19,14 +19,14 @@
     <Filter Include="Base\Component">
       <UniqueIdentifier>{8a46f177-3617-43fa-ab1a-28387589cd92}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Base\Component\Network">
-      <UniqueIdentifier>{1bc52dc4-7856-44ba-b4e2-7d1f08d88cf7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Base\GameObject">
       <UniqueIdentifier>{f03bcef5-616c-4bf6-897d-ed1300e98a76}</UniqueIdentifier>
     </Filter>
     <Filter Include="Base\Scene">
       <UniqueIdentifier>{cf7d56b7-51bf-4646-a63f-11327a933aec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{4464304c-e96e-4bc6-a072-cbd29faf101e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -60,18 +60,6 @@
     <ClCompile Include="DebugCamera.cpp">
       <Filter>Base\GameObject</Filter>
     </ClCompile>
-    <ClCompile Include="NetManager.cpp">
-      <Filter>Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="NetworkTestComponent.cpp">
-      <Filter>Base\Component\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="NetworkWorld.cpp">
-      <Filter>Base\Component\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="NetworkIdentityComponent.cpp">
-      <Filter>Base\Component\Network</Filter>
-    </ClCompile>
     <ClCompile Include="Base.cpp">
       <Filter>Base</Filter>
     </ClCompile>
@@ -87,6 +75,12 @@
     <ClCompile Include="SoundManager.cpp">
       <Filter>Manager</Filter>
     </ClCompile>
+    <ClCompile Include="SkinnedModelComponent.cpp">
+      <Filter>Base\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Animator.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -98,9 +92,6 @@
     </ClInclude>
     <ClInclude Include="CameraComponent.h">
       <Filter>Base\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="TimeManager.h">
       <Filter>Manager</Filter>
@@ -129,18 +120,6 @@
     <ClInclude Include="DebugCamera.h">
       <Filter>Base\GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="NetManager.h">
-      <Filter>Manager</Filter>
-    </ClInclude>
-    <ClInclude Include="NetworkTestComponent.h">
-      <Filter>Base\Component\Network</Filter>
-    </ClInclude>
-    <ClInclude Include="NetworkWorld.h">
-      <Filter>Base\Component\Network</Filter>
-    </ClInclude>
-    <ClInclude Include="NetworkIdentityComponent.h">
-      <Filter>Base\Component\Network</Filter>
-    </ClInclude>
     <ClInclude Include="Base.h">
       <Filter>Base</Filter>
     </ClInclude>
@@ -155,6 +134,15 @@
     </ClInclude>
     <ClInclude Include="SoundManager.h">
       <Filter>Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinnedModelComponent.h">
+      <Filter>Base\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Animator.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Resource</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -179,10 +167,19 @@
     <FxCompile Include="..\Asset\Shader\VSCoordinateLine.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
-    <FxCompile Include="..\Asset\Shader\PSCoordinateLine.hlsl">
+    <FxCompile Include="..\Asset\Shader\PSColor.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
     <FxCompile Include="..\Asset\Shader\VSModelSkinAnim.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Asset\Shader\PSShadow.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Asset\Shader\PSOnlyAlbedo.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Asset\Shader\VSLine.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
   </ItemGroup>

@@ -10,7 +10,7 @@ vcpkg_installed/
 *.dat
 
 # Build outputs
-#x64/
+x64/
 Win32/
 Debug/
 Release/

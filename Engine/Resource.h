@@ -10,8 +10,10 @@ struct RenderTarget
 	com_ptr<ID3D11DepthStencilView> depthStencilView = nullptr; // 깊이-스텐실 뷰
 };
 
+constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 8192; // 방향성 광원 그림자 맵 크기
 enum class RenderStage
 {
+	DirectionalLightShadow,
 	Scene,
 	BackBuffer,
 
@@ -188,6 +190,7 @@ enum class SamplerState
 {
 	BackBuffer, // 백 버퍼 전용 샘플러 상태
 	Default,
+	ShadowMap,
 
 	Count
 };
@@ -221,6 +224,21 @@ constexpr std::array<D3D11_SAMPLER_DESC, static_cast<size_t>(SamplerState::Count
 		.BorderColor = { 0.0f, 0.0f, 0.0f, 0.0f },
 		.MinLOD = 0,
 		.MaxLOD = D3D11_FLOAT32_MAX
+	},
+
+	// ShadowMap
+	D3D11_SAMPLER_DESC
+	{
+		.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT, // 그림자 맵용 비교 필터링
+		.AddressU = D3D11_TEXTURE_ADDRESS_BORDER, // U 좌표 테두리
+		.AddressV = D3D11_TEXTURE_ADDRESS_BORDER, // V 좌표 테두리
+		.AddressW = D3D11_TEXTURE_ADDRESS_BORDER, // W 좌표 테두리
+		.MipLODBias = 0.0f,
+		.MaxAnisotropy = 1,
+		.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL, // 비교 함수: 작거나 같음
+		.BorderColor = { 1.0f, 1.0f, 1.0f, 1.0f }, // 테두리 색상 흰색
+		.MinLOD = 0,
+		.MaxLOD = D3D11_FLOAT32_MAX
 	}
 };
 
@@ -232,6 +250,9 @@ enum class InputElement
 	Normal,
 	Bitangent,
 	Tangent,
+
+	Blendindex,
+	Blendweight,
 
 	Count
 };
@@ -295,6 +316,30 @@ constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement:
 		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
 		.InstanceDataStepRate = 0
+	},
+
+	// Blendindex
+	D3D11_INPUT_ELEMENT_DESC
+	{
+		.SemanticName = "BLENDINDICES",
+		.SemanticIndex = 0,
+		.Format = DXGI_FORMAT_R32G32B32A32_UINT, // uint4
+		.InputSlot = 0,
+		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+		.InstanceDataStepRate = 0
+	},
+
+	// Blendweight
+	D3D11_INPUT_ELEMENT_DESC
+	{
+		.SemanticName = "BLENDWEIGHT",
+		.SemanticIndex = 0,
+		.Format = DXGI_FORMAT_R32G32B32A32_FLOAT, // float4
+		.InputSlot = 0,
+		.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+		.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+		.InstanceDataStepRate = 0
 	}
 };
 
@@ -302,11 +347,17 @@ enum class VSConstBuffers
 {
 	ViewProjection, // ViewProjectionBuffer
 	SkyboxViewProjection, // SkyboxViewProjectionBuffer
+
 	WorldNormal, // WorldBuffer
+
+	Time, // TimeBuffer
+	Bone,
+
+	Line,
 
 	Count
 };
-struct ViewProjectionBuffer // 뷰-투영 상수 버퍼 구조체
+struct ViewProjectionBuffer // 뷰-투영 상수 버퍼 구조체 
 {
 	DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixIdentity(); // 뷰 행렬 // 전치 안함
 	DirectX::XMMATRIX projectionMatrix = DirectX::XMMatrixIdentity(); // 투영 행렬 // 전치 안함
@@ -320,6 +371,25 @@ struct WorldNormalBuffer // 월드 및 WVP 행렬 상수 버퍼 구조체
 {
 	DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity(); // 월드 행렬
 	DirectX::XMMATRIX normalMatrix = DirectX::XMMatrixIdentity(); // 스케일 역행렬을 적용한 월드 행렬
+
+};
+struct TimeBuffer
+{
+	float totalTime = 0.0f; // 누적 시간
+	float deltaTime = 0.0f; // 프레임 간 시간 차이
+	float sinTime = 0.0f; // 시간의 사인 값
+	float cosTime = 0.0f; // 시간의 코사인 값
+};
+constexpr int MAX_BONES = 256;
+struct BoneBuffer
+{
+	std::array<DirectX::XMMATRIX, MAX_BONES> boneMatrix = {}; // 본 행렬 배열
+	BoneBuffer() { std::fill(boneMatrix.begin(), boneMatrix.end(), DirectX::XMMatrixIdentity()); }
+};
+struct LineBuffer
+{
+	std::array<DirectX::XMFLOAT4, 2> linePoints = { DirectX::XMFLOAT4{0.0f, 0.0f, 0.0f, 1.0f}, DirectX::XMFLOAT4{0.0f, 0.0f, 0.0f, 1.0f} }; // 선 시작 및 끝 점 위치
+	std::array<DirectX::XMFLOAT4, 2> lineColors = { DirectX::XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f}, DirectX::XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f} }; // 선 시작 및 끝 색상
 };
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Count)> VS_CONST_BUFFER_DESCS =
 {
@@ -354,6 +424,39 @@ constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Coun
 		.CPUAccessFlags = 0,
 		.MiscFlags = 0,
 		.StructureByteStride = 0
+	},
+
+	// TimeBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(TimeBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	},
+
+	// BoneBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(BoneBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	},
+
+	// LineBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(LineBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
 	}
 };
 
@@ -373,6 +476,8 @@ struct GlobalLightBuffer // 방향광 상수 버퍼 구조체
 {
 	DirectX::XMFLOAT4 lightColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 방향광 색상 // w는 IBL 강도
 	DirectX::XMVECTOR lightDirection = DirectX::XMVectorSet(-0.5f, -1.0f, -0.5f, 1.0f); // 방향광 방향 // w는 방향광 강도
+
+	DirectX::XMMATRIX lightViewProjectionMatrix = DirectX::XMMatrixIdentity(); // 방향광 뷰-투영 행렬 // 전치함
 };
 struct MaterialFactorBuffer
 {
@@ -432,10 +537,11 @@ enum class TextureSlots
 {
 	BackBuffer,
 	Environment,
+	DirectionalLightShadow,
 
 	Albedo, // RGBA
 	ORM, // ambient occlusion(R) + roughness(G) + metallic(B)
-	Normal, // X(R) + Y(G) + Z(B)
+	Normal, // XYZ(RGB) + height(A)
 
 	Count
 };
@@ -447,6 +553,63 @@ struct Vertex
 	DirectX::XMFLOAT3 normal = {};
 	DirectX::XMFLOAT3 bitangent = {};
 	DirectX::XMFLOAT3 tangent = {};
+
+	// 스키닝 데이터 추가 (정적 메쉬는 0으로 초기화됨)
+	std::array<uint32_t, 4> boneIndex = { 0, 0, 0, 0 };
+	DirectX::XMFLOAT4 boneWeight = { 0.f, 0.f, 0.f, 0.f };
+};
+
+
+struct BoneInfo
+{
+	uint32_t id = 0;
+	DirectX::XMFLOAT4X4 offset_matrix = {};
+};
+
+struct VectorKeyframe
+{
+	float time_position = 0.0f;
+	DirectX::XMFLOAT3 value = { 0.0f, 0.0f, 0.0f };
+};
+
+struct QuaternionKeyframe
+{
+	float time_position = 0.0f;
+	DirectX::XMFLOAT4 value = { 0.0f, 0.0f, 0.0f, 1.0f };
+};
+
+struct BoneAnimationChannel
+{
+	std::string boneName = {};
+	int boneIndex = -1;
+	std::vector<VectorKeyframe> position_keys = {};
+	std::vector<QuaternionKeyframe> rotation_keys = {};
+	std::vector<VectorKeyframe> scale_keys = {};
+};
+
+struct SkeletonNode
+{
+	std::string name = {};
+	DirectX::XMFLOAT4X4 localTransform = {};
+	int boneIndex = -1;
+	std::vector<std::shared_ptr<SkeletonNode>> children = {};
+};
+
+struct Skeleton
+{
+	std::unordered_map<std::string, uint32_t> boneMapping = {};
+	std::vector<BoneInfo> bones = {};
+	DirectX::XMFLOAT4X4 globalInverseTransform = {};
+	std::shared_ptr<SkeletonNode> root = nullptr;
+};
+
+struct AnimationClip
+{
+	static constexpr float DEFAULT_FPS = 24.0f;
+	std::string name = {};
+	float duration = 0.0f;
+	float ticks_per_second = 0.f; // 틱 준비
+	std::unordered_map<std::string, BoneAnimationChannel> channels = {};
 };
 
 struct MaterialTexture
@@ -472,10 +635,30 @@ struct Mesh
 	MaterialTexture materialTexture = {};
 };
 
+enum class ModelType
+{
+	Static,
+	Skinned,
+	Rigid,
+	Count
+};
+
 struct Model
 {
+	ModelType type = ModelType::Static;
 	std::vector<Mesh> meshes = {};
 	DirectX::BoundingBox boundingBox = {};
+
+	// 애니메이션 데이터 (정적 모델인 경우 비워둠)
+	Skeleton skeleton = {};
+	std::vector<AnimationClip> animations = {};
+};
+
+constexpr std::array<std::pair<size_t, size_t>, 12> BOX_LINE_INDICES =
+{
+	std::pair<size_t, size_t>{ 0, 1 }, std::pair<size_t, size_t>{ 1, 2 }, std::pair<size_t, size_t>{ 2, 3 }, std::pair<size_t, size_t>{ 3, 0 },
+	std::pair<size_t, size_t>{ 4, 5 }, std::pair<size_t, size_t>{ 5, 6 }, std::pair<size_t, size_t>{ 6, 7 }, std::pair<size_t, size_t>{ 7, 4 },
+	std::pair<size_t, size_t>{ 0, 4 }, std::pair<size_t, size_t>{ 1, 5 }, std::pair<size_t, size_t>{ 2, 6 }, std::pair<size_t, size_t>{ 3, 7 }
 };
 
 /// Resource.h의 끝

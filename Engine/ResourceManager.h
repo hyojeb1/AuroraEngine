@@ -1,4 +1,8 @@
-///ResourceManager.h의 시작
+///
+///ResourceManager.h
+/// 그래픽 자원을 관리하는 매니저 클래스임
+/// .fbx로 한정함
+///
 #pragma once
 #include "Singleton.h"
 
@@ -68,8 +72,16 @@ public:
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> GetVertexShaderAndInputLayout(const std::string& shaderName, const std::vector<InputElement>& inputElements = {});
 	// 픽셀 셰이더 얻기
 	com_ptr<ID3D11PixelShader> GetPixelShader(const std::string& shaderName);
+	
+	enum class TextureType
+	{
+		Albedo,
+		Normal,
+		ORM,
+		None // Fallback을 사용하지 않음 (반드시 있어야 하는 텍스처)
+	};
 	// 텍스처 파일로부터 텍스처 로드
-	com_ptr<ID3D11ShaderResourceView> GetTexture(const std::string& fileName);
+	com_ptr<ID3D11ShaderResourceView> GetTexture(const std::string& fileName, TextureType type = TextureType::None);
 	// 모델 파일로부터 모델 로드
 	const Model* LoadModel(const std::string& fileName);
 
@@ -98,6 +110,21 @@ private:
 	Mesh ProcessMesh(const aiMesh* mesh, const aiScene* scene, Model& model);
 	// 메쉬 버퍼(GPU) 생성 함수
 	void CreateMeshBuffers(Mesh& mesh);
+
+	// 스켈레톤 노드 생성 함수
+	std::unique_ptr<SkeletonNode> BuildSkeletonNode(const aiNode* node, Skeleton& skeleton);
+	
+	void LoadAnimations(const aiScene* scene, Model& model);
+	// aiMatrix → XMFLOAT4X4 변환 함수
+	static DirectX::XMFLOAT4X4 ToXMFLOAT4X4(const aiMatrix4x4& matrix);
+	// aiVector3D → XMFLOAT3 변환 함수
+	static DirectX::XMFLOAT3 ToXMFLOAT3(const aiVector3D& vec3);
+	// aiQuaternion → XMFLOAT4 변환 함수
+	static DirectX::XMFLOAT4 ToXMFLOAT4(const aiQuaternion& quar);
+
+
+	// 씬 본 유무 확인 함수
+	static bool SceneHasBones(const aiScene* scene);
 
 	// 셰이더 컴파일 함수
 	com_ptr<ID3DBlob> CompileShader(const std::string& shaderName, const char* shaderModel);

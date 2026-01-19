@@ -5,8 +5,6 @@
 
 #include "TestScene.h"
 #include "HyojeTestScene.h"
-#include "ClientTestScene.h"
-
 
 #ifdef _DEBUG
 int main()
@@ -21,13 +19,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
 
 	WindowManager& windowManager = WindowManager::GetInstance();
 	windowManager.Initialize(L"Aurora");
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
-	sceneManager.ChangeScene("ClientTestScene");
+	sceneManager.ChangeScene("HyojeTestScene");
 
 	while (windowManager.ProcessMessages()) sceneManager.Run();
 

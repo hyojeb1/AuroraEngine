@@ -28,9 +28,9 @@
 | Name | Role | GitHub | Responsibility |
 |:---:|:---:|:---:|:---|
 | **김현준** | **Main Core** | [@khjune6421](https://github.com/khjune6421) | 엔진  |
-| **장효제** | **PM / Anim** | [@HyojeJang](https://github.com/HyojeJang) | 애니메이션 |
-| **이은희** | **UI / Tool** | [@Fujino-Tatsuya](https://github.com/Fujino-Tatsuya) | UI , 사운드 엔진 |
-| **윤동민** | **Network** | [@BIRANG22](https://github.com/BIRANG22) | 네트워크  |
+| **장효제** | **Anim** | [@HyojeJang](https://github.com/HyojeJang) | 애니메이션 |
+| **이은희** | **Sound** | [@Fujino-Tatsuya](https://github.com/Fujino-Tatsuya) | 사운드 |
+| **윤동민** | **UI** | [@BIRANG22](https://github.com/BIRANG22) | 네트워크 , UI |
 
 ---
 Copyright © 2025 Team Aurora. All Rights Reserved.

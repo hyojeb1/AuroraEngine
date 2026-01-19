@@ -1,0 +1,158 @@
+{
+    "environmentMapFileName": "Skybox.dds",
+    "lightColor": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "lightDirection": [
+        -0.5,
+        -1.0,
+        -0.5,
+        1.0
+    ],
+    "rootGameObjects": [
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "blendState": 2,
+                    "materialFactorData": {
+                        "albedoFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "ambientOcclusionFactor": 1.0,
+                        "emissionFactor": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "glowFactor": 0.0,
+                        "heightScale": 0.05000000074505806,
+                        "ior": 1.5,
+                        "lightFactor": 1.0,
+                        "metallicFactor": 0.0,
+                        "normalScale": 1.0,
+                        "roughnessFactor": 1.0
+                    },
+                    "modelFileName": "Target.fbx",
+                    "psShaderName": "PSModel.hlsl",
+                    "rasterState": 1,
+                    "type": "ModelComponent",
+                    "vsShaderName": "VSModel.hlsl"
+                }
+            ],
+            "name": "GameObjectBase_0",
+            "position": [
+                5.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "GameObjectBase"
+        },
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "blendState": 2,
+                    "materialFactorData": {
+                        "albedoFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "ambientOcclusionFactor": 1.0,
+                        "emissionFactor": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "glowFactor": 0.0,
+                        "heightScale": 0.0,
+                        "ior": 1.5,
+                        "lightFactor": 1.0,
+                        "metallicFactor": 1.0,
+                        "normalScale": 0.0,
+                        "roughnessFactor": 1.0
+                    },
+                    "modelFileName": "Target.fbx",
+                    "psShaderName": "PSModel.hlsl",
+                    "rasterState": 1,
+                    "type": "ModelComponent",
+                    "vsShaderName": "VSModel.hlsl"
+                }
+            ],
+            "name": "GameObjectBase_1",
+            "position": [
+                -5.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "GameObjectBase"
+        },
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "farZ": 1000.0,
+                    "fovY": 0.7853981852531433,
+                    "nearZ": 0.10000000149011612,
+                    "type": "CameraComponent"
+                }
+            ],
+            "name": "CamRotObject_3",
+            "position": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "CamRotObject"
+        }
+    ]
+}
