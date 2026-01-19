@@ -31,7 +31,7 @@ void TestCameraObject::Update()
         // ===========================================================
         // [기능 1] 마우스 회전 (Look)
         // ===========================================================
-        MousePos delta = input.GetMouseDelta();
+        POINT delta = input.GetMouseDelta();
 
         // 마우스 좌우 이동 -> Yaw (Y축 회전)
         m_yaw += static_cast<float>(delta.x) * m_lookSensitivity;

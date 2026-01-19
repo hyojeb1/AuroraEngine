@@ -13,16 +13,42 @@ LRESULT CALLBACK WindowManager::WindowProc(HWND hWnd, UINT message, WPARAM wPara
 {
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam)) return true;
 
-	InputManager::GetInstance().HandleMessage(hWnd, message, wParam, lParam);
+	InputManager::GetInstance().HandleMessage(message, wParam, lParam);
 
 	switch (message)
 	{
 	case WM_DESTROY:
 		PostQuitMessage(0);
+
 		return 0;
 
 	case WM_SIZE:
 		Renderer::GetInstance().Resize(static_cast<UINT>(LOWORD(lParam)), static_cast<UINT>(HIWORD(lParam)));
+
+		#ifdef NDEBUG
+		if (GetForegroundWindow() == hWnd)
+		{
+			RECT clipRect;
+			GetClientRect(hWnd, &clipRect);
+			MapWindowPoints(hWnd, nullptr, reinterpret_cast<POINT*>(&clipRect), 2);
+			ClipCursor(&clipRect);
+		}
+		#endif
+
+		return 0;
+
+	case WM_ACTIVATE:
+		#ifdef NDEBUG
+		if (LOWORD(wParam) != WA_INACTIVE)
+		{
+			RECT clipRect;
+			GetClientRect(hWnd, &clipRect);
+			MapWindowPoints(hWnd, nullptr, reinterpret_cast<POINT*>(&clipRect), 2);
+			ClipCursor(&clipRect);
+		}
+		else ClipCursor(nullptr);
+		#endif
+
 		return 0;
 
 	default:
@@ -85,9 +111,10 @@ void WindowManager::Initialize(const wchar_t* windowTitle, int width, int height
 	ImGui_ImplWin32_Init(m_hWnd);
 	// 렌더러 초기화
 	Renderer::GetInstance().Initialize();
+	// 인풋매니저 초기화
+	InputManager::GetInstance().Initialize();
 
 	ShowWindow(m_hWnd, SW_SHOW);
-	//ShowCursor(FALSE);
 }
 
 bool WindowManager::ProcessMessages()

@@ -11,6 +11,7 @@
 #endif
 #include <typeindex>
 #include <unordered_map>
+#include <cstdint> 
 
 // 윈도우 헤더
 #include <wrl/client.h>

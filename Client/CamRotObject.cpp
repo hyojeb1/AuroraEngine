@@ -12,7 +12,6 @@ using namespace DirectX;
 void CamRotObject::Initialize()
 {
 	auto& input = InputManager::GetInstance();
-	input.SetCursorLock(true);
 }
 
 void CamRotObject::Update()
@@ -20,7 +19,7 @@ void CamRotObject::Update()
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	auto& input = InputManager::GetInstance();
 
-	const MousePos& delta = input.GetMouseDelta();
+	const POINT& delta = input.GetMouseDelta();
 	const XMVECTOR& euler = GetRotation();
 
 	float yaw = XMVectorGetY(euler) + static_cast<float>(delta.x) * 0.1f;

@@ -12,6 +12,7 @@ REGISTER_TYPE(TestScene)
 
 void TestScene::Initialize()
 {
+	ShowCursor(FALSE);
 }
 
 /// TestScene.cpp의 끝

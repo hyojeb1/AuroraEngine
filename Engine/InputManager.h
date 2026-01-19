@@ -1,23 +1,17 @@
-/// InputManager.h의 시작
-/// https://github.com/DragonT-iger/DTEngine/blob/main/DTEngine/InputManager.h
-/// 25.12.30 기준 async를 HandleMessage로 바꾸기 위함임 
-///
 #pragma once
-
 #include "Singleton.h"
-#include <array>
-#include <cstdint>   
-#include "KeyCode.h" 
-
-struct MousePos
-{
-    int x;
-    int y;
-};
-
+#include "KeyCode.h"
 
 class InputManager : public Singleton<InputManager>
 {
+	std::array<bool, 256> m_keyState = {};
+	std::array<bool, 256> m_keyDownState = {};
+	std::array<bool, 256> m_keyUpState = {};
+
+	POINT m_mousePos = { 0, 0 };
+	POINT m_mouseDelta = { 0, 0 };
+	int m_wheelDelta = 0;
+
 public:
     friend class Singleton<InputManager>;
 
@@ -25,9 +19,9 @@ public:
     using WPARAM = std::uintptr_t;
     using LPARAM = std::intptr_t;
 
-    void Initialize();
+	void Initialize();
 
-    void HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    void HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 
     void EndFrame();
 
@@ -35,25 +29,17 @@ public:
     bool GetKey(KeyCode key) const;
     bool GetKeyUp(KeyCode key) const;
 
-    void SetCursorLock(bool lock) { m_lockCursor = lock; }
-    bool IsCursorLocked() const { return m_lockCursor; }
-
-    const MousePos& GetMousePosition() const { return m_mousePos; }
-    const MousePos& GetMouseDelta() const { return m_mouseDelta; }
+    const POINT& GetMousePosition() const { return m_mousePos; }
+    const POINT& GetMouseDelta() const { return m_mouseDelta; }
     int GetMouseWheel() const { return m_wheelDelta; }
 
 private:
-    InputManager() = default;
+	InputManager() = default;
 
-	std::array<bool, 256> m_keyState = {};
-	std::array<bool, 256> m_keyDownState = {};
-	std::array<bool, 256> m_keyUpState = {};
-
-    MousePos m_mousePos = { 0, 0 };
-    MousePos m_prevMousePos = { 0, 0 };
-    MousePos m_mouseDelta = { 0, 0 };
-    int m_wheelDelta = 0;
-    bool m_lockCursor = false;
+    void RegisterRawDevice();
+	void ProcessRawInput(LPARAM lParam);
+	void ProcessRawKeyboard(const RAWKEYBOARD& keyboard);
+	void ProcessRawMouse(const RAWMOUSE& mouse);
 
     int MapKeyCodeToVKey(KeyCode key) const;
 };
