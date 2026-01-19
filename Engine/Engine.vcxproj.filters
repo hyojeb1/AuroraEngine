@@ -153,14 +153,13 @@
     <ClInclude Include="Resource.h">
       <Filter>Resource</Filter>
     </ClInclude>
-<<<<<<< HEAD
     <ClInclude Include="ListenerComponent.h">
       <Filter>Base\Component</Filter>
     </ClInclude>
     <ClInclude Include="EmitterComponent.h">
-=======
+    <Filter>Base\Component</Filter>
+     </ClInclude>
     <ClInclude Include="ColliderComponent.h">
->>>>>>> main
       <Filter>Base\Component</Filter>
     </ClInclude>
   </ItemGroup>
