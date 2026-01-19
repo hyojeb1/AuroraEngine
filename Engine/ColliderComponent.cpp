@@ -19,16 +19,9 @@ GameObjectBase* ColliderComponent::CheckCollision(XMVECTOR& origin, XMVECTOR& di
 
 	for (ColliderComponent* collider : s_colliders)
 	{
-		BoundingBox transformedBox = {};
-		BoundingOrientedBox transformedOBB = {};
-		BoundingFrustum transformedFrustum = {};
-		const XMMATRIX& worldMatrix = collider->m_owner->GetWorldMatrix();
-
-		for (const BoundingBox& box : collider->m_boundingBoxes)
+		for (const auto& [box, transformedBox] : collider->m_boundingBoxes)
 		{
-			box.Transform(transformedBox, worldMatrix);
 			float dist = 0.0f;
-
 			if (transformedBox.Intersects(origin, direction, dist))
 			{
 				if (dist < closestDistance)
@@ -38,11 +31,9 @@ GameObjectBase* ColliderComponent::CheckCollision(XMVECTOR& origin, XMVECTOR& di
 				}
 			}
 		}
-		for (const BoundingOrientedBox& obb : collider->m_boundingOrientedBoxes)
+		for (const auto& [obb, transformedOBB] : collider->m_boundingOrientedBoxes)
 		{
-			obb.Transform(transformedOBB, worldMatrix);
 			float dist = 0.0f;
-
 			if (transformedOBB.Intersects(origin, direction, dist))
 			{
 				if (dist < closestDistance)
@@ -52,11 +43,9 @@ GameObjectBase* ColliderComponent::CheckCollision(XMVECTOR& origin, XMVECTOR& di
 				}
 			}
 		}
-		for (const BoundingFrustum& frustum : collider->m_boundingFrustums)
+		for (const auto& [frustum, transformedFrustum] : collider->m_boundingFrustums)
 		{
-			frustum.Transform(transformedFrustum, worldMatrix);
 			float dist = 0.0f;
-
 			if (transformedFrustum.Intersects(origin, direction, dist))
 			{
 				if (dist < closestDistance)
@@ -82,6 +71,22 @@ void ColliderComponent::Initialize()
 	#endif
 
 	s_colliders.push_back(this);
+}
+
+void ColliderComponent::FixedUpdate()
+{
+	const XMMATRIX& worldMatrix = m_owner->GetWorldMatrix();
+	for (auto& [box, transformedBox] : m_boundingBoxes) box.Transform(transformedBox, worldMatrix);
+	for (auto& [obb, transformedOBB] : m_boundingOrientedBoxes) obb.Transform(transformedOBB, worldMatrix);
+	for (auto& [frustum, transformedFrustum] : m_boundingFrustums) frustum.Transform(transformedFrustum, worldMatrix);
+}
+
+void ColliderComponent::Update()
+{
+	const XMMATRIX& worldMatrix = m_owner->GetWorldMatrix();
+	for (auto& [box, transformedBox] : m_boundingBoxes) box.Transform(transformedBox, worldMatrix);
+	for (auto& [obb, transformedOBB] : m_boundingOrientedBoxes) obb.Transform(transformedOBB, worldMatrix);
+	for (auto& [frustum, transformedFrustum] : m_boundingFrustums) frustum.Transform(transformedFrustum, worldMatrix);
 }
 
 void ColliderComponent::Render()
@@ -110,9 +115,8 @@ void ColliderComponent::Render()
 
 			LineBuffer lineBufferData = {};
 
-			for (const BoundingBox& box : m_boundingBoxes)
+			for (const auto& [box, transformedBox] : m_boundingBoxes)
 			{
-				box.Transform(transformedBox, m_owner->GetWorldMatrix());
 				transformedBox.GetCorners(boxVertices.data());
 
 				for (const auto& [startIndex, endIndex] : BOX_LINE_INDICES)
@@ -125,9 +129,8 @@ void ColliderComponent::Render()
 					deviceContext->Draw(2, 0);
 				}
 			}
-			for (const BoundingOrientedBox& obb : m_boundingOrientedBoxes)
+			for (const auto& [obb, transformedOBB] : m_boundingOrientedBoxes)
 			{
-				obb.Transform(transformedOBB, m_owner->GetWorldMatrix());
 				transformedOBB.GetCorners(boxVertices.data());
 
 				for (const auto& [startIndex, endIndex] : BOX_LINE_INDICES)
@@ -140,9 +143,8 @@ void ColliderComponent::Render()
 					deviceContext->Draw(2, 0);
 				}
 			}
-			for (const BoundingFrustum& frustum : m_boundingFrustums)
+			for (const auto& [frustum, transformedFrustum] : m_boundingFrustums)
 			{
-				frustum.Transform(transformedFrustum, m_owner->GetWorldMatrix());
 				transformedFrustum.GetCorners(boxVertices.data());
 
 				for (const auto& [startIndex, endIndex] : BOX_LINE_INDICES)
@@ -163,7 +165,7 @@ void ColliderComponent::RenderImGui()
 {
 	if ((ImGui::TreeNode("Bounding Boxes")))
 	{
-		for (BoundingBox& box : m_boundingBoxes)
+		for (auto& [box, transformedBox] : m_boundingBoxes)
 		{
 			ImGui::PushID(&box);
 
@@ -178,7 +180,7 @@ void ColliderComponent::RenderImGui()
 	}
 	if ((ImGui::TreeNode("Bounding Oriented Boxes")))
 	{
-		for (BoundingOrientedBox& obb : m_boundingOrientedBoxes)
+		for (auto& [obb, transformedOBB] : m_boundingOrientedBoxes)
 		{
 			ImGui::PushID(&obb);
 
@@ -201,7 +203,7 @@ void ColliderComponent::RenderImGui()
 	}
 	if ((ImGui::TreeNode("Bounding Frustums")))
 	{
-		for (BoundingFrustum& frustum : m_boundingFrustums)
+		for (auto& [frustum, transformedFrustum] : m_boundingFrustums)
 		{
 			ImGui::PushID(&frustum);
 
@@ -233,7 +235,7 @@ nlohmann::json ColliderComponent::Serialize()
 	nlohmann::json jsonData;
 
 	jsonData["boundingBoxes"] = nlohmann::json::array();
-	for (const BoundingBox& box : m_boundingBoxes)
+	for (const auto& [box, transformedBox] : m_boundingBoxes)
 	{
 		nlohmann::json boxData;
 		boxData["center"] = { box.Center.x, box.Center.y, box.Center.z };
@@ -241,7 +243,7 @@ nlohmann::json ColliderComponent::Serialize()
 		jsonData["boundingBoxes"].push_back(boxData);
 	}
 	jsonData["boundingOrientedBoxes"] = nlohmann::json::array();
-	for (const BoundingOrientedBox& obb : m_boundingOrientedBoxes)
+	for (const auto& [obb, transformedOBB] : m_boundingOrientedBoxes)
 	{
 		nlohmann::json obbData;
 		obbData["center"] = { obb.Center.x, obb.Center.y, obb.Center.z };
@@ -250,7 +252,7 @@ nlohmann::json ColliderComponent::Serialize()
 		jsonData["boundingOrientedBoxes"].push_back(obbData);
 	}
 	jsonData["boundingFrustums"] = nlohmann::json::array();
-	for (const BoundingFrustum& frustum : m_boundingFrustums)
+	for (const auto& [frustum, transformedFrustum] : m_boundingFrustums)
 	{
 		nlohmann::json frustumData;
 		frustumData["origin"] = { frustum.Origin.x, frustum.Origin.y, frustum.Origin.z };
@@ -275,7 +277,7 @@ void ColliderComponent::Deserialize(const nlohmann::json& jsonData)
 		BoundingBox box;
 		box.Center = XMFLOAT3{ boxData["center"][0], boxData["center"][1], boxData["center"][2] };
 		box.Extents = XMFLOAT3{ boxData["extents"][0], boxData["extents"][1], boxData["extents"][2] };
-		m_boundingBoxes.push_back(box);
+		AddBoundingBox(box);
 	}
 	m_boundingOrientedBoxes.clear();
 	for (const auto& obbData : jsonData["boundingOrientedBoxes"])
@@ -284,7 +286,7 @@ void ColliderComponent::Deserialize(const nlohmann::json& jsonData)
 		obb.Center = XMFLOAT3{ obbData["center"][0], obbData["center"][1], obbData["center"][2] };
 		obb.Extents = XMFLOAT3{ obbData["extents"][0], obbData["extents"][1], obbData["extents"][2] };
 		obb.Orientation = XMFLOAT4{ obbData["orientation"][0], obbData["orientation"][1], obbData["orientation"][2], obbData["orientation"][3] };
-		m_boundingOrientedBoxes.push_back(obb);
+		AddBoundingOrientedBox(obb);
 	}
 	m_boundingFrustums.clear();
 	for (const auto& frustumData : jsonData["boundingFrustums"])
@@ -298,6 +300,6 @@ void ColliderComponent::Deserialize(const nlohmann::json& jsonData)
 		frustum.BottomSlope = frustumData["bottomSlope"];
 		frustum.Near = frustumData["near"];
 		frustum.Far = frustumData["far"];
-		m_boundingFrustums.push_back(frustum);
+		AddBoundingFrustum(frustum);
 	}
 }
