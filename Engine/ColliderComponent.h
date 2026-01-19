@@ -32,7 +32,7 @@ public:
 
 	// 충돌 검사
 	// 선 충돌 검사
-	GameObjectBase* CheckCollision(DirectX::XMVECTOR& origin, DirectX::XMVECTOR& direction, _Out_ float& distance);
+	static GameObjectBase* CheckCollision(const DirectX::XMVECTOR& origin, const DirectX::XMVECTOR& direction, _Out_ float& distance);
 
 	bool NeedsFixedUpdate() const override { return true; }
 	bool NeedsUpdate() const override { return true; }
@@ -46,7 +46,9 @@ protected:
 	void Initialize() override;
 	void FixedUpdate() override;
 	void Update() override;
+	#ifdef _DEBUG
 	void Render() override;
+	#endif
 	void RenderImGui() override;
 	void Finalize() override;
 

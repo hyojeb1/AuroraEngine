@@ -12,7 +12,7 @@ REGISTER_TYPE(ColliderComponent)
 
 vector<ColliderComponent*> ColliderComponent::s_colliders = {};
 
-GameObjectBase* ColliderComponent::CheckCollision(XMVECTOR& origin, XMVECTOR& direction, _Out_ float& distance)
+GameObjectBase* ColliderComponent::CheckCollision(const XMVECTOR& origin, const XMVECTOR& direction, _Out_ float& distance)
 {
 	GameObjectBase* collidedObject = nullptr;
 	float closestDistance = FLT_MAX;
@@ -89,6 +89,7 @@ void ColliderComponent::Update()
 	for (auto& [frustum, transformedFrustum] : m_boundingFrustums) frustum.Transform(transformedFrustum, worldMatrix);
 }
 
+#ifdef _DEBUG
 void ColliderComponent::Render()
 {
 	Renderer& renderer = Renderer::GetInstance();
@@ -160,6 +161,7 @@ void ColliderComponent::Render()
 		}
 	);
 }
+#endif
 
 void ColliderComponent::RenderImGui()
 {

@@ -3,6 +3,10 @@
 
 #include "TimeManager.h"
 #include "InputManager.h"
+#include "ColliderComponent.h"
+#include "CameraComponent.h"
+
+REGISTER_TYPE(Player)
 
 void Player::Initialize()
 {
@@ -21,4 +25,10 @@ void Player::Update()
 	if (input.GetKey(Shift)) MoveDirection(deltaTime * 5.0f, Direction::Down);
 	if (input.GetKey(A)) Rotate({ 0.0f, -deltaTime * 90.0f, 0.0f });
 	if (input.GetKey(D)) Rotate({ 0.0f, deltaTime * 90.0f, 0.0f });
+
+	if (input.GetKeyDown(MouseLeft))
+	{
+		float distance = 0.0f;
+		ColliderComponent::CheckCollision(g_mainCamera->GetPosition(), g_mainCamera->GetForwardVector(), distance)->SetAlive(false);
+	}
 }
