@@ -49,7 +49,7 @@ void SoundManager::Initialize()
 		m_MainGroup->addGroup(m_SFXGroup);
 		m_MainGroup->addGroup(m_UIGroup);
 
-		ConvertBGMSource(false);
+		ConvertBGMSource();
 		ConvertSFXSource();
 		ConvertUISource();
 

@@ -11,9 +11,6 @@
     <ClCompile Include="HyojeTestScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="HyojeTestObject.cpp">
-      <Filter>GameObject</Filter>
-    </ClCompile>
     <ClCompile Include="TestCameraObject.cpp">
       <Filter>GameObject\Camera</Filter>
     </ClCompile>
@@ -34,9 +31,6 @@
     </ClInclude>
     <ClInclude Include="HyojeTestScene.h">
       <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="HyojeTestObject.h">
-      <Filter>GameObject</Filter>
     </ClInclude>
     <ClInclude Include="TestCameraObject.h">
       <Filter>GameObject\Camera</Filter>
