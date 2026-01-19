@@ -23,14 +23,14 @@ XMFLOAT4X4 ResourceManager::ToXMFLOAT4X4(const aiMatrix4x4& matrix)
 	//);
 }
 
-DirectX::XMFLOAT3 ResourceManager::ToXMFLOAT3(const aiVector3D& vec3)
+XMFLOAT3 ResourceManager::ToXMFLOAT3(const aiVector3D& vec3)
 {
-	return DirectX::XMFLOAT3(vec3.x, vec3.y, vec3.z);
+	return XMFLOAT3(vec3.x, vec3.y, vec3.z);
 }
 
-DirectX::XMFLOAT4 ResourceManager::ToXMFLOAT4(const aiQuaternion& quar)
+XMFLOAT4 ResourceManager::ToXMFLOAT4(const aiQuaternion& quar)
 {
-	return DirectX::XMFLOAT4(quar.x, quar.y, quar.z, quar.w);
+	return XMFLOAT4(quar.x, quar.y, quar.z, quar.w);
 }
 
 bool ResourceManager::SceneHasBones(const aiScene* scene)
@@ -216,11 +216,11 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 		case TextureType::ORM:    fallbackName = "FallbackORM.png";    break;
 		default:
 			// Fallback 타입이 None인데 파일도 없다면? 이건 진짜 에러 (예: Fallback 텍스처 파일 자체가 없음)
-#ifdef _DEBUG
+		#ifdef _DEBUG
 			cerr << "[CRITICAL] 텍스처 로드 실패 (복구 불가): " << fileName << endl;
-#else
+		#else
 			MessageBoxA(nullptr, ("텍스처 로드 실패 (복구 불가): " + fileName).c_str(), "Fatal Error", MB_OK | MB_ICONERROR);
-#endif
+		#endif
 			exit(EXIT_FAILURE);
 		}
 #ifdef _DEBUG
@@ -649,7 +649,7 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 			material->GetTexture(aiTextureType_BASE_COLOR, 0, &texturePath) == AI_SUCCESS)
 		{
 			// 텍스처가 있다! (Aurora.fbx -> Base.png)
-			albedoName = std::filesystem::path(texturePath.C_Str()).filename().string();
+			albedoName = filesystem::path(texturePath.C_Str()).filename().string();
 		}
 
 		// 2. Normal
@@ -762,9 +762,9 @@ void ResourceManager::CreateMeshBuffers(Mesh& mesh)
 	CheckResult(hr, "메쉬 인덱스 버퍼 생성 실패.");
 }
 
-std::unique_ptr<SkeletonNode> ResourceManager::BuildSkeletonNode(const aiNode* node, Skeleton& skeleton)
+unique_ptr<SkeletonNode> ResourceManager::BuildSkeletonNode(const aiNode* node, Skeleton& skeleton)
 {
-	auto skeletonNode = std::make_unique<SkeletonNode>();
+	auto skeletonNode = make_unique<SkeletonNode>();
 	skeletonNode->name = node->mName.C_Str();
 	skeletonNode->localTransform = ToXMFLOAT4X4(node->mTransformation);
 
