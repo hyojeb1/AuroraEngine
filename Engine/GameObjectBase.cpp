@@ -157,6 +157,12 @@ void GameObjectBase::BaseFixedUpdate()
 	FixedUpdate();
 	#endif
 
+	// 월드 행렬 업데이트
+	UpdateWorldMatrix();
+
+	// 제거할 컴포넌트 및 자식 게임 오브젝트 제거
+	RemovePending();
+
 	// 컴포넌트 고정 업데이트
 	for (Base*& component : m_fixedUpdateComponents) component->BaseFixedUpdate();
 

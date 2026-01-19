@@ -1,14 +1,9 @@
 // BOF DebugCamera.cpp
-// 유니티 카메라도 구성할 필요가 있음
-// 결국 유저는 디자이너임을 인지해야 함
 #include "stdafx.h"
 #include "DebugCamera.h"
 
 #include "InputManager.h"
 #include "TimeManager.h"
-
-
-#ifndef HYOJE_BLENDER_CAMERA
 
 using namespace DirectX;
 
@@ -115,43 +110,5 @@ void DebugCamera::GetCameraBasis(DirectX::XMVECTOR& outRight, DirectX::XMVECTOR&
 	outUp = rotationMatrix.r[1];
 	outForward = rotationMatrix.r[2];
 }
-
-#else
-
-
-void DebugCamera::Initialize()
-{
-	SetPosition({ 0.0f, 5.0f, -10.0f });
-	LookAt({ 0.0f, 0.0f, 0.0f });
-}
-
-void DebugCamera::Update()
-{
-	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
-	InputManager& input = InputManager::GetInstance();
-
-
-	float moveSpeed = m_moveSpeed;
-
-	//if (input.GetKey(KeyCode::Shift)) moveSpeed *=  2;
-
-	if (input.GetKey(KeyCode::Left)) MoveDirection(deltaTime * moveSpeed, Direction::Left);
-	if (input.GetKey(KeyCode::Right)) MoveDirection(deltaTime * moveSpeed, Direction::Right);
-	if (input.GetKey(KeyCode::Up)) MoveDirection(deltaTime * moveSpeed, Direction::Forward);
-	if (input.GetKey(KeyCode::Down)) MoveDirection(deltaTime * moveSpeed, Direction::Backward);
-	if (input.GetKey(KeyCode::Space)) MoveDirection(deltaTime * moveSpeed, Direction::Up);
-	if (input.GetKey(KeyCode::Shift)) MoveDirection(deltaTime * moveSpeed, Direction::Down);
-
-	deltaTime *= 15.0f; // 회전 속도 보정
-	if (input.GetKey(KeyCode::W)) Rotate({ -deltaTime * m_moveSpeed, 0.0f, 0.0f, 0.0f });
-	if (input.GetKey(KeyCode::S)) Rotate({ deltaTime * m_moveSpeed, 0.0f, 0.0f, 0.0f });
-	if (input.GetKey(KeyCode::A)) Rotate({ 0.0f, -deltaTime * m_moveSpeed, 0.0f, 0.0f });
-	if (input.GetKey(KeyCode::D)) Rotate({ 0.0f, deltaTime * m_moveSpeed, 0.0f, 0.0f });
-	if (input.GetKey(KeyCode::E)) Rotate({ 0.0f, 0.0f, -deltaTime * m_moveSpeed, 0.0f });
-	if (input.GetKey(KeyCode::Q)) Rotate({ 0.0f, 0.0f, deltaTime * m_moveSpeed, 0.0f });
-}
-
-
-#endif // HYOJE_BLENDER_CAMERA
 
 // EOF DebugCamera.cpp

@@ -36,6 +36,9 @@ public:
     bool GetKey(KeyCode key) const;
     bool GetKeyUp(KeyCode key) const;
 
+    void SetCursorLock(bool lock) { m_lockCursor = lock; }
+    bool IsCursorLocked() const { return m_lockCursor; }
+
     const MousePos& GetMousePosition() const { return m_mousePos; }
     const MousePos& GetMouseDelta() const { return m_mouseDelta; }
     int GetMouseWheel() const { return m_wheelDelta; }
@@ -51,6 +54,7 @@ private:
     MousePos m_prevMousePos = { 0, 0 };
     MousePos m_mouseDelta = { 0, 0 };
     int m_wheelDelta = 0;
+    bool m_lockCursor = false;
 
     int MapKeyCodeToVKey(KeyCode key) const;
 };

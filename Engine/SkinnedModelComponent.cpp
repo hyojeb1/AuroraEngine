@@ -217,8 +217,11 @@ void SkinnedModelComponent::Render()
 			// 프러스텀 컬링 (필요시 추가)
 			// if (transformedBoundingBox.Intersects(g_mainCamera->GetBoundingFrustum()) == false) return;
 
+			ResourceManager& resourceManager = ResourceManager::GetInstance();
+			resourceManager.SetRasterState(m_rasterState);
+
 			// 1. 월드 행렬 업데이트
-			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
+			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal).Get(), 0, nullptr, m_worldNormalData, 0, 0);
 
 			// 2. [핵심] 뼈 행렬 버퍼 업데이트 및 바인딩 (이게 없어서 터진 것임)
 			m_deviceContext->UpdateSubresource(m_boneConstantBuffer.Get(), 0, nullptr, &m_boneBufferData, 0, 0);
@@ -227,9 +230,6 @@ void SkinnedModelComponent::Render()
 			// (현재 ResourceManager 구조상 Init때 Set하고 그 뒤로 UpdateSubresource만 하므로 바인딩은 유지됨.
 			// 하지만 다른 객체가 슬롯을 덮어썼을 가능성에 대비하려면 여기서 바인딩해주는 게 안전함. 
 			// 일단 기존 구조를 존중하여 Update만 수행)
-
-			ResourceManager& resourceManager = ResourceManager::GetInstance();
-			resourceManager.SetRasterState(m_rasterState);
 
 			// 3. 셰이더 설정 (VSModelSkinAnim)
 			m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
@@ -246,7 +246,7 @@ void SkinnedModelComponent::Render()
 				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 				// 재질 팩터 업데이트
-				m_deviceContext->UpdateSubresource(m_materialConstantBuffer.Get(), 0, nullptr, &m_materialFactorData, 0, 0);
+				m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor).Get(), 0, nullptr, &m_materialFactorData, 0, 0);
 
 				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
 				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, mesh.materialTexture.ORMTextureSRV.GetAddressOf());

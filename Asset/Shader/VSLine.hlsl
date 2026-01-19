@@ -1,4 +1,3 @@
-/// VSJointLine.hlsl의 시작
 #include "CommonVS.hlsli"
 
 VS_OUTPUT_POS_COLOR main(uint vertexID : SV_VertexID)
@@ -10,4 +9,3 @@ VS_OUTPUT_POS_COLOR main(uint vertexID : SV_VertexID)
     
     return output;
 }
-/// VSJointLine.hlsl의 끝

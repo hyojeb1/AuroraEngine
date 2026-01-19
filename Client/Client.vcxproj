@@ -168,6 +168,7 @@ xcopy /Y /D "$(SolutionDir)ThirdParty\fmod\api\core\lib\x64\fmodL.dll" "$(Target
     <ClCompile Include="HyojeTestObject.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="HyojeTestScene.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="TestCameraObject.cpp" />
     <ClCompile Include="TestObject.cpp" />
     <ClCompile Include="TestScene.cpp" />
@@ -176,6 +177,7 @@ xcopy /Y /D "$(SolutionDir)ThirdParty\fmod\api\core\lib\x64\fmodL.dll" "$(Target
     <ClInclude Include="CamRotObject.h" />
     <ClInclude Include="HyojeTestScene.h" />
     <ClInclude Include="HyojeTestObject.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TestCameraObject.h" />
     <ClInclude Include="TestObject.h" />

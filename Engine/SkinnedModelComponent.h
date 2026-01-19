@@ -34,6 +34,9 @@ public:
 	SkinnedModelComponent(SkinnedModelComponent&&) = default;
 	SkinnedModelComponent& operator=(SkinnedModelComponent&&) = default;
 
+	bool NeedsFixedUpdate() const override { return false; }
+	bool NeedsUpdate() const override { return true; }
+	bool NeedsRender() const override { return true; }
 
 private:
 	void Initialize() override;

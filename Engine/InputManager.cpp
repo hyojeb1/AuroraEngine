@@ -3,6 +3,7 @@
 /// 
 #include "stdafx.h" 
 #include "InputManager.h"
+#include "WindowManager.h"
 #include "Windows.h"
 
 
@@ -15,6 +16,37 @@ void InputManager::Initialize()
 
 void InputManager::Update()
 {
+    if (m_lockCursor)
+    {
+        POINT pt;
+        GetCursorPos(&pt);
+
+        HWND hwnd = WindowManager::GetInstance().GetHWnd();
+        if (hwnd)
+        {
+            RECT rect;
+            GetClientRect(hwnd, &rect);
+
+            POINT center{
+                (rect.left + rect.right) / 2,
+                (rect.top + rect.bottom) / 2
+            };
+            ClientToScreen(hwnd, &center);
+
+            m_mousePos.x = static_cast<int>(pt.x);
+            m_mousePos.y = static_cast<int>(pt.y);
+
+            m_mouseDelta.x = m_mousePos.x - center.x;
+            m_mouseDelta.y = m_mousePos.y - center.y;
+
+            SetCursorPos(center.x, center.y);
+            m_prevMousePos.x = center.x;
+            m_prevMousePos.y = center.y;
+            return;
+        }
+    }
+
+
     POINT pt;
     GetCursorPos(&pt);
 

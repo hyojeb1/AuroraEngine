@@ -81,13 +81,14 @@
     <ClCompile Include="Animator.cpp">
       <Filter>Resource</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="ListenerComponent.cpp">
       <Filter>Base\Component</Filter>
     </ClCompile>
     <ClCompile Include="EmitterComponent.cpp">
-    <Filter>Base\Component</Filter>
-    </ClCompile>
+=======
     <ClCompile Include="ColliderComponent.cpp">
+>>>>>>> main
       <Filter>Base\Component</Filter>
     </ClCompile>
   </ItemGroup>

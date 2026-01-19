@@ -146,6 +146,7 @@
   <ItemGroup>
     <ClInclude Include="Animator.h" />
     <ClInclude Include="CameraComponent.h" />
+    <ClInclude Include="ColliderComponent.h" />
     <ClInclude Include="ComponentBase.h" />
     <ClInclude Include="DebugCamera.h" />
     <ClInclude Include="EmitterComponent.h" />
@@ -170,6 +171,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraComponent.cpp" />
+    <ClCompile Include="ColliderComponent.cpp" />
     <ClCompile Include="ComponentBase.cpp" />
     <ClCompile Include="DebugCamera.cpp" />
     <ClCompile Include="EmitterComponent.cpp" />
