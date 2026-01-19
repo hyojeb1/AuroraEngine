@@ -1,0 +1,52 @@
+#pragma once
+#include "ComponentBase.h"
+
+class ColliderComponent : public ComponentBase
+{
+	static std::vector<ColliderComponent*> s_colliders; // 모든 콜라이더 컴포넌트 배열
+
+	std::vector<DirectX::BoundingBox> m_boundingBoxes = {};
+	std::vector<DirectX::BoundingOrientedBox> m_boundingOrientedBoxes = {};
+	std::vector<DirectX::BoundingFrustum> m_boundingFrustums = {};
+
+	#ifdef _DEBUG
+	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_boundingShapeVertexShaderAndInputLayout = {}; // 경계 상자 정점 셰이더 및 입력 레이아웃
+	com_ptr<ID3D11PixelShader> m_boundingShapePixelShader = nullptr; // 경계 상자 픽셀 셰이더
+	#endif
+
+public:
+	ColliderComponent() = default;
+	virtual ~ColliderComponent() override = default;
+	ColliderComponent(const ColliderComponent&) = default;
+	ColliderComponent& operator=(const ColliderComponent&) = default;
+	ColliderComponent(ColliderComponent&&) = default;
+	ColliderComponent& operator=(ColliderComponent&&) = default;
+
+	// 로컬 좌표계 기준 경계 상자 추가
+	void AddBoundingBox(const DirectX::BoundingBox& box) { m_boundingBoxes.push_back(box); }
+	// 로컬 좌표계 기준 경계 방향 상자 추가
+	void AddBoundingOrientedBox(const DirectX::BoundingOrientedBox& obb) { m_boundingOrientedBoxes.push_back(obb); }
+	// 로컬 좌표계 기준 경계 절두체 추가
+	void AddBoundingFrustum(const DirectX::BoundingFrustum& frustum) { m_boundingFrustums.push_back(frustum); }
+
+	// 충돌 검사
+	// 선 충돌 검사
+	GameObjectBase* CheckCollision(DirectX::XMVECTOR& origin, DirectX::XMVECTOR& direction, _Out_ float& distance);
+
+	bool NeedsFixedUpdate() const override { return false; }
+	bool NeedsUpdate() const override { return false; }
+	#ifdef _DEBUG
+	bool NeedsRender() const override { return true; }
+	#else
+	bool NeedsRender() const override { return false; }
+	#endif
+
+protected:
+	void Initialize() override;
+	void Render() override;
+	void RenderImGui() override;
+	void Finalize() override;
+
+	nlohmann::json Serialize() override;
+	void Deserialize(const nlohmann::json& jsonData) override;
+};

@@ -21,26 +21,14 @@ void ModelComponent::Initialize()
 
 	CreateShaders();
 
-	m_worldMatrixConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal);
-	m_materialConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor);
 	m_model = resourceManager.LoadModel(m_modelFileName);
-}
-
-void ModelComponent::Update()
-{
-	m_model->boundingBox.Transform(m_boundingBox, m_owner->GetWorldMatrix());
-
-	float dist = 0.0f;
-	//if (m_boundingBox.Intersects(g_mainCamera->GetPosition(), g_mainCamera->GetForwardVector(), dist) && InputManager::GetInstance().GetKeyDown(KeyCode::MouseLeft))
-	//{
-	//	m_materialFactorData.albedoFactor.w -= 0.25f;
-	//}
 }
 
 void ModelComponent::Render()
 {
 	Renderer& renderer = Renderer::GetInstance();
 
+	m_model->boundingBox.Transform(m_boundingBox, m_owner->GetWorldMatrix());
 	XMVECTOR boxCenter = XMLoadFloat3(&m_boundingBox.Center);
 	XMVECTOR boxExtents = XMLoadFloat3(&m_boundingBox.Extents);
 
@@ -56,10 +44,11 @@ void ModelComponent::Render()
 			// 프러스텀 컬링
 			if (m_boundingBox.Intersects(g_mainCamera->GetBoundingFrustum()) == false) return;
 
-			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
-
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 			resourceManager.SetRasterState(m_rasterState);
+
+			// 상수 버퍼 업데이트
+			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal).Get(), 0, nullptr, m_worldNormalData, 0, 0);
 
 			m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
 			m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
@@ -76,7 +65,7 @@ void ModelComponent::Render()
 				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 				// 재질 팩터 설정
-				m_deviceContext->UpdateSubresource(m_materialConstantBuffer.Get(), 0, nullptr, &m_materialFactorData, 0, 0);
+				m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor).Get(), 0, nullptr, &m_materialFactorData, 0, 0);
 
 				// 재질 텍스처 셰이더에 설정
 				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
@@ -95,10 +84,12 @@ void ModelComponent::Render()
 		XMVectorGetX(XMVector3LengthSq(sortPoint - XMVectorClamp(sortPoint, boxCenter - boxExtents, boxCenter + boxExtents))),
 		[&]()
 		{
-			m_deviceContext->UpdateSubresource(m_worldMatrixConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 			resourceManager.SetRasterState(m_rasterState);
+
+			// 상수 버퍼 업데이트
+			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal).Get(), 0, nullptr, m_worldNormalData, 0, 0);
 
 			m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
 			m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
@@ -138,13 +129,14 @@ void ModelComponent::Render()
 			m_deviceContext->VSSetShader(m_boundingBoxVertexShaderAndInputLayout.first.Get(), nullptr, 0);
 			m_deviceContext->PSSetShader(m_boundingBoxPixelShader.Get(), nullptr, 0);
 
-			ResourceManager::GetInstance().SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+			resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
 			// 경계 상자 그리기
 			array<XMFLOAT3, 8> boxVertices = {};
 			m_boundingBox.GetCorners(boxVertices.data());
 
 			LineBuffer lineBufferData = {};
+
 			if (m_renderBoundingBox)
 			{
 				for (const auto& [startIndex, endIndex] : BOX_LINE_INDICES)

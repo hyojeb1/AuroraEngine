@@ -81,6 +81,9 @@
     <ClCompile Include="Animator.cpp">
       <Filter>Resource</Filter>
     </ClCompile>
+    <ClCompile Include="ColliderComponent.cpp">
+      <Filter>Base\Component</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -143,6 +146,9 @@
     </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="ColliderComponent.h">
+      <Filter>Base\Component</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
