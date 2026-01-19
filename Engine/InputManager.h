@@ -26,9 +26,8 @@ public:
     using LPARAM = std::intptr_t;
 
     void Initialize();
-    void Update();
 
-    void HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam);
+    void HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
     void EndFrame();
 

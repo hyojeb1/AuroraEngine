@@ -4,7 +4,6 @@
 #include "stdafx.h" 
 #include "InputManager.h"
 #include "WindowManager.h"
-#include "Windows.h"
 
 
 void InputManager::Initialize()
@@ -14,51 +13,6 @@ void InputManager::Initialize()
     m_keyUpState.fill(false);
 }
 
-void InputManager::Update()
-{
-    if (m_lockCursor)
-    {
-        POINT pt;
-        GetCursorPos(&pt);
-
-        HWND hwnd = WindowManager::GetInstance().GetHWnd();
-        if (hwnd)
-        {
-            RECT rect;
-            GetClientRect(hwnd, &rect);
-
-            POINT center{
-                (rect.left + rect.right) / 2,
-                (rect.top + rect.bottom) / 2
-            };
-            ClientToScreen(hwnd, &center);
-
-            m_mousePos.x = static_cast<int>(pt.x);
-            m_mousePos.y = static_cast<int>(pt.y);
-
-            m_mouseDelta.x = m_mousePos.x - center.x;
-            m_mouseDelta.y = m_mousePos.y - center.y;
-
-            SetCursorPos(center.x, center.y);
-            m_prevMousePos.x = center.x;
-            m_prevMousePos.y = center.y;
-            return;
-        }
-    }
-
-
-    POINT pt;
-    GetCursorPos(&pt);
-
-    m_mousePos.x = static_cast<int>(pt.x);
-    m_mousePos.y = static_cast<int>(pt.y);
-
-    m_mouseDelta.x = m_mousePos.x - m_prevMousePos.x;
-    m_mouseDelta.y = m_mousePos.y - m_prevMousePos.y;
-
-    m_prevMousePos = m_mousePos;
-}
-
 void InputManager::EndFrame()
 {
     m_keyDownState.fill(false);
@@ -66,7 +20,7 @@ void InputManager::EndFrame()
     m_wheelDelta = 0;
 }
 
-void InputManager::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+void InputManager::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
@@ -92,6 +46,46 @@ void InputManager::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         break;
     }
 
+	case WM_MOUSEMOVE:
+	{
+		POINT pt = { LOWORD(lParam), HIWORD(lParam) };
+        ClientToScreen(hWnd, &pt);
+
+		if (m_lockCursor)
+		{
+			RECT rect;
+			GetClientRect(hWnd, &rect);
+
+			POINT center
+            {
+				(rect.left + rect.right) / 2,
+				(rect.top + rect.bottom) / 2
+			};
+			ClientToScreen(hWnd, &center);
+
+			m_mousePos.x = static_cast<int>(pt.x);
+			m_mousePos.y = static_cast<int>(pt.y);
+
+			m_mouseDelta.x = m_mousePos.x - center.x;
+			m_mouseDelta.y = m_mousePos.y - center.y;
+
+			SetCursorPos(center.x, center.y);
+			m_prevMousePos.x = center.x;
+			m_prevMousePos.y = center.y;
+
+			return;
+		}
+
+		m_mousePos.x = static_cast<int>(pt.x);
+		m_mousePos.y = static_cast<int>(pt.y);
+
+		m_mouseDelta.x = m_mousePos.x - m_prevMousePos.x;
+		m_mouseDelta.y = m_mousePos.y - m_prevMousePos.y;
+
+		m_prevMousePos = m_mousePos;
+
+		break;
+	}
 
     case WM_LBUTTONDOWN:
         if (!m_keyState[VK_LBUTTON]) m_keyDownState[VK_LBUTTON] = true;

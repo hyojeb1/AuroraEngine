@@ -13,7 +13,7 @@ LRESULT CALLBACK WindowManager::WindowProc(HWND hWnd, UINT message, WPARAM wPara
 {
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam)) return true;
 
-	InputManager::GetInstance().HandleMessage(message, wParam, lParam);
+	InputManager::GetInstance().HandleMessage(hWnd, message, wParam, lParam);
 
 	switch (message)
 	{
@@ -87,6 +87,7 @@ void WindowManager::Initialize(const wchar_t* windowTitle, int width, int height
 	Renderer::GetInstance().Initialize();
 
 	ShowWindow(m_hWnd, SW_SHOW);
+	//ShowCursor(FALSE);
 }
 
 bool WindowManager::ProcessMessages()
