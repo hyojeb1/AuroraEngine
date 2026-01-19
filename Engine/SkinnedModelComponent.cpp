@@ -297,7 +297,7 @@ void SkinnedModelComponent::Render()
 	// 3. 디버그 박스
 	// ==========================================================
 
-#ifdef _DEBUG
+	#ifdef _DEBUG
 	renderer.RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
 	(
 		numeric_limits<float>::max(),
@@ -354,8 +354,7 @@ void SkinnedModelComponent::Render()
 			}
 		}
 	);
-#endif
-
+	#endif
 }
 
 void SkinnedModelComponent::RenderImGui()
