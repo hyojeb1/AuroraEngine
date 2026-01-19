@@ -130,7 +130,9 @@
       <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\fmod\api\core\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /E /I /Y "$(SolutionDir)Asset" "$(TargetDir)Asset"</Command>
+      <Command>xcopy /E /I /Y "$(SolutionDir)Asset" "$(TargetDir)Asset"
+
+xcopy /Y /D "$(SolutionDir)ThirdParty\fmod\api\core\lib\x64\fmodL.dll" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -151,6 +153,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalOptions>/WHOLEARCHIVE:Engine.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y /D "$(SolutionDir)ThirdParty\fmod\api\core\lib\x64\fmod.dll" "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectReference Include="..\Engine\Engine.vcxproj">
