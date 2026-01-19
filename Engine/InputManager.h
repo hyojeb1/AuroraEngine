@@ -54,7 +54,7 @@ private:
     MousePos m_prevMousePos = { 0, 0 };
     MousePos m_mouseDelta = { 0, 0 };
     int m_wheelDelta = 0;
-    bool m_lockCursor = true;
+    bool m_lockCursor = false;
 
     int MapKeyCodeToVKey(KeyCode key) const;
 };
