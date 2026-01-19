@@ -30,6 +30,6 @@ void Player::Update()
 	{
 		float distance = 0.0f;
 		GameObjectBase* hit = ColliderComponent::CheckCollision(g_mainCamera->GetPosition(), g_mainCamera->GetForwardVector(), distance);
-		if (hit) hit->SetAlive(false)
+		if (hit) hit->SetAlive(false);
 	}
 }
