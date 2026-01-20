@@ -35,6 +35,7 @@ class Renderer : public Singleton<Renderer>
 	
 	DirectX::XMVECTOR m_renderSortPoint = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // 랜저 정렬 기준점
 	std::array<std::pair<RenderTarget, std::array<std::vector<std::pair<float, std::function<void()>>>, static_cast<size_t>(BlendState::Count)>>, static_cast<size_t>(RenderStage::Count)> m_renderPass = {};
+	std::vector<std::function<void(DirectX::SpriteBatch* spriteBatch)>> m_UIRenderFunctions = {}; // ImGui 렌더링 함수 목록
 
 	// 백 버퍼 렌더 타겟 관련 리소스
 	struct BackBufferVertex
@@ -74,8 +75,7 @@ public:
 
 	constexpr RenderTarget& RENDER_TARGET(RenderStage stage) { return m_renderPass[static_cast<size_t>(stage)].first; }
 	constexpr std::vector<std::pair<float, std::function<void()>>>& RENDER_FUNCTION(RenderStage renderStage, BlendState blendState) { return m_renderPass[static_cast<size_t>(renderStage)].second[static_cast<size_t>(blendState)]; }
-
-	void DrawTextToBackBuffer(const wchar_t* text, DirectX::XMFLOAT2 position, const DirectX::XMVECTOR& color = { 1.0f, 1.0f, 1.0f, 1.0f }, const std::wstring& fontName = L"Gugi");
+	constexpr std::vector<std::function<void(DirectX::SpriteBatch* spriteBatch)>>& UI_RENDER_FUNCTIONS() { return m_UIRenderFunctions; }
 
 	// 프레임 종료 // 화면에 내용 출력
 	void EndFrame();

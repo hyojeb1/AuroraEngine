@@ -56,50 +56,20 @@ void Renderer::BeginFrame()
 	);
 
 
-	RENDER_FUNCTION(RenderStage::BackBuffer, BlendState::Opaque).emplace_back
+	UI_RENDER_FUNCTIONS().emplace_back // 나중에 지울것
 	(
-		numeric_limits<float>::max(), // XTK는 이런저런 리소스 바인딩을 해서 무조건 가장 나중에 실행
-		[&]()
+		[&](SpriteBatch* spriteBatch)
 		{
-			static UINT frameCount = 0;
-			static float elapsedTime = 0.0f;
-			static UINT FPS = 0;
-
-			frameCount++;
-
-			elapsedTime += TimeManager::GetInstance().GetDeltaTime();
-
-			if (elapsedTime >= 1.0)
-			{
-				FPS = frameCount * static_cast<UINT>(elapsedTime);
-				frameCount = 0;
-				elapsedTime = 0.0;
-			}
-
-			DrawTextToBackBuffer((wstring(L"FPS: ") + to_wstring(FPS)).c_str(), XMFLOAT2{ 10.0f, 10.0f });
+			spriteBatch->Draw(resourceManager.GetTexture("Crosshair.png").Get(), XMFLOAT2(m_swapChainDesc.Width / 2.0f - 64.0f, m_swapChainDesc.Height / 2.0f - 64.0f));
 		}
 	);
-}
-
-void Renderer::DrawTextToBackBuffer(const wchar_t* text, XMFLOAT2 position, const XMVECTOR& color, const wstring& fontName)
-{
-	ResourceManager& resourceManager = ResourceManager::GetInstance();
-
-	SpriteBatch* spriteBatch = resourceManager.GetSpriteBatch();
-	if (!spriteBatch) return;
-
-	const SpriteFont* spriteFont = resourceManager.GetSpriteFont(fontName);
-	if (!spriteFont) return;
-
-	spriteBatch->Begin(SpriteSortMode_Deferred, nullptr, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
-	spriteFont->DrawString(spriteBatch, text, position, color, 0.0f, XMFLOAT2{ 0.0f, 0.0f }, 1.0f);
-	spriteBatch->Draw(resourceManager.GetTexture("Crosshair.png").Get(), XMFLOAT2(m_swapChainDesc.Width / 2.0f - 64.0f, m_swapChainDesc.Height / 2.0f - 64.0f));
-	spriteBatch->End();
 }
 
 void Renderer::EndFrame()
 {
 	HRESULT hr = S_OK;
+
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
 	for (auto& [renderTarget, blendStates] : m_renderPass)
 	{
@@ -119,7 +89,7 @@ void Renderer::EndFrame()
 			const BlendState BLEND_STATE = static_cast<BlendState>(&blendState - &blendStates[0]);
 
 			// 블렌드 상태 설정
-			ResourceManager::GetInstance().SetBlendState(BLEND_STATE);
+			resourceManager.SetBlendState(BLEND_STATE);
 
 			// 정렬 // 알파 블렌딩은 뒤에서 앞으로 // 그 외는 앞에서 뒤로
 			if (BLEND_STATE != BlendState::AlphaBlend) sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
@@ -132,6 +102,15 @@ void Renderer::EndFrame()
 			blendState.clear();
 		}
 	}
+
+	// 2D UI 렌더링
+	SpriteBatch* spriteBatch = resourceManager.GetSpriteBatch();
+	spriteBatch->Begin(SpriteSortMode_Deferred, nullptr, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
+
+	for (function<void(SpriteBatch* spriteBatch)>& uiRenderFunction : m_UIRenderFunctions) uiRenderFunction(spriteBatch);
+	m_UIRenderFunctions.clear();
+
+	spriteBatch->End();
 
 	#ifdef _DEBUG
 	ImGui::Begin("SRV");

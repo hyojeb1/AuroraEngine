@@ -95,7 +95,7 @@ public:
 	const Model* LoadModel(const std::string& fileName);
 
 	DirectX::SpriteBatch* GetSpriteBatch() { return m_spriteBatch.get(); }
-	const DirectX::SpriteFont* GetSpriteFont(const std::wstring& fontName);
+	DirectX::SpriteFont* GetSpriteFont(const std::wstring& fontName);
 
 private:
 	ResourceManager() = default;

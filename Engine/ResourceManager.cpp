@@ -388,7 +388,7 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 	return &m_models[fileName];
 }
 
-const SpriteFont* ResourceManager::GetSpriteFont(const wstring& fontName)
+SpriteFont* ResourceManager::GetSpriteFont(const wstring& fontName)
 {
 	// 기존에 생성된 스프라이트 폰트가 있으면 재사용
 	auto it = m_spriteFonts.find(fontName);
