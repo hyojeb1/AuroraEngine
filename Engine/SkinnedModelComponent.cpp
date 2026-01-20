@@ -66,7 +66,6 @@ void SkinnedModelComponent::Render()
 	Renderer& renderer = Renderer::GetInstance();
 	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 
-	// 바운딩 박스 변환 (Update에서 이미 수행되었지만 안전을 위해 확인)
 	BoundingBox transformedBoundingBox = {};
 	m_model->boundingBox.Transform(transformedBoundingBox, m_owner->GetWorldMatrix());
 	XMVECTOR boxCenter = XMLoadFloat3(&transformedBoundingBox.Center);

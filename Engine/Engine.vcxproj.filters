@@ -90,9 +90,6 @@
     <ClCompile Include="ColliderComponent.cpp">
       <Filter>Base\Component</Filter>
     </ClCompile>
-    <ClCompile Include="RigidModelComponent.cpp">
-      <Filter>Base\Component</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -163,9 +160,6 @@
       <Filter>Base\Component</Filter>
     </ClInclude>
     <ClInclude Include="ColliderComponent.h">
-      <Filter>Base\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="RigidModelComponent.h">
       <Filter>Base\Component</Filter>
     </ClInclude>
   </ItemGroup>
