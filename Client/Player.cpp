@@ -8,6 +8,8 @@
 #include "Renderer.h"
 #include "ResourceManager.h"
 #include "CamRotObject.h"
+#include "ModelComponent.h"
+#include "Enemy.h"
 
 REGISTER_TYPE(Player)
 
@@ -18,7 +20,8 @@ void Player::Initialize()
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_lineVertexBufferAndShader = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_linePixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
-	CreateChildGameObject<CamRotObject>();
+
+	m_gunObject = GetChildGameObject("CamRotObject_2")->GetChildGameObject("Gun");
 }
 
 void Player::Update()
@@ -42,11 +45,11 @@ void Player::Update()
 		GameObjectBase* hit = ColliderComponent::CheckCollision(origin, direction, distance);
 		if (hit)
 		{
-			hit->SetAlive(false);
-			XMStoreFloat4(&m_lineBufferData.linePoints[0], GetWorldPosition());
-			m_lineBufferData.lineColors[0] = XMFLOAT4{ 0.0f, 0.0f, 1.0f, 1.0f };
+			if (dynamic_cast<Enemy*>(hit)) hit->SetAlive(false);
+			XMStoreFloat4(&m_lineBufferData.linePoints[0], m_gunObject->GetWorldPosition());
+			m_lineBufferData.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 			XMStoreFloat4(&m_lineBufferData.linePoints[1], XMVectorAdd(origin, XMVectorScale(direction, distance)));
-			m_lineBufferData.lineColors[1] = XMFLOAT4{ 0.0f, 0.0f, 1.0f, 1.0f };
+			m_lineBufferData.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 			m_lineDisplayTime = 0.5f;
 		}
 	}

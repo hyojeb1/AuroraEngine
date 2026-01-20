@@ -11,7 +11,6 @@ using namespace DirectX;
 
 void CamRotObject::Initialize()
 {
-	//CreateComponent<CameraComponent>();
 	GetComponent<CameraComponent>()->SetAsMainCamera();
 }
 

@@ -30,6 +30,17 @@ GameObjectBase* SceneBase::CreateRootGameObject(const string& typeName)
 	return gameObjectPtr;
 }
 
+GameObjectBase* SceneBase::GetRootGameObject(const string& name)
+{
+	for (unique_ptr<Base>& gameObject : m_gameObjects)
+	{
+		GameObjectBase* gameObjectBase = static_cast<GameObjectBase*>(gameObject.get());
+		if (gameObjectBase && gameObjectBase->GetName() == name) return gameObjectBase;
+	}
+
+	return nullptr;
+}
+
 void SceneBase::BaseInitialize()
 {
 	m_type = GetTypeName(*this);
