@@ -45,6 +45,9 @@ class SceneBase : public Base
 	com_ptr<ID3D11Buffer> m_globalLightConstantBuffer = nullptr; // 환경광, 방향광 상수 버퍼
 	com_ptr<ID3D11PixelShader> m_shadowMapPixelShader = nullptr; // 그림자 맵 생성용 픽셀 셰이더
 
+	bool m_showFPS = true; // FPS 표시 여부
+	DirectX::SpriteFont* m_spriteFont = nullptr; // FPS 표시용 스프라이트 폰트
+
 public:
 	SceneBase();
 	virtual ~SceneBase() = default;
