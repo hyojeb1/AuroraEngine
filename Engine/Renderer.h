@@ -75,6 +75,8 @@ public:
 	constexpr RenderTarget& RENDER_TARGET(RenderStage stage) { return m_renderPass[static_cast<size_t>(stage)].first; }
 	constexpr std::vector<std::pair<float, std::function<void()>>>& RENDER_FUNCTION(RenderStage renderStage, BlendState blendState) { return m_renderPass[static_cast<size_t>(renderStage)].second[static_cast<size_t>(blendState)]; }
 
+	void DrawTextToBackBuffer(const wchar_t* text, DirectX::XMFLOAT2 position, const DirectX::XMVECTOR& color = { 1.0f, 1.0f, 1.0f, 1.0f }, const std::wstring& fontName = L"Gugi");
+
 	// 프레임 종료 // 화면에 내용 출력
 	void EndFrame();
 

@@ -30,6 +30,8 @@
 #include <directxtk/SimpleMath.h>
 #include <directxtk/WICTextureLoader.h>
 #include <directxtk/DDSTextureLoader.h>
+#include <directxtk/SpriteBatch.h>
+#include <directxtk/SpriteFont.h>
 
 // Assimp 헤더
 #include <assimp/Importer.hpp>
@@ -44,7 +46,7 @@
 // JSON 헤더
 #include <nlohmann/json.hpp>
 
-//fmod
+//fmod 헤더
 #ifdef _DEBUG
 #pragma comment(lib, "fmodL_vc.lib")
 #else
@@ -52,12 +54,6 @@
 #endif
 #include <fmod/fmod.hpp>
 #include <fmod/fmod_error_wrap.h>
-
-// using 정의
-#ifdef _DEBUG
-using std::cout;
-using std::endl;
-#endif
 
 // 메크로 정의
 // com_ptr 매크로

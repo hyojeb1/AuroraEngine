@@ -10,7 +10,6 @@
         "win32-binding"
       ]
     },
-    "nlohmann-json",
-    "boost-asio"
+    "nlohmann-json"
   ]
 }

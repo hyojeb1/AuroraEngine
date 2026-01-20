@@ -4,6 +4,7 @@
 #include "ResourceManager.h"
 #include "SceneManager.h"
 #include "WindowManager.h"
+#include "TimeManager.h"
 
 using namespace std;
 using namespace DirectX;
@@ -21,8 +22,17 @@ void Renderer::Initialize()
 
 void Renderer::BeginFrame()
 {
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
+	resourceManager.SetAllConstantBuffers();
+	resourceManager.SetAllSamplerStates();
+
+	#ifdef _DEBUG
+	// ImGui 프레임 시작
+	BeginImGuiFrame();
+	#endif
+
 	// 방향성 광원 그림자 맵 셰이더 리소스 뷰 해제 명령어 등록
-	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
+	RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
 	(
 		numeric_limits<float>::lowest(), // 우선순위 가장 높음
 		[&]() { m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::DirectionalLightShadow), 1, m_directionalLightShadowMapSRV.GetAddressOf()); }
@@ -45,10 +55,42 @@ void Renderer::BeginFrame()
 		}
 	);
 
-	#ifdef _DEBUG
-	// ImGui 프레임 시작
-	BeginImGuiFrame();
-	#endif
+
+	RENDER_FUNCTION(RenderStage::BackBuffer, BlendState::Opaque).emplace_back
+	(
+		numeric_limits<float>::max(),
+		[&]()
+		{
+			static UINT frameCount = 0;
+			static float elapsedTime = 0.0f;
+			static UINT FPS = 0;
+
+			frameCount++;
+
+			elapsedTime += TimeManager::GetInstance().GetDeltaTime();
+
+			if (elapsedTime >= 1.0)
+			{
+				FPS = frameCount * static_cast<UINT>(elapsedTime);
+				frameCount = 0;
+				elapsedTime = 0.0;
+			}
+
+			DrawTextToBackBuffer((wstring(L"FPS: ") + to_wstring(FPS)).c_str(), XMFLOAT2{ 10.0f, 10.0f });
+		}
+	);
+}
+
+void Renderer::DrawTextToBackBuffer(const wchar_t* text, XMFLOAT2 position, const XMVECTOR& color, const wstring& fontName)
+{
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
+
+	auto& [spriteFont, spriteBatch] = resourceManager.GetSpriteFont(fontName);
+	if (!spriteFont || !spriteBatch) return;
+
+	spriteBatch->Begin(SpriteSortMode_Deferred, nullptr, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
+	spriteFont->DrawString(spriteBatch.get(), text, position, color, 0.0f, XMFLOAT2{ 0.0f, 0.0f }, 1.0f);
+	spriteBatch->End();
 }
 
 void Renderer::EndFrame()
@@ -88,10 +130,10 @@ void Renderer::EndFrame()
 	}
 
 	#ifdef _DEBUG
-	ImGui::Begin("Directional Light Shadow Map");
+	ImGui::Begin("SRV");
 	ImGui::Image
 	(
-		(ImTextureID)m_directionalLightShadowMapSRV.Get(),
+		(ImTextureID)m_sceneShaderResourceView.Get(),
 		ImVec2(500.0f, 500.0f)
 	);
 	ImGui::End();
