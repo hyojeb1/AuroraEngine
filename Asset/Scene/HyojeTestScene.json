@@ -70,7 +70,7 @@
                                 0.019999999552965164,
                                 1.0
                             ],
-                            "type": "GameObjectBase"
+                            "type": "TestObject"
                         }
                     ],
                     "components": [
