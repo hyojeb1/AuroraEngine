@@ -1,5 +1,4 @@
 #pragma once
-//�߰�~
 #ifndef WIN32_LEAN_AND_MEAN		
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -8,7 +7,6 @@
 #define NOMINMAX
 #endif
 
-// ������ ���
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
@@ -67,10 +65,8 @@
 #else
 #pragma comment(lib, "fmod_vc.lib")
 #endif
-
 #include <fmod/fmod.hpp>
 #include <fmod/fmod_error_wrap.h>
-//fmod end
 
 // 메크로 정의
 // com_ptr 매크로
