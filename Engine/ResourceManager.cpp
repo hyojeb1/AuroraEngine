@@ -48,6 +48,7 @@ void ResourceManager::Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11Dev
 {
 	m_device = device;
 	m_deviceContext = deviceContext;
+	m_spriteBatch = make_unique<SpriteBatch>(m_deviceContext.Get());
 
 	CreateDepthStencilStates();
 	CreateBlendStates();
@@ -387,19 +388,16 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 	return &m_models[fileName];
 }
 
-const pair<unique_ptr<SpriteFont>, unique_ptr<SpriteBatch>>& ResourceManager::GetSpriteFont(const wstring& fontName)
+const SpriteFont* ResourceManager::GetSpriteFont(const wstring& fontName)
 {
 	// 기존에 생성된 스프라이트 폰트가 있으면 재사용
 	auto it = m_spriteFonts.find(fontName);
-	if (it != m_spriteFonts.end()) return it->second;
+	if (it != m_spriteFonts.end()) return it->second.get();
 
 	// 새로 생성
-	unique_ptr<SpriteFont> spriteFont = make_unique<SpriteFont>(m_device.Get(), (L"../Asset/Font/" + fontName + L".spritefont").c_str());
-	unique_ptr<SpriteBatch> spriteBatch = make_unique<SpriteBatch>(m_deviceContext.Get());
+	m_spriteFonts[fontName] = make_unique<SpriteFont>(m_device.Get(), (L"../Asset/Font/" + fontName + L".spritefont").c_str());
 
-	m_spriteFonts[fontName] = make_pair(move(spriteFont), move(spriteBatch));
-
-	return m_spriteFonts[fontName];
+	return m_spriteFonts[fontName].get();
 }
 
 void ResourceManager::CreateDepthStencilStates()

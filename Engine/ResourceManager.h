@@ -37,7 +37,8 @@ class ResourceManager : public Singleton<ResourceManager>
 
 	std::unordered_map<std::string, Model> m_models = {}; // 모델 맵 // 키: 모델 파일 경로
 
-	std::unordered_map<std::wstring, std::pair<std::unique_ptr<DirectX::SpriteFont>, std::unique_ptr<DirectX::SpriteBatch>>> m_spriteFonts = {}; // 스프라이트 배치 및 폰트 맵 // 키: 폰트 파일 이름
+	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch = nullptr; // 스프라이트 배치
+	std::unordered_map<std::wstring, std::unique_ptr<DirectX::SpriteFont>> m_spriteFonts = {}; // 스프라이트 폰트 맵 // 키: 폰트 파일 이름
 
 public:
 	~ResourceManager() = default;
@@ -93,7 +94,8 @@ public:
 	// 모델 파일로부터 모델 로드
 	const Model* LoadModel(const std::string& fileName);
 
-	const std::pair<std::unique_ptr<DirectX::SpriteFont>, std::unique_ptr<DirectX::SpriteBatch>>& GetSpriteFont(const std::wstring& fontName);
+	DirectX::SpriteBatch* GetSpriteBatch() { return m_spriteBatch.get(); }
+	const DirectX::SpriteFont* GetSpriteFont(const std::wstring& fontName);
 
 private:
 	ResourceManager() = default;

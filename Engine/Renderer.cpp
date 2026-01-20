@@ -85,11 +85,15 @@ void Renderer::DrawTextToBackBuffer(const wchar_t* text, XMFLOAT2 position, cons
 {
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-	auto& [spriteFont, spriteBatch] = resourceManager.GetSpriteFont(fontName);
-	if (!spriteFont || !spriteBatch) return;
+	SpriteBatch* spriteBatch = resourceManager.GetSpriteBatch();
+	if (!spriteBatch) return;
+
+	const SpriteFont* spriteFont = resourceManager.GetSpriteFont(fontName);
+	if (!spriteFont) return;
 
 	spriteBatch->Begin(SpriteSortMode_Deferred, nullptr, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
-	spriteFont->DrawString(spriteBatch.get(), text, position, color, 0.0f, XMFLOAT2{ 0.0f, 0.0f }, 1.0f);
+	spriteFont->DrawString(spriteBatch, text, position, color, 0.0f, XMFLOAT2{ 0.0f, 0.0f }, 1.0f);
+	spriteBatch->Draw(resourceManager.GetTexture("Crosshair.png").Get(), XMFLOAT2(m_swapChainDesc.Width / 2.0f - 64.0f, m_swapChainDesc.Height / 2.0f - 64.0f));
 	spriteBatch->End();
 }
 
