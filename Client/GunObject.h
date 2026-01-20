@@ -2,11 +2,11 @@
 #pragma once
 #include "GameObjectBase.h"
 
-class FSMComponent;
-
 class GunObject : public GameObjectBase
 {
 public:
+	void Fire();
+
 	GunObject() = default;
 	~GunObject() override = default;
 	GunObject(const GunObject&) = default;
@@ -14,11 +14,11 @@ public:
 	GunObject(GunObject&&) = default;
 	GunObject& operator=(GunObject&&) = default;
 
-	void Fire();
-
 private:
+
 	void Initialize() override;
 	void Update() override;
 
-	FSMComponent* m_fsmComponent = nullptr;
+	float recoil_timer_ = 0.0f;         
+	DirectX::XMVECTOR origin_rotation_; 
 };

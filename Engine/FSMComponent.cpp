@@ -1,121 +1,134 @@
 ///BOF FSMComponent.cpp
 #include "stdafx.h"
 #include "FSMComponent.h"
+#include "TimeManager.h"
 
 REGISTER_TYPE(FSMComponent)
 
 using namespace std;
+using namespace nlohmann;
+
+void FSMComponent::SetStateLogics(EState state, EventFunc on_enter, ActionFunc on_update, EventFunc on_exit)
+{
+	enter_actions_[state] = on_enter;
+	update_actions_[state] = on_update;
+	exit_actions_[state] = on_exit;
+}
+
+void FSMComponent::ChangeState(EState next_state)
+{
+	if (current_state_ == next_state)
+		return;
+
+	if (exit_actions_.find(current_state_) != exit_actions_.end())
+	{
+		if (exit_actions_[current_state_])
+			exit_actions_[current_state_]();
+	}
+
+	current_state_ = next_state;
+
+
+	if (enter_actions_.find(current_state_) != enter_actions_.end())
+	{
+		if (enter_actions_[current_state_])
+			enter_actions_[current_state_]();
+	}
+}
+
+string FSMComponent::StateToString(EState state) const
+{
+	switch (state)
+	{
+	case EState::Idle:   return "Idle";
+	case EState::Move:   return "Move";
+	case EState::Attack: return "Attack";
+	default:             return "None";
+	}
+}
+
+EState FSMComponent::StringToState(const string& str) const
+{
+	if (str == "Idle")   return EState::Idle;
+	if (str == "Move")   return EState::Move;
+	if (str == "Attack") return EState::Attack;
+
+	return EState::Idle;
+}
 
 void FSMComponent::Initialize()
 {
-	if (!initialize_state_name_.empty())
+	current_state_ = start_state_;
+	if (enter_actions_.find(current_state_) != enter_actions_.end())
 	{
-		ChangeState(initialize_state_name_);
+		if (enter_actions_[current_state_])
+			enter_actions_[current_state_]();
 	}
 }
 
 void FSMComponent::Update()
 {
-	if (!current_state_ && !initialize_state_name_.empty())
-	{
-		ChangeState(initialize_state_name_);
-	}
+	float delta_time = TimeManager::GetInstance().GetDeltaTime();
 
-	if(current_state_)
+	if (update_actions_.find(current_state_) != update_actions_.end())
 	{
-		current_state_->Update(*this);
+		if (update_actions_[current_state_])
+		{
+			update_actions_[current_state_](delta_time);
+		}
 	}
 }
 
 void FSMComponent::RenderImGui()
 {
-	array<char, 256> initialize_state_name_buffer = {};
-	strcpy_s(initialize_state_name_buffer.data(), initialize_state_name_buffer.size(), initialize_state_name_.c_str());
-	if (ImGui::InputText("Initialize State Name", initialize_state_name_buffer.data(), sizeof(initialize_state_name_buffer))) 
-		initialize_state_name_ = initialize_state_name_buffer.data();
-	
-	const auto& kCurrentName = GetCurrentStateName();
-
-	ImGui::Text("Current State Name: %s", GetCurrentStateName().c_str());
-
-	ImGui::Separator();
-
-	if (ImGui::BeginCombo("Change State", kCurrentName.c_str()))
+	if (ImGui::TreeNode("FSM Component"))
 	{
-		for (const auto& [name, statePtr] : states_)
+		string currentName = StateToString(current_state_);
+		ImGui::Text("Current State: %s", currentName.c_str());
+
+		if (ImGui::BeginCombo("Force State", currentName.c_str()))
 		{
-			bool isSelected = (kCurrentName == name);
-			if (ImGui::Selectable(name.c_str(), isSelected))
+			for (int i = 0; i < (int)EState::Count; ++i)
 			{
-				ChangeState(name);
-			}
+				EState state = (EState)i;
+				string stateName = StateToString(state);
+				bool isSelected = (current_state_ == state);
 
-			if (isSelected)
-			{
-				ImGui::SetItemDefaultFocus();
+				if (ImGui::Selectable(stateName.c_str(), isSelected))
+				{
+					ChangeState(state);
+				}
+
+				if (isSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
 			}
+			ImGui::EndCombo();
 		}
-		ImGui::EndCombo();
+		ImGui::TreePop();
 	}
 }
 
-nlohmann::json FSMComponent::Serialize()
+json FSMComponent::Serialize()
 {
-	nlohmann::json json_data;
-	json_data["initialState"] = initialize_state_name_;
-	json_data["currentState"] = GetCurrentStateName();
-	return json_data;
+	json data;
+	data["current_state"] = StateToString(current_state_);
+	data["start_state"] = StateToString(start_state_);
+	return data;
 }
 
-void FSMComponent::Deserialize(const nlohmann::json& json_data)
+void FSMComponent::Deserialize(const json& jsonData)
 {
-	if (json_data.contains("initialState"))
+	if (jsonData.contains("current_state"))
 	{
-		initialize_state_name_ = json_data["initialState"].get<std::string>();
+		current_state_ = StringToState(jsonData["current_state"].get<string>());
 	}
 
-	if (json_data.contains("currentState"))
+	if (jsonData.contains("start_state"))
 	{
-		initialize_state_name_ = json_data["currentState"].get<std::string>();
+		start_state_ = StringToState(jsonData["start_state"].get<string>());
 	}
-
 }
 
-
-void FSMComponent::RegisterState(std::unique_ptr<IState> state)
-{
-	if (!state) return;
-
-	const string state_name = state->GetName();
-	if (state_name.empty()) return;
-
-	states_[state_name] = move(state);
-}
-
-bool FSMComponent::ChangeState(const std::string& state_name)
-{
-	auto it = states_.find(state_name);
-	if(it == states_.end()) { return false;}
-
-	IState* next_state = it->second.get();
-	if(next_state == current_state_) { return false; }
-	
-	if (current_state_) {
-		current_state_->Exit(*this);
-	}
-	current_state_ = next_state;
-	current_state_->Enter(*this);
-	return true;
-}
-
-const std::string& FSMComponent::GetCurrentStateName() const
-{
-	static const std::string kEmpty = "";
-	if (!current_state_)
-	{
-		return kEmpty;
-	}
-
-	return current_state_->GetName();
-}
 ///EOF FSMComponent.cpp

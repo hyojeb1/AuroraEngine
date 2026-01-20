@@ -6,135 +6,101 @@
 #include "FSMComponent.h"
 #include "TimeManager.h"
 
+REGISTER_TYPE(GunObject)
 
 using namespace std;
 using namespace DirectX;
 
-REGISTER_TYPE(GunObject)
-
-namespace
+void GunObject::Fire()
 {
-	class GunIdle : public IState
+	auto fsm = GetComponent<FSMComponent>();
+	if (fsm->GetCurrentState() != EState::Attack)
 	{
-	public:
-		const std::string& GetName() const override
-		{
-			static const std::string kName = "Idle";
-			return kName;
-		}
-	};
-
-	class GunRecoil : public IState
-	{
-	public:
-		const std::string& GetName() const override
-		{
-			static const std::string kName = "Recoil";
-			return kName;
-		}
-
-		void Enter(FSMComponent& machine) override
-		{
-			elapsed_time_ = 0.0f;
-			if (GameObjectBase* owner = machine.GetOwner())
-			{
-				start_rotation_ = owner->GetRotation();
-			}
-
-#ifdef _DEBUG
-			cout << "Enter Gun Recoil" << endl;
-#endif // _DEBUG
-
-		}
-
-		void Exit(FSMComponent& machine) override
-		{
-#ifdef _DEBUG
-			cout << "Exit Gun Recoil" << endl;
-#endif // _DEBUG
-		}
-
-		void Update(FSMComponent& machine) override
-		{
-
-			GameObjectBase* owner = machine.GetOwner();
-			if (!owner)
-			{
-				return;
-			}
-
-			elapsed_time_ += TimeManager::GetInstance().GetDeltaTime();
-
-			constexpr float kRecoilAngle = -90.0f;
-			constexpr float kRecoilDuration = 0.12f;
-			const float half_duration = kRecoilDuration * 0.5f;
-
-			const XMVECTOR recoil_rotation = XMVectorSet(
-				XMVectorGetX(start_rotation_) + kRecoilAngle,
-				XMVectorGetY(start_rotation_),
-				XMVectorGetZ(start_rotation_),
-				0.0f
-			);
-
-			float t = 0.0f;
-			if (elapsed_time_ <= half_duration)
-			{
-				t = elapsed_time_ / half_duration;
-				owner->SetRotation(XMVectorLerp(start_rotation_, recoil_rotation, t));
-			}
-			else
-			{
-				t = (elapsed_time_ - half_duration) / half_duration;
-				owner->SetRotation(XMVectorLerp(recoil_rotation, start_rotation_, t));
-			}
-
-			if (elapsed_time_ >= kRecoilDuration)
-			{
-				owner->SetRotation(start_rotation_);
-				machine.ChangeState("Idle");
-			}
-		}
-
-	private:
-		float elapsed_time_ = 0.0f;
-		XMVECTOR start_rotation_ = XMVectorZero();
-	};
-
+		fsm->ChangeState(EState::Attack);
+	}
 }
 
 void GunObject::Initialize()
 {
-	m_fsmComponent = GetComponent<FSMComponent>();
-	if (!m_fsmComponent)
-	{
-		m_fsmComponent = CreateComponent<FSMComponent>();
-	}
-	if (m_fsmComponent)
-	{
-		m_fsmComponent->AddState<GunIdle>();
-		m_fsmComponent->AddState<GunRecoil>();
-		m_fsmComponent->ChangeState("Idle");
-	}
+	auto fsm = GetComponent<FSMComponent>();
+	if (!fsm){ fsm = CreateComponent<FSMComponent>();}
+
+	// --IDLE 상태 정의------------
+	auto on_idle_enter = [this]()
+		{
+			recoil_timer_ = 0.0f;
+		#ifdef _DEBUG
+			std::cout << "Gun is now Idle." << std::endl;
+		#endif
+		};
+	auto on_idle_update = [this](float dt)
+		{
+
+		};
+	auto on_idle_exit = [this]()
+		{
+		#ifdef _DEBUG
+			std::cout << "Gun is not Idle anymore." << std::endl;
+		#endif
+		};
+
+	// --ATTACK 상태 정의------------
+	auto on_attack_enter = [this]()
+		{
+		#ifdef _DEBUG
+			std::cout << "Start Shooting!" << std::endl;
+		#endif
+			recoil_timer_ = 0.0f;
+			origin_rotation_ = GetRotation();
+		};
+	auto on_attack_update = [this, fsm](float dt)
+		{
+			recoil_timer_ += dt;
+			constexpr float kRecoilAngle = -90.0f;
+			constexpr float kRecoilDuration = 0.12f;
+			const float half_duration = kRecoilDuration * 0.5f;
+			const XMVECTOR recoil_rotation = XMVectorSet(
+				XMVectorGetX(origin_rotation_) + kRecoilAngle,
+				XMVectorGetY(origin_rotation_),
+				XMVectorGetZ(origin_rotation_),
+				0.0f
+			);
+
+			float t = 0.0f;
+			if (recoil_timer_ <= half_duration)
+			{
+				t = recoil_timer_ / half_duration;
+				this->SetRotation(XMVectorLerp(origin_rotation_, recoil_rotation, t));
+			}
+			else
+			{
+				t = (recoil_timer_ - half_duration) / half_duration;
+				this->SetRotation(XMVectorLerp(recoil_rotation, origin_rotation_, t));
+			}
+
+			if (recoil_timer_ >= kRecoilDuration)
+			{
+				this->SetRotation(origin_rotation_);
+				fsm->ChangeState(EState::Idle);
+			}
+		};
+
+	auto on_attack_exit = [this]()
+		{
+		#ifdef _DEBUG
+			std::cout << "Stop Shooting." << std::endl;
+		#endif
+		};
+
+	// --FSM 등록------------
+	fsm->SetStateLogics(EState::Idle, on_idle_enter, on_idle_update, on_idle_exit);
+	fsm->SetStateLogics(EState::Attack, on_attack_enter, on_attack_update, on_attack_exit);
+
 }
 
 void GunObject::Update()
 {
 
-}
-
-void GunObject::Fire()
-{
-	if (!m_fsmComponent)
-	{
-		return;
-	}
-
-	if (m_fsmComponent->GetCurrentStateName() == "Recoil")
-	{
-		m_fsmComponent->ChangeState("Idle");
-	}
-
-	m_fsmComponent->ChangeState("Recoil");
 }
 
 ///GunObject.cpp의 끝
