@@ -2,8 +2,6 @@
 #pragma once
 #include "ModelComponent.h"
 
-extern class CameraComponent* g_mainCamera;
-
 class SkinnedModelComponent : public ModelComponent
 {
 private:

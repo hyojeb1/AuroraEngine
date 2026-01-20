@@ -27,6 +27,7 @@ void ModelComponent::Initialize()
 void ModelComponent::Render()
 {
 	Renderer& renderer = Renderer::GetInstance();
+	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 
 	m_model->boundingBox.Transform(m_boundingBox, m_owner->GetWorldMatrix());
 	XMVECTOR boxCenter = XMLoadFloat3(&m_boundingBox.Center);
@@ -42,7 +43,7 @@ void ModelComponent::Render()
 		[&]()
 		{
 			// 프러스텀 컬링
-			if (m_boundingBox.Intersects(g_mainCamera->GetBoundingFrustum()) == false) return;
+			if (m_boundingBox.Intersects(mainCamera.GetBoundingFrustum()) == false) return;
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 			resourceManager.SetRasterState(m_rasterState);
@@ -121,7 +122,7 @@ void ModelComponent::Render()
 		[&]()
 		{
 			// 프러스텀 컬링
-			if (m_boundingBox.Intersects(g_mainCamera->GetBoundingFrustum()) == false) return;
+			if (m_boundingBox.Intersects(mainCamera.GetBoundingFrustum()) == false) return;
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 

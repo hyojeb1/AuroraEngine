@@ -64,6 +64,9 @@ void SkinnedModelComponent::Render()
 	}
 
 	Renderer& renderer = Renderer::GetInstance();
+	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
+
+	// 바운딩 박스 변환 (Update에서 이미 수행되었지만 안전을 위해 확인)
 	BoundingBox transformedBoundingBox = {};
 	m_model->boundingBox.Transform(transformedBoundingBox, m_owner->GetWorldMatrix());
 	XMVECTOR boxCenter = XMLoadFloat3(&transformedBoundingBox.Center);
@@ -77,6 +80,9 @@ void SkinnedModelComponent::Render()
 		[&]()
 		{
 			if (!m_model) return;
+			// 프러스텀 컬링 (필요시 추가)
+			// if (transformedBoundingBox.Intersects(mainCamera.GetBoundingFrustum()) == false) return;
+
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 			resourceManager.SetRasterState(m_rasterState);
 			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal).Get(), 0, nullptr, m_worldNormalData, 0, 0);
@@ -112,7 +118,8 @@ void SkinnedModelComponent::Render()
 		numeric_limits<float>::max(),
 		[&]()
 		{
-			if (m_boundingBox.Intersects(g_mainCamera->GetBoundingFrustum()) == false) return;
+			// 프러스텀 컬링
+			if (m_boundingBox.Intersects(mainCamera.GetBoundingFrustum()) == false) return;
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 
@@ -168,6 +175,7 @@ void SkinnedModelComponent::Render()
 void SkinnedModelComponent::RenderImGui()
 {
 	ModelComponent::RenderImGui();
+	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 
 }
 
