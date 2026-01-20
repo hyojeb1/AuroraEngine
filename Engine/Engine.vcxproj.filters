@@ -85,9 +85,12 @@
       <Filter>Base\Component</Filter>
     </ClCompile>
     <ClCompile Include="EmitterComponent.cpp">
-    <Filter>Base\Component</Filter>
+      <Filter>Base\Component</Filter>
     </ClCompile>
     <ClCompile Include="ColliderComponent.cpp">
+      <Filter>Base\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="RigidModelComponent.cpp">
       <Filter>Base\Component</Filter>
     </ClCompile>
   </ItemGroup>
@@ -157,9 +160,12 @@
       <Filter>Base\Component</Filter>
     </ClInclude>
     <ClInclude Include="EmitterComponent.h">
-    <Filter>Base\Component</Filter>
-     </ClInclude>
+      <Filter>Base\Component</Filter>
+    </ClInclude>
     <ClInclude Include="ColliderComponent.h">
+      <Filter>Base\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="RigidModelComponent.h">
       <Filter>Base\Component</Filter>
     </ClInclude>
   </ItemGroup>

@@ -5,7 +5,6 @@
 using namespace std;
 using namespace DirectX;
 
-// 전치 함(O) VS 안함
 XMFLOAT4X4 ResourceManager::ToXMFLOAT4X4(const aiMatrix4x4& matrix)
 {
 	return XMFLOAT4X4(
@@ -14,13 +13,6 @@ XMFLOAT4X4 ResourceManager::ToXMFLOAT4X4(const aiMatrix4x4& matrix)
 		matrix.a3, matrix.b3, matrix.c3, matrix.d3,
 		matrix.a4, matrix.b4, matrix.c4, matrix.d4
 	);
-
-	//return XMFLOAT4X4(
-	//	matrix.a1, matrix.a2, matrix.a3, matrix.a4,
-	//	matrix.b1, matrix.b2, matrix.b3, matrix.b4,
-	//	matrix.c1, matrix.c2, matrix.c3, matrix.c4,
-	//	matrix.d1, matrix.d2, matrix.d3, matrix.d4
-	//);
 }
 
 XMFLOAT3 ResourceManager::ToXMFLOAT3(const aiVector3D& vec3)
@@ -202,20 +194,17 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 
 	HRESULT hr = S_OK;
 
-	// 캐시된 텍스처 데이터 사용
 	const auto cacheIt = m_textureCaches.find(fileName);
 	if (cacheIt == m_textureCaches.end())
 	{
 		string fallbackName = "";
 
-		// 타입에 따라 대체할 파일명 결정
 		switch (type)
 		{
 		case TextureType::Albedo: fallbackName = "FallbackAlbedo.png"; break;
 		case TextureType::Normal: fallbackName = "FallbackNormal.png"; break;
 		case TextureType::ORM:    fallbackName = "FallbackORM.png";    break;
-		default:
-			// Fallback 타입이 None인데 파일도 없다면? 이건 진짜 에러 (예: Fallback 텍스처 파일 자체가 없음)
+		default: 
 		#ifdef _DEBUG
 			cerr << "[CRITICAL] 텍스처 로드 실패 (복구 불가): " << fileName << endl;
 		#else
@@ -223,12 +212,9 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 		#endif
 			exit(EXIT_FAILURE);
 		}
-#ifdef _DEBUG
-		// 경고 메시지 출력 (개발자가 알 수 있게)
+		#ifdef _DEBUG
 		cout << "[WARNING] 텍스처 누락됨: " << fileName << " -> 대체됨: " << fallbackName << endl;
-#endif
-		// [재귀 호출] 대체 텍스처로 다시 시도 (type을 None으로 주어 무한 재귀 방지)
-		// 만약 FallbackAlbedo.png 도 없으면 위의 default 문에 걸려서 종료됨
+		#endif
 		return GetTexture(fallbackName, TextureType::None);
 	}
 
@@ -309,9 +295,9 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 		aiProcess_TransformUVCoords | // UV 좌표 변환 적용 // 뭐하는건지 모르겠음
 		aiProcess_FindInstances | // 중복 메쉬 찾기
 		aiProcess_OptimizeMeshes | // 메쉬 최적화
-		//aiProcess_OptimizeGraph | // 씬 그래프 최적화 // 애니메이션이나 본이 없는 노드 병합 // 좀 위험할 수 있으니 유의
+		aiProcess_OptimizeGraph | // 씬 그래프 최적화 // 애니메이션이나 본이 없는 노드 병합 // 좀 위험할 수 있으니 유의
 		aiProcess_SplitByBoneCount | // 본 개수로 메쉬 분할 // 한 메쉬에 본이 너무 많으면 여러 메쉬로 나눔 // 뭐하는건지 모르겠음
-		//aiProcess_Debone | // 사용하지 않는 더미 본 제거
+		aiProcess_Debone | // 사용하지 않는 더미 본 제거
 		aiProcess_DropNormals | // aiProcess_JoinIdenticalVertices 와 같이 사용 // 정점 노말 제거
 		aiProcess_GenBoundingBoxes | // 바운딩 박스 생성
 		aiProcess_LimitBoneWeights |
@@ -334,8 +320,6 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 	// 1. 메쉬 및 노드 처리 (이 과정에서 본 정보가 있다면 Skeleton에 등록됨)
 	ProcessNode(scene->mRootNode, scene, model);
 
-	// 2. 스켈레톤 트리 구성 (본이 하나라도 발견되었을 경우)
-	// SceneHasBones 체크 혹은 model.skeleton.bones가 비어있지 않은지 확인
 	if (SceneHasBones(scene))
 	{
 		aiMatrix4x4 inverse_root_transform = scene->mRootNode->mTransformation;
@@ -593,7 +577,6 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 			}
 		}
 
-		// 가중치 정규화 (합이 1.0이 되도록)
 		for (auto& vertex : resultMesh.vertices)
 		{
 			float* weights = &vertex.boneWeight.x;
@@ -606,7 +589,7 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 	}
 
 
-	// 인덱스 처리
+
 	for (UINT i = 0; i < mesh->mNumFaces; ++i)
 	{
 		const aiFace& face = mesh->mFaces[i];
@@ -644,11 +627,10 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 
 		aiString texturePath;
 
-		// 1. Albedo (Base Color) 처리
+		// 1. Albedo 
 		if (material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS ||
 			material->GetTexture(aiTextureType_BASE_COLOR, 0, &texturePath) == AI_SUCCESS)
 		{
-			// 텍스처가 있다! (Aurora.fbx -> Base.png)
 			albedoName = filesystem::path(texturePath.C_Str()).filename().string();
 		}
 
@@ -658,11 +640,10 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 			normalName = filesystem::path(texturePath.C_Str()).filename().string();
 		}
 
-		// 3. ORM 탐색
+		// 3. ORM 
 		bool foundORM = false;
 		
 		{
-			// [우선순위 1] PBR 표준 슬롯 (혹시 Exporter가 똑똑해서 여기에 넣었을 경우)
 			if (!foundORM && material->GetTexture(aiTextureType_UNKNOWN, 0, &texturePath) == AI_SUCCESS)
 			{
 				ormName = filesystem::path(texturePath.C_Str()).filename().string();
@@ -678,9 +659,6 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 				ormName = filesystem::path(texturePath.C_Str()).filename().string();
 				foundORM = true;
 			}
-
-			// [우선순위 2] FBX 레거시 슬롯 (여기가 FBX의 핵심입니다!)
-			// 많은 FBX Exporter가 PBR 텍스처를 Specular나 Shininess 슬롯에 우겨넣습니다.
 			if (!foundORM && material->GetTexture(aiTextureType_SPECULAR, 0, &texturePath) == AI_SUCCESS)
 			{
 				ormName = filesystem::path(texturePath.C_Str()).filename().string();

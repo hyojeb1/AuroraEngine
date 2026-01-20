@@ -19,8 +19,8 @@ SkinnedModelComponent::SkinnedModelComponent()
 	m_vsShaderName = "VSModelSkinAnim.hlsl";
 	m_modelFileName = "CastleGuard01_Walking.fbx";
 
-	m_inputElements.push_back(InputElement::Blendindex);  // 1. Index 먼저 (Offset 60, UINT)
-	m_inputElements.push_back(InputElement::Blendweight); // 2. Weight 나중 (Offset 76, FLOAT)
+	m_inputElements.push_back(InputElement::Blendindex);  
+	m_inputElements.push_back(InputElement::Blendweight); 
 }
 
 void SkinnedModelComponent::Initialize()
@@ -59,7 +59,6 @@ void SkinnedModelComponent::Render()
 		const size_t bone_count = min(final_matrices.size(), static_cast<size_t>(MAX_BONES));
 		for (size_t i = 0; i < bone_count; ++i)
 		{
-			//m_boneBufferData.boneMatrix[i] = final_matrices[i];
 			m_boneBufferData.boneMatrix[i] = XMMatrixTranspose(final_matrices[i]);
 		}
 	}
@@ -113,7 +112,6 @@ void SkinnedModelComponent::Render()
 		numeric_limits<float>::max(),
 		[&]()
 		{
-			// 프러스텀 컬링
 			if (m_boundingBox.Intersects(g_mainCamera->GetBoundingFrustum()) == false) return;
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();

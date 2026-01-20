@@ -7,7 +7,6 @@ extern class CameraComponent* g_mainCamera;
 class SkinnedModelComponent : public ModelComponent
 {
 private:
-
 	std::shared_ptr<Animator> animator_ = nullptr;
 	
 	BoneBuffer m_boneBufferData = {};
@@ -34,7 +33,6 @@ private:
 	nlohmann::json Serialize() override;
 	void Deserialize(const nlohmann::json& jsonData) override;
 
-	// 셰이더 생성
 	void CreateShaders();
 };
 /// SkinnedModelComponent.h의 끝
