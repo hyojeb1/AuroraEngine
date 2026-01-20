@@ -58,7 +58,7 @@ void Renderer::BeginFrame()
 
 	RENDER_FUNCTION(RenderStage::BackBuffer, BlendState::Opaque).emplace_back
 	(
-		numeric_limits<float>::max(),
+		numeric_limits<float>::max(), // XTK는 이런저런 리소스 바인딩을 해서 무조건 가장 나중에 실행
 		[&]()
 		{
 			static UINT frameCount = 0;
