@@ -1,8 +1,5 @@
 #pragma once
-
-#include <iostream>
-#include <cstdlib>
-#include <fmod_errors.h>
+#include <fmod/fmod_errors.h>
 
 // 1) 결과만 체크해 로깅만 할 때
 inline void FMOD_LogIfError(FMOD_RESULT result,

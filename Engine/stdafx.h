@@ -63,15 +63,13 @@
 
 //fmod
 #ifdef _DEBUG
-//#pragma comment(lib, "fmodstudioL_vc.lib")
 #pragma comment(lib, "fmodL_vc.lib")
 #else
-//#pragma comment(lib, "fmodstudio_vc.lib")
 #pragma comment(lib, "fmod_vc.lib")
 #endif
 
-#include <fmod.hpp>
-#include <fmod_error_wrap.h>
+#include <fmod/fmod.hpp>
+#include <fmod/fmod_error_wrap.h>
 //fmod end
 
 // 메크로 정의
