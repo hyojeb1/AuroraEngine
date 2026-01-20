@@ -38,7 +38,7 @@ void SceneBase::BaseInitialize()
 	m_debugCamera = make_unique<DebugCamera>();
 	static_cast<Base*>(m_debugCamera.get())->BaseInitialize();
 	m_debugCamera->Initialize();
-	static_cast<GameObjectBase*>(m_debugCamera.get())->CreateComponent<CameraComponent>();
+	static_cast<GameObjectBase*>(m_debugCamera.get())->CreateComponent<CameraComponent>()->SetAsMainCamera();
 	#endif
 
 	// 저장된 씬 파일 불러오기

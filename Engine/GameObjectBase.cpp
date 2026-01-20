@@ -119,6 +119,7 @@ ComponentBase* GameObjectBase::CreateComponent(const string& typeName)
 
 	component->SetOwner(this);
 
+	if (component->NeedsFixedUpdate()) m_fixedUpdateComponents.push_back(component.get());
 	if (component->NeedsUpdate()) m_updateComponents.push_back(component.get());
 	if (component->NeedsRender()) m_renderComponents.push_back(component.get());
 

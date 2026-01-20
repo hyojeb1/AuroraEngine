@@ -7,6 +7,7 @@
 #include "CameraComponent.h"
 #include "Renderer.h"
 #include "ResourceManager.h"
+#include "CamRotObject.h"
 
 REGISTER_TYPE(Player)
 
@@ -17,6 +18,7 @@ void Player::Initialize()
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_lineVertexBufferAndShader = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_linePixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
+	CreateChildGameObject<CamRotObject>();
 }
 
 void Player::Update()
