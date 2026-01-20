@@ -16,7 +16,63 @@
         {
             "childGameObjects": [
                 {
-                    "childGameObjects": [],
+                    "childGameObjects": [
+                        {
+                            "childGameObjects": [],
+                            "components": [
+                                {
+                                    "blendState": 0,
+                                    "materialFactorData": {
+                                        "albedoFactor": [
+                                            1.0,
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                        ],
+                                        "ambientOcclusionFactor": 1.0,
+                                        "emissionFactor": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
+                                        "glowFactor": 0.0,
+                                        "heightScale": 0.05000000074505806,
+                                        "ior": 1.5,
+                                        "lightFactor": 1.0,
+                                        "metallicFactor": 1.0,
+                                        "normalScale": 1.0,
+                                        "roughnessFactor": 1.0
+                                    },
+                                    "modelFileName": "box.fbx",
+                                    "psShaderName": "PSModel.hlsl",
+                                    "rasterState": 1,
+                                    "type": "ModelComponent",
+                                    "vsShaderName": "VSModel.hlsl"
+                                }
+                            ],
+                            "name": "Gun",
+                            "position": [
+                                0.07500000298023224,
+                                -0.04500000178813934,
+                                0.15000000596046448,
+                                0.0
+                            ],
+                            "rotation": [
+                                0.0,
+                                -0.18223552405834198,
+                                0.0,
+                                0.9832549095153809
+                            ],
+                            "scale": [
+                                0.009999999776482582,
+                                0.009999999776482582,
+                                0.019999999552965164,
+                                1.0
+                            ],
+                            "type": "GameObjectBase"
+                        }
+                    ],
                     "components": [
                         {
                             "farZ": 1000.0,
@@ -27,9 +83,9 @@
                     ],
                     "name": "CamRotObject_2",
                     "position": [
-                        2.0,
-                        8.649999618530273,
-                        -6.150000095367432,
+                        0.0,
+                        0.0,
+                        0.0,
                         0.0
                     ],
                     "rotation": [
@@ -47,42 +103,11 @@
                     "type": "CamRotObject"
                 }
             ],
-            "components": [
-                {
-                    "blendState": 0,
-                    "materialFactorData": {
-                        "albedoFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "ambientOcclusionFactor": 1.0,
-                        "emissionFactor": [
-                            0.0,
-                            0.0,
-                            0.0,
-                            0.0
-                        ],
-                        "glowFactor": 0.0,
-                        "heightScale": 0.05000000074505806,
-                        "ior": 1.5,
-                        "lightFactor": 1.0,
-                        "metallicFactor": 1.0,
-                        "normalScale": 1.0,
-                        "roughnessFactor": 1.0
-                    },
-                    "modelFileName": "Target.fbx",
-                    "psShaderName": "PSModel.hlsl",
-                    "rasterState": 1,
-                    "type": "ModelComponent",
-                    "vsShaderName": "VSModel.hlsl"
-                }
-            ],
+            "components": [],
             "name": "Player_1",
             "position": [
                 0.0,
-                0.0,
+                2.0,
                 0.0,
                 0.0
             ],
@@ -252,264 +277,7 @@
                 1.0,
                 1.0
             ],
-            "type": "{
-    "environmentMapFileName": "Skybox.dds",
-    "lightColor": [
-        1.0,
-        1.0,
-        1.0,
-        1.0
-    ],
-    "lightDirection": [
-        -0.5,
-        -1.0,
-        -0.5,
-        1.0
-    ],
-    "rootGameObjects": [
-        {
-            "childGameObjects": [
-                {
-                    "childGameObjects": [],
-                    "components": [
-                        {
-                            "farZ": 1000.0,
-                            "fovY": 0.7853981852531433,
-                            "nearZ": 0.10000000149011612,
-                            "type": "CameraComponent"
-                        }
-                    ],
-                    "name": "CamRotObject_2",
-                    "position": [
-                        2.0,
-                        8.649999618530273,
-                        -6.150000095367432,
-                        0.0
-                    ],
-                    "rotation": [
-                        0.0,
-                        0.0,
-                        0.0,
-                        1.0
-                    ],
-                    "scale": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "type": "CamRotObject"
-                }
-            ],
-            "components": [
-                {
-                    "blendState": 0,
-                    "materialFactorData": {
-                        "albedoFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "ambientOcclusionFactor": 1.0,
-                        "emissionFactor": [
-                            0.0,
-                            0.0,
-                            0.0,
-                            0.0
-                        ],
-                        "glowFactor": 0.0,
-                        "heightScale": 0.05000000074505806,
-                        "ior": 1.5,
-                        "lightFactor": 1.0,
-                        "metallicFactor": 1.0,
-                        "normalScale": 1.0,
-                        "roughnessFactor": 1.0
-                    },
-                    "modelFileName": "Target.fbx",
-                    "psShaderName": "PSModel.hlsl",
-                    "rasterState": 1,
-                    "type": "ModelComponent",
-                    "vsShaderName": "VSModel.hlsl"
-                }
-            ],
-            "name": "Player_1",
-            "position": [
-                0.0,
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            ],
-            "type": "Player"
-        },
-        {
-            "childGameObjects": [],
-            "components": [
-                {
-                    "blendState": 0,
-                    "materialFactorData": {
-                        "albedoFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "ambientOcclusionFactor": 1.0,
-                        "emissionFactor": [
-                            0.0,
-                            0.0,
-                            0.0,
-                            0.0
-                        ],
-                        "glowFactor": 0.0,
-                        "heightScale": 0.05000000074505806,
-                        "ior": 1.5,
-                        "lightFactor": 1.0,
-                        "metallicFactor": 1.0,
-                        "normalScale": 1.0,
-                        "roughnessFactor": 1.0
-                    },
-                    "modelFileName": "Target.fbx",
-                    "psShaderName": "PSModel.hlsl",
-                    "rasterState": 1,
-                    "type": "ModelComponent",
-                    "vsShaderName": "VSModel.hlsl"
-                },
-                {
-                    "boundingBoxes": [],
-                    "boundingFrustums": [],
-                    "boundingOrientedBoxes": [
-                        {
-                            "center": [
-                                0.0,
-                                2.0,
-                                0.0
-                            ],
-                            "extents": [
-                                1.0,
-                                3.5,
-                                1.0
-                            ],
-                            "orientation": [
-                                0.0,
-                                0.0,
-                                0.0,
-                                1.0
-                            ]
-                        }
-                    ],
-                    "type": "ColliderComponent"
-                }
-            ],
-            "name": "GameObjectBase_3",
-            "position": [
-                -4.699999809265137,
-                0.0,
-                12.899999618530273,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            ],
-            "type": "TestObject"
-        },
-        {
-            "childGameObjects": [],
-            "components": [
-                {
-                    "blendState": 0,
-                    "materialFactorData": {
-                        "albedoFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "ambientOcclusionFactor": 1.0,
-                        "emissionFactor": [
-                            0.0,
-                            0.0,
-                            0.0,
-                            0.0
-                        ],
-                        "glowFactor": 0.0,
-                        "heightScale": 0.05000000074505806,
-                        "ior": 1.5,
-                        "lightFactor": 1.0,
-                        "metallicFactor": 1.0,
-                        "normalScale": 1.0,
-                        "roughnessFactor": 1.0
-                    },
-                    "modelFileName": "Target.fbx",
-                    "psShaderName": "PSModel.hlsl",
-                    "rasterState": 1,
-                    "type": "ModelComponent",
-                    "vsShaderName": "VSModel.hlsl"
-                },
-                {
-                    "boundingBoxes": [
-                        {
-                            "center": [
-                                0.0,
-                                2.0,
-                                0.0
-                            ],
-                            "extents": [
-                                1.0,
-                                3.200000047683716,
-                                1.0
-                            ]
-                        }
-                    ],
-                    "boundingFrustums": [],
-                    "boundingOrientedBoxes": [],
-                    "type": "ColliderComponent"
-                }
-            ],
-            "name": "GameObjectBase_4",
-            "position": [
-                8.75,
-                0.0,
-                12.350000381469727,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            ],
-            "type": "TestObject"
-        }
-    ]
-}"
+            "type": "GameObjectBase"
         }
     ]
 }

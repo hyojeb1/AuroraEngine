@@ -41,6 +41,7 @@ public:
 	float GetFarZ() const { return m_farZ; }
 
 	static const CameraComponent& GetMainCamera() { return *s_mainCamera; }
+	void SetAsMainCamera() { s_mainCamera = this; }
 
 	const DirectX::XMMATRIX& GetViewMatrix() const { return m_viewMatrix; }
 	const DirectX::XMMATRIX& GetProjectionMatrix() const { return m_projectionMatrix; }

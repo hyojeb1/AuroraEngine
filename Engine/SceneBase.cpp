@@ -30,6 +30,17 @@ GameObjectBase* SceneBase::CreateRootGameObject(const string& typeName)
 	return gameObjectPtr;
 }
 
+GameObjectBase* SceneBase::GetRootGameObject(const string& name)
+{
+	for (unique_ptr<Base>& gameObject : m_gameObjects)
+	{
+		GameObjectBase* gameObjectBase = static_cast<GameObjectBase*>(gameObject.get());
+		if (gameObjectBase && gameObjectBase->GetName() == name) return gameObjectBase;
+	}
+
+	return nullptr;
+}
+
 void SceneBase::BaseInitialize()
 {
 	m_type = GetTypeName(*this);
@@ -38,7 +49,7 @@ void SceneBase::BaseInitialize()
 	m_debugCamera = make_unique<DebugCamera>();
 	static_cast<Base*>(m_debugCamera.get())->BaseInitialize();
 	m_debugCamera->Initialize();
-	static_cast<GameObjectBase*>(m_debugCamera.get())->CreateComponent<CameraComponent>();
+	static_cast<GameObjectBase*>(m_debugCamera.get())->CreateComponent<CameraComponent>()->SetAsMainCamera();
 	#endif
 
 	// 저장된 씬 파일 불러오기

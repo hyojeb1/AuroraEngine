@@ -7,6 +7,9 @@
 #include "CameraComponent.h"
 #include "Renderer.h"
 #include "ResourceManager.h"
+#include "CamRotObject.h"
+#include "ModelComponent.h"
+#include "Enemy.h"
 
 REGISTER_TYPE(Player)
 
@@ -17,6 +20,9 @@ void Player::Initialize()
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_lineVertexBufferAndShader = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_linePixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
+
+	m_cameraObject = GetChildGameObject("CamRotObject_2");
+	m_gunObject = m_cameraObject->GetChildGameObject("Gun");
 }
 
 void Player::Update()
@@ -24,12 +30,12 @@ void Player::Update()
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	auto& input = InputManager::GetInstance();
 
-	if (input.GetKey(KeyCode::W)) MoveDirection(deltaTime * 5.0f, Direction::Forward);
-	if (input.GetKey(KeyCode::S)) MoveDirection(deltaTime * 5.0f, Direction::Backward);
-	if (input.GetKey(KeyCode::A)) MoveDirection(deltaTime * 5.0f, Direction::Left);
-	if (input.GetKey(KeyCode::D)) MoveDirection(deltaTime * 5.0f, Direction::Right);
-	if (input.GetKey(KeyCode::Space)) MoveDirection(deltaTime * 5.0f, Direction::Up);
-	if (input.GetKey(KeyCode::Shift)) MoveDirection(deltaTime * 5.0f, Direction::Down);
+	if (input.GetKey(KeyCode::W)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Forward);
+	if (input.GetKey(KeyCode::S)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Backward);
+	if (input.GetKey(KeyCode::A)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Left);
+	if (input.GetKey(KeyCode::D)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Right);
+	if (input.GetKey(KeyCode::Space)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Up);
+	if (input.GetKey(KeyCode::Shift)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Down);
 
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
@@ -40,11 +46,11 @@ void Player::Update()
 		GameObjectBase* hit = ColliderComponent::CheckCollision(origin, direction, distance);
 		if (hit)
 		{
-			hit->SetAlive(false);
-			XMStoreFloat4(&m_lineBufferData.linePoints[0], GetWorldPosition());
-			m_lineBufferData.lineColors[0] = XMFLOAT4{ 0.0f, 0.0f, 1.0f, 1.0f };
+			if (dynamic_cast<Enemy*>(hit)) hit->SetAlive(false);
+			XMStoreFloat4(&m_lineBufferData.linePoints[0], m_gunObject->GetWorldPosition());
+			m_lineBufferData.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 			XMStoreFloat4(&m_lineBufferData.linePoints[1], XMVectorAdd(origin, XMVectorScale(direction, distance)));
-			m_lineBufferData.lineColors[1] = XMFLOAT4{ 0.0f, 0.0f, 1.0f, 1.0f };
+			m_lineBufferData.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 			m_lineDisplayTime = 0.5f;
 		}
 	}

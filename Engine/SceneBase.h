@@ -62,6 +62,8 @@ public:
 	template<typename T> requires std::derived_from<T, GameObjectBase>
 	[[nodiscard]] T* CreateRootGameObject(const std::string& typeName); // 루트 게임 오브젝트 생성 // 포인터 반환
 
+	GameObjectBase* GetRootGameObject(const std::string& name); // 이름으로 루트 게임 오브젝트 검색 // 없으면 nullptr 반환
+
 private:
 	// 씬 초기화 // 씬 사용 전 반드시 호출해야 함
 	void BaseInitialize() override;
