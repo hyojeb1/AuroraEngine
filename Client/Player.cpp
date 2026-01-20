@@ -21,7 +21,8 @@ void Player::Initialize()
 	m_lineVertexBufferAndShader = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_linePixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
 
-	m_gunObject = GetChildGameObject("CamRotObject_2")->GetChildGameObject("Gun");
+	m_cameraObject = GetChildGameObject("CamRotObject_2");
+	m_gunObject = m_cameraObject->GetChildGameObject("Gun");
 }
 
 void Player::Update()
@@ -29,12 +30,12 @@ void Player::Update()
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	auto& input = InputManager::GetInstance();
 
-	if (input.GetKey(KeyCode::W)) MoveDirection(deltaTime * 5.0f, Direction::Forward);
-	if (input.GetKey(KeyCode::S)) MoveDirection(deltaTime * 5.0f, Direction::Backward);
-	if (input.GetKey(KeyCode::A)) MoveDirection(deltaTime * 5.0f, Direction::Left);
-	if (input.GetKey(KeyCode::D)) MoveDirection(deltaTime * 5.0f, Direction::Right);
-	if (input.GetKey(KeyCode::Space)) MoveDirection(deltaTime * 5.0f, Direction::Up);
-	if (input.GetKey(KeyCode::Shift)) MoveDirection(deltaTime * 5.0f, Direction::Down);
+	if (input.GetKey(KeyCode::W)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Forward);
+	if (input.GetKey(KeyCode::S)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Backward);
+	if (input.GetKey(KeyCode::A)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Left);
+	if (input.GetKey(KeyCode::D)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Right);
+	if (input.GetKey(KeyCode::Space)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Up);
+	if (input.GetKey(KeyCode::Shift)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Down);
 
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{

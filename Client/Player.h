@@ -9,6 +9,7 @@ class Player : public GameObjectBase
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_lineVertexBufferAndShader = {};
 	com_ptr<ID3D11PixelShader> m_linePixelShader = nullptr;
 
+	GameObjectBase* m_cameraObject = nullptr;
 	GameObjectBase* m_gunObject = nullptr;
 
 public:
