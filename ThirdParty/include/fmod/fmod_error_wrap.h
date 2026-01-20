@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <fmod/fmod_errors.h>
 
 // 1) 결과만 체크해 로깅만 할 때
