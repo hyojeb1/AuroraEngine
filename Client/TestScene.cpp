@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include "TestScene.h"
 
-#include "TestObject.h"
 #include "TestCameraObject.h"
 #include "CamRotObject.h"
 #include "TimeManager.h"

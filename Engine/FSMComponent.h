@@ -11,7 +11,7 @@ public:
 	virtual const std::string& GetName() const = 0;
 	virtual void Enter(FSMComponent& machine) {}
 	virtual void Exit(FSMComponent& machine) {}
-	virtual void Update(FSMComponent& machine) = 0;
+	virtual void Update(FSMComponent& machine) {};
 	
 
 protected:

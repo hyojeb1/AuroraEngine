@@ -31,13 +31,32 @@ void FSMComponent::RenderImGui()
 {
 	array<char, 256> initialize_state_name_buffer = {};
 	strcpy_s(initialize_state_name_buffer.data(), initialize_state_name_buffer.size(), initialize_state_name_.c_str());
-	if (ImGui::InputText("Initialize State Name", initialize_state_name_buffer.data(), sizeof(initialize_state_name_buffer))) initialize_state_name_ = initialize_state_name_buffer.data();
+	if (ImGui::InputText("Initialize State Name", initialize_state_name_buffer.data(), sizeof(initialize_state_name_buffer))) 
+		initialize_state_name_ = initialize_state_name_buffer.data();
+	
+	const auto& kCurrentName = GetCurrentStateName();
 
 	ImGui::Text("Current State Name: %s", GetCurrentStateName().c_str());
 
 	ImGui::Separator();
 
-	//
+	if (ImGui::BeginCombo("Change State", kCurrentName.c_str()))
+	{
+		for (const auto& [name, statePtr] : states_)
+		{
+			bool isSelected = (kCurrentName == name);
+			if (ImGui::Selectable(name.c_str(), isSelected))
+			{
+				ChangeState(name);
+			}
+
+			if (isSelected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
 }
 
 nlohmann::json FSMComponent::Serialize()

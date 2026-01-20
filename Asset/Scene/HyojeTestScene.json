@@ -49,6 +49,10 @@
                                     "rasterState": 1,
                                     "type": "ModelComponent",
                                     "vsShaderName": "VSModel.hlsl"
+                                },
+                                {
+                                    "initialState": "Idle",
+                                    "type": "FSMComponent"
                                 }
                             ],
                             "name": "Gun",
@@ -70,7 +74,7 @@
                                 0.019999999552965164,
                                 1.0
                             ],
-                            "type": "TestObject"
+                            "type": "GunObject"
                         }
                     ],
                     "components": [

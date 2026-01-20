@@ -9,4 +9,5 @@ REGISTER_TYPE(HyojeTestScene)
 
 void HyojeTestScene::Initialize()
 {
+
 }
