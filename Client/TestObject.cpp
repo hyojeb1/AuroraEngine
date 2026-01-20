@@ -9,6 +9,9 @@ using namespace DirectX;
 
 REGISTER_TYPE(TestObject)
 
+//State를 상속받아서...
+
+
 void TestObject::Initialize()
 {
 	CreateComponent<ModelComponent>();
@@ -17,6 +20,7 @@ void TestObject::Initialize()
 
 void TestObject::Update()
 {
+
 }
 
 ///TestObject.cpp의 끝
