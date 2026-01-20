@@ -25,7 +25,7 @@ class Renderer : public Singleton<Renderer>
 		.Scaling = DXGI_SCALING_STRETCH, // 창 크기에 맞게 스트레칭
 		.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD, // 플립 모드 // 잘 모르겠는데 이게 빠르다 함
 		.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED, // 알파 블렌딩 없음
-		.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH // 전체 화면 전환 허용
+		.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING // 전체 화면 전환 허용
 	};
 	// TODO: 나중에 전체 화면 설정도 멤버 변수로 추가 DXGI_SWAP_CHAIN_FULLSCREEN_DESC
 
