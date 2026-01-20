@@ -45,6 +45,9 @@ class SceneBase : public Base
 	com_ptr<ID3D11Buffer> m_globalLightConstantBuffer = nullptr; // 환경광, 방향광 상수 버퍼
 	com_ptr<ID3D11PixelShader> m_shadowMapPixelShader = nullptr; // 그림자 맵 생성용 픽셀 셰이더
 
+	bool m_showFPS = true; // FPS 표시 여부
+	DirectX::SpriteFont* m_spriteFont = nullptr; // FPS 표시용 스프라이트 폰트
+
 public:
 	SceneBase();
 	virtual ~SceneBase() = default;
@@ -61,6 +64,8 @@ public:
 
 	template<typename T> requires std::derived_from<T, GameObjectBase>
 	[[nodiscard]] T* CreateRootGameObject(const std::string& typeName); // 루트 게임 오브젝트 생성 // 포인터 반환
+
+	GameObjectBase* GetRootGameObject(const std::string& name); // 이름으로 루트 게임 오브젝트 검색 // 없으면 nullptr 반환
 
 private:
 	// 씬 초기화 // 씬 사용 전 반드시 호출해야 함

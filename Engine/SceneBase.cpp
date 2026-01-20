@@ -30,6 +30,17 @@ GameObjectBase* SceneBase::CreateRootGameObject(const string& typeName)
 	return gameObjectPtr;
 }
 
+GameObjectBase* SceneBase::GetRootGameObject(const string& name)
+{
+	for (unique_ptr<Base>& gameObject : m_gameObjects)
+	{
+		GameObjectBase* gameObjectBase = static_cast<GameObjectBase*>(gameObject.get());
+		if (gameObjectBase && gameObjectBase->GetName() == name) return gameObjectBase;
+	}
+
+	return nullptr;
+}
+
 void SceneBase::BaseInitialize()
 {
 	m_type = GetTypeName(*this);
@@ -38,7 +49,7 @@ void SceneBase::BaseInitialize()
 	m_debugCamera = make_unique<DebugCamera>();
 	static_cast<Base*>(m_debugCamera.get())->BaseInitialize();
 	m_debugCamera->Initialize();
-	static_cast<GameObjectBase*>(m_debugCamera.get())->CreateComponent<CameraComponent>();
+	static_cast<GameObjectBase*>(m_debugCamera.get())->CreateComponent<CameraComponent>()->SetAsMainCamera();
 	#endif
 
 	// 저장된 씬 파일 불러오기
@@ -97,8 +108,10 @@ void SceneBase::BaseUpdate()
 
 void SceneBase::BaseRender()
 {
+	Renderer& renderer = Renderer::GetInstance();
+
 	// 방향성 광원 그림자 맵 렌더링
-	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::DirectionalLightShadow, BlendState::Opaque).emplace_back
+	renderer.RENDER_FUNCTION(RenderStage::DirectionalLightShadow, BlendState::Opaque).emplace_back
 	(
 		numeric_limits<float>::lowest(), // 우선순위 가장 높음
 		[&]()
@@ -132,7 +145,7 @@ void SceneBase::BaseRender()
 	);
 
 	// 씬 렌더링
-	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
+	renderer.RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
 	(
 		numeric_limits<float>::lowest(), // 우선순위 가장 높음
 		[&]()
@@ -161,6 +174,32 @@ void SceneBase::BaseRender()
 			#endif
 		}
 	);
+
+	if (m_showFPS)
+	{
+		renderer.UI_RENDER_FUNCTIONS().emplace_back
+		(
+			[&](SpriteBatch* spriteBatch)
+			{
+				static UINT frameCount = 0;
+				static float elapsedTime = 0.0f;
+				static UINT FPS = 0;
+
+				frameCount++;
+
+				elapsedTime += TimeManager::GetInstance().GetDeltaTime();
+
+				if (elapsedTime >= 1.0)
+				{
+					FPS = frameCount * static_cast<UINT>(elapsedTime);
+					frameCount = 0;
+					elapsedTime = 0.0;
+				}
+
+				m_spriteFont->DrawString(spriteBatch, (wstring(L"FPS: ") + to_wstring(FPS)).c_str(), XMFLOAT2{ 10.0f, 10.0f }, Colors::White, 0.0f, XMFLOAT2{ 0.0f, 0.0f }, 1.0f);
+			}
+		);
+	}
 
 	// 게임 오브젝트 렌더링
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseRender();
@@ -336,6 +375,8 @@ void SceneBase::GetResources()
 
 	m_cameraPositionConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::CameraPosition); // 카메라 위치 상수 버퍼 생성
 	m_globalLightConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::GlobalLight); // 방향광 상수 버퍼 생성
+
+	m_spriteFont = resourceManager.GetSpriteFont(L"Gugi");
 }
 
 void SceneBase::UpdateConstantBuffers()

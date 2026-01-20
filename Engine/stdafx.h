@@ -40,6 +40,8 @@
 #include <directxtk/SimpleMath.h>
 #include <directxtk/WICTextureLoader.h>
 #include <directxtk/DDSTextureLoader.h>
+#include <directxtk/SpriteBatch.h>
+#include <directxtk/SpriteFont.h>
 
 // Assimp 헤더
 #include <assimp/Importer.hpp>
@@ -55,11 +57,7 @@
 // JSON 헤더
 #include <nlohmann/json.hpp>
 
-// boost-asio
-#include <boost/asio.hpp>
-#include <boost/asio/executor_work_guard.hpp>
-
-//fmod
+//fmod 헤더
 #ifdef _DEBUG
 #pragma comment(lib, "fmodL_vc.lib")
 #else

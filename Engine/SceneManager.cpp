@@ -33,7 +33,8 @@ void SceneManager::Run()
 	m_accumulator += TimeManager::GetInstance().GetDeltaTime();
 
 	int steps = 0;
-	while (m_accumulator >= fixedDt && steps < maxSteps) {
+	while (m_accumulator >= fixedDt && steps < maxSteps)
+	{
 		m_currentScene->BaseFixedUpdate();
 		m_accumulator -= fixedDt;
 		steps++;

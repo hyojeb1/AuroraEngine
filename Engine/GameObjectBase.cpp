@@ -119,6 +119,7 @@ ComponentBase* GameObjectBase::CreateComponent(const string& typeName)
 
 	component->SetOwner(this);
 
+	if (component->NeedsFixedUpdate()) m_fixedUpdateComponents.push_back(component.get());
 	if (component->NeedsUpdate()) m_updateComponents.push_back(component.get());
 	if (component->NeedsRender()) m_renderComponents.push_back(component.get());
 
@@ -141,10 +142,17 @@ GameObjectBase* GameObjectBase::CreateChildGameObject(const string& typeName)
 	return childGameObjectPtr;
 }
 
+GameObjectBase* GameObjectBase::GetChildGameObject(const string& name)
+{
+	for (auto& child : m_childrens) if (child->m_name == name) return child.get();
+
+	return nullptr;
+}
+
 void GameObjectBase::BaseInitialize()
 {
 	m_type = GetTypeName(*this);
-	m_name = m_type + "_" + to_string(m_id);
+	if (m_name.empty()) m_name = m_type + "_" + to_string(m_id);
 
 	#ifdef NDEBUG
 	Initialize();
@@ -208,10 +216,15 @@ void GameObjectBase::BaseRenderImGui()
 	ImGui::PushID(this);
 
 	if (ImGui::Button("Remove")) SetAlive(false);
-
 	ImGui::SameLine();
+
+	static array<char, 256> nameBuffer = {};
+	strcpy_s(nameBuffer.data(), nameBuffer.size(), m_name.c_str());
+	if (ImGui::InputText("", nameBuffer.data(), sizeof(nameBuffer))) m_name = nameBuffer.data();
+
 	if (ImGui::TreeNode(m_name.c_str()))
 	{
+
 		// 위치
 		if (ImGui::DragFloat3("Position", &m_position.m128_f32[0], 0.05f)) SetDirty();
 		// 회전
@@ -351,30 +364,40 @@ void GameObjectBase::BaseDeserialize(const nlohmann::json& jsonData)
 	for (const auto& componentData : jsonData["components"])
 	{
 		string typeName = componentData["type"].get<string>();
-		unique_ptr<ComponentBase> componentPtr = TypeRegistry::GetInstance().CreateComponent(typeName);
+		unique_ptr<ComponentBase> component = TypeRegistry::GetInstance().CreateComponent(typeName);
 
-		componentPtr->SetOwner(this);
-		if (componentPtr->NeedsUpdate()) m_updateComponents.push_back(componentPtr.get());
-		if (componentPtr->NeedsRender()) m_renderComponents.push_back(componentPtr.get());
+		if (m_components[type_index(typeid(*component))])
+		{
+			#ifdef _DEBUG
+			cerr << "오류: 게임 오브젝트 '" << m_name << "'에 이미 컴포넌트 '" << typeName << "'가 존재합니다." << endl;
+			#else
+			MessageBoxA(nullptr, ("오류: 게임 오브젝트 '" + m_name + "'에 이미 컴포넌트 '" + typeName + "'가 존재합니다.").c_str(), "GameObjectBase Error", MB_OK | MB_ICONERROR);
+			#endif
+		}
 
-		Base* basePtr = static_cast<Base*>(componentPtr.get());
+		component->SetOwner(this);
+		if (component->NeedsFixedUpdate()) m_fixedUpdateComponents.push_back(component.get());
+		if (component->NeedsUpdate()) m_updateComponents.push_back(component.get());
+		if (component->NeedsRender()) m_renderComponents.push_back(component.get());
+
+		Base* basePtr = static_cast<Base*>(component.get());
 		basePtr->BaseDeserialize(componentData);
 		basePtr->BaseInitialize();
 
-		m_components[type_index(typeid(*componentPtr))] = move(componentPtr);
+		m_components[type_index(typeid(*component))] = move(component);
 	}
 	
 	// 자식 게임 오브젝트들 로드
 	for (const auto& childData : jsonData["childGameObjects"])
 	{
 		string typeName = childData["type"].get<string>();
-		unique_ptr<GameObjectBase> childGameObjectPtr = TypeRegistry::GetInstance().CreateGameObject(typeName);
+		unique_ptr<GameObjectBase> childGameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
 
-		childGameObjectPtr->m_parent = this;
-		childGameObjectPtr->BaseDeserialize(childData);
-		childGameObjectPtr->BaseInitialize();
+		childGameObject->m_parent = this;
+		childGameObject->BaseDeserialize(childData);
+		childGameObject->BaseInitialize();
 
-		m_childrens.push_back(move(childGameObjectPtr));
+		m_childrens.push_back(move(childGameObject));
 	}
 
 	SetDirty();

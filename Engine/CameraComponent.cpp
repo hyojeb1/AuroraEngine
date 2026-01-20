@@ -22,9 +22,6 @@ const BoundingFrustum CameraComponent::GetBoundingFrustum() const
 
 void CameraComponent::Initialize()
 {
-	if (s_mainCamera) cerr << "경고: 여러 개의 카메라가 생성되었습니다" << endl;
-	else s_mainCamera = this;
-
 	#ifdef _DEBUG
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_boundingFrustumVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");

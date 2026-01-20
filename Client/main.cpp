@@ -7,6 +7,8 @@
 #include "TestScene.h"
 #include "HyojeTestScene.h"
 
+using namespace std;
+
 #ifdef _DEBUG
 int main()
 {

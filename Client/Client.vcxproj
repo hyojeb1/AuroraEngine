@@ -183,6 +183,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CamRotObject.cpp" />
+    <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="HyojeTestObject.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="HyojeTestScene.cpp" />
@@ -193,6 +194,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CamRotObject.h" />
+    <ClInclude Include="Enemy.h" />
     <ClInclude Include="HyojeTestScene.h" />
     <ClInclude Include="HyojeTestObject.h" />
     <ClInclude Include="Player.h" />

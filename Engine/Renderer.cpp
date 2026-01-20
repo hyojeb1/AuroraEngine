@@ -4,6 +4,7 @@
 #include "ResourceManager.h"
 #include "SceneManager.h"
 #include "WindowManager.h"
+#include "TimeManager.h"
 
 using namespace std;
 using namespace DirectX;
@@ -21,8 +22,17 @@ void Renderer::Initialize()
 
 void Renderer::BeginFrame()
 {
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
+	resourceManager.SetAllConstantBuffers();
+	resourceManager.SetAllSamplerStates();
+
+	#ifdef _DEBUG
+	// ImGui 프레임 시작
+	BeginImGuiFrame();
+	#endif
+
 	// 방향성 광원 그림자 맵 셰이더 리소스 뷰 해제 명령어 등록
-	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
+	RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
 	(
 		numeric_limits<float>::lowest(), // 우선순위 가장 높음
 		[&]() { m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::DirectionalLightShadow), 1, m_directionalLightShadowMapSRV.GetAddressOf()); }
@@ -45,15 +55,21 @@ void Renderer::BeginFrame()
 		}
 	);
 
-	#ifdef _DEBUG
-	// ImGui 프레임 시작
-	BeginImGuiFrame();
-	#endif
+
+	UI_RENDER_FUNCTIONS().emplace_back // 나중에 지울것
+	(
+		[&](SpriteBatch* spriteBatch)
+		{
+			spriteBatch->Draw(resourceManager.GetTexture("Crosshair.png").Get(), XMFLOAT2(m_swapChainDesc.Width / 2.0f - 64.0f, m_swapChainDesc.Height / 2.0f - 64.0f));
+		}
+	);
 }
 
 void Renderer::EndFrame()
 {
 	HRESULT hr = S_OK;
+
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
 	for (auto& [renderTarget, blendStates] : m_renderPass)
 	{
@@ -73,7 +89,7 @@ void Renderer::EndFrame()
 			const BlendState BLEND_STATE = static_cast<BlendState>(&blendState - &blendStates[0]);
 
 			// 블렌드 상태 설정
-			ResourceManager::GetInstance().SetBlendState(BLEND_STATE);
+			resourceManager.SetBlendState(BLEND_STATE);
 
 			// 정렬 // 알파 블렌딩은 뒤에서 앞으로 // 그 외는 앞에서 뒤로
 			if (BLEND_STATE != BlendState::AlphaBlend) sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
@@ -87,11 +103,20 @@ void Renderer::EndFrame()
 		}
 	}
 
+	// 2D UI 렌더링
+	SpriteBatch* spriteBatch = resourceManager.GetSpriteBatch();
+	spriteBatch->Begin(SpriteSortMode_Deferred, nullptr, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
+
+	for (function<void(SpriteBatch* spriteBatch)>& uiRenderFunction : m_UIRenderFunctions) uiRenderFunction(spriteBatch);
+	m_UIRenderFunctions.clear();
+
+	spriteBatch->End();
+
 	#ifdef _DEBUG
-	ImGui::Begin("Directional Light Shadow Map");
+	ImGui::Begin("SRV");
 	ImGui::Image
 	(
-		(ImTextureID)m_directionalLightShadowMapSRV.Get(),
+		(ImTextureID)m_sceneShaderResourceView.Get(),
 		ImVec2(500.0f, 500.0f)
 	);
 	ImGui::End();
@@ -103,7 +128,7 @@ void Renderer::EndFrame()
 	#endif
 
 	// 스왑 체인 프레젠트
-	hr = m_swapChain->Present(1, 0); // DXGI_PRESENT_ALLOW_TEARING // 나중에 필요시 적용
+	hr = m_swapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
 	CheckResult(hr, "스왑 체인 프레젠트 실패.");
 }
 
