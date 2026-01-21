@@ -54,15 +54,37 @@ void Renderer::BeginFrame()
 			RenderSceneToBackBuffer();
 		}
 	);
+}
 
-
-	UI_RENDER_FUNCTIONS().emplace_back // 나중에 지울것
+void Renderer::RenderTextScreenPosition(const wchar_t* text, XMFLOAT2 position, float depth, const XMVECTOR& color, float scale, const wstring& fontName)
+{
+	ResourceManager::GetInstance().GetSpriteFont(fontName)->DrawString
 	(
-		[&](SpriteBatch* spriteBatch)
-		{
-			spriteBatch->Draw(resourceManager.GetTexture("Crosshair.png").Get(), XMFLOAT2(m_swapChainDesc.Width / 2.0f - 64.0f, m_swapChainDesc.Height / 2.0f - 64.0f));
-		}
+		m_spriteBatch,
+		text,
+		position,
+		color,
+		0.0f,
+		XMFLOAT2(0.0f, 0.0f),
+		scale,
+		SpriteEffects_None,
+		0.0f
 	);
+}
+
+void Renderer::RenderTextUIPosition(const wchar_t* text, XMFLOAT2 position, float depth, const XMVECTOR& color, float scale, const wstring& fontName)
+{
+	RenderTextScreenPosition(text, { position.x * static_cast<float>(m_swapChainDesc.Width), position.y * static_cast<float>(m_swapChainDesc.Height) }, depth, color, scale, fontName);
+}
+
+void Renderer::RenderImageScreenPosition(com_ptr<ID3D11ShaderResourceView> texture, XMFLOAT2 position, XMFLOAT2 offset, float scale, XMVECTOR color, float depth)
+{
+	m_spriteBatch->Draw(texture.Get(), position, nullptr, color, 0.0f, offset, scale, SpriteEffects_None, depth);
+}
+
+void Renderer::RenderImageUIPosition(com_ptr<ID3D11ShaderResourceView> texture, XMFLOAT2 position, XMFLOAT2 offset, float scale, XMVECTOR color, float depth)
+{
+	RenderImageScreenPosition(texture, { position.x * static_cast<float>(m_swapChainDesc.Width), position.y * static_cast<float>(m_swapChainDesc.Height) }, offset, scale, color, depth);
 }
 
 void Renderer::EndFrame()
@@ -104,13 +126,12 @@ void Renderer::EndFrame()
 	}
 
 	// 2D UI 렌더링
-	SpriteBatch* spriteBatch = resourceManager.GetSpriteBatch();
-	spriteBatch->Begin(SpriteSortMode_Deferred, nullptr, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
+	m_spriteBatch->Begin(SpriteSortMode_Deferred, nullptr, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
 
-	for (function<void(SpriteBatch* spriteBatch)>& uiRenderFunction : m_UIRenderFunctions) uiRenderFunction(spriteBatch);
+	for (function<void()>& uiRenderFunction : m_UIRenderFunctions) uiRenderFunction();
 	m_UIRenderFunctions.clear();
 
-	spriteBatch->End();
+	m_spriteBatch->End();
 
 	#ifdef _DEBUG
 	ImGui::Begin("SRV");
@@ -232,8 +253,10 @@ void Renderer::CreateDeviceAndContext()
 
 	// ImGui DirectX11 초기화
 	ImGui_ImplDX11_Init(m_device.Get(), m_deviceContext.Get());
+
 	// RenderResourceManager 초기화
 	ResourceManager::GetInstance().Initialize(m_device, m_deviceContext);
+	m_spriteBatch = ResourceManager::GetInstance().GetSpriteBatch();
 }
 
 void Renderer::CreateSwapChain()

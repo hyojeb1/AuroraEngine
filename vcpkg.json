@@ -2,6 +2,7 @@
   "dependencies": [
     "assimp",
     "directxtk",
+    "fftw3",
     {
       "name": "imgui",
       "features": [
