@@ -3,10 +3,15 @@
 
 float4 main(PS_INPUT_POS_UV input) : SV_TARGET
 {
-    // 화면 중앙에 녹색 점
-    //if (input.UV.x < 0.505f && input.UV.x > 0.495f && input.UV.y < 0.51f && input.UV.y > 0.49f) return float4(0.0f, 1.0f, 0.0f, 1.0f);
+    float4 color = sceneTexture.Sample(SamplerPointClamp, input.UV);
     
-    return sceneTexture.Sample(SamplerPointClamp, input.UV);
+    if (PostProcessingFlags & 0x1) // 그레이스케일
+    {
+        float gray = dot(color.rgb, float3(0.299f, 0.587f, 0.114f));
+        color.rgb = lerp(color.rgb, float3(gray, gray, gray), saturate(GrayScaleIntensity));
+    }
+    
+    return color;
 }
 
 /// PSPostProcessing.hlsl의 끝

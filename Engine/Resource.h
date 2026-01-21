@@ -462,11 +462,27 @@ constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Coun
 
 enum class PSConstBuffers
 {
+	PostProcessing, // PostProcessingBuffer
 	CameraPosition, // CameraPositionBuffer
 	GlobalLight, // GlobalLightBuffer
 	MaterialFactor, // MaterialFactorBuffer
 
 	Count
+};
+struct PostProcessingBuffer
+{
+	enum class PostProcessingFlag
+	{
+		None = 0,
+
+		Grayscale = 1 << 0,
+		MotingBlur = 1 << 1,
+	};
+	UINT flags = static_cast<UINT>(PostProcessingFlag::None); // 후처리 플래그
+
+	float grayScaleIntensity = 0.0f; // 그레이스케일 강도
+	float motionBlurIntensity = 0.0f; // 모션 블러 강도
+	float paddingA = 0.0f;
 };
 struct CameraPositionBuffer // 카메라 위치 상수 버퍼 구조체
 {
@@ -499,6 +515,17 @@ struct MaterialFactorBuffer
 };
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(PSConstBuffers::Count)> PS_CONST_BUFFER_DESCS =
 {
+	// PostProcessingBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(PostProcessingBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	},
+
 	// CameraPositionBuffer
 	D3D11_BUFFER_DESC
 	{
