@@ -77,14 +77,14 @@ void Renderer::RenderTextUIPosition(const wchar_t* text, XMFLOAT2 position, floa
 	RenderTextScreenPosition(text, { position.x * static_cast<float>(m_swapChainDesc.Width), position.y * static_cast<float>(m_swapChainDesc.Height) }, depth, color, scale, fontName);
 }
 
-void Renderer::RenderImageScreenPosition(com_ptr<ID3D11ShaderResourceView> texture, XMFLOAT2 position, XMFLOAT2 offset, float scale, float depth)
+void Renderer::RenderImageScreenPosition(com_ptr<ID3D11ShaderResourceView> texture, XMFLOAT2 position, XMFLOAT2 offset, float scale, XMVECTOR color, float depth)
 {
-	m_spriteBatch->Draw(texture.Get(), position, nullptr, Colors::White, 0.0f, offset, scale, SpriteEffects_None, depth);
+	m_spriteBatch->Draw(texture.Get(), position, nullptr, color, 0.0f, offset, scale, SpriteEffects_None, depth);
 }
 
-void Renderer::RenderImageUIPosition(com_ptr<ID3D11ShaderResourceView> texture, XMFLOAT2 position, XMFLOAT2 offset, float scale, float depth)
+void Renderer::RenderImageUIPosition(com_ptr<ID3D11ShaderResourceView> texture, XMFLOAT2 position, XMFLOAT2 offset, float scale, XMVECTOR color, float depth)
 {
-	RenderImageScreenPosition(texture, { position.x * static_cast<float>(m_swapChainDesc.Width), position.y * static_cast<float>(m_swapChainDesc.Height) }, offset, scale, depth);
+	RenderImageScreenPosition(texture, { position.x * static_cast<float>(m_swapChainDesc.Width), position.y * static_cast<float>(m_swapChainDesc.Height) }, offset, scale, color, depth);
 }
 
 void Renderer::EndFrame()

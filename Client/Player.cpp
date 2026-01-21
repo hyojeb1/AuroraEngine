@@ -86,7 +86,7 @@ void Player::Update()
 
 		const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 		vector<GameObjectBase*> hits = ColliderComponent::CheckCollision(mainCamera.GetBoundingFrustum());
-		vector<pair<float, GameObjectBase*>> enemyHits;
+		vector<tuple<float, XMFLOAT2, Enemy*>> enemyHits;
 
 		for (GameObjectBase* hit : hits)
 		{
@@ -94,23 +94,23 @@ void Player::Update()
 			{
 				XMFLOAT2 distancePair = mainCamera.WorldToScreenPosition(enemy->GetWorldPosition());
 
-				m_enemyIndicators.emplace_back(distancePair, 0.5f);
-				enemyHits.emplace_back(powf(distancePair.x - halfWidth, 2) + powf(distancePair.y - halfHeight, 2), enemy);
+				enemyHits.emplace_back(powf(distancePair.x - halfWidth, 2) + powf(distancePair.y - halfHeight, 2), distancePair, enemy);
 			}
 		}
-		sort(enemyHits.begin(), enemyHits.end());
+		sort(enemyHits.begin(), enemyHits.end(), [](const auto& a, const auto& b) { return get<0>(a) < get<0>(b); });
 
 		for (size_t i = 0; i < min(enemyHits.size(), static_cast<size_t>(6)); ++i)
 		{
-			enemyHits[i].second->SetAlive(false);
+			get<2>(enemyHits[i])->SetAlive(false);
 
 			LineBuffer lineBuffer = {};
 			XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
 			lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
-			XMStoreFloat4(&lineBuffer.linePoints[1], enemyHits[i].second->GetWorldPosition());
+			XMStoreFloat4(&lineBuffer.linePoints[1], get<2>(enemyHits[i])->GetWorldPosition());
 			lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
 
 			m_lineBuffers.emplace_back(lineBuffer, 0.5f);
+			m_enemyIndicators.emplace_back(get<1>(enemyHits[i]), 0.5f);
 		}
 	}
 
