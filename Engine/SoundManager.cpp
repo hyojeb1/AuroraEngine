@@ -53,6 +53,7 @@ void SoundManager::Initialize()
 		for (auto& n : BGM_List)
 		{
 			std::cout << n.first << std::endl;
+			CreateNodeData(n.first);
 		}
 
 		for (auto& n : SFX_List)
@@ -65,7 +66,7 @@ void SoundManager::Initialize()
 			std::cout << n.first << std::endl;
 		}
 
-		CreateNodeData("Sample1_Beat(Kick)");
+		
 
 		m_CoreSystem->update();
 	}
@@ -213,6 +214,14 @@ void SoundManager::CreateNodeData(const std::string& filename)
 {
 	auto it = BGM_List.find(filename);
 	if (it == BGM_List.end())
+		return;
+
+	std::string path = "../Asset/BeatMapData/";
+	std::string ext = "_nodes.json";
+
+	std::ifstream file(path + filename + ext);
+
+	if (file.is_open())
 		return;
 
 	FMOD::Sound* sound = it->second;
