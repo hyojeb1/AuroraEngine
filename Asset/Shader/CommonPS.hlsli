@@ -6,12 +6,21 @@
 // Constant Buffers
 // --------------------------------------------------------
 
-cbuffer CameraPosition : register(b0)
+cbuffer PostProcessParams : register(b0)
+{
+    uint PostProcessingFlags;
+    
+    float GrayScaleIntensity;
+    float MotionBlurIntensity;
+    float PaddingA;
+};
+
+cbuffer CameraPosition : register(b1)
 {
     float4 CameraPosition;
 };
 
-cbuffer GlobalLight : register(b1)
+cbuffer GlobalLight : register(b2)
 {
     float4 LightColor; // w는 IBL 강도
     float4 LightDirection; // 정규화된 방향 벡터 // w는 방향광 강도
@@ -19,7 +28,7 @@ cbuffer GlobalLight : register(b1)
     matrix LightViewProjectionMatrix;
 };
 
-cbuffer MaterialFactor : register(b2)
+cbuffer MaterialFactor : register(b3)
 {
     float4 AlbedoFactor;
     
@@ -33,7 +42,7 @@ cbuffer MaterialFactor : register(b2)
     float HeightScale;
 
     float LightFactor;
-    float glowFactor;
+    float GlowFactor;
     
     float4 EmissionFactor;
 };

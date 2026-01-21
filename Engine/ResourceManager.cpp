@@ -105,6 +105,8 @@ void ResourceManager::SetAllConstantBuffers()
 	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Line), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Line)].GetAddressOf());
 
 	// 픽셀 셰이더용 상수 버퍼 설정
+	// 후처리 상수 버퍼
+	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::PostProcessing), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::PostProcessing)].GetAddressOf());
 	// 카메라 위치 상수 버퍼
 	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::CameraPosition), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::CameraPosition)].GetAddressOf());
 	// 방향광 상수 버퍼
@@ -307,7 +309,6 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 
 	Assimp::Importer importer;
 	importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
-	importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_POINT | aiPrimitiveType_LINE);
 	const string fullPath = "../Asset/Model/" + fileName;
 
 	const aiScene* scene = importer.ReadFile
@@ -444,6 +445,9 @@ void ResourceManager::CreateConstantBuffers()
 	CheckResult(hr, "LineColor 상수 버퍼 생성 실패.");
 
 	// 픽셀 셰이더용 상수 버퍼 생성
+	// 후처리 상수 버퍼
+	hr = m_device->CreateBuffer(&PS_CONST_BUFFER_DESCS[static_cast<size_t>(PSConstBuffers::PostProcessing)], nullptr, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::PostProcessing)].GetAddressOf());
+	CheckResult(hr, "PostProcessing 상수 버퍼 생성 실패.");
 	// 카메라 위치 상수 버퍼
 	hr = m_device->CreateBuffer(&PS_CONST_BUFFER_DESCS[static_cast<size_t>(PSConstBuffers::CameraPosition)], nullptr, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::CameraPosition)].GetAddressOf());
 	CheckResult(hr, "CameraPosition 상수 버퍼 생성 실패.");

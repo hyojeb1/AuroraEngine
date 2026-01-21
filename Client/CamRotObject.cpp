@@ -21,8 +21,8 @@ void CamRotObject::Update()
 	const POINT& delta = input.GetMouseDelta();
 	const XMVECTOR& euler = GetRotation();
 
-	float yaw = XMVectorGetY(euler) + static_cast<float>(delta.x) * 0.1f;
-	float pitch = XMVectorGetX(euler) + static_cast<float>(delta.y) * 0.1f;
+	float yaw = XMVectorGetY(euler) + static_cast<float>(delta.x) * m_sensitivity;
+	float pitch = XMVectorGetX(euler) + static_cast<float>(delta.y) * m_sensitivity;
 
 	constexpr float LIMIT = 90.0f - 1.0f;
 	if (pitch > LIMIT) pitch = LIMIT;

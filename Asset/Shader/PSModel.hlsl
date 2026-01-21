@@ -67,7 +67,7 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w * orm.r; // AO 적용
     
     // 최종 색상
-    albedo.rgb = (LinearToSRGB(Lo + ibl) * LightFactor) + (albedo.rgb * glowFactor);
+    albedo.rgb = (LinearToSRGB(Lo + ibl) * LightFactor) + (albedo.rgb * GlowFactor);
     
     return albedo + EmissionFactor;
 }
