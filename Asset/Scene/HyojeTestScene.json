@@ -236,11 +236,11 @@
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
                     },
-                    "modelFileName": "Target.fbx",
+                    "modelFileName": "Aurora.fbx",
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
-                    "type": "ModelComponent",
-                    "vsShaderName": "VSModel.hlsl"
+                    "type": "SkinnedModelComponent",
+                    "vsShaderName": "VSModelSkinAnim.hlsl"
                 },
                 {
                     "boundingBoxes": [

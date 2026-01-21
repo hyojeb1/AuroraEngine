@@ -47,7 +47,7 @@ void SkinnedModelComponent::Update()
 
 	if (!animator_) return;
 
-	const float delta_time = TimeManager::GetInstance().GetDeltaTime();
+	const float& delta_time = TimeManager::GetInstance().GetDeltaTime();
 	animator_->UpdateAnimation(delta_time);
 }
 
@@ -174,8 +174,35 @@ void SkinnedModelComponent::Render()
 void SkinnedModelComponent::RenderImGui()
 {
 	ModelComponent::RenderImGui();
-	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 
+	if (!m_model || !animator_)		return;
+
+	if (ImGui::CollapsingHeader("Animator Settings", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		std::string currentAnimName = animator_->GetCurrentAnimationName();
+		ImGui::Text("Current State: ");
+		ImGui::SameLine();
+		ImGui::TextColored(ImVec4(0.f, 1.f, 0.f, 1.f), "%s", currentAnimName.c_str());
+		ImGui::Spacing();
+
+		if (ImGui::BeginCombo("Play Animation", currentAnimName.c_str()))
+		{
+			for (const auto& clip : m_model->animations)
+			{
+				bool isSelected = (currentAnimName == clip.name);
+				if (ImGui::Selectable(clip.name.c_str(), isSelected))
+				{
+					animator_->PlayAnimation(clip.name, true, 0.5f);
+				}
+
+				if (isSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
+	}
 }
 
 nlohmann::json SkinnedModelComponent::Serialize()

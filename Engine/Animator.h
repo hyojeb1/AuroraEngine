@@ -35,6 +35,8 @@ public:
 
 	const std::vector<DirectX::XMMATRIX>& GetFinalBoneMatrices() const { return final_bone_matrices_; }
 
+	const std::string GetCurrentAnimationName() const;
+
 private:
 	AnimationClip* FindClipByName(const std::string& clip_name) const;
 	void CalculateBoneTransform(const std::shared_ptr<SkeletonNode>& node, const DirectX::XMMATRIX& parent_transform);

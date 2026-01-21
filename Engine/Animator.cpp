@@ -181,6 +181,15 @@ void Animator::PlayAnimation(const std::string& clip_name, bool is_loop, float b
 	
 }
 
+const std::string Animator::GetCurrentAnimationName() const
+{
+	if (current_clip_)
+	{
+		return current_clip_->name;
+	}
+	return "None";
+}
+
 AnimationClip* Animator::FindClipByName(const std::string& clip_name) const
 {
 	if (!model_context_) return nullptr;
