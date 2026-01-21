@@ -65,6 +65,7 @@
 #endif
 #include <fmod/fmod.hpp>
 #include <fmod/fmod_error_wrap.h>
+#include <fftw3.h>
 
 // 메크로 정의
 // com_ptr 매크로

@@ -39,12 +39,14 @@ void EmitterComponent::RenderImGui()
 
 nlohmann::json EmitterComponent::Serialize()
 {
-	nlohmann::json json;
+	nlohmann::json jsonData;
 
-	return json;
+	jsonData["SourceName"] = m_sourceName;
+
+	return jsonData;
 }
 
 void EmitterComponent::Deserialize(const nlohmann::json& jsonData)
 {
-
+	m_sourceName = jsonData["SourceName"].get<std::string>();
 }

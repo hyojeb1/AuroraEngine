@@ -1,7 +1,9 @@
 {
   "dependencies": [
     "assimp",
+    "boost-asio",
     "directxtk",
+    "fftw3",
     {
       "name": "imgui",
       "features": [
