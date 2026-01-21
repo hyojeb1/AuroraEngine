@@ -52,7 +52,7 @@
                                 },
                                 {
                                     "initialState": "Idle",
-                                    "type": "FSMComponent"
+                                    "type": "FSMComponentGun"
                                 }
                             ],
                             "name": "Gun",

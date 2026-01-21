@@ -162,6 +162,7 @@
     <ClInclude Include="DebugCamera.h" />
     <ClInclude Include="EmitterComponent.h" />
     <ClInclude Include="FSMComponent.h" />
+    <ClInclude Include="FSMComponentGun.h" />
     <ClInclude Include="GameObjectBase.h" />
     <ClInclude Include="Base.h" />
     <ClInclude Include="InputManager.h" />
@@ -188,6 +189,7 @@
     <ClCompile Include="DebugCamera.cpp" />
     <ClCompile Include="EmitterComponent.cpp" />
     <ClCompile Include="FSMComponent.cpp" />
+    <ClCompile Include="FSMComponentGun.cpp" />
     <ClCompile Include="GameObjectBase.cpp" />
     <ClCompile Include="Base.cpp" />
     <ClCompile Include="InputManager.cpp" />

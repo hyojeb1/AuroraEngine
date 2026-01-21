@@ -15,10 +15,6 @@ public:
 	GunObject& operator=(GunObject&&) = default;
 
 private:
-
 	void Initialize() override;
 	void Update() override;
-
-	float recoil_timer_ = 0.0f;         
-	DirectX::XMVECTOR origin_rotation_; 
 };

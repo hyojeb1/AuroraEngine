@@ -3,37 +3,21 @@
 #include "FSMComponent.h"
 #include "TimeManager.h"
 
-REGISTER_TYPE(FSMComponent)
+//REGISTER_TYPE(FSMComponent)
 
 using namespace std;
 using namespace nlohmann;
-
-void FSMComponent::SetStateLogics(EState state, EventFunc on_enter, ActionFunc on_update, EventFunc on_exit)
-{
-	enter_actions_[state] = on_enter;
-	update_actions_[state] = on_update;
-	exit_actions_[state] = on_exit;
-}
 
 void FSMComponent::ChangeState(EState next_state)
 {
 	if (current_state_ == next_state)
 		return;
 
-	if (exit_actions_.find(current_state_) != exit_actions_.end())
-	{
-		if (exit_actions_[current_state_])
-			exit_actions_[current_state_]();
-	}
+	OnExitState(current_state_);
 
 	current_state_ = next_state;
 
-
-	if (enter_actions_.find(current_state_) != enter_actions_.end())
-	{
-		if (enter_actions_[current_state_])
-			enter_actions_[current_state_]();
-	}
+	OnEnterState(current_state_);
 }
 
 string FSMComponent::StateToString(EState state) const
@@ -59,24 +43,13 @@ EState FSMComponent::StringToState(const string& str) const
 void FSMComponent::Initialize()
 {
 	current_state_ = start_state_;
-	if (enter_actions_.find(current_state_) != enter_actions_.end())
-	{
-		if (enter_actions_[current_state_])
-			enter_actions_[current_state_]();
-	}
+	OnEnterState(current_state_);
 }
 
 void FSMComponent::Update()
 {
 	float delta_time = TimeManager::GetInstance().GetDeltaTime();
-
-	if (update_actions_.find(current_state_) != update_actions_.end())
-	{
-		if (update_actions_[current_state_])
-		{
-			update_actions_[current_state_](delta_time);
-		}
-	}
+	OnUpdateState(current_state_, delta_time);
 }
 
 void FSMComponent::RenderImGui()
