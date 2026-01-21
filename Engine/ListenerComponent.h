@@ -4,7 +4,7 @@ class ListenerComponent : public ComponentBase
 {
 public:
 	bool NeedsFixedUpdate() const override { return false; }
-	bool NeedsUpdate() const override { return false; }
+	bool NeedsUpdate() const override { return true; }
 	bool NeedsRender() const override { return false; }
 
 protected:

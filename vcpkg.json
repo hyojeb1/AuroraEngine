@@ -1,7 +1,9 @@
 {
   "dependencies": [
     "assimp",
+    "boost-asio",
     "directxtk",
+    "fftw3",
     {
       "name": "imgui",
       "features": [
@@ -10,7 +12,6 @@
         "win32-binding"
       ]
     },
-    "nlohmann-json",
-    "boost-asio"
+    "nlohmann-json"
   ]
 }

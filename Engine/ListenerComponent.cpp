@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "SoundManager.h"
 #include "GameObjectBase.h"
 #include "ListenerComponent.h"
 
@@ -11,7 +12,7 @@ void ListenerComponent::Initialize()
 
 void ListenerComponent::Update()
 {
-
+	SoundManager::GetInstance().UpdateListener(this);
 }
 
 void ListenerComponent::Render()

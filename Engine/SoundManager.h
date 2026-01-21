@@ -31,7 +31,11 @@ public:
 	void ConvertSFXSource();
 	void ConvertUISource();
 
+	void CreateNodeData(const std::string& filename);
+
+	void BGM_Shot(const std::string filename);
 	void SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename);
+	void UI_Shot(const std::string filename);
 
 	void UpdateListener(ListenerComponent* listener);
 	
