@@ -7,14 +7,6 @@
 #define NOMINMAX
 #endif
 
-#include <winsock2.h>
-#include <ws2tcpip.h>
-
-#include <windows.h>
-#include <mmsystem.h>
-#pragma comment(lib, "winmm.lib") // timeGetTime
-#include <wrl/client.h>
-
 // STL 헤더
 #include <array>
 #include <filesystem>
@@ -25,7 +17,16 @@
 #include <unordered_map>
 #include <queue>
 #include <optional>
-#include <cstdint>   
+#include <cstdint>
+#include <algorithm>
+
+// 윈도우 헤더
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib") // timeGetTime
+#include <wrl/client.h>
 
 // DirectX 헤더
 #include <d3d11.h>

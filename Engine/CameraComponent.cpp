@@ -20,6 +20,30 @@ const BoundingFrustum CameraComponent::GetBoundingFrustum() const
 	return frustum;
 }
 
+XMFLOAT2 CameraComponent::WorldToScreenPosition(const XMVECTOR& worldPosition) const
+{
+	const DXGI_SWAP_CHAIN_DESC1& swapChainDesc = Renderer::GetInstance().GetSwapChainDesc();
+
+	XMFLOAT2 result = {};
+
+	XMStoreFloat2
+	(
+		&result,
+		XMVector3Project
+		(
+			worldPosition,
+			0.0f, 0.0f,
+			static_cast<float>(swapChainDesc.Width), static_cast<float>(swapChainDesc.Height),
+			0.0f, 1.0f,
+			m_projectionMatrix,
+			m_viewMatrix,
+			XMMatrixIdentity()
+		)
+	);
+
+	return result;
+}
+
 void CameraComponent::Initialize()
 {
 	#ifdef _DEBUG
