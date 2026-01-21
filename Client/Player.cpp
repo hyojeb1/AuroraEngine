@@ -11,6 +11,8 @@
 #include "ModelComponent.h"
 #include "Enemy.h"
 
+#include "GunObject.h"
+
 REGISTER_TYPE(Player)
 
 using namespace std;
@@ -59,6 +61,12 @@ void Player::Update()
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
 		float distance = 0.0f;
+
+		if (auto gun = dynamic_cast<GunObject*>(m_gunObject))
+		{
+			gun->Fire();
+		}
+
 		const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 		const XMVECTOR& origin = mainCamera.GetPosition();
 		const XMVECTOR& direction = mainCamera.GetForwardVector();
@@ -128,11 +136,7 @@ void Player::Render()
 	// 크로스헤어 UI 렌더링
 	renderer.UI_RENDER_FUNCTIONS().emplace_back
 	(
-		[&]()
-		{
-			constexpr XMFLOAT2 center = { 0.5f, 0.5f };
-			Renderer::GetInstance().RenderImageUIPosition(m_crosshairSRV, center, m_crosshairOffset);
-		}
+		[&]() { Renderer::GetInstance().RenderImageUIPosition(m_crosshairSRV, { 0.5f, 0.5f }, m_crosshairOffset); }
 	);
 
 	if (!m_lineBuffers.empty())
@@ -164,10 +168,7 @@ void Player::Render()
 	{
 		renderer.UI_RENDER_FUNCTIONS().emplace_back
 		(
-			[&]()
-			{
-				for (const auto& [position, time] : m_enemyIndicators) Renderer::GetInstance().RenderImageScreenPosition(m_crosshairSRV, position, m_crosshairOffset, 0.5f);
-			}
+			[&]() { for (const auto& [position, time] : m_enemyIndicators) Renderer::GetInstance().RenderImageScreenPosition(m_crosshairSRV, position, m_crosshairOffset, 0.5f); }
 		);
 	}
 }

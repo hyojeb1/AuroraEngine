@@ -14,51 +14,112 @@
     ],
     "rootGameObjects": [
         {
-            "childGameObjects": [],
-            "components": [
+            "childGameObjects": [
                 {
-                    "blendState": 0,
-                    "materialFactorData": {
-                        "albedoFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "ambientOcclusionFactor": 1.0,
-                        "emissionFactor": [
-                            0.0,
-                            0.0,
-                            0.0,
-                            0.0
-                        ],
-                        "glowFactor": 0.0,
-                        "heightScale": 0.05000000074505806,
-                        "ior": 1.5,
-                        "lightFactor": 1.0,
-                        "metallicFactor": 1.0,
-                        "normalScale": 1.0,
-                        "roughnessFactor": 1.0
-                    },
-                    "modelFileName": "Arm.fbx",
-                    "psShaderName": "PSModel.hlsl",
-                    "rasterState": 1,
-                    "type": "SkinnedModelComponent",
-                    "vsShaderName": "VSModelSkinAnim.hlsl"
+                    "childGameObjects": [
+                        {
+                            "childGameObjects": [],
+                            "components": [
+                                {
+                                    "blendState": 0,
+                                    "materialFactorData": {
+                                        "albedoFactor": [
+                                            1.0,
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                        ],
+                                        "ambientOcclusionFactor": 1.0,
+                                        "emissionFactor": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
+                                        "glowFactor": 0.0,
+                                        "heightScale": 0.05000000074505806,
+                                        "ior": 1.5,
+                                        "lightFactor": 1.0,
+                                        "metallicFactor": 1.0,
+                                        "normalScale": 1.0,
+                                        "roughnessFactor": 1.0
+                                    },
+                                    "modelFileName": "box.fbx",
+                                    "psShaderName": "PSModel.hlsl",
+                                    "rasterState": 1,
+                                    "type": "ModelComponent",
+                                    "vsShaderName": "VSModel.hlsl"
+                                },
+                                {
+                                    "initialState": "Idle",
+                                    "type": "FSMComponentGun"
+                                }
+                            ],
+                            "name": "Gun",
+                            "position": [
+                                0.07500000298023224,
+                                -0.04500000178813934,
+                                0.15000000596046448,
+                                0.0
+                            ],
+                            "rotation": [
+                                0.0,
+                                -0.18223552405834198,
+                                0.0,
+                                0.9832549095153809
+                            ],
+                            "scale": [
+                                0.009999999776482582,
+                                0.009999999776482582,
+                                0.019999999552965164,
+                                1.0
+                            ],
+                            "type": "GunObject"
+                        }
+                    ],
+                    "components": [
+                        {
+                            "farZ": 1000.0,
+                            "fovY": 0.7853981852531433,
+                            "nearZ": 0.10000000149011612,
+                            "type": "CameraComponent"
+                        }
+                    ],
+                    "name": "CamRotObject_2",
+                    "position": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "type": "CamRotObject"
                 }
             ],
-            "name": "HyojeTestObject_1",
+            "components": [],
+            "name": "Player_1",
             "position": [
                 0.0,
-                0.0,
+                2.0,
                 0.0,
                 0.0
             ],
             "rotation": [
                 0.0,
-                0.013089596293866634,
                 0.0,
-                0.9999143481254578
+                0.0,
+                1.0
             ],
             "scale": [
                 1.0,
@@ -66,7 +127,7 @@
                 1.0,
                 1.0
             ],
-            "type": "HyojeTestObject"
+            "type": "Player"
         },
         {
             "childGameObjects": [],
@@ -95,18 +156,43 @@
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
                     },
-                    "modelFileName": "Arm.fbx",
+                    "modelFileName": "4-final-ani-idle.fbx",
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",
                     "vsShaderName": "VSModelSkinAnim.hlsl"
+                },
+                {
+                    "boundingBoxes": [],
+                    "boundingFrustums": [],
+                    "boundingOrientedBoxes": [
+                        {
+                            "center": [
+                                0.0,
+                                2.0,
+                                0.0
+                            ],
+                            "extents": [
+                                1.0,
+                                3.5,
+                                1.0
+                            ],
+                            "orientation": [
+                                0.0,
+                                0.0,
+                                0.0,
+                                1.0
+                            ]
+                        }
+                    ],
+                    "type": "ColliderComponent"
                 }
             ],
-            "name": "HyojeTestObject_2",
+            "name": "GameObjectBase_3",
             "position": [
-                -3.200000047683716,
+                -4.699999809265137,
                 0.0,
-                0.0,
+                12.899999618530273,
                 0.0
             ],
             "rotation": [
@@ -121,7 +207,7 @@
                 1.0,
                 1.0
             ],
-            "type": "HyojeTestObject"
+            "type": "GameObjectBase"
         },
         {
             "childGameObjects": [],
@@ -150,49 +236,37 @@
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
                     },
-                    "modelFileName": "CastleGuard01_Walking.fbx",
+                    "modelFileName": "freepose_2.fbx",
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",
                     "vsShaderName": "VSModelSkinAnim.hlsl"
-                }
-            ],
-            "name": "HyojeTestObject_3",
-            "position": [
-                3.049999952316284,
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            ],
-            "type": "HyojeTestObject"
-        },
-        {
-            "childGameObjects": [],
-            "components": [
+                },
                 {
-                    "farZ": 1000.0,
-                    "fovY": 0.7853981852531433,
-                    "nearZ": 0.10000000149011612,
-                    "type": "CameraComponent"
+                    "boundingBoxes": [
+                        {
+                            "center": [
+                                0.0,
+                                2.0,
+                                0.0
+                            ],
+                            "extents": [
+                                1.0,
+                                3.200000047683716,
+                                1.0
+                            ]
+                        }
+                    ],
+                    "boundingFrustums": [],
+                    "boundingOrientedBoxes": [],
+                    "type": "ColliderComponent"
                 }
             ],
-            "name": "CamRotObject_3",
+            "name": "GameObjectBase_4",
             "position": [
+                8.75,
                 0.0,
-                0.0,
-                -10.0,
+                12.350000381469727,
                 0.0
             ],
             "rotation": [
@@ -207,7 +281,7 @@
                 1.0,
                 1.0
             ],
-            "type": "TestCameraObject"
+            "type": "GameObjectBase"
         }
     ]
 }
