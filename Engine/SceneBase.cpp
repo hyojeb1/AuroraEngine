@@ -179,7 +179,7 @@ void SceneBase::BaseRender()
 	{
 		renderer.UI_RENDER_FUNCTIONS().emplace_back
 		(
-			[&](SpriteBatch* spriteBatch)
+			[&]()
 			{
 				static UINT frameCount = 0;
 				static float elapsedTime = 0.0f;
@@ -196,7 +196,7 @@ void SceneBase::BaseRender()
 					elapsedTime = 0.0;
 				}
 
-				m_spriteFont->DrawString(spriteBatch, (wstring(L"FPS: ") + to_wstring(FPS)).c_str(), XMFLOAT2{ 10.0f, 10.0f }, Colors::White, 0.0f, XMFLOAT2{ 0.0f, 0.0f }, 1.0f);
+				Renderer::GetInstance().RenderTextScreenPosition((L"FPS: " + to_wstring(FPS)).c_str(), XMFLOAT2(10.0f, 10.0f));
 			}
 		);
 	}

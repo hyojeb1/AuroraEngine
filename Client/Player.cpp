@@ -22,6 +22,24 @@ void Player::Initialize()
 	m_lineVertexBufferAndShader = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_linePixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
 
+	m_crosshairSRV = resourceManager.GetTexture("Crosshair.png");
+
+	// srv에서 크기 정보 얻기
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	m_crosshairSRV->GetDesc(&srvDesc);
+	if (srvDesc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2D)
+	{
+		D3D11_TEX2D_SRV tex2DSRV = srvDesc.Texture2D;
+		com_ptr<ID3D11Resource> resource = nullptr;
+		m_crosshairSRV->GetResource(resource.GetAddressOf());
+		com_ptr<ID3D11Texture2D> texture2D = nullptr;
+		resource.As(&texture2D);
+		D3D11_TEXTURE2D_DESC textureDesc = {};
+		texture2D->GetDesc(&textureDesc);
+		m_crosshairOffset.x = static_cast<float>(textureDesc.Width) * 0.5f;
+		m_crosshairOffset.y = static_cast<float>(textureDesc.Height) * 0.5f;
+	}
+
 	m_cameraObject = GetChildGameObject("CamRotObject_2");
 	m_gunObject = m_cameraObject->GetChildGameObject("Gun");
 }
@@ -60,51 +78,96 @@ void Player::Update()
 	}
 	if (input.GetKeyDown(KeyCode::MouseRight))
 	{
-		vector<GameObjectBase*> hits = ColliderComponent::CheckCollision(CameraComponent::GetMainCamera().GetBoundingFrustum());
+		m_enemyIndicators.clear();
 
-		for (size_t i = 0; i < hits.size(); ++i)
+		const DXGI_SWAP_CHAIN_DESC1& swapChainDesc = Renderer::GetInstance().GetSwapChainDesc();
+		float halfWidth = static_cast<float>(swapChainDesc.Width / 2);
+		float halfHeight = static_cast<float>(swapChainDesc.Height / 2);
+
+		const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
+		vector<GameObjectBase*> hits = ColliderComponent::CheckCollision(mainCamera.GetBoundingFrustum());
+		vector<pair<float, GameObjectBase*>> enemyHits;
+
+		for (GameObjectBase* hit : hits)
 		{
-			if (!dynamic_cast<Enemy*>(hits[i])) continue;
+			if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
+			{
+				XMFLOAT2 distancePair = mainCamera.WorldToScreenPosition(enemy->GetWorldPosition());
 
-			hits[i]->SetAlive(false);
+				m_enemyIndicators.emplace_back(distancePair, 0.5f);
+				enemyHits.emplace_back(powf(distancePair.x - halfWidth, 2) + powf(distancePair.y - halfHeight, 2), enemy);
+			}
+		}
+		sort(enemyHits.begin(), enemyHits.end());
+
+		for (size_t i = 0; i < min(enemyHits.size(), static_cast<size_t>(6)); ++i)
+		{
+			enemyHits[i].second->SetAlive(false);
+
 			LineBuffer lineBuffer = {};
 			XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
-			lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-			XMStoreFloat4(&lineBuffer.linePoints[1], hits[i]->GetWorldPosition());
-			lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+			lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
+			XMStoreFloat4(&lineBuffer.linePoints[1], enemyHits[i].second->GetWorldPosition());
+			lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
 
 			m_lineBuffers.emplace_back(lineBuffer, 0.5f);
 		}
-
 	}
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
 	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();
+
+	for_each(m_enemyIndicators.begin(), m_enemyIndicators.end(), [&](auto& pair) { pair.second -= deltaTime; });
+	if (!m_enemyIndicators.empty() && m_enemyIndicators.front().second < 0.0f) m_enemyIndicators.pop_front();
 }
 
 void Player::Render()
 {
-	if (m_lineBuffers.empty()) return;
+	Renderer& renderer = Renderer::GetInstance();
 
-	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
+	// 크로스헤어 UI 렌더링
+	renderer.UI_RENDER_FUNCTIONS().emplace_back
 	(
-		0.0f,
 		[&]()
 		{
-			ResourceManager& resourceManager = ResourceManager::GetInstance();
-			com_ptr<ID3D11DeviceContext> deviceContext = Renderer::GetInstance().GetDeviceContext();
-
-			deviceContext->IASetInputLayout(m_lineVertexBufferAndShader.second.Get());
-			deviceContext->VSSetShader(m_lineVertexBufferAndShader.first.Get(), nullptr, 0);
-			deviceContext->PSSetShader(m_linePixelShader.Get(), nullptr, 0);
-
-			resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-
-			for (const auto& [lineBuffer, time] : m_lineBuffers)
-			{
-				deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBuffer, 0, 0);
-				deviceContext->Draw(2, 0);
-			}
+			constexpr XMFLOAT2 center = { 0.5f, 0.5f };
+			Renderer::GetInstance().RenderImageUIPosition(m_crosshairSRV, center, m_crosshairOffset);
 		}
 	);
+
+	if (!m_lineBuffers.empty())
+	{
+		renderer.RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
+		(
+			0.0f,
+			[&]()
+			{
+				ResourceManager& resourceManager = ResourceManager::GetInstance();
+				com_ptr<ID3D11DeviceContext> deviceContext = Renderer::GetInstance().GetDeviceContext();
+
+				deviceContext->IASetInputLayout(m_lineVertexBufferAndShader.second.Get());
+				deviceContext->VSSetShader(m_lineVertexBufferAndShader.first.Get(), nullptr, 0);
+				deviceContext->PSSetShader(m_linePixelShader.Get(), nullptr, 0);
+
+				resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+				for (const auto& [lineBuffer, time] : m_lineBuffers)
+				{
+					deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBuffer, 0, 0);
+					deviceContext->Draw(2, 0);
+				}
+			}
+		);
+	}
+
+	if (!m_enemyIndicators.empty())
+	{
+		renderer.UI_RENDER_FUNCTIONS().emplace_back
+		(
+			[&]()
+			{
+				for (const auto& [position, time] : m_enemyIndicators) Renderer::GetInstance().RenderImageScreenPosition(m_crosshairSRV, position, m_crosshairOffset, 0.5f);
+			}
+		);
+	}
 }
