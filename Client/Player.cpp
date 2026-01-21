@@ -86,6 +86,9 @@ void Player::Update()
 	}
 	if (input.GetKeyDown(KeyCode::MouseRight))
 	{
+		m_isDeadEyeActive = true;
+		m_deadEyeTime = 1.0f;
+		m_deadEyeTargets.clear();
 		m_enemyIndicators.clear();
 
 		const DXGI_SWAP_CHAIN_DESC1& swapChainDesc = Renderer::GetInstance().GetSwapChainDesc();
@@ -94,7 +97,6 @@ void Player::Update()
 
 		const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 		vector<GameObjectBase*> hits = ColliderComponent::CheckCollision(mainCamera.GetBoundingFrustum());
-		vector<tuple<float, XMFLOAT2, Enemy*>> enemyHits;
 
 		for (GameObjectBase* hit : hits)
 		{
@@ -102,23 +104,23 @@ void Player::Update()
 			{
 				XMFLOAT2 distancePair = mainCamera.WorldToScreenPosition(enemy->GetWorldPosition());
 
-				enemyHits.emplace_back(powf(distancePair.x - halfWidth, 2) + powf(distancePair.y - halfHeight, 2), distancePair, enemy);
+				m_deadEyeTargets.emplace_back(powf(distancePair.x - halfWidth, 2) + powf(distancePair.y - halfHeight, 2), distancePair, enemy);
 			}
 		}
-		sort(enemyHits.begin(), enemyHits.end(), [](const auto& a, const auto& b) { return get<0>(a) < get<0>(b); });
+		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [](const auto& a, const auto& b) { return get<0>(a) < get<0>(b); });
 
-		for (size_t i = 0; i < min(enemyHits.size(), static_cast<size_t>(6)); ++i)
+		for (size_t i = 0; i < min(m_deadEyeTargets.size(), static_cast<size_t>(6)); ++i)
 		{
-			get<2>(enemyHits[i])->SetAlive(false);
+			get<2>(m_deadEyeTargets[i])->SetAlive(false);
 
 			LineBuffer lineBuffer = {};
 			XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
 			lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
-			XMStoreFloat4(&lineBuffer.linePoints[1], get<2>(enemyHits[i])->GetWorldPosition());
+			XMStoreFloat4(&lineBuffer.linePoints[1], get<2>(m_deadEyeTargets[i])->GetWorldPosition());
 			lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
 
 			m_lineBuffers.emplace_back(lineBuffer, 0.5f);
-			m_enemyIndicators.emplace_back(get<1>(enemyHits[i]), 0.5f);
+			m_enemyIndicators.emplace_back(get<1>(m_deadEyeTargets[i]), 0.5f);
 		}
 	}
 

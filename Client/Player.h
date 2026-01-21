@@ -16,6 +16,10 @@ class Player : public GameObjectBase
 	GameObjectBase* m_cameraObject = nullptr;
 	GameObjectBase* m_gunObject = nullptr;
 
+	bool m_isDeadEyeActive = false;
+	float m_deadEyeTime = 0.0f;
+	std::vector<std::tuple<float, DirectX::XMFLOAT2, class Enemy*>> m_deadEyeTargets = {};
+
 public:
 	Player() = default;
 	~Player() = default;
