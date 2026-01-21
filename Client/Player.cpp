@@ -176,6 +176,7 @@ void Player::Render()
 				deviceContext->VSSetShader(m_lineVertexBufferAndShader.first.Get(), nullptr, 0);
 				deviceContext->PSSetShader(m_linePixelShader.Get(), nullptr, 0);
 
+				resourceManager.SetRasterState(RasterState::SolidCullNone);
 				resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
 				for (const auto& [lineBuffer, time] : m_lineBuffers)

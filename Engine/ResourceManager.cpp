@@ -200,6 +200,28 @@ pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> ResourceManager::G
 	return m_vertexShadersAndInputLayouts[shaderName];
 }
 
+com_ptr<ID3D11GeometryShader> ResourceManager::GetGeometryShader(const string& shaderName)
+{
+	// 기존에 생성된 지오메트리 셰이더가 있으면 재사용
+	auto it = m_geometryShaders.find(shaderName);
+	if (it != m_geometryShaders.end()) return it->second;
+
+	HRESULT hr = S_OK;
+
+	// 지오메트리 셰이더 컴파일
+	com_ptr<ID3DBlob> GSCode = CompileShader(shaderName, "gs_5_0");
+	hr = m_device->CreateGeometryShader
+	(
+		GSCode->GetBufferPointer(),
+		GSCode->GetBufferSize(),
+		nullptr,
+		m_geometryShaders[shaderName].GetAddressOf()
+	);
+	CheckResult(hr, "지오메트리 셰이더 생성 실패.");
+
+	return m_geometryShaders[shaderName];
+}
+
 com_ptr<ID3D11PixelShader> ResourceManager::GetPixelShader(const string& shaderName)
 {
 	// 기존에 생성된 픽셀 셰이더가 있으면 재사용
