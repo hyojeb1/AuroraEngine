@@ -134,6 +134,7 @@ enum class RasterState
 {
 	BackBuffer, // 백 버퍼 전용 래스터 상태 // AA 없음
 	Solid,
+	SolidCullNone,
 	Wireframe,
 
 	Count
@@ -160,6 +161,21 @@ constexpr std::array<D3D11_RASTERIZER_DESC, static_cast<size_t>(RasterState::Cou
 	{
 		.FillMode = D3D11_FILL_SOLID,
 		.CullMode = D3D11_CULL_BACK, // 뒷면 컬링(CCW)
+		.FrontCounterClockwise = FALSE,
+		.DepthBias = 0,
+		.DepthBiasClamp = 0.0f,
+		.SlopeScaledDepthBias = 0.0f,
+		.DepthClipEnable = TRUE,
+		.ScissorEnable = FALSE,
+		.MultisampleEnable = TRUE,
+		.AntialiasedLineEnable = TRUE
+	},
+
+	// SolidCullNone
+	D3D11_RASTERIZER_DESC
+	{
+		.FillMode = D3D11_FILL_SOLID,
+		.CullMode = D3D11_CULL_NONE, // 컬링 없음
 		.FrontCounterClockwise = FALSE,
 		.DepthBias = 0,
 		.DepthBiasClamp = 0.0f,
