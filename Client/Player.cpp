@@ -12,6 +12,7 @@
 #include "Enemy.h"
 
 #include "GunObject.h"
+#include "CamRotObject.h"
 
 REGISTER_TYPE(Player)
 
@@ -42,7 +43,7 @@ void Player::Initialize()
 		m_crosshairOffset.y = static_cast<float>(textureDesc.Height) * 0.5f;
 	}
 
-	m_cameraObject = GetChildGameObject("CamRotObject_2");
+	m_cameraObject = GetChildGameObject<CamRotObject>("CamRotObject_2");
 	m_gunObject = m_cameraObject->GetChildGameObject("Gun");
 }
 
@@ -84,49 +85,77 @@ void Player::Update()
 			m_lineBuffers.emplace_back(lineBuffer, 0.5f);
 		}
 	}
-	if (input.GetKeyDown(KeyCode::MouseRight))
+	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight))
 	{
-		m_enemyIndicators.clear();
-
 		const DXGI_SWAP_CHAIN_DESC1& swapChainDesc = Renderer::GetInstance().GetSwapChainDesc();
 		float halfWidth = static_cast<float>(swapChainDesc.Width / 2);
 		float halfHeight = static_cast<float>(swapChainDesc.Height / 2);
 
 		const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 		vector<GameObjectBase*> hits = ColliderComponent::CheckCollision(mainCamera.GetBoundingFrustum());
-		vector<tuple<float, XMFLOAT2, Enemy*>> enemyHits;
+
+		bool hasEnemy = false;
 
 		for (GameObjectBase* hit : hits)
 		{
 			if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
 			{
+				hasEnemy = true;
 				XMFLOAT2 distancePair = mainCamera.WorldToScreenPosition(enemy->GetWorldPosition());
-
-				enemyHits.emplace_back(powf(distancePair.x - halfWidth, 2) + powf(distancePair.y - halfHeight, 2), distancePair, enemy);
+				m_deadEyeTargets.emplace_back(powf(distancePair.x - halfWidth, 2) + powf(distancePair.y - halfHeight, 2), enemy);
 			}
 		}
-		sort(enemyHits.begin(), enemyHits.end(), [](const auto& a, const auto& b) { return get<0>(a) < get<0>(b); });
-
-		for (size_t i = 0; i < min(enemyHits.size(), static_cast<size_t>(6)); ++i)
+		if (hasEnemy)
 		{
-			get<2>(enemyHits[i])->SetAlive(false);
+			m_isDeadEyeActive = true;
+			m_deadEyeTime = m_deadEyeDuration;
 
-			LineBuffer lineBuffer = {};
-			XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
-			lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
-			XMStoreFloat4(&lineBuffer.linePoints[1], get<2>(enemyHits[i])->GetWorldPosition());
-			lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
+			TimeManager::GetInstance().SetTimeScale(0.1f); // 데드 아이 타임 활성화 시 시간 느리게
+			m_cameraSensitivity = m_cameraObject->GetSensitivity();
+			m_cameraObject->SetSensitivity(0.01f); // 데드 아이 타임 활성화 시 카메라 감도 감소
+			m_postProcessingBuffer.flags |= static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Grayscale);
 
-			m_lineBuffers.emplace_back(lineBuffer, 0.5f);
-			m_enemyIndicators.emplace_back(get<1>(enemyHits[i]), 0.5f);
+			sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [](const auto& a, const auto& b) { return get<0>(a) < get<0>(b); });
+			if (m_deadEyeTargets.size() > 6) m_deadEyeTargets.resize(6);
 		}
+	}
+
+	if (m_isDeadEyeActive)
+	{
+		m_postProcessingBuffer.grayScaleIntensity = (1.0f - (m_deadEyeTime / m_deadEyeDuration)) * 2.0f;
+		m_deadEyeTime -= deltaTime;
+
+		if (m_deadEyeTime <= 0.0f) // 데드 아이 타임 종료
+		{
+			for (const auto& [timing, enemy] : m_deadEyeTargets)
+			{
+				if (timing > 999990.1f) continue; // 0.1초 이상 타이밍이 안맞으면 무시
+
+				enemy->SetAlive(false);
+
+				LineBuffer lineBuffer = {};
+				if (m_gunObject) XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
+				lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 0.5f, 0.5f, 1.0f };
+				XMStoreFloat4(&lineBuffer.linePoints[1], enemy->GetWorldPosition());
+				lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 0.5f, 0.5f, 1.0f };
+
+				m_lineBuffers.emplace_back(lineBuffer, 0.5f);
+			}
+
+			m_isDeadEyeActive = false;
+
+			TimeManager::GetInstance().SetTimeScale(1.0f); // 시간 정상화
+			m_cameraObject->SetSensitivity(m_cameraSensitivity); // 카메라 감도 원래대로
+			m_deadEyeTargets.clear();
+			m_postProcessingBuffer.flags &= ~static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Grayscale);
+			m_postProcessingBuffer.grayScaleIntensity = 0.0f;
+		}
+
+		Renderer::GetInstance().GetDeviceContext()->UpdateSubresource(ResourceManager::GetInstance().GetConstantBuffer(PSConstBuffers::PostProcessing).Get(), 0, nullptr, &m_postProcessingBuffer, 0, 0);
 	}
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
 	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();
-
-	for_each(m_enemyIndicators.begin(), m_enemyIndicators.end(), [&](auto& pair) { pair.second -= deltaTime; });
-	if (!m_enemyIndicators.empty() && m_enemyIndicators.front().second < 0.0f) m_enemyIndicators.pop_front();
 }
 
 void Player::Render()
@@ -153,6 +182,7 @@ void Player::Render()
 				deviceContext->VSSetShader(m_lineVertexBufferAndShader.first.Get(), nullptr, 0);
 				deviceContext->PSSetShader(m_linePixelShader.Get(), nullptr, 0);
 
+				resourceManager.SetRasterState(RasterState::SolidCullNone);
 				resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
 				for (const auto& [lineBuffer, time] : m_lineBuffers)
@@ -164,11 +194,24 @@ void Player::Render()
 		);
 	}
 
-	if (!m_enemyIndicators.empty())
+	if (!m_deadEyeTargets.empty())
 	{
 		renderer.UI_RENDER_FUNCTIONS().emplace_back
 		(
-			[&]() { for (const auto& [position, time] : m_enemyIndicators) Renderer::GetInstance().RenderImageScreenPosition(m_crosshairSRV, position, m_crosshairOffset, 0.5f); }
+			[&]()
+			{
+				const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
+
+				for (const auto& [timing, enemy] : m_deadEyeTargets)
+				{
+					Renderer::GetInstance().RenderImageScreenPosition(m_crosshairSRV, mainCamera.WorldToScreenPosition(enemy->GetWorldPosition()), m_crosshairOffset, 0.5f);
+				}
+			}
 		);
 	}
+}
+
+void Player::Finalize()
+{
+	TimeManager::GetInstance().SetTimeScale(1.0f); // 시간 느린 상태에서 종료되는 상황 방지
 }

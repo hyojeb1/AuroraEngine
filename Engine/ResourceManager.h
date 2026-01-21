@@ -30,6 +30,7 @@ class ResourceManager : public Singleton<ResourceManager>
 	std::array<com_ptr<ID3D11SamplerState>, static_cast<size_t>(SamplerState::Count)> m_samplerStates = {}; // 샘플러 상태 배열
 
 	std::unordered_map<std::string, std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>>> m_vertexShadersAndInputLayouts = {}; // 정점 셰이더 및 입력 레이아웃 맵 // 키: 셰이더 파일 이름
+	std::unordered_map<std::string, com_ptr<ID3D11GeometryShader>> m_geometryShaders = {}; // 지오메트리 셰이더 맵 // 키: 셰이더 파일 이름
 	std::unordered_map<std::string, com_ptr<ID3D11PixelShader>> m_pixelShaders = {}; // 픽셀 셰이더 맵 // 키: 셰이더 파일 이름
 
 	std::unordered_map<std::string, std::vector<uint8_t>> m_textureCaches = {}; // 텍스처 데이터 캐시 // 키: 텍스처 파일 이름
@@ -79,6 +80,8 @@ public:
 	com_ptr<ID3D11Buffer> CreateVertexBuffer(const void* data, UINT stride, UINT count, bool isDynamic = false);
 	// 정점 셰이더 및 입력 레이아웃 얻기
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> GetVertexShaderAndInputLayout(const std::string& shaderName, const std::vector<InputElement>& inputElements = {});
+	// 지오메트리 셰이더 얻기
+	com_ptr<ID3D11GeometryShader> GetGeometryShader(const std::string& shaderName);
 	// 픽셀 셰이더 얻기
 	com_ptr<ID3D11PixelShader> GetPixelShader(const std::string& shaderName);
 	

@@ -105,6 +105,8 @@ void ResourceManager::SetAllConstantBuffers()
 	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Line), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Line)].GetAddressOf());
 
 	// 픽셀 셰이더용 상수 버퍼 설정
+	// 후처리 상수 버퍼
+	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::PostProcessing), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::PostProcessing)].GetAddressOf());
 	// 카메라 위치 상수 버퍼
 	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::CameraPosition), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::CameraPosition)].GetAddressOf());
 	// 방향광 상수 버퍼
@@ -196,6 +198,28 @@ pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> ResourceManager::G
 	}
 
 	return m_vertexShadersAndInputLayouts[shaderName];
+}
+
+com_ptr<ID3D11GeometryShader> ResourceManager::GetGeometryShader(const string& shaderName)
+{
+	// 기존에 생성된 지오메트리 셰이더가 있으면 재사용
+	auto it = m_geometryShaders.find(shaderName);
+	if (it != m_geometryShaders.end()) return it->second;
+
+	HRESULT hr = S_OK;
+
+	// 지오메트리 셰이더 컴파일
+	com_ptr<ID3DBlob> GSCode = CompileShader(shaderName, "gs_5_0");
+	hr = m_device->CreateGeometryShader
+	(
+		GSCode->GetBufferPointer(),
+		GSCode->GetBufferSize(),
+		nullptr,
+		m_geometryShaders[shaderName].GetAddressOf()
+	);
+	CheckResult(hr, "지오메트리 셰이더 생성 실패.");
+
+	return m_geometryShaders[shaderName];
 }
 
 com_ptr<ID3D11PixelShader> ResourceManager::GetPixelShader(const string& shaderName)
@@ -443,6 +467,9 @@ void ResourceManager::CreateConstantBuffers()
 	CheckResult(hr, "LineColor 상수 버퍼 생성 실패.");
 
 	// 픽셀 셰이더용 상수 버퍼 생성
+	// 후처리 상수 버퍼
+	hr = m_device->CreateBuffer(&PS_CONST_BUFFER_DESCS[static_cast<size_t>(PSConstBuffers::PostProcessing)], nullptr, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::PostProcessing)].GetAddressOf());
+	CheckResult(hr, "PostProcessing 상수 버퍼 생성 실패.");
 	// 카메라 위치 상수 버퍼
 	hr = m_device->CreateBuffer(&PS_CONST_BUFFER_DESCS[static_cast<size_t>(PSConstBuffers::CameraPosition)], nullptr, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::CameraPosition)].GetAddressOf());
 	CheckResult(hr, "CameraPosition 상수 버퍼 생성 실패.");
