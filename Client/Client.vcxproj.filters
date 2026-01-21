@@ -5,14 +5,11 @@
     <ClCompile Include="TestScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="TestObject.cpp">
+    <ClCompile Include="GunObject.cpp">
       <Filter>GameObject</Filter>
     </ClCompile>
     <ClCompile Include="HyojeTestScene.cpp">
       <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="HyojeTestObject.cpp">
-      <Filter>GameObject</Filter>
     </ClCompile>
     <ClCompile Include="TestCameraObject.cpp">
       <Filter>GameObject\Camera</Filter>
@@ -32,14 +29,11 @@
     <ClInclude Include="TestScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="TestObject.h">
+    <ClInclude Include="GunObject.h">
       <Filter>GameObject</Filter>
     </ClInclude>
     <ClInclude Include="HyojeTestScene.h">
       <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="HyojeTestObject.h">
-      <Filter>GameObject</Filter>
     </ClInclude>
     <ClInclude Include="TestCameraObject.h">
       <Filter>GameObject\Camera</Filter>
