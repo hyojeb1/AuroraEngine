@@ -13,6 +13,7 @@
 
 REGISTER_TYPE(Player)
 
+using namespace std;
 using namespace DirectX;
 
 void Player::Initialize()
@@ -28,7 +29,7 @@ void Player::Initialize()
 void Player::Update()
 {
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
-	auto& input = InputManager::GetInstance();
+	InputManager& input = InputManager::GetInstance();
 
 	if (input.GetKey(KeyCode::W)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Forward);
 	if (input.GetKey(KeyCode::S)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Backward);
@@ -47,19 +48,43 @@ void Player::Update()
 		if (hit)
 		{
 			if (dynamic_cast<Enemy*>(hit)) hit->SetAlive(false);
-			XMStoreFloat4(&m_lineBufferData.linePoints[0], m_gunObject->GetWorldPosition());
-			m_lineBufferData.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-			XMStoreFloat4(&m_lineBufferData.linePoints[1], XMVectorAdd(origin, XMVectorScale(direction, distance)));
-			m_lineBufferData.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-			m_lineDisplayTime = 0.5f;
+
+			LineBuffer lineBuffer = {};
+			XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
+			lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+			XMStoreFloat4(&lineBuffer.linePoints[1], XMVectorAdd(origin, XMVectorScale(direction, distance)));
+			lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+
+			m_lineBuffers.emplace_back(lineBuffer, 0.5f);
 		}
 	}
-	if (m_lineDisplayTime > 0.0f) m_lineDisplayTime -= deltaTime;
+	if (input.GetKeyDown(KeyCode::MouseRight))
+	{
+		vector<GameObjectBase*> hits = ColliderComponent::CheckCollision(CameraComponent::GetMainCamera().GetBoundingFrustum());
+
+		for (size_t i = 0; i < hits.size(); ++i)
+		{
+			if (!dynamic_cast<Enemy*>(hits[i])) continue;
+
+			hits[i]->SetAlive(false);
+			LineBuffer lineBuffer = {};
+			XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
+			lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+			XMStoreFloat4(&lineBuffer.linePoints[1], hits[i]->GetWorldPosition());
+			lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+
+			m_lineBuffers.emplace_back(lineBuffer, 0.5f);
+		}
+
+	}
+
+	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
+	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();
 }
 
 void Player::Render()
 {
-	if (m_lineDisplayTime < 0.0f) return;
+	if (m_lineBuffers.empty()) return;
 
 	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
 	(
@@ -75,8 +100,11 @@ void Player::Render()
 
 			resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
-			deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &m_lineBufferData, 0, 0);
-			deviceContext->Draw(2, 0);
+			for (const auto& [lineBuffer, time] : m_lineBuffers)
+			{
+				deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBuffer, 0, 0);
+				deviceContext->Draw(2, 0);
+			}
 		}
 	);
 }

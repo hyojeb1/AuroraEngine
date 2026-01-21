@@ -3,8 +3,7 @@
 
 class Player : public GameObjectBase
 {
-	LineBuffer m_lineBufferData = {};
-	float m_lineDisplayTime = 0.0f;
+	std::deque<std::pair<LineBuffer, float>> m_lineBuffers = {}; // 선 버퍼 및 남은 표시 시간 큐
 
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_lineVertexBufferAndShader = {};
 	com_ptr<ID3D11PixelShader> m_linePixelShader = nullptr;

@@ -4,14 +4,15 @@
 // STL 헤더
 #include <array>
 #include <filesystem>
-#include <fstream>
 #include <functional>
-#ifdef _DEBUG
+#include <fstream>
 #include <iostream>
-#endif
 #include <typeindex>
 #include <unordered_map>
-#include <cstdint> 
+#include <queue>
+#include <optional>
+#include <cstdint>
+#include <algorithm>
 
 // 윈도우 헤더
 #include <wrl/client.h>
