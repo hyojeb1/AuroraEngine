@@ -23,7 +23,6 @@ void Player::Initialize()
 {
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_lineVertexBufferAndShader = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
-	m_lineGeometryShader = resourceManager.GetGeometryShader("GSLine.hlsl");
 	m_linePixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
 
 	m_crosshairSRV = resourceManager.GetTexture("Crosshair.png");
@@ -181,7 +180,6 @@ void Player::Render()
 
 				deviceContext->IASetInputLayout(m_lineVertexBufferAndShader.second.Get());
 				deviceContext->VSSetShader(m_lineVertexBufferAndShader.first.Get(), nullptr, 0);
-				deviceContext->GSSetShader(m_lineGeometryShader.Get(), nullptr, 0);
 				deviceContext->PSSetShader(m_linePixelShader.Get(), nullptr, 0);
 
 				resourceManager.SetRasterState(RasterState::SolidCullNone);
@@ -192,8 +190,6 @@ void Player::Render()
 					deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBuffer, 0, 0);
 					deviceContext->Draw(2, 0);
 				}
-
-				deviceContext->GSSetShader(nullptr, nullptr, 0);
 			}
 		);
 	}
