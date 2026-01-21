@@ -136,11 +136,7 @@ void Player::Render()
 	// 크로스헤어 UI 렌더링
 	renderer.UI_RENDER_FUNCTIONS().emplace_back
 	(
-		[&]()
-		{
-			constexpr XMFLOAT2 center = { 0.5f, 0.5f };
-			Renderer::GetInstance().RenderImageUIPosition(m_crosshairSRV, center, m_crosshairOffset);
-		}
+		[&]() { Renderer::GetInstance().RenderImageUIPosition(m_crosshairSRV, { 0.5f, 0.5f }, m_crosshairOffset); }
 	);
 
 	if (!m_lineBuffers.empty())
@@ -172,10 +168,7 @@ void Player::Render()
 	{
 		renderer.UI_RENDER_FUNCTIONS().emplace_back
 		(
-			[&]()
-			{
-				for (const auto& [position, time] : m_enemyIndicators) Renderer::GetInstance().RenderImageScreenPosition(m_crosshairSRV, position, m_crosshairOffset, 0.5f);
-			}
+			[&]() { for (const auto& [position, time] : m_enemyIndicators) Renderer::GetInstance().RenderImageScreenPosition(m_crosshairSRV, position, m_crosshairOffset, 0.5f); }
 		);
 	}
 }
