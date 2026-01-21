@@ -3,6 +3,8 @@
 #include "FSMComponent.h"
 #include <DirectXMath.h>
 
+class SkinnedModelComponent;
+
 class FSMComponentEnemy : public FSMComponent
 {
 public:
@@ -10,12 +12,12 @@ public:
 	~FSMComponentEnemy() override = default;
 
 protected:
+	void Initialize() override;
 	void OnEnterState(EState state) override;
 	void OnUpdateState(EState state, float delta_time) override;
 	void OnExitState(EState state) override;
 
 private:
-	float recoil_timer_ = 0.0f;
-	DirectX::XMVECTOR origin_rotation_{0,0,0,0};
+	SkinnedModelComponent* skinned_model_ = nullptr;
 };
 ///EOF FSMComponentEnemy.h

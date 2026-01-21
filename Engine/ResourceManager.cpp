@@ -307,6 +307,7 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 
 	Assimp::Importer importer;
 	importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
+	importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_POINT | aiPrimitiveType_LINE);
 	const string fullPath = "../Asset/Model/" + fileName;
 
 	const aiScene* scene = importer.ReadFile

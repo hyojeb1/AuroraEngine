@@ -15,6 +15,8 @@ protected:
 	void OnExitState(EState state) override;
 
 private:
+	void Fire();
+
 	float recoil_timer_ = 0.0f;
 	DirectX::XMVECTOR origin_rotation_{0,0,0,0};
 };

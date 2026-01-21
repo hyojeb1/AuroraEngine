@@ -11,8 +11,6 @@
 #include "ModelComponent.h"
 #include "Enemy.h"
 
-#include "GunObject.h"
-
 REGISTER_TYPE(Player)
 
 using namespace std;
@@ -61,11 +59,6 @@ void Player::Update()
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
 		float distance = 0.0f;
-
-		if (auto gun = dynamic_cast<GunObject*>(m_gunObject))
-		{
-			gun->Fire();
-		}
 
 		const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 		const XMVECTOR& origin = mainCamera.GetPosition();

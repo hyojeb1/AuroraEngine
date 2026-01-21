@@ -1,6 +1,5 @@
 /// SkinnedModelComponent.cpp의 시작
 #include "stdafx.h"
-#include "Animator.h"
 #include "SkinnedModelComponent.h"
 
 #include "Renderer.h"

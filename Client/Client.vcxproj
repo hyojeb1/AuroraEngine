@@ -188,7 +188,6 @@
     <ClCompile Include="HyojeTestScene.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="TestCameraObject.cpp" />
-    <ClCompile Include="GunObject.cpp" />
     <ClCompile Include="TestScene.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -198,7 +197,6 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TestCameraObject.h" />
-    <ClInclude Include="GunObject.h" />
     <ClInclude Include="TestScene.h" />
   </ItemGroup>
   <ItemGroup>
