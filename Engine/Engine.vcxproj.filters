@@ -99,6 +99,9 @@
     <ClCompile Include="FSMComponentGun.cpp">
       <Filter>Base\Component\FSM</Filter>
     </ClCompile>
+    <ClCompile Include="FSMComponentEnemy.cpp">
+      <Filter>Base\Component\FSM</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -175,6 +178,9 @@
       <Filter>Base\Component\FSM</Filter>
     </ClInclude>
     <ClInclude Include="FSMComponentGun.h">
+      <Filter>Base\Component\FSM</Filter>
+    </ClInclude>
+    <ClInclude Include="FSMComponentEnemy.h">
       <Filter>Base\Component\FSM</Filter>
     </ClInclude>
   </ItemGroup>
