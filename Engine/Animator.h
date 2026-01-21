@@ -31,7 +31,7 @@ public:
 	explicit Animator(const Model* model);
 	
 	void UpdateAnimation(float delta_time);
-	void PlayAnimation(const std::string& clip_name, bool is_loop = true, float blend_time = 0.2f);
+	void PlayAnimation(const std::string& clip_name, bool is_loop = true, float blend_time = 0.5f);
 
 	const std::vector<DirectX::XMMATRIX>& GetFinalBoneMatrices() const { return final_bone_matrices_; }
 

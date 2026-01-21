@@ -74,7 +74,7 @@
                                 0.019999999552965164,
                                 1.0
                             ],
-                            "type": "GunObject"
+                            "type": "GameObjectBase"
                         }
                     ],
                     "components": [
@@ -156,7 +156,7 @@
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
                     },
-                    "modelFileName": "4-final-ani-idle.fbx",
+                    "modelFileName": "test5.fbx",
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",
@@ -236,7 +236,7 @@
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
                     },
-                    "modelFileName": "freepose_2.fbx",
+                    "modelFileName": "test_4.fbx",
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",
@@ -262,7 +262,7 @@
                     "type": "ColliderComponent"
                 }
             ],
-            "name": "GameObjectBase_4",
+            "name": "GameObjectBase_7",
             "position": [
                 8.75,
                 0.0,

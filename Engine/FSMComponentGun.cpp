@@ -2,11 +2,21 @@
 #include "stdafx.h"
 #include "FSMComponentGun.h"
 #include "GameObjectBase.h"
+#include "InputManager.h"
 
 REGISTER_TYPE(FSMComponentGun)
 
 using namespace std;
 using namespace DirectX;
+
+void FSMComponentGun::Fire()
+{
+	InputManager& input = InputManager::GetInstance();
+	if (input.GetKeyDown(KeyCode::MouseLeft))
+	{
+		ChangeState(EState::Attack);
+	}
+}
 
 void FSMComponentGun::OnEnterState(EState state)
 {
@@ -37,6 +47,7 @@ void FSMComponentGun::OnUpdateState(EState state, float dt)
 	switch (state)
 	{
 	case EState::Idle:
+		Fire();
 		break;
 
 	case EState::Attack:
