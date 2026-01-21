@@ -51,6 +51,7 @@ public:
 	GameObjectBase& operator=(GameObjectBase&&) = default; // 이동 대입
 
 	UINT GetID() const { return m_id; }
+	const std::string& GetName() const { return m_name; }
 
 	// 변환 관련 함수
 	// 위치 지정
@@ -61,7 +62,9 @@ public:
 	// 방향 이동
 	void MoveDirection(float distance, Direction direction);
 	// 위치 가져오기
+	// 로컬 위치
 	const DirectX::XMVECTOR& GetPosition() const { return m_position; }
+	// 월드 위치
 	const DirectX::XMVECTOR& GetWorldPosition() const { return m_worldMatrix.r[3]; }
 
 	// 회전 지정
@@ -102,6 +105,8 @@ public:
 	// 자식 게임 오브젝트 제거 // 제거 배열에 추가
 	template<typename T> requires std::derived_from<T, GameObjectBase>
 	[[nodiscard]] T* CreateChildGameObject(const std::string& typeName); // 자식 게임 오브젝트 생성 // 포인터 반환
+
+	GameObjectBase* GetChildGameObject(const std::string& name); // 이름으로 자식 게임 오브젝트 검색 // 없으면 nullptr 반환
 
 private:
 	// 게임 오브젝트 초기화
@@ -163,10 +168,7 @@ inline T* GameObjectBase::CreateComponent()
 template<typename T> requires std::derived_from<T, ComponentBase>
 inline T* GameObjectBase::GetComponent()
 {
-	auto it = m_components.find(std::type_index(typeid(T)));
-	if (it != m_components.end()) return static_cast<T*>(it->second.get());
-
-	return nullptr;
+	return dynamic_cast<T*>(m_components[std::type_index(typeid(T))].get());
 }
 
 template<typename T> requires std::derived_from<T, GameObjectBase>

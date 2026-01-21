@@ -1,7 +1,6 @@
 {
   "dependencies": [
     "assimp",
-    "boost-asio",
     "directxtk",
     "fftw3",
     {

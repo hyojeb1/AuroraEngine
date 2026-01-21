@@ -61,6 +61,59 @@ GameObjectBase* ColliderComponent::CheckCollision(const XMVECTOR& origin, const 
 	return collidedObject;
 }
 
+vector<GameObjectBase*> ColliderComponent::CheckCollision(const BoundingFrustum& frustum)
+{
+	vector<GameObjectBase*> collidedObjects = {};
+
+	for (ColliderComponent* collider : s_colliders)
+	{
+		bool isCollided = false;
+		for (const auto& [box, transformedBox] : collider->m_boundingBoxes)
+		{
+			if (frustum.Intersects(transformedBox))
+			{
+				isCollided = true;
+				break;
+			}
+		}
+		if (isCollided)
+		{
+			collidedObjects.push_back(collider->m_owner);
+			continue;
+		}
+
+		for (const auto& [obb, transformedOBB] : collider->m_boundingOrientedBoxes)
+		{
+			if (frustum.Intersects(transformedOBB))
+			{
+				isCollided = true;
+				break;
+			}
+		}
+		if (isCollided)
+		{
+			collidedObjects.push_back(collider->m_owner);
+			continue;
+		}
+
+		for (const auto& [frustum, transformedFrustum] : collider->m_boundingFrustums)
+		{
+			if (frustum.Intersects(transformedFrustum))
+			{
+				isCollided = true;
+				break;
+			}
+		}
+		if (isCollided)
+		{
+			collidedObjects.push_back(collider->m_owner);
+			continue;
+		}
+	}
+
+	return collidedObjects;
+}
+
 void ColliderComponent::Initialize()
 {
 	ResourceManager& resourceManager = ResourceManager::GetInstance();

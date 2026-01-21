@@ -7,9 +7,6 @@ class CameraComponent : public ComponentBase
 
 	float m_fovY = DirectX::XM_PIDIV4; // 수직 시야각 (라디안 단위)
 
-	UINT m_screenWidth = 1280; // 화면 너비
-	UINT m_screenHeight = 720; // 화면 높이
-
 	float m_nearZ = 0.1f; // 근평면
 	float m_farZ = 1000.0f; // 원평면
 
@@ -41,6 +38,7 @@ public:
 	float GetFarZ() const { return m_farZ; }
 
 	static const CameraComponent& GetMainCamera() { return *s_mainCamera; }
+	void SetAsMainCamera() { s_mainCamera = this; }
 
 	const DirectX::XMMATRIX& GetViewMatrix() const { return m_viewMatrix; }
 	const DirectX::XMMATRIX& GetProjectionMatrix() const { return m_projectionMatrix; }
@@ -48,6 +46,9 @@ public:
 
 	const DirectX::XMVECTOR& GetPosition() const { return *m_position; }
 	const DirectX::XMVECTOR& GetForwardVector() const { return m_forwardVector; }
+
+	// 월드 좌표계를 화면 좌표계로 변환
+	DirectX::XMFLOAT2 WorldToScreenPosition(const DirectX::XMVECTOR& worldPosition) const;
 
 	bool NeedsFixedUpdate() const override { return false; }
 	bool NeedsUpdate() const override { return true; }

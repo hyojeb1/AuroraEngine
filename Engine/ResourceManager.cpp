@@ -48,13 +48,14 @@ void ResourceManager::Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11Dev
 {
 	m_device = device;
 	m_deviceContext = deviceContext;
+	m_spriteBatch = make_unique<SpriteBatch>(m_deviceContext.Get());
 
 	CreateDepthStencilStates();
 	CreateBlendStates();
 	CreateRasterStates();
 
-	CreateAndSetConstantBuffers();
-	CreateAndSetSamplerStates();
+	CreateConstantBuffers();
+	CreateSamplerStates();
 
 	CacheAllTexture();
 }
@@ -90,6 +91,39 @@ void ResourceManager::SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY topology)
 
 	m_deviceContext->IASetPrimitiveTopology(topology);
 	m_currentTopology = topology;
+}
+
+void ResourceManager::SetAllConstantBuffers()
+{
+	// 정점 셰이더용 상수 버퍼 설정
+	// 뷰-투영 상수 버퍼
+	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::ViewProjection), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::ViewProjection)].GetAddressOf());
+	// 스카이박스 뷰-투영 역행렬 상수 버퍼
+	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::SkyboxViewProjection), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::SkyboxViewProjection)].GetAddressOf());
+	// 객체 월드, 스케일 역행렬 적용한 월드 상수 버퍼
+	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::WorldNormal), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::WorldNormal)].GetAddressOf());
+
+	// 애니메이션 관련 상수 버퍼 설정
+	// 시간 상수 버퍼
+	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Time), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Time)].GetAddressOf());
+	// 뼈 버퍼
+	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Bone), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Bone)].GetAddressOf());
+
+	//선 그리기용 상수 버퍼
+	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Line), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Line)].GetAddressOf());
+
+	// 픽셀 셰이더용 상수 버퍼 설정
+	// 카메라 위치 상수 버퍼
+	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::CameraPosition), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::CameraPosition)].GetAddressOf());
+	// 방향광 상수 버퍼
+	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::GlobalLight), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::GlobalLight)].GetAddressOf());
+	// 재질 팩터 상수 버퍼
+	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::MaterialFactor), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::MaterialFactor)].GetAddressOf());
+}
+
+void ResourceManager::SetAllSamplerStates()
+{
+	for (size_t i = 0; i < static_cast<size_t>(SamplerState::Count); ++i) m_deviceContext->PSSetSamplers(static_cast<UINT>(i), 1, m_samplerStates[i].GetAddressOf());
 }
 
 com_ptr<ID3D11Buffer> ResourceManager::CreateVertexBuffer(const void* data, UINT stride, UINT count, bool isDynamic)
@@ -354,6 +388,18 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 	return &m_models[fileName];
 }
 
+SpriteFont* ResourceManager::GetSpriteFont(const wstring& fontName)
+{
+	// 기존에 생성된 스프라이트 폰트가 있으면 재사용
+	auto it = m_spriteFonts.find(fontName);
+	if (it != m_spriteFonts.end()) return it->second.get();
+
+	// 새로 생성
+	m_spriteFonts[fontName] = make_unique<SpriteFont>(m_device.Get(), (L"../Asset/Font/" + fontName + L".spritefont").c_str());
+
+	return m_spriteFonts[fontName].get();
+}
+
 void ResourceManager::CreateDepthStencilStates()
 {
 	HRESULT hr = S_OK;
@@ -385,55 +431,46 @@ void ResourceManager::CreateRasterStates()
 	}
 }
 
-void ResourceManager::CreateAndSetConstantBuffers()
+void ResourceManager::CreateConstantBuffers()
 {
 	HRESULT hr = S_OK;
 
-	// 정점 셰이더용 상수 버퍼 생성 및 설정
+	// 정점 셰이더용 상수 버퍼 생성
 	// 뷰-투영 상수 버퍼
 	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::ViewProjection)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::ViewProjection)].GetAddressOf());
 	CheckResult(hr, "ViewProjection 상수 버퍼 생성 실패.");
-	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::ViewProjection), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::ViewProjection)].GetAddressOf());
 	// 스카이박스 뷰-투영 역행렬 상수 버퍼
 	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::SkyboxViewProjection)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::SkyboxViewProjection)].GetAddressOf());
 	CheckResult(hr, "Object 상수 버퍼 생성 실패.");
-	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::SkyboxViewProjection), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::SkyboxViewProjection)].GetAddressOf());
 	// 객체 월드, 스케일 역행렬 적용한 월드 상수 버퍼
 	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::WorldNormal)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::WorldNormal)].GetAddressOf());
 	CheckResult(hr, "WorldNormal 상수 버퍼 생성 실패.");
-	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::WorldNormal), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::WorldNormal)].GetAddressOf());
 
-	// 애니메이션 관련 상수 버퍼
+	// 애니메이션 관련 상수 버퍼 생성
 	// 시간 상수 버퍼
 	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::Time)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Time)].GetAddressOf());
 	CheckResult(hr, "Time 상수 버퍼 생성 실패.");
-	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Time), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Time)].GetAddressOf());
 	// 뼈 버퍼
 	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::Bone)], nullptr,	m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Bone)].GetAddressOf());
 	CheckResult(hr, "Bone 상수 버퍼 생성 실패.");
-	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Bone), 1,m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Bone)].GetAddressOf());
 	
 	//선 그리기용 상수 버퍼
 	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::Line)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Line)].GetAddressOf());
 	CheckResult(hr, "LineColor 상수 버퍼 생성 실패.");
-	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Line), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Line)].GetAddressOf());
 
-	// 픽셀 셰이더용 상수 버퍼 생성 및 설정
+	// 픽셀 셰이더용 상수 버퍼 생성
 	// 카메라 위치 상수 버퍼
 	hr = m_device->CreateBuffer(&PS_CONST_BUFFER_DESCS[static_cast<size_t>(PSConstBuffers::CameraPosition)], nullptr, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::CameraPosition)].GetAddressOf());
 	CheckResult(hr, "CameraPosition 상수 버퍼 생성 실패.");
-	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::CameraPosition), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::CameraPosition)].GetAddressOf());
 	// 방향광 상수 버퍼
 	hr = m_device->CreateBuffer(&PS_CONST_BUFFER_DESCS[static_cast<size_t>(PSConstBuffers::GlobalLight)], nullptr, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::GlobalLight)].GetAddressOf());
 	CheckResult(hr, "DirectionalLight 상수 버퍼 생성 실패.");
-	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::GlobalLight), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::GlobalLight)].GetAddressOf());
 	// 재질 팩터 상수 버퍼
 	hr = m_device->CreateBuffer(&PS_CONST_BUFFER_DESCS[static_cast<size_t>(PSConstBuffers::MaterialFactor)], nullptr, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::MaterialFactor)].GetAddressOf());
 	CheckResult(hr, "MaterialFactor 상수 버퍼 생성 실패.");
-	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::MaterialFactor), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::MaterialFactor)].GetAddressOf());
 }
 
-void ResourceManager::CreateAndSetSamplerStates()
+void ResourceManager::CreateSamplerStates()
 {
 	HRESULT hr = S_OK;
 
@@ -441,8 +478,6 @@ void ResourceManager::CreateAndSetSamplerStates()
 	{
 		hr = m_device->CreateSamplerState(&SAMPLER_DESC_TEMPLATES[i], m_samplerStates[i].GetAddressOf());
 		CheckResult(hr, "샘플러 상태 생성 실패.");
-
-		m_deviceContext->PSSetSamplers(static_cast<UINT>(i), 1, m_samplerStates[i].GetAddressOf());
 	}
 }
 

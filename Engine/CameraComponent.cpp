@@ -20,11 +20,32 @@ const BoundingFrustum CameraComponent::GetBoundingFrustum() const
 	return frustum;
 }
 
+XMFLOAT2 CameraComponent::WorldToScreenPosition(const XMVECTOR& worldPosition) const
+{
+	const DXGI_SWAP_CHAIN_DESC1& swapChainDesc = Renderer::GetInstance().GetSwapChainDesc();
+
+	XMFLOAT2 result = {};
+
+	XMStoreFloat2
+	(
+		&result,
+		XMVector3Project
+		(
+			worldPosition,
+			0.0f, 0.0f,
+			static_cast<float>(swapChainDesc.Width), static_cast<float>(swapChainDesc.Height),
+			0.0f, 1.0f,
+			m_projectionMatrix,
+			m_viewMatrix,
+			XMMatrixIdentity()
+		)
+	);
+
+	return result;
+}
+
 void CameraComponent::Initialize()
 {
-	if (s_mainCamera) cerr << "경고: 여러 개의 카메라가 생성되었습니다" << endl;
-	else s_mainCamera = this;
-
 	#ifdef _DEBUG
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_boundingFrustumVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");

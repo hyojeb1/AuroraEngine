@@ -1,9 +1,9 @@
-///BOF CamRotObject.cpp
 #include "stdafx.h"
 #include "CamRotObject.h"
 
 #include "InputManager.h"
 #include "TimeManager.h"
+#include "CameraComponent.h"
 
 REGISTER_TYPE(CamRotObject)
 
@@ -11,13 +11,12 @@ using namespace DirectX;
 
 void CamRotObject::Initialize()
 {
-	auto& input = InputManager::GetInstance();
+	GetComponent<CameraComponent>()->SetAsMainCamera();
 }
 
 void CamRotObject::Update()
 {
-	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
-	auto& input = InputManager::GetInstance();
+	InputManager& input = InputManager::GetInstance();
 
 	const POINT& delta = input.GetMouseDelta();
 	const XMVECTOR& euler = GetRotation();
@@ -31,5 +30,3 @@ void CamRotObject::Update()
 
 	SetRotation(XMVectorSet(pitch, yaw, 0.0f, 0.0f));
 }
-
-///EOF CamRotObject.cpp

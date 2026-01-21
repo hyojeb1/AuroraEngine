@@ -37,6 +37,9 @@ class ResourceManager : public Singleton<ResourceManager>
 
 	std::unordered_map<std::string, Model> m_models = {}; // 모델 맵 // 키: 모델 파일 경로
 
+	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch = nullptr; // 스프라이트 배치
+	std::unordered_map<std::wstring, std::unique_ptr<DirectX::SpriteFont>> m_spriteFonts = {}; // 스프라이트 폰트 맵 // 키: 폰트 파일 이름
+
 public:
 	~ResourceManager() = default;
 	ResourceManager(const ResourceManager&) = delete;
@@ -62,6 +65,12 @@ public:
 	// 프리미티브 토폴로지 설정
 	void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY topology);
 
+	// 프레임 시작 시 호출하는 함수
+	// 상수 버퍼 설정
+	void SetAllConstantBuffers();
+	// 샘플러 상태 설정
+	void SetAllSamplerStates();
+
 	// 상수 버퍼 얻기 // UpdateSubresource만 써야함 // Set는 리소스 매니저가 함
 	com_ptr<ID3D11Buffer> GetConstantBuffer(VSConstBuffers buffer) { return m_vsConstantBuffers[static_cast<size_t>(buffer)]; }
 	com_ptr<ID3D11Buffer> GetConstantBuffer(PSConstBuffers buffer) { return m_psConstantBuffers[static_cast<size_t>(buffer)]; }
@@ -85,6 +94,9 @@ public:
 	// 모델 파일로부터 모델 로드
 	const Model* LoadModel(const std::string& fileName);
 
+	DirectX::SpriteBatch* GetSpriteBatch() { return m_spriteBatch.get(); }
+	DirectX::SpriteFont* GetSpriteFont(const std::wstring& fontName);
+
 private:
 	ResourceManager() = default;
 
@@ -95,10 +107,10 @@ private:
 	// 래스터 상태 생성 함수
 	void CreateRasterStates();
 
-	// 상수 버퍼 생성 및 설정 함수
-	void CreateAndSetConstantBuffers();
-	// 샘플러 상태 생성 및 설정 함수
-	void CreateAndSetSamplerStates();
+	// 상수 버퍼 생성 함수
+	void CreateConstantBuffers();
+	// 샘플러 상태 생성 함수
+	void CreateSamplerStates();
 
 	// 텍스처 데이터 캐싱 함수
 	void CacheAllTexture();

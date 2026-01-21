@@ -4,6 +4,7 @@
 #include "ResourceManager.h"
 #include "SceneManager.h"
 #include "WindowManager.h"
+#include "TimeManager.h"
 
 using namespace std;
 using namespace DirectX;
@@ -21,8 +22,17 @@ void Renderer::Initialize()
 
 void Renderer::BeginFrame()
 {
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
+	resourceManager.SetAllConstantBuffers();
+	resourceManager.SetAllSamplerStates();
+
+	#ifdef _DEBUG
+	// ImGui 프레임 시작
+	BeginImGuiFrame();
+	#endif
+
 	// 방향성 광원 그림자 맵 셰이더 리소스 뷰 해제 명령어 등록
-	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
+	RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
 	(
 		numeric_limits<float>::lowest(), // 우선순위 가장 높음
 		[&]() { m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::DirectionalLightShadow), 1, m_directionalLightShadowMapSRV.GetAddressOf()); }
@@ -44,16 +54,44 @@ void Renderer::BeginFrame()
 			RenderSceneToBackBuffer();
 		}
 	);
+}
 
-	#ifdef _DEBUG
-	// ImGui 프레임 시작
-	BeginImGuiFrame();
-	#endif
+void Renderer::RenderTextScreenPosition(const wchar_t* text, XMFLOAT2 position, float depth, const XMVECTOR& color, float scale, const wstring& fontName)
+{
+	ResourceManager::GetInstance().GetSpriteFont(fontName)->DrawString
+	(
+		m_spriteBatch,
+		text,
+		position,
+		color,
+		0.0f,
+		XMFLOAT2(0.0f, 0.0f),
+		scale,
+		SpriteEffects_None,
+		0.0f
+	);
+}
+
+void Renderer::RenderTextUIPosition(const wchar_t* text, XMFLOAT2 position, float depth, const XMVECTOR& color, float scale, const wstring& fontName)
+{
+	RenderTextScreenPosition(text, { position.x * static_cast<float>(m_swapChainDesc.Width), position.y * static_cast<float>(m_swapChainDesc.Height) }, depth, color, scale, fontName);
+}
+
+void Renderer::RenderImageScreenPosition(com_ptr<ID3D11ShaderResourceView> texture, XMFLOAT2 position, XMFLOAT2 offset, float scale, const XMVECTOR& color, float depth)
+{
+	m_spriteBatch->Draw(texture.Get(), position, nullptr, color, 0.0f, offset, scale, SpriteEffects_None, depth);
+}
+
+void Renderer::RenderImageUIPosition(com_ptr<ID3D11ShaderResourceView> texture, XMFLOAT2 position, XMFLOAT2 offset, float scale, const XMVECTOR& color, float depth)
+{
+	RenderImageScreenPosition(texture, { position.x * static_cast<float>(m_swapChainDesc.Width), position.y * static_cast<float>(m_swapChainDesc.Height) }, offset, scale, color, depth);
 }
 
 void Renderer::EndFrame()
 {
 	HRESULT hr = S_OK;
+
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
 	for (auto& [renderTarget, blendStates] : m_renderPass)
 	{
@@ -73,7 +111,7 @@ void Renderer::EndFrame()
 			const BlendState BLEND_STATE = static_cast<BlendState>(&blendState - &blendStates[0]);
 
 			// 블렌드 상태 설정
-			ResourceManager::GetInstance().SetBlendState(BLEND_STATE);
+			resourceManager.SetBlendState(BLEND_STATE);
 
 			// 정렬 // 알파 블렌딩은 뒤에서 앞으로 // 그 외는 앞에서 뒤로
 			if (BLEND_STATE != BlendState::AlphaBlend) sort(blendState.begin(), blendState.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
@@ -87,11 +125,19 @@ void Renderer::EndFrame()
 		}
 	}
 
+	// 2D UI 렌더링
+	m_spriteBatch->Begin(SpriteSortMode_Deferred, nullptr, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
+
+	for (function<void()>& uiRenderFunction : m_UIRenderFunctions) uiRenderFunction();
+	m_UIRenderFunctions.clear();
+
+	m_spriteBatch->End();
+
 	#ifdef _DEBUG
-	ImGui::Begin("Directional Light Shadow Map");
+	ImGui::Begin("SRV");
 	ImGui::Image
 	(
-		(ImTextureID)m_directionalLightShadowMapSRV.Get(),
+		(ImTextureID)m_sceneShaderResourceView.Get(),
 		ImVec2(500.0f, 500.0f)
 	);
 	ImGui::End();
@@ -103,7 +149,7 @@ void Renderer::EndFrame()
 	#endif
 
 	// 스왑 체인 프레젠트
-	hr = m_swapChain->Present(1, 0); // DXGI_PRESENT_ALLOW_TEARING // 나중에 필요시 적용
+	hr = m_swapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
 	CheckResult(hr, "스왑 체인 프레젠트 실패.");
 }
 
@@ -207,8 +253,10 @@ void Renderer::CreateDeviceAndContext()
 
 	// ImGui DirectX11 초기화
 	ImGui_ImplDX11_Init(m_device.Get(), m_deviceContext.Get());
+
 	// RenderResourceManager 초기화
 	ResourceManager::GetInstance().Initialize(m_device, m_deviceContext);
+	m_spriteBatch = ResourceManager::GetInstance().GetSpriteBatch();
 }
 
 void Renderer::CreateSwapChain()

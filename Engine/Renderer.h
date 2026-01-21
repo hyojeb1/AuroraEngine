@@ -25,7 +25,7 @@ class Renderer : public Singleton<Renderer>
 		.Scaling = DXGI_SCALING_STRETCH, // 창 크기에 맞게 스트레칭
 		.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD, // 플립 모드 // 잘 모르겠는데 이게 빠르다 함
 		.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED, // 알파 블렌딩 없음
-		.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH // 전체 화면 전환 허용
+		.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING // 전체 화면 전환 허용
 	};
 	// TODO: 나중에 전체 화면 설정도 멤버 변수로 추가 DXGI_SWAP_CHAIN_FULLSCREEN_DESC
 
@@ -35,6 +35,9 @@ class Renderer : public Singleton<Renderer>
 	
 	DirectX::XMVECTOR m_renderSortPoint = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // 랜저 정렬 기준점
 	std::array<std::pair<RenderTarget, std::array<std::vector<std::pair<float, std::function<void()>>>, static_cast<size_t>(BlendState::Count)>>, static_cast<size_t>(RenderStage::Count)> m_renderPass = {};
+	
+	DirectX::SpriteBatch* m_spriteBatch = nullptr; // 스프라이트 배치 // UI 렌더링용
+	std::vector<std::function<void()>> m_UIRenderFunctions = {}; // ImGui 렌더링 함수 목록
 
 	// 백 버퍼 렌더 타겟 관련 리소스
 	struct BackBufferVertex
@@ -74,6 +77,19 @@ public:
 
 	constexpr RenderTarget& RENDER_TARGET(RenderStage stage) { return m_renderPass[static_cast<size_t>(stage)].first; }
 	constexpr std::vector<std::pair<float, std::function<void()>>>& RENDER_FUNCTION(RenderStage renderStage, BlendState blendState) { return m_renderPass[static_cast<size_t>(renderStage)].second[static_cast<size_t>(blendState)]; }
+	
+	// UI 렌더링 함수
+	constexpr std::vector<std::function<void()>>& UI_RENDER_FUNCTIONS() { return m_UIRenderFunctions; }
+	// UI 텍스트 렌더링
+	// 스크린 좌표계
+	void RenderTextScreenPosition(const wchar_t* text, DirectX::XMFLOAT2 position, float depth = 0.0f, const DirectX::XMVECTOR& color = DirectX::XMVECTOR{ 1.0f, 1.0f, 1.0f, 1.0f }, float scale = 1.0f, const std::wstring& fontName = L"Gugi");
+	// UI 좌표계
+	void RenderTextUIPosition(const wchar_t* text, DirectX::XMFLOAT2 position, float depth = 0.0f, const DirectX::XMVECTOR& color = DirectX::XMVECTOR{ 1.0f, 1.0f, 1.0f, 1.0f }, float scale = 1.0f, const std::wstring& fontName = L"Gugi");
+	// UI 이미지 렌더링
+	// 스크린 좌표계
+	void RenderImageScreenPosition(com_ptr<ID3D11ShaderResourceView> texture, DirectX::XMFLOAT2 position, DirectX::XMFLOAT2 offset, float scale = 1.0f, const DirectX::XMVECTOR& color = DirectX::XMVECTOR{ 1.0f, 1.0f, 1.0f, 1.0f }, float depth = 0.0f);
+	// UI 좌표계
+	void RenderImageUIPosition(com_ptr<ID3D11ShaderResourceView> texture, DirectX::XMFLOAT2 position, DirectX::XMFLOAT2 offset, float scale = 1.0f, const DirectX::XMVECTOR& color = DirectX::XMVECTOR{ 1.0f, 1.0f, 1.0f, 1.0f }, float depth = 0.0f);
 
 	// 프레임 종료 // 화면에 내용 출력
 	void EndFrame();

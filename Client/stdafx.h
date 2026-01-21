@@ -4,14 +4,15 @@
 // STL 헤더
 #include <array>
 #include <filesystem>
-#include <fstream>
 #include <functional>
-#ifdef _DEBUG
+#include <fstream>
 #include <iostream>
-#endif
 #include <typeindex>
 #include <unordered_map>
-#include <cstdint> 
+#include <queue>
+#include <optional>
+#include <cstdint>
+#include <algorithm>
 
 // 윈도우 헤더
 #include <wrl/client.h>
@@ -30,6 +31,8 @@
 #include <directxtk/SimpleMath.h>
 #include <directxtk/WICTextureLoader.h>
 #include <directxtk/DDSTextureLoader.h>
+#include <directxtk/SpriteBatch.h>
+#include <directxtk/SpriteFont.h>
 
 // Assimp 헤더
 #include <assimp/Importer.hpp>
@@ -44,7 +47,7 @@
 // JSON 헤더
 #include <nlohmann/json.hpp>
 
-//fmod
+//fmod 헤더
 #ifdef _DEBUG
 #pragma comment(lib, "fmodL_vc.lib")
 #else
@@ -52,12 +55,6 @@
 #endif
 #include <fmod/fmod.hpp>
 #include <fmod/fmod_error_wrap.h>
-
-// using 정의
-#ifdef _DEBUG
-using std::cout;
-using std::endl;
-#endif
 
 // 메크로 정의
 // com_ptr 매크로
