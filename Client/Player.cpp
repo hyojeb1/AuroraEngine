@@ -11,7 +11,7 @@
 #include "ModelComponent.h"
 #include "Enemy.h"
 
-#include "CamRotObject.h"
+#include "FSMComponentGun.h"
 
 REGISTER_TYPE(Player)
 
@@ -44,6 +44,7 @@ void Player::Initialize()
 
 	m_cameraObject = GetChildGameObject<CamRotObject>("CamRotObject_2");
 	m_gunObject = m_cameraObject->GetChildGameObject("Gun");
+	m_gunObject->CreateComponent<FSMComponentGun>();
 }
 
 void Player::Update()
@@ -61,6 +62,15 @@ void Player::Update()
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
 		float distance = 0.0f;
+
+		if (m_gunObject)
+		{
+			auto gunFSM = m_gunObject->GetComponent<FSMComponentGun>();
+			if (gunFSM)
+			{
+				gunFSM->Fire();
+			}
+		}
 
 		const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 		const XMVECTOR& origin = mainCamera.GetPosition();
@@ -134,6 +144,15 @@ void Player::Update()
 				lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 0.5f, 0.5f, 1.0f };
 
 				m_lineBuffers.emplace_back(lineBuffer, 0.5f);
+			}
+
+			if (m_gunObject)
+			{
+				auto gunFSM = m_gunObject->GetComponent<FSMComponentGun>();
+				if (gunFSM)
+				{
+					gunFSM->Fire();
+				}
 			}
 
 			m_isDeadEyeActive = false;

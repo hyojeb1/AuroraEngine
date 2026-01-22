@@ -2,72 +2,108 @@
 #include "stdafx.h"
 #include "FSMComponentEnemy.h"
 #include "GameObjectBase.h"
-#include "SkinnedModelComponent.h"
+#include "InputManager.h"
+#include "TimeManager.h"
 
 REGISTER_TYPE(FSMComponentEnemy)
 
 using namespace std;
 using namespace DirectX;
 
-void FSMComponentEnemy::Initialize()
+std::string FSMComponentEnemy::StateToString(StateID state) const
 {
-	skinned_model_ = GetOwner()->GetComponent<SkinnedModelComponent>();
-	FSMComponent::Initialize();
+	switch ((EGunState)state)
+	{
+	case EGunState::Idle:   return "Idle";
+	case EGunState::Attack: return "Attack";
+	case EGunState::Reload: return "Reload";
+	default:                return "Unknown";
+	}
 }
 
-
-void FSMComponentEnemy::OnEnterState(EState state)
+FSMComponent::StateID FSMComponentEnemy::StringToState(const std::string& str) const
 {
-	switch (state)
+	if (str == "Idle")   return (StateID)EGunState::Idle;
+	if (str == "Attack") return (StateID)EGunState::Attack;
+	if (str == "Reload") return (StateID)EGunState::Reload;
+	return (StateID)EGunState::Idle;
+}
+
+void FSMComponentEnemy::OnEnterState(StateID state)
+{
+	switch ((EGunState)state)
 	{
-	case EState::Idle:
-
+	case EGunState::Idle:
+		timer_ = 0.0f;
 #ifdef _DEBUG
-		cout << "[Enemy] Entered Idle State." << endl;
+		cout << "Gun State: IDLE" << endl;
 #endif
-
-		if (skinned_model_)
-		{
-			skinned_model_->GetAnimator()->PlayAnimation("Idle", true);
-		}
 		break;
 
-		break;
-
-	case EState::Attack:
+	case EGunState::Attack:
 #ifdef _DEBUG
-		cout << "[Enemy] Entered Attack State!" << endl;
+		cout << "Gun State: ATTACK START" << endl;
 #endif
-		if (skinned_model_)
-		{
-			skinned_model_->GetAnimator()->PlayAnimation("Attack", true);
-		}
+		timer_ = 0.0f;
+		origin_rotation_ = GetOwner()->GetRotation();
 		break;
 
-	case EState::Move:
-#ifdef _DEBUG
-		cout << "[Enemy] Entered Move State." << endl;
-#endif
-		if (skinned_model_)
-		{
-			skinned_model_->GetAnimator()->PlayAnimation("Run", true);
-		}
-		break;
-
-	default:
+	case EGunState::Reload:
+		// Reload 로직
 		break;
 	}
 }
 
-void FSMComponentEnemy::OnUpdateState(EState state, float dt)
+void FSMComponentEnemy::OnUpdateState(StateID state)
 {
-	switch (state)
+	switch ((EGunState)state)
 	{
-	case EState::Idle:
+	case EGunState::Idle:
+		InputManager& input = InputManager::GetInstance();
+		if (input.GetKeyDown(KeyCode::MouseLeft))
+		{
+			ChangeState((StateID)EGunState::Attack);
+		}
+		if (input.GetKeyDown(KeyCode::R))
+		{
+			ChangeState((StateID)EGunState::Attack);
+		}
 		break;
 
-	case EState::Attack:
+	case EGunState::Attack:
+	{
+		const float dt = TimeManager::GetInstance().GetDeltaTime();
+		timer_ += dt;
+		constexpr float kRecoilAngle = -90.0f;
+		constexpr float kRecoilDuration = 0.12f;
+		const float half_duration = kRecoilDuration * 0.5f;
 
+		// 반동 계산 로직
+		const XMVECTOR recoil_rotation = XMVectorSet(
+			XMVectorGetX(origin_rotation_) + kRecoilAngle,
+			XMVectorGetY(origin_rotation_),
+			XMVectorGetZ(origin_rotation_),
+			0.0f
+		);
+
+		float t = 0.0f;
+		if (timer_ <= half_duration)
+		{
+			t = timer_ / half_duration;
+			GetOwner()->SetRotation(XMVectorLerp(origin_rotation_, recoil_rotation, t));
+		}
+		else
+		{
+			t = (timer_ - half_duration) / half_duration;
+			GetOwner()->SetRotation(XMVectorLerp(recoil_rotation, origin_rotation_, t));
+		}
+
+		if (timer_ >= kRecoilDuration)
+		{
+			GetOwner()->SetRotation(origin_rotation_);
+			ChangeState((StateID)EGunState::Idle);
+		}
+	}
 	break;
 
 	default:
@@ -75,21 +111,13 @@ void FSMComponentEnemy::OnUpdateState(EState state, float dt)
 	}
 }
 
-void FSMComponentEnemy::OnExitState(EState state)
+void FSMComponentEnemy::OnExitState(StateID state)
 {
-	switch (state)
+	switch ((EGunState)state)
 	{
-	case EState::Idle:
-
+	case EGunState::Idle:
 		break;
-
-	case EState::Attack:
-#ifdef _DEBUG
-		cout << "[Enemy] Attack Finished." << endl;
-#endif
-		break;
-
-	default:
+	case EGunState::Attack:
 		break;
 	}
 }
