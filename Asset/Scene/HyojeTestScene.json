@@ -23,7 +23,7 @@
                                 {
                                     "blendState": 0,
                                     "materialFactorData": {
-                                        "albedoFactor": [
+                                        "baseColorFactor": [
                                             1.0,
                                             1.0,
                                             1.0,
@@ -36,10 +36,6 @@
                                             0.0,
                                             0.0
                                         ],
-                                        "glowFactor": 0.0,
-                                        "heightScale": 0.05000000074505806,
-                                        "ior": 1.5,
-                                        "lightFactor": 1.0,
                                         "metallicFactor": 1.0,
                                         "normalScale": 1.0,
                                         "roughnessFactor": 1.0
@@ -104,7 +100,7 @@
                 }
             ],
             "components": [],
-            "name": "Player_1",
+            "name": "Player",
             "position": [
                 0.0,
                 2.0,
@@ -131,7 +127,7 @@
                 {
                     "blendState": 0,
                     "materialFactorData": {
-                        "albedoFactor": [
+                        "baseColorFactor": [
                             1.0,
                             1.0,
                             1.0,
@@ -144,10 +140,6 @@
                             0.0,
                             0.0
                         ],
-                        "glowFactor": 0.0,
-                        "heightScale": 0.05000000074505806,
-                        "ior": 1.5,
-                        "lightFactor": 1.0,
                         "metallicFactor": 1.0,
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
@@ -211,7 +203,7 @@
                 {
                     "blendState": 0,
                     "materialFactorData": {
-                        "albedoFactor": [
+                        "baseColorFactor": [
                             1.0,
                             1.0,
                             1.0,
@@ -224,10 +216,6 @@
                             0.0,
                             0.0
                         ],
-                        "glowFactor": 0.0,
-                        "heightScale": 0.05000000074505806,
-                        "ior": 1.5,
-                        "lightFactor": 1.0,
                         "metallicFactor": 1.0,
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
