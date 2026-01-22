@@ -58,8 +58,8 @@ public:
 	const std::string& GetModelFileName() const { return m_modelFileName; }
 	void SetModelFileName(const std::string& modelFileName) { m_modelFileName = modelFileName; }
 
-	void SetAlpha(const float& alpha) { m_materialFactorData.albedoFactor.w = alpha; }
 	void SetBlendState(BlendState blendState) { m_blendState = blendState; }
+	void SetAlpha(const float& alpha) { m_materialFactorData.baseColorFactor.w = alpha; }
 
 	bool NeedsFixedUpdate() const override { return false; }
 	bool NeedsUpdate() const override { return false; }
