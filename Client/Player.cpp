@@ -139,7 +139,7 @@ void Player::Update()
 			{
 				if (timing > 999990.1f) continue; // 0.1초 이상 타이밍이 안맞으면 무시
 
-				enemy->SetAlive(false);
+				enemy->Die();
 
 				LineBuffer lineBuffer = {};
 				if (m_gunObject) XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());

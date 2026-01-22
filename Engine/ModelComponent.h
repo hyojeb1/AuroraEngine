@@ -1,6 +1,7 @@
 /// ModelComponent.h의 시작
 #pragma once
 #include "ComponentBase.h"
+//#include "Resource.h"
 
 class ModelComponent : public ComponentBase
 {
@@ -58,6 +59,7 @@ public:
 	void SetModelFileName(const std::string& modelFileName) { m_modelFileName = modelFileName; }
 
 	void SetAlpha(const float& alpha) { m_materialFactorData.albedoFactor.w = alpha; }
+	void SetBlendState(BlendState blendState) { m_blendState = blendState; }
 
 	bool NeedsFixedUpdate() const override { return false; }
 	bool NeedsUpdate() const override { return false; }

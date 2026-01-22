@@ -47,10 +47,12 @@ void FSMComponentEnemy::OnEnterState(StateID state)
 	{
 	case EIdle:
 		model_->GetAnimator()->PlayAnimation("rig|rigAction", true);
+		model_->SetBlendState(BlendState::Opaque);
 		break;
 	case EDead:
 		death_timer_ = 0.0f;
 		model_->GetAnimator()->PlayAnimation("rig|PlaneAction", false);
+		model_->SetBlendState(BlendState::AlphaBlend);
 		break;
 	case ERun:
 	case EAttack:

@@ -15,7 +15,6 @@ using namespace DirectX;
 void Enemy::Initialize()
 {
 	m_model = CreateComponent<SkinnedModelComponent>();
-	//m_model->SetModelFileName("test5.fbx");
 	m_fsm = CreateComponent<FSMComponentEnemy>();
 	m_collider = CreateComponent<ColliderComponent>();
 	m_collider->AddBoundingBox(BoundingBox({ 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }));
