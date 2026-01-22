@@ -87,13 +87,13 @@ public:
 	
 	enum class TextureType
 	{
-		Albedo,
-		Normal,
+		BaseColor,
 		ORM,
-		None // Fallback을 사용하지 않음 (반드시 있어야 하는 텍스처)
+		Normal,
+		Emissive
 	};
 	// 텍스처 파일로부터 텍스처 로드
-	com_ptr<ID3D11ShaderResourceView> GetTexture(const std::string& fileName, TextureType type = TextureType::None);
+	com_ptr<ID3D11ShaderResourceView> GetTexture(const std::string& fileName, TextureType type = TextureType::BaseColor);
 	// 모델 파일로부터 모델 로드
 	const Model* LoadModel(const std::string& fileName);
 

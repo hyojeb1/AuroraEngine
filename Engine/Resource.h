@@ -518,21 +518,15 @@ struct GlobalLightBuffer // 방향광 상수 버퍼 구조체
 };
 struct MaterialFactorBuffer
 {
-	DirectX::XMFLOAT4 albedoFactor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 텍스처 색상이 얼마나 적용되는지
+	DirectX::XMFLOAT4 baseColorFactor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 텍스처 색상이 얼마나 적용되는지
 
 	float ambientOcclusionFactor = 1.0f; // 환경광 차폐 팩터
 	float roughnessFactor = 1.0f; // 거칠기 팩터
 	float metallicFactor = 1.0f; // 금속성 팩터
 
-	float ior = 1.5f; // 굴절률 // 일반적으로 1.5f 여야 함
-
 	float normalScale = 1.0f; // 법선 맵 스케일
-	float heightScale = 0.05f; // 높이 맵 스케일
 
-	float lightFactor = 1.0f; // 광원 영향 팩터
-	float glowFactor = 0.0f; // 광원 무시 알베도 팩터 // 앰비언트랑 비슷함
-
-	DirectX::XMFLOAT4 emissionFactor = { 0.0f, 0.0f, 0.0f, 0.0f }; // 자가 발광 색상
+	DirectX::XMFLOAT4 emissionFactor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 자가 발광 색상
 };
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(PSConstBuffers::Count)> PS_CONST_BUFFER_DESCS =
 {
@@ -587,9 +581,10 @@ enum class TextureSlots
 	Environment,
 	DirectionalLightShadow,
 
-	Albedo, // RGBA
-	ORM, // ambient occlusion(R) + roughness(G) + metallic(B)
-	Normal, // XYZ(RGB) + height(A)
+	BaseColor,
+	ORM,
+	Normal,
+	Emission,
 
 	Count
 };
@@ -662,9 +657,10 @@ struct AnimationClip
 
 struct MaterialTexture
 {
-	com_ptr<ID3D11ShaderResourceView> albedoTextureSRV = nullptr;
+	com_ptr<ID3D11ShaderResourceView> baseColorTextureSRV = nullptr;
 	com_ptr<ID3D11ShaderResourceView> ORMTextureSRV = nullptr;
 	com_ptr<ID3D11ShaderResourceView> normalTextureSRV = nullptr;
+	com_ptr<ID3D11ShaderResourceView> emissionTextureSRV = nullptr;
 };
 
 struct Mesh
@@ -679,8 +675,6 @@ struct Mesh
 
 	com_ptr<ID3D11Buffer> vertexBuffer = nullptr;
 	com_ptr<ID3D11Buffer> indexBuffer = nullptr;
-
-	MaterialTexture materialTexture = {};
 };
 
 enum class ModelType
@@ -695,6 +689,7 @@ struct Model
 {
 	ModelType type = ModelType::Static;
 	std::vector<Mesh> meshes = {};
+	MaterialTexture materialTexture = {};
 	DirectX::BoundingBox boundingBox = {};
 
 	// 애니메이션 데이터 (정적 모델인 경우 비워둠)
