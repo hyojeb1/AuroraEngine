@@ -28,7 +28,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	windowManager.Initialize(L"Aurora");
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
-	sceneManager.ChangeScene("HyojeTestScene");
+	sceneManager.ChangeScene("TestScene");
 
 	SoundManager& soundManager = SoundManager::GetInstance();
 	soundManager.Initialize();
