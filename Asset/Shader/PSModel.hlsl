@@ -41,9 +41,9 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float shadow = directionalShadowMapTexture.SampleCmpLevelZero(SamplerComparisonClamp, shadowTexCoord, currentDepth);
     
     // 조명 계산
-    float3 radiance = LightColor.rgb * shadow * LightDirection.w; // 조명 세기
+    float3 radiance = LightColor.rgb * LightDirection.w; // 조명 세기
     float3 kD = (float3(1.0f, 1.0f, 1.0f) - F) * (1.0f - orm.b); // 디퓨즈 반사
-    float3 Lo = (kD * baseColor.rgb * INV_PI + specular) * radiance * NdotL; // PBR 직접광
+    float3 Lo = (kD * baseColor.rgb * INV_PI + specular) * radiance * NdotL * shadow; // PBR 직접광
     
     // IBL 계산
     // 환경 맵에서 반사광 샘플링
@@ -61,7 +61,7 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float3 indirectSpecular = envReflection * F_env; // 환경광 스페큘러
     
     // IBL 최종 기여도
-    float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w;
+    float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w * shadow;
     
     // 최종 색상
     baseColor.rgb = Lo + ibl;
