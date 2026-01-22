@@ -29,17 +29,6 @@ void FSMComponent::Update()
 	OnUpdateState(current_state_);
 }
 
-void FSMComponent::RenderImGui()
-{
-	if (ImGui::TreeNode("FSM Component"))
-	{
-		string currentName = StateToString(current_state_);
-		ImGui::Text("Current State: %s", currentName.c_str());
-
-		ImGui::TreePop();
-	}
-}
-
 json FSMComponent::Serialize()
 {
 	json data;

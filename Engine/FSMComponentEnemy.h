@@ -3,15 +3,18 @@
 #include "FSMComponent.h"
 #include <DirectXMath.h>
 
+class SkinnedModelComponent;
+
 class FSMComponentEnemy : public FSMComponent
 {
-protected:
-	enum EGunState
+public:
+	enum EState
 	{
-		Idle,   // 0
-		Attack, // 1
-		Reload, // 2
-		Count
+		EIdle,
+		ERun,     // Chase 상태일 때 재생
+		EAttack,  // PreAttack 시점에 재생 시작
+		EDead,
+		ECount
 	};
 
 public:
@@ -21,14 +24,18 @@ public:
 	std::string StateToString(StateID state) const override;
 	StateID StringToState(const std::string& str) const override;
 
+	void SetModelComponent(SkinnedModelComponent* model) { model_ = model; }
+
 protected:
 	void OnEnterState(StateID state) override;
 	void OnUpdateState(StateID state) override;
 	void OnExitState(StateID state) override;
 
-private:
+	void Initialize() override;
+	void RenderImGui() override;
 
-	float timer_ = 0.0f;
-	DirectX::XMVECTOR origin_rotation_{ 0,0,0,0 };
+private:
+	SkinnedModelComponent* model_ = nullptr;
+	float death_timer_ = 0.0f;
 };
 ///EOF FSMComponentEnemy.h

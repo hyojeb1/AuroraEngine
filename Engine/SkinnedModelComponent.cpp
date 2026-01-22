@@ -16,7 +16,7 @@ REGISTER_TYPE(SkinnedModelComponent)
 SkinnedModelComponent::SkinnedModelComponent()
 {
 	m_vsShaderName = "VSModelSkinAnim.hlsl";
-	m_modelFileName = "CastleGuard01_Walking.fbx";
+	m_modelFileName = "test5.fbx";
 
 	m_inputElements.push_back(InputElement::Blendindex);  
 	m_inputElements.push_back(InputElement::Blendweight); 
@@ -36,6 +36,7 @@ void SkinnedModelComponent::Initialize()
 		if (!m_model->animations.empty())
 		{
 			animator_->PlayAnimation(m_model->animations.front().name);
+			//animator_->PlayAnimation("rig|rigAction");
 		}
 	}
 }

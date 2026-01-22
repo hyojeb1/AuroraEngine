@@ -33,7 +33,7 @@ protected:
 
 	void Update() override;
 	void Initialize() override;
-	void RenderImGui() override;
+	virtual void RenderImGui() override = 0;
 	nlohmann::json Serialize() override;
 	void Deserialize(const nlohmann::json& jsonData) override;
 

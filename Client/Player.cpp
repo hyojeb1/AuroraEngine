@@ -78,7 +78,11 @@ void Player::Update()
 		GameObjectBase* hit = ColliderComponent::CheckCollision(origin, direction, distance);
 		if (hit)
 		{
-			if (dynamic_cast<Enemy*>(hit)) hit->SetAlive(false);
+			//if (dynamic_cast<Enemy*>(hit)) hit->SetAlive(false);
+			if (dynamic_cast<Enemy*>(hit)) 
+			{
+				static_cast<Enemy*>(hit)->Die();
+			}
 
 			LineBuffer lineBuffer = {};
 			XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());

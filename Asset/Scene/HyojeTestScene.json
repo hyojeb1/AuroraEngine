@@ -49,10 +49,6 @@
                                     "rasterState": 1,
                                     "type": "ModelComponent",
                                     "vsShaderName": "VSModel.hlsl"
-                                },
-                                {
-                                    "initialState": "Idle",
-                                    "type": "FSMComponentGun"
                                 }
                             ],
                             "name": "Gun",
@@ -156,7 +152,7 @@
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
                     },
-                    "modelFileName": "arm.fbx",
+                    "modelFileName": "test5.fbx",
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",
@@ -236,7 +232,7 @@
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
                     },
-                    "modelFileName": "arm.fbx",
+                    "modelFileName": "test5.fbx",
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",
@@ -262,7 +258,7 @@
                     "type": "ColliderComponent"
                 }
             ],
-            "name": "GameObjectBase_7",
+            "name": "GameObjectBase_4",
             "position": [
                 8.75,
                 0.0,

@@ -6,7 +6,7 @@
 class FSMComponentGun : public FSMComponent
 {
 protected:
-	enum EGunState
+	enum EState
 	{
 		EIdle,   // 0
 		EAttack, 

@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include "FSMComponentGun.h"
 #include "GameObjectBase.h"
-#include "InputManager.h"
 #include "TimeManager.h"
 
 REGISTER_TYPE(FSMComponentGun)
@@ -17,7 +16,8 @@ std::string FSMComponentGun::StateToString(StateID state) const
 	case EIdle:   return "Idle";
 	case EAttack: return "Attack";
 	case EReload: return "Reload";
-	default:                return "Unknown";
+	default:                
+		return "Unknown";
 	}
 }
 
@@ -171,7 +171,7 @@ void FSMComponentGun::RenderImGui()
 		{
 			for (int i = 0; i < ECount; ++i)
 			{
-				EGunState state = (EGunState)i;
+				EState state = (EState)i;
 				string stateName = StateToString(state);
 				bool isSelected = (current_state_ == state);
 				if (ImGui::Selectable(stateName.c_str(), isSelected))
