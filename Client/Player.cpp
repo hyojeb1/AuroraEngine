@@ -42,7 +42,7 @@ void Player::Initialize()
 		m_crosshairOffset.y = static_cast<float>(textureDesc.Height) * 0.5f;
 	}
 
-	m_cameraObject = GetChildGameObject<CamRotObject>("CamRotObject_2");
+	m_cameraObject = dynamic_cast<CamRotObject*>(GetChildGameObject("CamRotObject_2"));
 	m_gunObject = m_cameraObject->GetChildGameObject("Gun");
 	m_gunObject->CreateComponent<FSMComponentGun>();
 }
@@ -52,12 +52,19 @@ void Player::Update()
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	InputManager& input = InputManager::GetInstance();
 
-	if (input.GetKey(KeyCode::W)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Forward);
-	if (input.GetKey(KeyCode::S)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Backward);
-	if (input.GetKey(KeyCode::A)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Left);
-	if (input.GetKey(KeyCode::D)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Right);
-	if (input.GetKey(KeyCode::Space)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Up);
-	if (input.GetKey(KeyCode::Shift)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Down);
+	float yaw = XMVectorGetY(GetRotation()) + static_cast<float>(input.GetMouseDelta().x) * m_xSensitivity;
+	SetRotation(XMVectorSet(0.0f, yaw, 0.0f, 0.0f));
+
+	float forwardInput = 0.0f;
+	float rightInput = 0.0f;
+	if (input.GetKey(KeyCode::W)) forwardInput += m_moveSpeed;
+	if (input.GetKey(KeyCode::S)) forwardInput -= m_moveSpeed;
+	if (input.GetKey(KeyCode::A)) rightInput -= m_moveSpeed;
+	if (input.GetKey(KeyCode::D)) rightInput += m_moveSpeed;
+
+	// 대각선 이동 보정
+	if (forwardInput != 0.0f && rightInput != 0.0f) { forwardInput *= 0.7071f; rightInput *= 0.7071f; }
+	MovePosition(GetWorldDirectionVector(Direction::Forward) * forwardInput * deltaTime + GetWorldDirectionVector(Direction::Right) * rightInput * deltaTime);
 
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
@@ -119,8 +126,10 @@ void Player::Update()
 			m_deadEyeTime = m_deadEyeDuration;
 
 			TimeManager::GetInstance().SetTimeScale(0.1f); // 데드 아이 타임 활성화 시 시간 느리게
-			m_cameraSensitivity = m_cameraObject->GetSensitivity();
+			m_cameraYSensitivity = m_cameraObject->GetSensitivity();
 			m_cameraObject->SetSensitivity(0.01f); // 데드 아이 타임 활성화 시 카메라 감도 감소
+			m_xSensitivity = m_cameraObject->GetSensitivity();
+
 			m_postProcessingBuffer.flags |= static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Grayscale);
 
 			sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [](const auto& a, const auto& b) { return get<0>(a) < get<0>(b); });
@@ -143,9 +152,9 @@ void Player::Update()
 
 				LineBuffer lineBuffer = {};
 				if (m_gunObject) XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
-				lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 0.5f, 0.5f, 1.0f };
+				lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 				XMStoreFloat4(&lineBuffer.linePoints[1], enemy->GetWorldPosition());
-				lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 0.5f, 0.5f, 1.0f };
+				lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 
 				m_lineBuffers.emplace_back(lineBuffer, 0.5f);
 			}
@@ -162,7 +171,9 @@ void Player::Update()
 			m_isDeadEyeActive = false;
 
 			TimeManager::GetInstance().SetTimeScale(1.0f); // 시간 정상화
-			m_cameraObject->SetSensitivity(m_cameraSensitivity); // 카메라 감도 원래대로
+			m_cameraObject->SetSensitivity(m_cameraYSensitivity); // 카메라 감도 원래대로
+			m_xSensitivity = m_cameraObject->GetSensitivity();
+
 			m_deadEyeTargets.clear();
 			m_postProcessingBuffer.flags &= ~static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Grayscale);
 			m_postProcessingBuffer.grayScaleIntensity = 0.0f;

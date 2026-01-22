@@ -1,9 +1,10 @@
-///BOF Enemy.h
 #pragma once
 #include "GameObjectBase.h"
 
 class Enemy : public GameObjectBase
 {
+	class Player* m_player = nullptr;
+
 public:
 	enum class AIState
 	{
@@ -25,7 +26,6 @@ private:
 	void Initialize() override;
 	void Update() override;
 
-private:
 	class SkinnedModelComponent* m_model = nullptr;
 	class FSMComponentEnemy* m_fsm = nullptr;
 	class ColliderComponent* m_collider = nullptr;
@@ -35,4 +35,3 @@ private:
 	float m_deathTimer = 0.0f;
 	const float m_deathDuration = 2.0f;
 };
-///EOF Enemy.h

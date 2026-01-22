@@ -6,6 +6,10 @@
 #include "ColliderComponent.h"
 #include "FSMComponentEnemy.h"
 #include "TimeManager.h"
+#include "Player.h"
+#include "TimeManager.h"
+#include "SceneManager.h"
+#include "SceneBase.h"
 
 REGISTER_TYPE(Enemy)
 
@@ -18,6 +22,8 @@ void Enemy::Initialize()
 	m_fsm = CreateComponent<FSMComponentEnemy>();
 	m_collider = CreateComponent<ColliderComponent>();
 	m_collider->AddBoundingBox(BoundingBox({ 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }));
+
+	m_player = static_cast<Player*>(SceneManager::GetInstance().GetCurrentScene()->GetGameObjectRecursive("Player"));
 }
 
 
@@ -47,5 +53,6 @@ void Enemy::Update()
 			SetAlive(false);
 		}
 	}
+	LookAt(m_player->GetPosition());
+	MoveDirection(TimeManager::GetInstance().GetDeltaTime() * 2.0f, Direction::Forward);
 }
-///EOF Enemy.cpp

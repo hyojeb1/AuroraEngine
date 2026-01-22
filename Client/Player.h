@@ -11,8 +11,11 @@ class Player : public GameObjectBase
 	com_ptr<ID3D11ShaderResourceView> m_crosshairSRV = nullptr;
 	DirectX::XMFLOAT2 m_crosshairOffset = {};
 
+	float m_moveSpeed = 5.0f;
+	float m_xSensitivity = 0.1f;
+
 	class CamRotObject* m_cameraObject = nullptr;
-	float m_cameraSensitivity = 0.1f;
+	float m_cameraYSensitivity = 0.1f;
 	GameObjectBase* m_gunObject = nullptr;
 
 	bool m_isDeadEyeActive = false;

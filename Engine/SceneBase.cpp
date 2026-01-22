@@ -41,6 +41,21 @@ GameObjectBase* SceneBase::GetRootGameObject(const string& name)
 	return nullptr;
 }
 
+GameObjectBase* SceneBase::GetGameObjectRecursive(const string& name)
+{
+	for (unique_ptr<Base>& gameObject : m_gameObjects)
+	{
+		GameObjectBase* gameObjectBase = static_cast<GameObjectBase*>(gameObject.get());
+		if (gameObjectBase)
+		{
+			if (gameObjectBase->GetName() == name) return gameObjectBase;
+			GameObjectBase* found = gameObjectBase->GetGameObjectRecursive(name);
+			if (found) return found;
+		}
+	}
+	return nullptr;
+}
+
 void SceneBase::BaseInitialize()
 {
 	m_type = GetTypeName(*this);

@@ -102,13 +102,9 @@ public:
 	GameObjectBase* CreateChildGameObject(const std::string& typeName);
 	template<typename T> requires std::derived_from<T, GameObjectBase>
 	T* CreateChildGameObject(); // 자식 게임 오브젝트 생성 // 포인터 반환
-	// 자식 게임 오브젝트 제거 // 제거 배열에 추가
-	template<typename T> requires std::derived_from<T, GameObjectBase>
-	[[nodiscard]] T* CreateChildGameObject(const std::string& typeName); // 자식 게임 오브젝트 생성 // 포인터 반환
 
 	GameObjectBase* GetChildGameObject(const std::string& name); // 이름으로 자식 게임 오브젝트 검색 // 없으면 nullptr 반환
-	template<typename T> requires std::derived_from<T, GameObjectBase>
-	T* GetChildGameObject(const std::string& name); // 이름으로 자식 게임 오브젝트 검색 // 없으면 nullptr 반환
+	GameObjectBase* GetGameObjectRecursive(const std::string& name); // 이름으로 재귀적으로 게임 오브젝트 검색 // 없으면 nullptr 반환
 
 private:
 	// 게임 오브젝트 초기화
@@ -191,25 +187,4 @@ inline T* GameObjectBase::CreateChildGameObject()
 	m_childrens.push_back(std::move(child));
 
 	return childPtr;
-}
-
-template<typename T> requires std::derived_from<T, GameObjectBase>
-inline T* GameObjectBase::CreateChildGameObject(const std::string& typeName)
-{
-	std::unique_ptr<GameObjectBase> childGameObjectPtr = TypeRegistry::GetInstance().CreateGameObject(typeName);
-
-	childGameObjectPtr->m_parent = this;
-	childGameObjectPtr->BaseInitialize();
-	T* childPtr = static_cast<T*>(childGameObjectPtr.get());
-	m_childrens.push_back(std::move(childGameObjectPtr));
-
-	return childPtr;
-}
-
-template<typename T> requires std::derived_from<T, GameObjectBase>
-T* GameObjectBase::GetChildGameObject(const std::string& name)
-{
-	for (auto& child : m_childrens) if (child->GetName() == name) return dynamic_cast<T*>(child.get());
-
-	return nullptr;
 }

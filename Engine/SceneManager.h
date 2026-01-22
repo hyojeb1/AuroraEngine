@@ -24,6 +24,8 @@ public:
 
 	void ChangeScene(const std::string& sceneTypeName) { m_nextScene = TypeRegistry::GetInstance().CreateScene(sceneTypeName); m_accumulator = 0; }
 
+	SceneBase* GetCurrentScene() { return dynamic_cast<SceneBase*>(m_currentScene.get()); }
+
 private:
 	SceneManager() = default;
 };
