@@ -13,8 +13,8 @@ using namespace DirectX;
 
 void FSMComponentEnemy::Initialize()
 {
-	FSMComponent::Initialize();
 	model_ = GetOwner()->GetComponent<SkinnedModelComponent>();
+	FSMComponent::Initialize();
 }
 
 std::string FSMComponentEnemy::StateToString(StateID state) const
@@ -41,6 +41,7 @@ FSMComponent::StateID FSMComponentEnemy::StringToState(const std::string& str) c
 void FSMComponentEnemy::OnEnterState(StateID state)
 {
 	if (!model_) return;
+	if (!model_->GetAnimator()) return;
 
 	switch (state)
 	{
@@ -69,20 +70,17 @@ void FSMComponentEnemy::OnUpdateState(StateID state)
 
 		// 1.5초 후부터 0.5초간 서서히 투명해지기 (총 2초)
 		// Enemy.h의 m_deathDuration(2.0f)과 타이밍을 맞춰야 함
-		constexpr float kFadeStartTime = 1.5f;
-		constexpr float kFadeDuration = 0.5f;
+		constexpr float kFadeStartTime = 0.5f;
+		constexpr float kFadeDuration = 1.5f;
 
 		if (death_timer_ >= kFadeStartTime)
 		{
 			float alpha = 1.0f - ((death_timer_ - kFadeStartTime) / kFadeDuration);
 			if (alpha < 0.0f) alpha = 0.0f;
 
-			// SkinnedModelComponent에 알파 조절 함수가 있다고 가정
 			if (model_)
 			{
-				// model_->SetAlpha(alpha); 
-				// 또는 Color 전체 변경:
-				// model_->SetColor({1.0f, 1.0f, 1.0f, alpha}); 
+				 model_->SetAlpha(alpha); 
 			}
 		}
 	}
