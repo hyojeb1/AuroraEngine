@@ -278,9 +278,7 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 
 	// 파일 확장자 확인
 	const string extension = fileName.substr(fileName.find_last_of('.') + 1);
-	const bool isDDS = (extension == "dds" || extension == "DDS");
-
-	if (isDDS)
+	if (extension == "dds" || extension == "DDS")
 	{
 		// DDS 파일 (큐브맵 등)
 		hr = CreateDDSTextureFromMemoryEx

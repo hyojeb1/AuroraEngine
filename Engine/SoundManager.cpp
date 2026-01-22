@@ -199,9 +199,9 @@ void SoundManager::ConvertUISource()
 	}
 }
 
-float Hann(int n, int N)
+static float Hann(int n, int N)
 {
-	return 0.5f * (1.0f - cosf(2.0f * std::numbers::pi * n / (N - 1)));
+	return 0.5f * (1.0f - cosf(2.0f * DirectX::XM_PI * static_cast<float>(n) / static_cast<float>(N - 1)));
 }
 
 struct Segment
