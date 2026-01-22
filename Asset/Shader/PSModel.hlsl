@@ -8,6 +8,7 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float4 baseColor = baseColorTexture.Sample(SamplerLinearWrap, input.UV) * BaseColorFactor;
     // ORM 텍스처
     float3 orm = ORMTexture.Sample(SamplerLinearWrap, input.UV).xyz * float3(AmbientOcclusionFactor, RoughnessFactor, MetallicFactor);
+    //orm.g += 1.0f; // 거칠기 오프셋 보정
     // 노말 텍스처
     float4 bump = normalTexture.Sample(SamplerLinearWrap, input.UV);
     // 방출 텍스처
@@ -46,7 +47,7 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     
     // IBL 계산
     // 환경 맵에서 반사광 샘플링
-    float3 envReflection = environmentMapTexture.SampleLevel(SamplerLinearWrap, R, orm.g * 8.0f).rgb;
+    float3 envReflection = environmentMapTexture.SampleLevel(SamplerLinearWrap, R, orm.g * 16.0f).rgb;
     
     // 프레넬로 반사 강도 조절 (시야각에 따라 반사 강도 변화)
     float3 F_env = FresnelSchlickRoughness(NdotV, F0, orm.g);
@@ -54,13 +55,13 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float3 kD_env = (1.0f - F_env) * (1.0f - orm.b); // 디퓨즈 기여도
     
     // 환경 맵에서 디퓨즈 샘플링 (높은 MIP 레벨 사용)
-    float3 envDiffuse = environmentMapTexture.SampleLevel(SamplerLinearWrap, N, 4.0f).rgb;
+    float3 envDiffuse = environmentMapTexture.SampleLevel(SamplerLinearWrap, R, orm.g * 16.0f).rgb;
     
-    float3 indirectDiffuse = envDiffuse * baseColor.rgb * kD_env; // 환경광 디퓨즈
+    float3 indirectDiffuse = envDiffuse * baseColor.rgb * kD_env * orm.r; // 환경광 디퓨즈
     float3 indirectSpecular = envReflection * F_env; // 환경광 스페큘러
     
     // IBL 최종 기여도
-    float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w * orm.r; // AO 적용
+    float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w;
     
     // 최종 색상
     baseColor.rgb = Lo + ibl;

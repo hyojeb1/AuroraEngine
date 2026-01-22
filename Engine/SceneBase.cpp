@@ -226,7 +226,7 @@ void SceneBase::BaseRenderImGui()
 	{
 		m_globalLightData.lightDirection = XMVector3Normalize(m_globalLightData.lightDirection);
 	}
-	ImGui::DragFloat("Directional Intensity", &m_globalLightData.lightDirection.m128_f32[3], 0.001f, 0.0f, 1.0f);
+	ImGui::DragFloat("Directional Intensity", &m_globalLightData.lightDirection.m128_f32[3], 0.001f, 0.0f, 100.0f);
 
 	RenderImGui();
 
