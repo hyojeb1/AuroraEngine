@@ -107,7 +107,13 @@ using namespace HELPER_IN_ANIMATOR_CPP;
 
 Animator::Animator(const Model* model) : model_context_(model)
 {
-	if (model_context_) final_bone_matrices_.resize(model_context_->skeleton.bones.size(), XMMatrixIdentity());
+	if (model_context_)
+	{
+		XMFLOAT4X4 identity;
+		XMStoreFloat4x4(&identity, XMMatrixIdentity());
+
+		final_bone_matrices_.resize(model_context_->skeleton.bones.size(), identity);
+	}
 }
 
 void Animator::UpdateAnimation(float delta_time)
@@ -231,7 +237,8 @@ void Animator::CalculateBoneTransform(const std::shared_ptr<SkeletonNode>& node,
 	if (node->boneIndex >= 0 && static_cast<size_t>(node->boneIndex) < final_bone_matrices_.size()){
 		XMMATRIX offset_matrix = XMLoadFloat4x4(&model_context_->skeleton.bones[node->boneIndex].offset_matrix);
 		XMMATRIX global_inverse = XMLoadFloat4x4(&model_context_->skeleton.globalInverseTransform);
-		final_bone_matrices_[node->boneIndex] = offset_matrix * global_transform *global_inverse;
+		XMMATRIX final_matrix = offset_matrix * global_transform * global_inverse;
+		XMStoreFloat4x4(&final_bone_matrices_[node->boneIndex], final_matrix);
 	}
 
 	// 자식 뼈들에게 "나의 globalTransform이 너희들의 parentTransform이다"라고 알림

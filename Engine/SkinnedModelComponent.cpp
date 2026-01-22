@@ -54,11 +54,13 @@ void SkinnedModelComponent::Render()
 {
 	if (animator_)
 	{
-		const auto& final_matrices = animator_->GetFinalBoneMatrices();
+		const std::vector<DirectX::XMFLOAT4X4>& final_matrices = animator_->GetFinalBoneMatrices();
 		const size_t bone_count = min(final_matrices.size(), static_cast<size_t>(MAX_BONES));
 		for (size_t i = 0; i < bone_count; ++i)
 		{
-			m_boneBufferData.boneMatrix[i] = XMMatrixTranspose(final_matrices[i]);
+			XMMATRIX mat = XMLoadFloat4x4(&final_matrices[i]);
+			mat = XMMatrixTranspose(mat);
+			XMStoreFloat4x4(&m_boneBufferData.boneMatrix[i], mat);
 		}
 	}
 

@@ -24,7 +24,7 @@ private:
 	float	blend_duration_									= 0.0f;
 	bool	is_blending_									= false;
 
-	std::vector<DirectX::XMMATRIX>	final_bone_matrices_	= {};	
+	std::vector<DirectX::XMFLOAT4X4>	final_bone_matrices_	= {};
 	const Model*				model_context_			= nullptr;	
 
 public:
@@ -33,7 +33,7 @@ public:
 	void UpdateAnimation(float delta_time);
 	void PlayAnimation(const std::string& clip_name, bool is_loop = true, float blend_time = 0.5f);
 
-	const std::vector<DirectX::XMMATRIX>& GetFinalBoneMatrices() const { return final_bone_matrices_; }
+	const std::vector<DirectX::XMFLOAT4X4>& GetFinalBoneMatrices() const { return final_bone_matrices_; }
 
 	const std::string GetCurrentAnimationName() const;
 

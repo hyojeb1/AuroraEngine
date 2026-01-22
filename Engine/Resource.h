@@ -399,8 +399,13 @@ struct TimeBuffer
 constexpr int MAX_BONES = 256;
 struct BoneBuffer
 {
-	std::array<DirectX::XMMATRIX, MAX_BONES> boneMatrix = {}; // 본 행렬 배열
-	BoneBuffer() { std::fill(boneMatrix.begin(), boneMatrix.end(), DirectX::XMMatrixIdentity()); }
+	std::array<DirectX::XMFLOAT4X4, MAX_BONES> boneMatrix = {};
+	BoneBuffer()
+	{
+		DirectX::XMFLOAT4X4 identity;
+		DirectX::XMStoreFloat4x4(&identity, DirectX::XMMatrixIdentity());
+		std::fill(boneMatrix.begin(), boneMatrix.end(), identity);
+	}
 };
 struct LineBuffer
 {
@@ -682,7 +687,7 @@ enum class ModelType
 {
 	Static,
 	Skinned,
-	//Rigid,//마인크래프트류, 준비되지 않음
+	//Rigid,//마인크래프트
 	Count
 };
 
