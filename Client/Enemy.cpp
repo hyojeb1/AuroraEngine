@@ -22,10 +22,12 @@ void Enemy::Initialize()
 	m_fsm = CreateComponent<FSMComponentEnemy>();
 	m_collider = CreateComponent<ColliderComponent>();
 	m_collider->AddBoundingBox(BoundingBox({ 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }));
+	CreateComponent<SkinnedModelComponent>();
+	CreateComponent<FSMComponentEnemy>();
+	CreateComponent<ColliderComponent>()->AddBoundingBox(BoundingBox({ 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }));
 
 	m_player = static_cast<Player*>(SceneManager::GetInstance().GetCurrentScene()->GetGameObjectRecursive("Player"));
 }
-
 
 void Enemy::Die()
 {
