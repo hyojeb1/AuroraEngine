@@ -23,8 +23,8 @@ void ParticleComponent::Initialize()
 	CreateBuffers();
 	particle_texture_srv_ = resourceManager.GetTexture("Crosshair.png");
 
-	m_localBoundingBox.Center = XMFLOAT3(0.f, 0.f, 0.f);
-	m_localBoundingBox.Extents = XMFLOAT3(0.5f, 0.5f, 0.01f);
+	//m_localBoundingBox.Center = XMFLOAT3(0.f, 0.f, 0.f);
+	//m_localBoundingBox.Extents = XMFLOAT3(0.5f, 0.5f, 0.01f);
 }
 
 void ParticleComponent::Render()
@@ -32,21 +32,23 @@ void ParticleComponent::Render()
 	Renderer& renderer = Renderer::GetInstance();
 	const CameraComponent& mainCamera = CameraComponent::GetMainCamera(); // 릴리즈고...
 
-	m_localBoundingBox.Transform(m_boundingBox, m_owner->GetWorldMatrix());
-	XMVECTOR boxCenter = XMLoadFloat3(&m_boundingBox.Center);
-	XMVECTOR boxExtents = XMLoadFloat3(&m_boundingBox.Extents);
-
+	//m_localBoundingBox.Transform(m_boundingBox, m_owner->GetWorldMatrix());
+	//XMVECTOR boxCenter = XMLoadFloat3(&m_boundingBox.Center);
+	//XMVECTOR boxExtents = XMLoadFloat3(&m_boundingBox.Extents);
+	const XMVECTOR& owner_pos = m_owner->GetPosition();
 	const XMVECTOR& sortPoint = renderer.GetRenderSortPoint();
 
 	// 일반 렌더링
 	renderer.RENDER_FUNCTION(RenderStage::Scene, m_blendState).emplace_back
 	(
-		// 카메라로부터의 거리
-		XMVectorGetX(XMVector3LengthSq(sortPoint - XMVectorClamp(sortPoint, boxCenter - boxExtents, boxCenter + boxExtents))),
+		//// 카메라로부터의 거리
+		//XMVectorGetX(XMVector3LengthSq(sortPoint - XMVectorClamp(sortPoint, boxCenter - boxExtents, boxCenter + boxExtents))),
+		XMVectorGetX(XMVector3LengthSq(sortPoint - owner_pos)),
 		[&]()
 		{
 			// 프러스텀 컬링
-			if (m_boundingBox.Intersects(mainCamera.GetBoundingFrustum()) == false) return;
+			//if (m_boundingBox.Intersects(mainCamera.GetBoundingFrustum()) == false) return;
+			if (mainCamera.GetBoundingFrustum().Contains(owner_pos)) return;
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 			resourceManager.SetRasterState(m_rasterState);
@@ -70,48 +72,44 @@ void ParticleComponent::Render()
 		}
 	);
 
-	// 디버그 - 경계 상자 렌더링
-#ifdef _DEBUG
-	renderer.RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
-	(
-		numeric_limits<float>::max(), // 제일 나중에 그림
-		[&]()
-		{
-			if (!m_renderBoundingBox) return; // 렌더링 옵션 체크
-
-			// 프러스텀 컬링 (월드 기준)
-			if (m_boundingBox.Intersects(mainCamera.GetBoundingFrustum()) == false) return;
-
-			ResourceManager& resourceManager = ResourceManager::GetInstance();
-
-			// 라인 셰이더 설정
-			m_deviceContext->IASetInputLayout(m_boundingBoxVertexShaderAndInputLayout.second.Get());
-			m_deviceContext->VSSetShader(m_boundingBoxVertexShaderAndInputLayout.first.Get(), nullptr, 0);
-			m_deviceContext->PSSetShader(m_boundingBoxPixelShader.Get(), nullptr, 0);
-
-			resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-
-			// 경계 상자 코너 가져오기
-			array<XMFLOAT3, 8> boxVertices = {};
-			m_boundingBox.GetCorners(boxVertices.data());
-
-			LineBuffer lineBufferData = {};
-
-			// ModelComponent에 있던 BOX_LINE_INDICES 상수 사용 (프로젝트 공용 헤더에 있다고 가정)
-			// 만약 없다면 직접 인덱스 배열을 정의해야 함 (0-1, 1-2 ...)
-			for (const auto& [startIndex, endIndex] : BOX_LINE_INDICES)
-			{
-				lineBufferData.linePoints[0] = XMFLOAT4{ boxVertices[startIndex].x, boxVertices[startIndex].y, boxVertices[startIndex].z, 1.0f };
-				lineBufferData.linePoints[1] = XMFLOAT4{ boxVertices[endIndex].x, boxVertices[endIndex].y, boxVertices[endIndex].z, 1.0f };
-				lineBufferData.lineColors[0] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f }; // 파티클은 초록색으로 표시해봄
-				lineBufferData.lineColors[1] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f };
-
-				m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
-				m_deviceContext->Draw(2, 0);
-			}
-		}
-	);
-#endif
+//// 디버그 - 경계 상자 렌더링
+//#ifdef _DEBUG
+//	renderer.RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
+//	(
+//		numeric_limits<float>::max(), // 제일 나중에 그림
+//		[&]()
+//		{
+//			if (!m_renderBoundingBox) return; // 렌더링 옵션 체크
+//
+//			// 프러스텀 컬링 (월드 기준)
+//			if (m_boundingBox.Intersects(mainCamera.GetBoundingFrustum()) == false) return;
+//
+//			ResourceManager& resourceManager = ResourceManager::GetInstance();
+//
+//			m_deviceContext->IASetInputLayout(m_boundingBoxVertexShaderAndInputLayout.second.Get());
+//			m_deviceContext->VSSetShader(m_boundingBoxVertexShaderAndInputLayout.first.Get(), nullptr, 0);
+//			m_deviceContext->PSSetShader(m_boundingBoxPixelShader.Get(), nullptr, 0);
+//
+//			resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+//
+//			array<XMFLOAT3, 8> boxVertices = {};
+//			m_boundingBox.GetCorners(boxVertices.data());
+//
+//			LineBuffer lineBufferData = {};
+//
+//			for (const auto& [startIndex, endIndex] : BOX_LINE_INDICES)
+//			{
+//				lineBufferData.linePoints[0] = XMFLOAT4{ boxVertices[startIndex].x, boxVertices[startIndex].y, boxVertices[startIndex].z, 1.0f };
+//				lineBufferData.linePoints[1] = XMFLOAT4{ boxVertices[endIndex].x, boxVertices[endIndex].y, boxVertices[endIndex].z, 1.0f };
+//				lineBufferData.lineColors[0] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f }; // 파티클은 초록색으로 표시해봄
+//				lineBufferData.lineColors[1] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f };
+//
+//				m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
+//				m_deviceContext->Draw(2, 0);
+//			}
+//		}
+//	);
+//#endif
 }
 
 void ParticleComponent::RenderImGui()
@@ -166,10 +164,10 @@ void ParticleComponent::CreateShaders()
 	m_vertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout(m_vsShaderName, m_inputElements);
 	m_pixelShader = resourceManager.GetPixelShader(m_psShaderName);
 
-#ifdef _DEBUG
-	m_boundingBoxVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
-	m_boundingBoxPixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
-#endif
+//#ifdef _DEBUG
+//	m_boundingBoxVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
+//	m_boundingBoxPixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
+//#endif
 
 }
 void ParticleComponent::CreateBuffers()
@@ -178,8 +176,8 @@ void ParticleComponent::CreateBuffers()
 	m_deviceContext->GetDevice(device.GetAddressOf());
 
 	D3D11_BUFFER_DESC vbDesc = {};
-	vbDesc.Usage = D3D11_USAGE_DEFAULT; // 혹은 D3D11_USAGE_IMMUTABLE (수정 안할거면)
-	vbDesc.ByteWidth = sizeof(VertexPosUV) * static_cast<UINT>(quad_.size()); // 4개
+	vbDesc.Usage = D3D11_USAGE_DEFAULT;
+	vbDesc.ByteWidth = sizeof(VertexPosUV) * static_cast<UINT>(quad_.size()); 
 	vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbDesc.CPUAccessFlags = 0;
 

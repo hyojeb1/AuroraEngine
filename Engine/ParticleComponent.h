@@ -1,4 +1,9 @@
 /// ParticleComponent.h의 시작
+///
+/// 바운딩 박스를 이용한 컬링은 주석으로 남겨 놓겠습니다. 
+/// 성능을 위해서 중점 컬링을 합니다.
+/// 하지만 만약 큰 파티클의 경우 바운딩 박스를 이용하거나 구면컬링을 준비해야 자연스러울 것입니다.
+/// 
 #pragma once
 #include "ComponentBase.h"
 //#include "Resource.h"
@@ -41,16 +46,16 @@ protected:
 	com_ptr<ID3D11ShaderResourceView> particle_texture_srv_ = nullptr;
 
 	MaterialFactorBuffer m_materialFactorData = {}; // 재질 상수 버퍼 데이터
-	BlendState m_blendState = BlendState::Opaque; // 기본 블렌드 상태
+	BlendState m_blendState = BlendState::AlphaBlend; // 기본 블렌드 상태
 	RasterState m_rasterState = RasterState::SolidCullNone; // 기본 래스터 상태
-
-	DirectX::BoundingBox m_boundingBox;
-	DirectX::BoundingBox m_localBoundingBox;
-#ifdef _DEBUG
-	bool m_renderBoundingBox = true;
-	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_boundingBoxVertexShaderAndInputLayout = {}; // 경계 상자 정점 셰이더 및 입력 레이아웃
-	com_ptr<ID3D11PixelShader> m_boundingBoxPixelShader = nullptr; // 경계 상자 픽셀 셰이더
-#endif
+//
+//	DirectX::BoundingBox m_boundingBox;
+//	DirectX::BoundingBox m_localBoundingBox;
+//#ifdef _DEBUG
+//	bool m_renderBoundingBox = true;
+//	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_boundingBoxVertexShaderAndInputLayout = {}; // 경계 상자 정점 셰이더 및 입력 레이아웃
+//	com_ptr<ID3D11PixelShader> m_boundingBoxPixelShader = nullptr; // 경계 상자 픽셀 셰이더
+//#endif
 
 public:
 	ParticleComponent() = default;
