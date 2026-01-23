@@ -9,7 +9,9 @@ class Player : public GameObjectBase
 	com_ptr<ID3D11PixelShader> m_linePixelShader = nullptr;
 
 	com_ptr<ID3D11ShaderResourceView> m_crosshairSRV = nullptr;
+	com_ptr<ID3D11ShaderResourceView> m_NodeSRV = nullptr;
 	DirectX::XMFLOAT2 m_crosshairOffset = {};
+	DirectX::XMFLOAT2 m_NodeOffset = {};
 
 	class CamRotObject* m_cameraObject = nullptr;
 	float m_cameraSensitivity = 0.1f;

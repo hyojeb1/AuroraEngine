@@ -1,10 +1,10 @@
 #include "stdafx.h"
 
-#include <numbers>
 #include "GameObjectBase.h"
 #include "ListenerComponent.h"
 
 #include "SoundManager.h"
+#include "TimeManager.h"
 
 constexpr size_t ChannelCount = 64; //profiling 필요
 
@@ -66,7 +66,16 @@ void SoundManager::Initialize()
 			std::cout << n.first << std::endl;
 		}
 
-		
+
+
+
+
+
+		SoundManager::GetInstance().BGM_Shot("Sample1_Beat(Kick)");
+		TimeManager::GetInstance().ResetRhythmTime();
+
+
+
 
 		m_CoreSystem->update();
 	}
@@ -75,6 +84,7 @@ void SoundManager::Initialize()
 void SoundManager::Update()
 {
 	m_CoreSystem->update();
+	UpdateNodeIndex();
 }
 
 void SoundManager::Stop_ChannelGroup()
@@ -201,7 +211,7 @@ void SoundManager::ConvertUISource()
 
 float Hann(int n, int N)
 {
-	return 0.5f * (1.0f - cosf(2.0f * std::numbers::pi * n / (N - 1)));
+	return 0.5f * (1.0f - cosf(2.0f * DirectX::XM_PI * n / (N - 1)));
 }
 
 struct Segment
@@ -405,13 +415,88 @@ void SoundManager::CreateNodeData(const std::string& filename)
 	out.close();
 }
 
+void SoundManager::LoadNodeData()
+{
+	std::string path = "../Asset/BeatMapData/" + m_CurrentTrackName + "_nodes.json";
+	std::ifstream in(path);
+	nlohmann::json j;
+	in >> j;
+
+	for (auto& seg : j["segments"])
+	{
+		m_NodeData.push_back({ seg["start"], seg["end"] });
+	}
+}
+
+void SoundManager::UpdateNodeIndex()
+{
+	if (m_NodeData.empty())
+	{
+		return;
+	}
+	if (m_NodeData[m_rhythmTimerIndex].second < TimeManager::GetInstance().GetRhythmTime())
+	{
+		m_rhythmTimerIndex++;
+	}
+}
+
+bool SoundManager::CheckRhythm(float correction)
+{
+	const float& time = TimeManager::GetInstance().GetRhythmTime();
+
+	if (m_NodeData[m_rhythmTimerIndex].first - correction <= time && m_NodeData[m_rhythmTimerIndex].second + correction >= time)
+	{
+		std::cout << "Success! : " << 
+			m_NodeData[m_rhythmTimerIndex].first <<
+			"s " <<
+			"Time: " << time << std::endl;
+		return true;
+	}
+	else
+	{
+		std::cout << "Faild : " <<
+			m_NodeData[m_rhythmTimerIndex].first <<
+			"s " <<
+			"Time: " << time << "s" << std::endl;
+
+		return false;
+	}
+
+	
+}
+
 void SoundManager::BGM_Shot(const std::string filename)
 {
 	auto it = BGM_List.find(filename);
 
 	if (it != BGM_List.end())
 	{
-		m_CoreSystem->playSound(it->second, m_BGMGroup, false, &m_BGMChannel);
+		m_CoreSystem->playSound(it->second, m_BGMGroup, true, &m_BGMChannel);
+		m_CurrentTrackName = it->first;
+		LoadNodeData();
+
+		float sampleRate = 0.0f;
+		it->second->getDefaults(&sampleRate, nullptr);
+
+		unsigned long long dspClock = 0;
+		unsigned long long parentClock = 0;
+
+		m_BGMGroup->getDSPClock(&dspClock, &parentClock);
+
+		// 지연 시간 (초 → 샘플)
+		float delaySec = 2.05f; // 2초 뒤 재생
+		unsigned long long delaySamples =
+			(unsigned long long)(delaySec * sampleRate);
+
+		// 재생 시작 시점 설정
+		m_BGMChannel->setDelay(dspClock + delaySamples, 0, false);
+
+		// 이제 재생 시작
+		m_BGMChannel->setPaused(false);
+	}
+	else
+	{
+		m_CurrentTrackName = "Invalid";
 	}
 }
 

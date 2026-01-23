@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Player.h"
 
+#include "SoundManager.h"
 #include "TimeManager.h"
 #include "InputManager.h"
 #include "ColliderComponent.h"
@@ -19,13 +20,15 @@ REGISTER_TYPE(Player)
 using namespace std;
 using namespace DirectX;
 
+
 void Player::Initialize()
 {
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_lineVertexBufferAndShader = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_linePixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
 
-	m_crosshairSRV = resourceManager.GetTexture("Crosshair.png");
+	m_crosshairSRV = resourceManager.GetTexture("cross_hair_middle.png");
+	m_NodeSRV = resourceManager.GetTexture("cross_hair_parts.png");
 
 	// srv에서 크기 정보 얻기
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -41,6 +44,20 @@ void Player::Initialize()
 		texture2D->GetDesc(&textureDesc);
 		m_crosshairOffset.x = static_cast<float>(textureDesc.Width) * 0.5f;
 		m_crosshairOffset.y = static_cast<float>(textureDesc.Height) * 0.5f;
+	}
+
+	m_NodeSRV->GetDesc(&srvDesc);
+	if (srvDesc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2D)
+	{
+		D3D11_TEX2D_SRV tex2DSRV = srvDesc.Texture2D;
+		com_ptr<ID3D11Resource> resource = nullptr;
+		m_crosshairSRV->GetResource(resource.GetAddressOf());
+		com_ptr<ID3D11Texture2D> texture2D = nullptr;
+		resource.As(&texture2D);
+		D3D11_TEXTURE2D_DESC textureDesc = {};
+		texture2D->GetDesc(&textureDesc);
+		m_NodeOffset.x = static_cast<float>(textureDesc.Width) * 0.5f;
+		m_NodeOffset.y = static_cast<float>(textureDesc.Height) * 0.5f;
 	}
 
 	m_cameraObject = GetChildGameObject<CamRotObject>("CamRotObject_2");
@@ -59,7 +76,7 @@ void Player::Update()
 	if (input.GetKey(KeyCode::Space)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Up);
 	if (input.GetKey(KeyCode::Shift)) m_cameraObject->MoveDirection(deltaTime * 5.0f, Direction::Down);
 
-	if (input.GetKeyDown(KeyCode::MouseLeft))
+	if (input.GetKeyDown(KeyCode::MouseLeft) && SoundManager::GetInstance().CheckRhythm(0.2f))
 	{
 		float distance = 0.0f;
 
@@ -85,7 +102,7 @@ void Player::Update()
 			m_lineBuffers.emplace_back(lineBuffer, 0.5f);
 		}
 	}
-	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight))
+	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && SoundManager::GetInstance().CheckRhythm(0.2f))
 	{
 		const DXGI_SWAP_CHAIN_DESC1& swapChainDesc = Renderer::GetInstance().GetSwapChainDesc();
 		float halfWidth = static_cast<float>(swapChainDesc.Width / 2);
@@ -129,7 +146,7 @@ void Player::Update()
 		{
 			for (const auto& [timing, enemy] : m_deadEyeTargets)
 			{
-				if (timing > 999990.1f) continue; // 0.1초 이상 타이밍이 안맞으면 무시
+				if (timing > 0.1f) continue; // 0.1초 이상 타이밍이 안맞으면 무시
 
 				enemy->SetAlive(false);
 
@@ -165,10 +182,25 @@ void Player::Render()
 	// 크로스헤어 UI 렌더링
 	renderer.UI_RENDER_FUNCTIONS().emplace_back
 	(
-		[&]() { Renderer::GetInstance().RenderImageUIPosition(m_crosshairSRV, { 0.5f, 0.5f }, m_crosshairOffset); }
+		[&]() { Renderer::GetInstance().RenderImageUIPosition(m_crosshairSRV, { 0.5f, 0.5f }, m_crosshairOffset, 0.25f); }
 	);
 
-	if (!m_lineBuffers.empty())
+	renderer.UI_RENDER_FUNCTIONS().emplace_back
+	(
+		[&]() { Renderer::GetInstance().RenderImageUIPosition(m_NodeSRV, { 0.36f, 0.5f }, m_NodeOffset, 0.1f); }
+	);
+
+	renderer.UI_RENDER_FUNCTIONS().emplace_back
+	(
+		[&]() { Renderer::GetInstance().RenderImageUIPosition(m_NodeSRV, { 0.43f, 0.5f }, m_NodeOffset, 0.18f); }
+	);
+
+	renderer.UI_RENDER_FUNCTIONS().emplace_back
+	(
+		[&]() { Renderer::GetInstance().RenderImageUIPosition(m_NodeSRV, { 0.50f, 0.5f }, m_NodeOffset, 0.25f); }
+	);
+
+	if (!m_lineBuffers.empty()) 
 	{
 		renderer.RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
 		(
