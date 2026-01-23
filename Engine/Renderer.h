@@ -80,7 +80,12 @@ public:
 	constexpr RenderTarget& RENDER_TARGET(RenderStage stage) { return m_renderPass[static_cast<size_t>(stage)].first; }
 	constexpr std::vector<std::pair<float, std::function<void()>>>& RENDER_FUNCTION(RenderStage renderStage, BlendState blendState) { return m_renderPass[static_cast<size_t>(renderStage)].second[static_cast<size_t>(blendState)]; }
 	
+	const PostProcessingBuffer& GetPostProcessingBuffer() const { return m_postProcessingBuffer; }
 	void SetPostProcessingBuffer(const PostProcessingBuffer& buffer) { m_postProcessingBuffer = buffer; }
+	void SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag flag, bool enable) { if (enable) m_postProcessingBuffer.flags |= static_cast<UINT>(flag); else m_postProcessingBuffer.flags &= ~static_cast<UINT>(flag); }
+	void SetGamma(float gamma) { m_postProcessingBuffer.gamma = gamma; }
+	void SetGrayScaleIntensity(float intensity) { m_postProcessingBuffer.grayScaleIntensity = intensity; }
+	void SetMotionBlurIntensity(float intensity) { m_postProcessingBuffer.motionBlurIntensity = intensity; }
 
 	// UI 렌더링 함수
 	constexpr std::vector<std::function<void()>>& UI_RENDER_FUNCTIONS() { return m_UIRenderFunctions; }

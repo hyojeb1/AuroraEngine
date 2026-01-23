@@ -51,8 +51,6 @@ void Player::Render()
 {
 	Renderer& renderer = Renderer::GetInstance();
 
-	renderer.SetPostProcessingBuffer(m_postProcessingBuffer);
-
 	RenderCrosshairUI(renderer);
 	if (!m_lineBuffers.empty()) RenderLineBuffers(renderer);
 	if (!m_deadEyeTargets.empty()) RenderDeadEyeTargetsUI(renderer);
@@ -137,7 +135,7 @@ void Player::PlayerDeadEyeStart()
 		m_cameraObject->SetSensitivity(0.01f); // 데드 아이 타임 활성화 시 카메라 감도 감소
 		m_xSensitivity = m_cameraObject->GetSensitivity();
 
-		m_postProcessingBuffer.flags |= static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Grayscale);
+		Renderer::GetInstance().SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, true);
 
 		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [](const auto& a, const auto& b) { return get<0>(a) < get<0>(b); });
 		if (m_deadEyeTargets.size() > 6) m_deadEyeTargets.resize(6);
@@ -146,7 +144,7 @@ void Player::PlayerDeadEyeStart()
 
 void Player::PlayerDeadEye(float deltaTime)
 {
-	m_postProcessingBuffer.grayScaleIntensity = (1.0f - (m_deadEyeTime / m_deadEyeDuration)) * 2.0f;
+	Renderer::GetInstance().SetGrayScaleIntensity((1.0f - (m_deadEyeTime / m_deadEyeDuration)) * 2.0f);
 	m_deadEyeTime -= deltaTime;
 
 	if (m_deadEyeTime <= 0.0f) // 데드 아이 타임 종료
@@ -180,8 +178,12 @@ void Player::PlayerDeadEyeEnd()
 	m_xSensitivity = m_cameraObject->GetSensitivity();
 
 	m_deadEyeTargets.clear();
-	m_postProcessingBuffer.flags &= ~static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Grayscale);
-	m_postProcessingBuffer.grayScaleIntensity = 0.0f;
+
+	Renderer& renderer = Renderer::GetInstance();
+	PostProcessingBuffer postProcessingBuffer = renderer.GetPostProcessingBuffer();
+	postProcessingBuffer.flags &= ~static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Grayscale);
+	postProcessingBuffer.grayScaleIntensity = 0.0f;
+	renderer.SetPostProcessingBuffer(postProcessingBuffer);
 }
 
 void Player::RenderCrosshairUI(Renderer& renderer)
