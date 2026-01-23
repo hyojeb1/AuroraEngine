@@ -292,7 +292,7 @@ void Renderer::CreateBackBufferRenderTarget()
 	// 렌더 타겟 뷰 생성
 	const D3D11_RENDER_TARGET_VIEW_DESC rtvDesc =
 	{
-		.Format = m_swapChainDesc.Format,
+		.Format = DXGI_FORMAT_R8G8B8A8_UNORM,
 		.ViewDimension = m_swapChainDesc.SampleDesc.Count > 1 ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D
 	};
 	hr = m_device->CreateRenderTargetView(RENDER_TARGET(RenderStage::BackBuffer).renderTarget.Get(), &rtvDesc, RENDER_TARGET(RenderStage::BackBuffer).renderTargetView.GetAddressOf());
@@ -347,7 +347,7 @@ void Renderer::CreateSceneRenderTarget()
 		.Height = m_swapChainDesc.Height,
 		.MipLevels = 1, // 단일 밉맵
 		.ArraySize = 1, // 단일 텍스처
-		.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, // 감마 보정 함
+		.Format = DXGI_FORMAT_R8G8B8A8_UNORM,
 		.SampleDesc = m_sceneBufferSampleDesc,
 		.Usage = D3D11_USAGE_DEFAULT, // GPU 읽기/쓰기
 		.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, // 렌더 타겟 및 셰이더 리소스
