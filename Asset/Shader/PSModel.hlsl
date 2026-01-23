@@ -58,10 +58,10 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float3 envDiffuse = environmentMapTexture.SampleLevel(SamplerLinearWrap, N, orm.g * 32.0f).rgb;
     
     float3 indirectDiffuse = lerp(envDiffuse, LightColor.rgb, orm.r) * baseColor.rgb * kD_env; // 환경광 디퓨즈
-    float3 indirectSpecular = envReflection * F_env; // 환경광 스페큘러
+    float3 indirectSpecular = envReflection * F_env * shadow; // 환경광 스페큘러
     
     // IBL 최종 기여도
-    float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w * shadow;
+    float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w;
     
     // 최종 색상
     baseColor.rgb = Lo + ibl;
