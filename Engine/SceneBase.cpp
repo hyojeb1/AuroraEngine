@@ -168,6 +168,9 @@ void SceneBase::BaseRender()
 			Renderer& renderer = Renderer::GetInstance();
 			const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 
+			//PostProcessingBuffer postProcessingBuffer = {};
+			//renderer.GetDeviceContext()->UpdateSubresource(ResourceManager::GetInstance().GetConstantBuffer(PSConstBuffers::PostProcessing).Get(), 0, nullptr, &postProcessingBuffer, 0, 0);
+
 			renderer.SetViewport();
 
 			// 정렬 기준점 카메라 위치로 설정

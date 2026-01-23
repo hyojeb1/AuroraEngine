@@ -47,8 +47,12 @@ void Renderer::BeginFrame()
 			// 씬 렌더 타겟 MSAA 해제 및 결과 텍스처 복사
 			ResolveSceneMSAA();
 
+			ResourceManager& resourceManager = ResourceManager::GetInstance();
+
 			// 래스터 상태 변경
-			ResourceManager::GetInstance().SetRasterState(RasterState::BackBuffer);
+			resourceManager.SetRasterState(RasterState::BackBuffer);
+			// 후처리용 상수 버퍼 업데이트
+			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(PSConstBuffers::PostProcessing).Get(), 0, nullptr, &m_postProcessingBuffer, 0, 0);
 
 			// 백 버퍼로 씬 렌더링
 			RenderSceneToBackBuffer();

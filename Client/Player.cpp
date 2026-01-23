@@ -51,6 +51,8 @@ void Player::Render()
 {
 	Renderer& renderer = Renderer::GetInstance();
 
+	renderer.SetPostProcessingBuffer(m_postProcessingBuffer);
+
 	RenderCrosshairUI(renderer);
 	if (!m_lineBuffers.empty()) RenderLineBuffers(renderer);
 	if (!m_deadEyeTargets.empty()) RenderDeadEyeTargetsUI(renderer);
@@ -165,8 +167,6 @@ void Player::PlayerDeadEye(float deltaTime)
 		}
 		PlayerDeadEyeEnd();
 	}
-
-	Renderer::GetInstance().GetDeviceContext()->UpdateSubresource(ResourceManager::GetInstance().GetConstantBuffer(PSConstBuffers::PostProcessing).Get(), 0, nullptr, &m_postProcessingBuffer, 0, 0);
 }
 
 void Player::PlayerDeadEyeEnd()
