@@ -17,8 +17,26 @@
             "childGameObjects": [],
             "components": [
                 {
+                    "baseColor": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "blendState": 0,
+                    "isBillboard": true,
                     "psShaderName": "PSParticle.hlsl",
+                    "rasterState": 2,
+                    "textureFileName": "temple_OcclusionRoughnessMetallic.png",
                     "type": "ParticleComponent",
+                    "uvOffset": [
+                        0.0,
+                        0.0
+                    ],
+                    "uvScale": [
+                        2.9800000190734863,
+                        3.109999895095825
+                    ],
                     "vsShaderName": "VSParticle.hlsl"
                 }
             ],

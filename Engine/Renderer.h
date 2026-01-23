@@ -140,6 +140,8 @@ private:
 	void ResolveSceneMSAA();
 	// 백 버퍼 랜더링
 	void RenderSceneToBackBuffer();
+	// XTK 스프라이트 배치 렌더링
+	void RenderXTKSpriteBatch();
 	// ImGui 프레임 종료
 	void EndImGuiFrame();
 };

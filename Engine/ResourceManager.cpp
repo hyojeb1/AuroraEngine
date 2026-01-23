@@ -47,7 +47,9 @@ void ResourceManager::Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11Dev
 	CreateRasterStates();
 
 	CreateConstantBuffers();
+	SetAllConstantBuffers();
 	CreateSamplerStates();
+	SetAllSamplerStates();
 
 	CacheAllTexture();
 }

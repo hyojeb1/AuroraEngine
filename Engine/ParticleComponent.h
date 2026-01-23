@@ -1,8 +1,7 @@
 /// ParticleComponent.h의 시작
 ///
-/// 바운딩 박스를 이용한 컬링은 주석으로 남겨 놓음. 
-/// 성능을 위해서 중점 컬링을 함.
-/// 하지만 만약 큰 파티클의 경우 바운딩 박스를 이용하거나 구면컬링을 준비해야 자연스러울 것임.
+/// DEBUG 바운딩 박스
+/// Release 중점
 /// 
 #pragma once
 #include "ComponentBase.h"
@@ -57,13 +56,13 @@ protected:
 	bool is_billboard_ = true;
 
 
-//	DirectX::BoundingBox m_boundingBox;
-//	DirectX::BoundingBox m_localBoundingBox;
-//#ifdef _DEBUG
-//	bool m_renderBoundingBox = true;
-//	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_boundingBoxVertexShaderAndInputLayout = {}; // 경계 상자 정점 셰이더 및 입력 레이아웃
-//	com_ptr<ID3D11PixelShader> m_boundingBoxPixelShader = nullptr; // 경계 상자 픽셀 셰이더
-//#endif
+#ifdef _DEBUG
+	DirectX::BoundingBox m_boundingBox;
+	DirectX::BoundingBox m_localBoundingBox;
+	bool m_renderBoundingBox = true;
+	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_boundingBoxVertexShaderAndInputLayout = {}; // 경계 상자 정점 셰이더 및 입력 레이아웃
+	com_ptr<ID3D11PixelShader> m_boundingBoxPixelShader = nullptr; // 경계 상자 픽셀 셰이더
+#endif
 
 public:
 	ParticleComponent() = default;
@@ -93,8 +92,9 @@ protected:
 	nlohmann::json Serialize() override;
 	void Deserialize(const nlohmann::json& jsonData) override;
 
-	// 셰이더 생성
 	virtual void CreateShaders();
-	void CreateBuffers();
+	virtual void CreateBuffers();
+	virtual void UpdateUVs();
+	virtual void RefreshQuadUVs();
 };
 /// ParticleComponent.h의 끝
