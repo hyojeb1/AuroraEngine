@@ -20,8 +20,16 @@ void NavigationManager::AddTriangle(const XMVECTOR& a, const XMVECTOR& b, const 
 
 void NavigationManager::BuildAdjacency()
 {
+	struct PairHash
+	{
+		size_t operator()(const pair<int, int>& p) const noexcept
+		{
+			uint64_t key = (static_cast<uint64_t>(static_cast<uint32_t>(p.first)) << 32) | static_cast<uint32_t>(p.second);
+			return hash<uint64_t>{}(key);
+		}
+	};
 	// 플리곤 인덱스, 에지 인덱스
-	unordered_map<pair<int, int>, pair<int, int>> edgeMap = {};
+	unordered_map<pair<int, int>, pair<int, int>, PairHash> edgeMap = {};
 
 	for (int polygon = 0; polygon < static_cast<int>(m_navPolys.size()); ++polygon)
 	{
