@@ -30,7 +30,7 @@ void ParticleComponent::Initialize()
 void ParticleComponent::Render()
 {
 	Renderer& renderer = Renderer::GetInstance();
-	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
+	const CameraComponent& mainCamera = CameraComponent::GetMainCamera(); // 릴리즈고...
 
 	m_localBoundingBox.Transform(m_boundingBox, m_owner->GetWorldMatrix());
 	XMVECTOR boxCenter = XMLoadFloat3(&m_boundingBox.Center);
