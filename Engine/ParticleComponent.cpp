@@ -13,6 +13,23 @@ using namespace DirectX;
 
 REGISTER_TYPE(ParticleComponent)
 
+namespace
+{
+	string GetBillboardVSName(BillboardType type)
+	{
+		switch (type)
+		{
+		case BillboardType::None:
+			return "VSParticle_None.hlsl";
+		case BillboardType::Cylindrical:
+			return "VSParticle_Cylindrical.hlsl";
+		case BillboardType::Spherical:
+		default:
+			return "VSParticle.hlsl";
+		}
+	}
+}
+
 void ParticleComponent::Initialize()
 {
 	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
@@ -160,7 +177,13 @@ void ParticleComponent::RenderImGui()
 	// 2. 렌더링 옵션 섹션
 	if (ImGui::CollapsingHeader("Rendering Options", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		ImGui::Checkbox("Is Billboard", &is_billboard_); // 빌보드 여부 체크박스
+		const char* billboardItems[] = { "None", "Spherical", "Cylindrical" };
+		int currentBillboard = static_cast<int>(billboard_type_);
+		if (ImGui::Combo("Billboard Type", &currentBillboard, billboardItems, IM_ARRAYSIZE(billboardItems)))
+		{
+			billboard_type_ = static_cast<BillboardType>(currentBillboard);
+			CreateShaders();
+		}
 
 		// 블렌드 상태 콤보박스
 		const char* blendItems[] = { "Opaque", "AlphaToCoverage", "AlphaBlend" };
@@ -187,17 +210,14 @@ void ParticleComponent::RenderImGui()
 
 		ImGui::Separator();
 
-		static char vsBuffer[256] = "";
 		static char psBuffer[256] = "";
-		if (vsBuffer[0] == '\0') strcpy_s(vsBuffer, m_vsShaderName.c_str());
 		if (psBuffer[0] == '\0') strcpy_s(psBuffer, m_psShaderName.c_str());
 
-		ImGui::InputText("VS Name", vsBuffer, sizeof(vsBuffer));
+		ImGui::Text("VS Name: %s", m_vsShaderName.c_str());
 		ImGui::InputText("PS Name", psBuffer, sizeof(psBuffer));
 
 		if (ImGui::Button("Reload Shaders"))
 		{
-			m_vsShaderName = vsBuffer;
 			m_psShaderName = psBuffer;
 			CreateShaders();
 		}
@@ -214,7 +234,7 @@ nlohmann::json ParticleComponent::Serialize()
 	jsonData["textureFileName"] = texture_file_name_;
 	jsonData["uvOffset"] = { uv_offset_.x, uv_offset_.y };
 	jsonData["uvScale"] = { uv_scale_.x, uv_scale_.y };
-	jsonData["isBillboard"] = is_billboard_;
+	jsonData["billboardType"] = static_cast<int>(billboard_type_);
 	jsonData["blendState"] = static_cast<int>(m_blendState);
 	jsonData["rasterState"] = static_cast<int>(m_rasterState); 
 
@@ -250,7 +270,11 @@ void ParticleComponent::Deserialize(const nlohmann::json& jsonData)
 		uv_scale_ = { uv[0], uv[1] };
 	}
 
-	if (jsonData.contains("isBillboard")) is_billboard_ = jsonData["isBillboard"].get<bool>();
+	if (jsonData.contains("billboardType"))
+	{
+		billboard_type_ = static_cast<BillboardType>(jsonData["billboardType"].get<int>());
+	}
+	m_vsShaderName = GetBillboardVSName(billboard_type_);
 	if (jsonData.contains("blendState")) m_blendState = static_cast<BlendState>(jsonData["blendState"].get<int>());
 	if (jsonData.contains("rasterState")) m_rasterState = static_cast<RasterState>(jsonData["rasterState"].get<int>());
 
@@ -264,6 +288,7 @@ void ParticleComponent::Deserialize(const nlohmann::json& jsonData)
 void ParticleComponent::CreateShaders()
 {
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
+	m_vsShaderName = GetBillboardVSName(billboard_type_);
 	m_vertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout(m_vsShaderName, m_inputElements);
 	m_pixelShader = resourceManager.GetPixelShader(m_psShaderName);
 
@@ -279,14 +304,10 @@ void ParticleComponent::CreateBuffers()
 	m_deviceContext->GetDevice(device.GetAddressOf());
 
 	D3D11_BUFFER_DESC vbDesc = {};
-	
-#ifdef _DEBUG
+
 	vbDesc.Usage = D3D11_USAGE_DYNAMIC;
 	vbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-#else
-	vbDesc.Usage = D3D11_USAGE_DEFAULT;
-	vbDesc.CPUAccessFlags = 0;
-#endif
+
 	vbDesc.ByteWidth = sizeof(VertexPosUV) * static_cast<UINT>(quad_.size()); 
 	vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
@@ -322,8 +343,10 @@ void ParticleComponent::RefreshQuadUVs()
 
 	for (int i = 0; i < 4; ++i)
 	{
-		quad_[i].UV.x = (baseUVs[i].x * uv_scale_.x) + uv_offset_.x;
-		quad_[i].UV.y = (baseUVs[i].y * uv_scale_.y) + uv_offset_.y;
+		//quad_[i].UV.x = (baseUVs[i].x * uv_scale_.x) + uv_offset_.x;
+		//quad_[i].UV.y = (baseUVs[i].y * uv_scale_.y) + uv_offset_.y;
+		quad_[i].UV.x = (baseUVs[i].x );
+		quad_[i].UV.y = (baseUVs[i].y );
 	}
 }
 /// ParticleComponent.cpp의 끝

@@ -5,7 +5,14 @@
 /// 
 #pragma once
 #include "ComponentBase.h"
-//#include "Resource.h"
+
+enum class BillboardType
+{
+	None = 0,		// 빌보드 안 함 (일반 메쉬처럼 월드 회전 적용)
+	Spherical,		// 구형 빌보드 (항상 카메라 정면 응시)
+	Cylindrical		// 원통형 빌보드 (Y축은 고정, 나무/풀 등에 적합)
+};
+
 
 class ParticleComponent : public ComponentBase
 {
@@ -45,15 +52,14 @@ protected:
 	com_ptr<ID3D11ShaderResourceView> particle_texture_srv_ = nullptr;
 
 	MaterialFactorBuffer m_materialFactorData = {}; // 재질 상수 버퍼 데이터
-	//BlendState m_blendState = BlendState::AlphaBlend; // 기본 블렌드 상태
-	BlendState m_blendState = BlendState::Opaque; // 기본 블렌드 상태
+	BlendState m_blendState = BlendState::AlphaBlend; // 기본 블렌드 상태
 	RasterState m_rasterState = RasterState::SolidCullNone; // 기본 래스터 상태
 
-	//std::string texture_file_name_ = "Crosshair.png";
-	std::string texture_file_name_ = "temple_OcclusionRoughnessMetallic.png";
+	std::string texture_file_name_ = "Crosshair.png";
+	//std::string texture_file_name_ = "temple_BaseColor.png";
 	DirectX::XMFLOAT2 uv_offset_ = { 0.0f, 0.0f };
 	DirectX::XMFLOAT2 uv_scale_ = { 1.0f, 1.0f };
-	bool is_billboard_ = true;
+	BillboardType billboard_type_ = BillboardType::Spherical;
 
 
 #ifdef _DEBUG

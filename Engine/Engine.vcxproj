@@ -170,6 +170,7 @@
     <ClInclude Include="GameObjectBase.h" />
     <ClInclude Include="Base.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="FlipbookParticleComponent.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="ListenerComponent.h" />
     <ClInclude Include="ModelComponent.h" />
@@ -208,6 +209,7 @@
     <ClCompile Include="GameObjectBase.cpp" />
     <ClCompile Include="Base.cpp" />
     <ClCompile Include="InputManager.cpp" />
+    <ClCompile Include="FlipbookParticleComponent.cpp" />
     <ClCompile Include="ListenerComponent.cpp" />
     <ClCompile Include="ModelComponent.cpp" />
     <ClCompile Include="NavigationManager.cpp">
@@ -280,6 +282,14 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\Asset\Shader\VSModelSkinAnim.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="..\Asset\Shader\VSParticle_Cylindrical.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="..\Asset\Shader\VSParticle_None.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
