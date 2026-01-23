@@ -103,7 +103,7 @@ void Player::PlayerShoot()
 		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
 	}
 
-	m_UINode.push_back(1.0f);
+	m_UINode.push_back(1.28f);
 }
 
 void Player::PlayerDeadEyeStart()

@@ -80,10 +80,7 @@ void FSMComponentEnemy::OnUpdateState(StateID state)
 			float alpha = 1.0f - ((death_timer_ - kFadeStartTime) / kFadeDuration);
 			if (alpha < 0.0f) alpha = 0.0f;
 
-			if (model_)
-			{
-				 model_->SetAlpha(alpha); 
-			}
+			if (model_) model_->SetAlpha(alpha);
 		}
 	}
 	break;
