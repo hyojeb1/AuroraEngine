@@ -1,3 +1,4 @@
+///BOF PSModel.hlsl
 #include "CommonPS.hlsli"
 #include "CommonMath.hlsli"
 
@@ -12,7 +13,7 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     // 노말 텍스처
     float4 bump = normalTexture.Sample(SamplerLinearWrap, input.UV);
     // 방출 텍스처
-    float4 emission = emissionTexture.Sample(SamplerLinearWrap, input.UV) * EmissionFactor;
+    float3 emission = emissionTexture.Sample(SamplerLinearWrap, input.UV).rgb * EmissionFactor.rgb;
     
     float3 V = normalize(CameraPosition.xyz - input.WorldPosition.xyz); // 뷰 벡터
     float3 L = -LightDirection.xyz; // 라이트 벡터
@@ -65,6 +66,6 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     
     // 최종 색상
     baseColor.rgb = Lo + ibl;
-    
-    return baseColor + emission;
+   
+    return float4((baseColor.rgb + emission.rgb), baseColor.a);
 }

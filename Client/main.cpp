@@ -9,7 +9,10 @@
 
 using namespace std;
 
-#ifdef _DEBUG
+
+
+//#ifdef _DEBUG
+#ifndef ASD
 int main()
 {
 	cout << "==================================" << endl;
