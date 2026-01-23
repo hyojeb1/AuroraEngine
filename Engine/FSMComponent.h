@@ -2,22 +2,18 @@
 #pragma once
 #include "ComponentBase.h"
 
-enum class EState
-{
-	Idle,
-	Move,
-	Attack,
-	Count
-};
 
 class FSMComponent : public ComponentBase
 {
-public:
-	void ChangeState(EState next_state);
-	EState GetCurrentState() const { return current_state_; };
+protected:
+	using StateID = int;
 
-	std::string StateToString(EState state) const;
-	EState StringToState(const std::string& str) const;
+public:
+	void ChangeState(StateID next_state);
+	StateID GetCurrentState() const { return current_state_; };
+
+	virtual std::string StateToString(StateID state) const = 0;
+	virtual StateID StringToState(const std::string& str) const = 0;
 
 	bool NeedsFixedUpdate() const override { return false; }
 	bool NeedsUpdate() const override { return true; }
@@ -31,20 +27,18 @@ public:
 	FSMComponent& operator=(FSMComponent&&) = default;
 
 protected:
-	virtual void OnEnterState(EState state) = 0;
-	virtual void OnUpdateState(EState state, float delta_time) = 0;
-	virtual void OnExitState(EState state) = 0;
+	virtual void OnEnterState(StateID state) = 0;
+	virtual void OnUpdateState(StateID state) = 0;
+	virtual void OnExitState(StateID state) = 0;
 
 	void Update() override;
 	void Initialize() override;
-	void RenderImGui() override;
+	virtual void RenderImGui() override = 0;
 	nlohmann::json Serialize() override;
 	void Deserialize(const nlohmann::json& jsonData) override;
 
-private:
-	EState current_state_ = EState::Idle;
-	EState start_state_ = EState::Idle;
-
+	StateID current_state_ = 0; 
+	StateID start_state_ = 0;
 };
 
 

@@ -41,6 +41,21 @@ GameObjectBase* SceneBase::GetRootGameObject(const string& name)
 	return nullptr;
 }
 
+GameObjectBase* SceneBase::GetGameObjectRecursive(const string& name)
+{
+	for (unique_ptr<Base>& gameObject : m_gameObjects)
+	{
+		GameObjectBase* gameObjectBase = static_cast<GameObjectBase*>(gameObject.get());
+		if (gameObjectBase)
+		{
+			if (gameObjectBase->GetName() == name) return gameObjectBase;
+			GameObjectBase* found = gameObjectBase->GetGameObjectRecursive(name);
+			if (found) return found;
+		}
+	}
+	return nullptr;
+}
+
 void SceneBase::BaseInitialize()
 {
 	m_type = GetTypeName(*this);
@@ -224,9 +239,9 @@ void SceneBase::BaseRenderImGui()
 
 	if (ImGui::DragFloat3("Light Direction", &m_globalLightData.lightDirection.m128_f32[0], 0.001f, -1.0f, 1.0f))
 	{
-		m_globalLightData.lightDirection = XMVector3Normalize(m_globalLightData.lightDirection);
+		m_globalLightData.lightDirection = XMVectorSetW(XMVector3Normalize(m_globalLightData.lightDirection), m_globalLightData.lightDirection.m128_f32[3]);
 	}
-	ImGui::DragFloat("Directional Intensity", &m_globalLightData.lightDirection.m128_f32[3], 0.001f, 0.0f, 1.0f);
+	ImGui::DragFloat("Directional Intensity", &m_globalLightData.lightDirection.m128_f32[3], 0.001f, 0.0f, 100.0f);
 
 	RenderImGui();
 

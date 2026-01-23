@@ -16,7 +16,7 @@ REGISTER_TYPE(SkinnedModelComponent)
 SkinnedModelComponent::SkinnedModelComponent()
 {
 	m_vsShaderName = "VSModelSkinAnim.hlsl";
-	m_modelFileName = "CastleGuard01_Walking.fbx";
+	m_modelFileName = "test5.fbx";
 
 	m_inputElements.push_back(InputElement::Blendindex);  
 	m_inputElements.push_back(InputElement::Blendweight); 
@@ -36,6 +36,7 @@ void SkinnedModelComponent::Initialize()
 		if (!m_model->animations.empty())
 		{
 			animator_->PlayAnimation(m_model->animations.front().name);
+			//animator_->PlayAnimation("rig|rigAction");
 		}
 	}
 }
@@ -54,11 +55,13 @@ void SkinnedModelComponent::Render()
 {
 	if (animator_)
 	{
-		const auto& final_matrices = animator_->GetFinalBoneMatrices();
+		const std::vector<DirectX::XMFLOAT4X4>& final_matrices = animator_->GetFinalBoneMatrices();
 		const size_t bone_count = min(final_matrices.size(), static_cast<size_t>(MAX_BONES));
 		for (size_t i = 0; i < bone_count; ++i)
 		{
-			m_boneBufferData.boneMatrix[i] = XMMatrixTranspose(final_matrices[i]);
+			XMMATRIX mat = XMLoadFloat4x4(&final_matrices[i]);
+			mat = XMMatrixTranspose(mat);
+			XMStoreFloat4x4(&m_boneBufferData.boneMatrix[i], mat);
 		}
 	}
 
@@ -83,11 +86,19 @@ void SkinnedModelComponent::Render()
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 			resourceManager.SetRasterState(m_rasterState);
+
 			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal).Get(), 0, nullptr, m_worldNormalData, 0, 0);
 			m_deviceContext->UpdateSubresource(m_boneConstantBuffer.Get(), 0, nullptr, &m_boneBufferData, 0, 0);
+
 			m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
 			m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
 			m_deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
+
+			// 재질 텍스처 셰이더에 설정
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::BaseColor), 1, m_model->materialTexture.baseColorTextureSRV.GetAddressOf());
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, m_model->materialTexture.ORMTextureSRV.GetAddressOf());
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, m_model->materialTexture.normalTextureSRV.GetAddressOf());
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Emission), 1, m_model->materialTexture.emissionTextureSRV.GetAddressOf());
 
 			for (const Mesh& mesh : m_model->meshes)
 			{
@@ -99,10 +110,6 @@ void SkinnedModelComponent::Render()
 				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 				m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor).Get(), 0, nullptr, &m_materialFactorData, 0, 0);
-
-				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
-				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, mesh.materialTexture.ORMTextureSRV.GetAddressOf());
-				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, mesh.materialTexture.normalTextureSRV.GetAddressOf());
 
 				m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
 			}

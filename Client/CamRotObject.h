@@ -3,7 +3,7 @@
 
 class CamRotObject : public GameObjectBase
 {
-	float m_sensitivity = 0.1f;
+	float m_ySensitivity = 0.1f;
 
 public:
 	CamRotObject() = default;
@@ -13,8 +13,8 @@ public:
 	CamRotObject(CamRotObject&&) = default;
 	CamRotObject& operator=(CamRotObject&&) = default;
 
-	float GetSensitivity() const { return m_sensitivity; }
-	void SetSensitivity(float sensitivity) { m_sensitivity = sensitivity; }
+	float GetSensitivity() const { return m_ySensitivity; }
+	void SetSensitivity(float sensitivity) { m_ySensitivity = sensitivity; }
 
 private:
 	void Initialize() override;

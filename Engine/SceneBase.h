@@ -62,12 +62,8 @@ public:
 	template<typename T> requires std::derived_from<T, GameObjectBase>
 	T* CreateRootGameObject(); // 루트 게임 오브젝트 생성 // 포인터 반환
 
-	template<typename T> requires std::derived_from<T, GameObjectBase>
-	[[nodiscard]] T* CreateRootGameObject(const std::string& typeName); // 루트 게임 오브젝트 생성 // 포인터 반환
-
 	GameObjectBase* GetRootGameObject(const std::string& name); // 이름으로 루트 게임 오브젝트 검색 // 없으면 nullptr 반환
-	template<typename T> requires std::derived_from<T, GameObjectBase>
-	T* GetRootGameObject(const std::string& name); // 이름으로 루트 게임 오브젝트 검색 // 없으면 nullptr 반환
+	GameObjectBase* GetGameObjectRecursive(const std::string& name); // 이름으로 게임 오브젝트 재귀 검색 // 없으면 nullptr 반환
 
 private:
 	// 씬 초기화 // 씬 사용 전 반드시 호출해야 함
@@ -114,28 +110,4 @@ inline T* SceneBase::CreateRootGameObject()
 	m_gameObjects.push_back(std::move(gameObject));
 
 	return gameObjectPtr;
-}
-
-template<typename T> requires std::derived_from<T, GameObjectBase>
-inline T* SceneBase::CreateRootGameObject(const std::string& typeName)
-{
-	std::unique_ptr<Base> gameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
-
-	gameObject->BaseInitialize();
-	T* gameObjectPtr = static_cast<T*>(gameObject.get());
-	m_gameObjects.push_back(std::move(gameObject));
-
-	return gameObjectPtr;
-}
-
-template<typename T> requires std::derived_from<T, GameObjectBase>
-T* SceneBase::GetRootGameObject(const std::string& name)
-{
-	for (std::unique_ptr<Base>& gameObject : m_gameObjects)
-	{
-		T* gameObjectBase = dynamic_cast<T*>(gameObject.get());
-		if (gameObjectBase && gameObjectBase->GetName() == name) return gameObjectBase;
-	}
-
-	return nullptr;
 }

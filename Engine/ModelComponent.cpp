@@ -55,6 +55,12 @@ void ModelComponent::Render()
 			m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
 			m_deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 
+			// 재질 텍스처 셰이더에 설정
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::BaseColor), 1, m_model->materialTexture.baseColorTextureSRV.GetAddressOf());
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, m_model->materialTexture.ORMTextureSRV.GetAddressOf());
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, m_model->materialTexture.normalTextureSRV.GetAddressOf());
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Emission), 1, m_model->materialTexture.emissionTextureSRV.GetAddressOf());
+
 			for (const Mesh& mesh : m_model->meshes)
 			{
 				resourceManager.SetPrimitiveTopology(mesh.topology);
@@ -67,11 +73,6 @@ void ModelComponent::Render()
 
 				// 재질 팩터 설정
 				m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor).Get(), 0, nullptr, &m_materialFactorData, 0, 0);
-
-				// 재질 텍스처 셰이더에 설정
-				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
-				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, mesh.materialTexture.ORMTextureSRV.GetAddressOf());
-				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, mesh.materialTexture.normalTextureSRV.GetAddressOf());
 
 				m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
 			}
@@ -95,6 +96,9 @@ void ModelComponent::Render()
 			m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
 			m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
 
+			// 재질 텍스처 셰이더에 설정
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::BaseColor), 1, m_model->materialTexture.baseColorTextureSRV.GetAddressOf());
+
 			for (const Mesh& mesh : m_model->meshes)
 			{
 				resourceManager.SetPrimitiveTopology(mesh.topology);
@@ -104,10 +108,6 @@ void ModelComponent::Render()
 				constexpr UINT OFFSET = 0;
 				m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &STRIDE, &OFFSET);
 				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
-				// 재질 텍스처 셰이더에 설정
-				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Albedo), 1, mesh.materialTexture.albedoTextureSRV.GetAddressOf());
-				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, mesh.materialTexture.normalTextureSRV.GetAddressOf());
 
 				m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
 			}
@@ -198,19 +198,13 @@ void ModelComponent::RenderImGui()
 
 	ImGui::Separator();
 	// 재질 팩터
-	ImGui::ColorEdit4("Albedo Factor", &m_materialFactorData.albedoFactor.x);
+	ImGui::ColorEdit4("BaseColor Factor", &m_materialFactorData.baseColorFactor.x);
 
 	ImGui::DragFloat("Ambient Occlusion Factor", &m_materialFactorData.ambientOcclusionFactor, 0.01f, 0.0f, 1.0f);
 	ImGui::DragFloat("Roughness Factor", &m_materialFactorData.roughnessFactor, 0.01f, 0.0f, 1.0f);
 	ImGui::DragFloat("Metallic Factor", &m_materialFactorData.metallicFactor, 0.01f, 0.0f, 1.0f);
 
-	ImGui::DragFloat("IOR", &m_materialFactorData.ior, 0.01f, 1.0f, 3.0f);
-
 	ImGui::DragFloat("Normal Scale", &m_materialFactorData.normalScale, 0.01f, 0.0f, 5.0f);
-	ImGui::DragFloat("Height Scale", &m_materialFactorData.heightScale, 0.001f, 0.0f, 0.2f);
-
-	ImGui::DragFloat("Light Factor", &m_materialFactorData.lightFactor, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("Glow Factor", &m_materialFactorData.glowFactor, 0.01f, 0.0f, 1.0f);
 
 	ImGui::ColorEdit4("Emission Factor", &m_materialFactorData.emissionFactor.x);
 
@@ -236,19 +230,13 @@ nlohmann::json ModelComponent::Serialize()
 	jsonData["modelFileName"] = m_modelFileName;
 
 	// 재질 팩터
-	jsonData["materialFactorData"]["albedoFactor"] = { m_materialFactorData.albedoFactor.x, m_materialFactorData.albedoFactor.y, m_materialFactorData.albedoFactor.z, m_materialFactorData.albedoFactor.w };
+	jsonData["materialFactorData"]["baseColorFactor"] = { m_materialFactorData.baseColorFactor.x, m_materialFactorData.baseColorFactor.y, m_materialFactorData.baseColorFactor.z, m_materialFactorData.baseColorFactor.w };
 	
 	jsonData["materialFactorData"]["ambientOcclusionFactor"] = m_materialFactorData.ambientOcclusionFactor;
 	jsonData["materialFactorData"]["roughnessFactor"] = m_materialFactorData.roughnessFactor;
 	jsonData["materialFactorData"]["metallicFactor"] = m_materialFactorData.metallicFactor;
 
-	jsonData["materialFactorData"]["ior"] = m_materialFactorData.ior;
-
 	jsonData["materialFactorData"]["normalScale"] = m_materialFactorData.normalScale;
-	jsonData["materialFactorData"]["heightScale"] = m_materialFactorData.heightScale;
-
-	jsonData["materialFactorData"]["lightFactor"] = m_materialFactorData.lightFactor;
-	jsonData["materialFactorData"]["glowFactor"] = m_materialFactorData.glowFactor;
 
 	jsonData["materialFactorData"]["emissionFactor"] = { m_materialFactorData.emissionFactor.x, m_materialFactorData.emissionFactor.y, m_materialFactorData.emissionFactor.z, m_materialFactorData.emissionFactor.w };
 
@@ -265,25 +253,19 @@ void ModelComponent::Deserialize(const nlohmann::json& jsonData)
 	m_modelFileName = jsonData["modelFileName"].get<string>();
 
 	// 재질 팩터
-	m_materialFactorData.albedoFactor = XMFLOAT4
+	m_materialFactorData.baseColorFactor = XMFLOAT4
 	(
-		jsonData["materialFactorData"]["albedoFactor"][0].get<float>(),
-		jsonData["materialFactorData"]["albedoFactor"][1].get<float>(),
-		jsonData["materialFactorData"]["albedoFactor"][2].get<float>(),
-		jsonData["materialFactorData"]["albedoFactor"][3].get<float>()
+		jsonData["materialFactorData"]["baseColorFactor"][0].get<float>(),
+		jsonData["materialFactorData"]["baseColorFactor"][1].get<float>(),
+		jsonData["materialFactorData"]["baseColorFactor"][2].get<float>(),
+		jsonData["materialFactorData"]["baseColorFactor"][3].get<float>()
 	);
 
 	m_materialFactorData.ambientOcclusionFactor = jsonData["materialFactorData"]["ambientOcclusionFactor"].get<float>();
 	m_materialFactorData.roughnessFactor = jsonData["materialFactorData"]["roughnessFactor"].get<float>();
 	m_materialFactorData.metallicFactor = jsonData["materialFactorData"]["metallicFactor"].get<float>();
 
-	m_materialFactorData.ior = jsonData["materialFactorData"]["ior"].get<float>();
-
 	m_materialFactorData.normalScale = jsonData["materialFactorData"]["normalScale"].get<float>();
-	m_materialFactorData.heightScale = jsonData["materialFactorData"]["heightScale"].get<float>();
-
-	m_materialFactorData.lightFactor = jsonData["materialFactorData"]["lightFactor"].get<float>();
-	m_materialFactorData.glowFactor = jsonData["materialFactorData"]["glowFactor"].get<float>();
 
 	m_materialFactorData.emissionFactor = XMFLOAT4
 	(

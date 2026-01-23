@@ -255,32 +255,30 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 	const auto cacheIt = m_textureCaches.find(fileName);
 	if (cacheIt == m_textureCaches.end())
 	{
-		string fallbackName = "";
+		#ifdef _DEBUG
+		cerr << "텍스처 캐시에서 파일을 찾을 수 없습니다: " << fileName << endl;
+		#else
+		MessageBoxA(nullptr, ("텍스처 캐시에서 파일을 찾을 수 없습니다: " + fileName).c_str(), "오류", MB_OK | MB_ICONERROR);
+		#endif
 
 		switch (type)
 		{
-		case TextureType::Albedo: fallbackName = "FallbackAlbedo.png"; break;
-		case TextureType::Normal: fallbackName = "FallbackNormal.png"; break;
-		case TextureType::ORM:    fallbackName = "FallbackORM.png";    break;
-		default: 
-		#ifdef _DEBUG
-			cerr << "[CRITICAL] 텍스처 로드 실패 (복구 불가): " << fileName << endl;
-		#else
-			MessageBoxA(nullptr, ("텍스처 로드 실패 (복구 불가): " + fileName).c_str(), "Fatal Error", MB_OK | MB_ICONERROR);
-		#endif
-			exit(EXIT_FAILURE);
+		case TextureType::BaseColor:
+			return GetTexture("Fallback_BaseColor.png", TextureType::BaseColor);
+		case TextureType::ORM:
+			return GetTexture("Fallback_OcclusionRoughnessMetallic.png", TextureType::ORM);
+		case TextureType::Normal:
+			return GetTexture("Fallback_Normal.png", TextureType::Normal);
+		case TextureType::Emissive:
+			return GetTexture("Fallback_Emissive.png", TextureType::Emissive);
+		default:
+			return nullptr;
 		}
-		#ifdef _DEBUG
-		cout << "[WARNING] 텍스처 누락됨: " << fileName << " -> 대체됨: " << fallbackName << endl;
-		#endif
-		return GetTexture(fallbackName, TextureType::None);
 	}
 
 	// 파일 확장자 확인
 	const string extension = fileName.substr(fileName.find_last_of('.') + 1);
-	const bool isDDS = (extension == "dds" || extension == "DDS");
-
-	if (isDDS)
+	if (extension == "dds" || extension == "DDS")
 	{
 		// DDS 파일 (큐브맵 등)
 		hr = CreateDDSTextureFromMemoryEx
@@ -314,7 +312,7 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 			D3D11_BIND_SHADER_RESOURCE,
 			0,
 			D3D11_RESOURCE_MISC_GENERATE_MIPS, // mipmap 자동 생성
-			WIC_LOADER_DEFAULT, // 나중에 감마 보정 옵션도 넣기
+			type == TextureType::BaseColor || type == TextureType::Emissive ? WIC_LOADER_FORCE_SRGB : WIC_LOADER_IGNORE_SRGB,
 			nullptr,
 			m_textures[fileName].GetAddressOf()
 		);
@@ -322,6 +320,30 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 	}
 
 	return m_textures[fileName];
+}
+
+std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> ResourceManager::GetTextureAndOffset(const std::string& fileName)
+{
+	com_ptr<ID3D11ShaderResourceView> textureSRV = GetTexture(fileName);
+	XMFLOAT2 offset = {};
+
+	// srv에서 크기 정보 얻기
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	textureSRV->GetDesc(&srvDesc);
+	if (srvDesc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2D)
+	{
+		D3D11_TEX2D_SRV tex2DSRV = srvDesc.Texture2D;
+		com_ptr<ID3D11Resource> resource = nullptr;
+		textureSRV->GetResource(resource.GetAddressOf());
+		com_ptr<ID3D11Texture2D> texture2D = nullptr;
+		resource.As(&texture2D);
+		D3D11_TEXTURE2D_DESC textureDesc = {};
+		texture2D->GetDesc(&textureDesc);
+		offset.x = static_cast<float>(textureDesc.Width) * 0.5f;
+		offset.y = static_cast<float>(textureDesc.Height) * 0.5f;
+	}
+
+	return { textureSRV, offset };
 }
 
 const Model* ResourceManager::LoadModel(const string& fileName)
@@ -365,11 +387,11 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
-#ifdef _DEBUG
+		#ifdef _DEBUG
 		cerr << "모델 로드 실패: " << importer.GetErrorString() << endl;
-#else
+		#else
 		MessageBoxA(nullptr, ("모델 로드 실패: " + string(importer.GetErrorString())).c_str(), "오류", MB_OK | MB_ICONERROR);
-#endif
+		#endif
 		exit(EXIT_FAILURE);
 	}
 
@@ -378,6 +400,14 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 	// 1. 메쉬 및 노드 처리 (이 과정에서 본 정보가 있다면 Skeleton에 등록됨)
 	ProcessNode(scene->mRootNode, scene, model);
 
+	// 2. 모델 택스처 로드
+	const string fileNameWithoutExtension = filesystem::path(fileName).stem().string();
+	model.materialTexture.baseColorTextureSRV = GetTexture(fileNameWithoutExtension + "_BaseColor.png", TextureType::BaseColor);;
+	model.materialTexture.ORMTextureSRV = GetTexture(fileNameWithoutExtension + "_OcclusionRoughnessMetallic.png", TextureType::ORM);
+	model.materialTexture.normalTextureSRV = GetTexture(fileNameWithoutExtension + "_Normal.png", TextureType::Normal);
+	model.materialTexture.emissionTextureSRV = GetTexture(fileNameWithoutExtension + "_Emissive.png", TextureType::Emissive);
+
+	// 3. 본 정보가 있다면 스켈레톤 구축
 	if (SceneHasBones(scene))
 	{
 		aiMatrix4x4 inverse_root_transform = scene->mRootNode->mTransformation;
@@ -387,11 +417,8 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 		model.type = ModelType::Skinned; // 필요하다면 타입 마킹
 	}
 
-	// 3. 애니메이션 로드
-	if (scene->HasAnimations())
-	{
-		LoadAnimations(scene, model);
-	}
+	// 4. 애니메이션 로드
+	if (scene->HasAnimations()) LoadAnimations(scene, model);
 
 	return &m_models[fileName];
 }
@@ -538,21 +565,21 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 
 	switch (mesh->mPrimitiveTypes)
 	{
-		case aiPrimitiveType_POINT:
-			resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
-			break;
+	case aiPrimitiveType_POINT:
+		resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+		break;
 
-		case aiPrimitiveType_LINE:
-			resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-			break;
+	case aiPrimitiveType_LINE:
+		resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+		break;
 
-		case aiPrimitiveType_TRIANGLE:
-			resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-			break;
-
-		default:
-			resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
-			break;
+	case aiPrimitiveType_TRIANGLE:
+		resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		break;
+	
+	default:
+		resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+		break;
 	}
 
 	// 정점 처리
@@ -650,8 +677,6 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 		}
 	}
 
-
-
 	for (UINT i = 0; i < mesh->mNumFaces; ++i)
 	{
 		const aiFace& face = mesh->mFaces[i];
@@ -677,78 +702,6 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 	};
 	// 모델 전체 바운딩 박스 갱신
 	BoundingBox::CreateMerged(model.boundingBox, model.boundingBox, resultMesh.boundingBox);
-
-	// [재질 및 텍스처 처리 수정]
-	if (mesh->mMaterialIndex >= 0)
-	{
-		string albedoName = "FallbackAlbedo.png";
-		string normalName = "FallbackNormal.png";
-		string ormName = "FallbackORM.png";
-
-		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-
-		aiString texturePath;
-
-		// 1. Albedo 
-		if (material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS ||
-			material->GetTexture(aiTextureType_BASE_COLOR, 0, &texturePath) == AI_SUCCESS)
-		{
-			albedoName = filesystem::path(texturePath.C_Str()).filename().string();
-		}
-
-		// 2. Normal
-		if (material->GetTexture(aiTextureType_NORMALS, 0, &texturePath) == AI_SUCCESS)
-		{
-			normalName = filesystem::path(texturePath.C_Str()).filename().string();
-		}
-
-		// 3. ORM 
-		bool foundORM = false;
-		
-		{
-			if (!foundORM && material->GetTexture(aiTextureType_UNKNOWN, 0, &texturePath) == AI_SUCCESS)
-			{
-				ormName = filesystem::path(texturePath.C_Str()).filename().string();
-				foundORM = true;
-			}
-			if (!foundORM && material->GetTexture(aiTextureType_METALNESS, 0, &texturePath) == AI_SUCCESS)
-			{
-				ormName = filesystem::path(texturePath.C_Str()).filename().string();
-				foundORM = true;
-			}
-			if (!foundORM && material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texturePath) == AI_SUCCESS)
-			{
-				ormName = filesystem::path(texturePath.C_Str()).filename().string();
-				foundORM = true;
-			}
-			if (!foundORM && material->GetTexture(aiTextureType_SPECULAR, 0, &texturePath) == AI_SUCCESS)
-			{
-				ormName = filesystem::path(texturePath.C_Str()).filename().string();
-				foundORM = true;
-			}
-			if (!foundORM && material->GetTexture(aiTextureType_SHININESS, 0, &texturePath) == AI_SUCCESS)
-			{
-				ormName = filesystem::path(texturePath.C_Str()).filename().string();
-				foundORM = true;
-			}
-			if (!foundORM && material->GetTexture(aiTextureType_AMBIENT, 0, &texturePath) == AI_SUCCESS)
-			{
-				ormName = filesystem::path(texturePath.C_Str()).filename().string();
-				foundORM = true;
-			}
-		}
-
-		resultMesh.materialTexture.albedoTextureSRV = GetTexture(albedoName, TextureType::Albedo);
-		resultMesh.materialTexture.normalTextureSRV = GetTexture(normalName, TextureType::Normal);
-		resultMesh.materialTexture.ORMTextureSRV = GetTexture(ormName, TextureType::ORM);
-	}
-	else
-	{
-		// 재질 자체가 없는 경우 (완전 깡통)
-		resultMesh.materialTexture.albedoTextureSRV = GetTexture("SampleAlbedo.dds", TextureType::Albedo);
-		resultMesh.materialTexture.ORMTextureSRV = GetTexture("SampleORM.dds" , TextureType::ORM);
-		resultMesh.materialTexture.normalTextureSRV = GetTexture("SampleBump.dds" , TextureType::Normal);
-	}
 
 	CreateMeshBuffers(resultMesh);
 

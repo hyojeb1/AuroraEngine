@@ -5,6 +5,7 @@
 #include "TestCameraObject.h"
 #include "CamRotObject.h"
 #include "TimeManager.h"
+#include "Enemy.h"
 
 REGISTER_TYPE(TestScene)
 
@@ -28,7 +29,7 @@ void TestScene::Update()
 		float x = static_cast<float>(rand() % 21 - 10);
 		float z = static_cast<float>(rand() % 21 - 10);
 
-		CreateRootGameObject("Enemy")->SetPosition(XMVectorSet(x, 0.0f, z, 1.0f));
+		CreateRootGameObject<Enemy>()->SetPosition(XMVectorSet(x, 0.0f, z, 1.0f));
 	}
 }
 

@@ -30,19 +30,13 @@ cbuffer GlobalLight : register(b2)
 
 cbuffer MaterialFactor : register(b3)
 {
-    float4 AlbedoFactor;
+    float4 BaseColorFactor;
     
     float AmbientOcclusionFactor;
     float RoughnessFactor;
     float MetallicFactor;
     
-    float Ior;
-    
     float NormalScale;
-    float HeightScale;
-
-    float LightFactor;
-    float GlowFactor;
     
     float4 EmissionFactor;
 };
@@ -64,9 +58,10 @@ TextureCube environmentMapTexture : register(t1);
 Texture2D directionalShadowMapTexture : register(t2);
 
 // PBR 재질
-Texture2D albedoTexture : register(t3);
-Texture2D ORMTexture : register(t4); // ambient occlusion(R) + roughness(G) + metallic(B)
-Texture2D normalTexture : register(t5); // normal map(rgb) + height map(a)
+Texture2D baseColorTexture : register(t3);
+Texture2D ORMTexture : register(t4);
+Texture2D normalTexture : register(t5);
+Texture2D emissionTexture : register(t6);
 
 // --------------------------------------------------------
 // Input Structures (VS 출력과 매칭되어야 함)

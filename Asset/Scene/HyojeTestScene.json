@@ -23,7 +23,7 @@
                                 {
                                     "blendState": 0,
                                     "materialFactorData": {
-                                        "albedoFactor": [
+                                        "baseColorFactor": [
                                             1.0,
                                             1.0,
                                             1.0,
@@ -36,10 +36,6 @@
                                             0.0,
                                             0.0
                                         ],
-                                        "glowFactor": 0.0,
-                                        "heightScale": 0.05000000074505806,
-                                        "ior": 1.5,
-                                        "lightFactor": 1.0,
                                         "metallicFactor": 1.0,
                                         "normalScale": 1.0,
                                         "roughnessFactor": 1.0
@@ -49,10 +45,6 @@
                                     "rasterState": 1,
                                     "type": "ModelComponent",
                                     "vsShaderName": "VSModel.hlsl"
-                                },
-                                {
-                                    "initialState": "Idle",
-                                    "type": "FSMComponentGun"
                                 }
                             ],
                             "name": "Gun",
@@ -108,7 +100,7 @@
                 }
             ],
             "components": [],
-            "name": "Player_1",
+            "name": "Player",
             "position": [
                 0.0,
                 2.0,
@@ -135,7 +127,7 @@
                 {
                     "blendState": 0,
                     "materialFactorData": {
-                        "albedoFactor": [
+                        "baseColorFactor": [
                             1.0,
                             1.0,
                             1.0,
@@ -148,10 +140,6 @@
                             0.0,
                             0.0
                         ],
-                        "glowFactor": 0.0,
-                        "heightScale": 0.05000000074505806,
-                        "ior": 1.5,
-                        "lightFactor": 1.0,
                         "metallicFactor": 1.0,
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
@@ -215,7 +203,7 @@
                 {
                     "blendState": 0,
                     "materialFactorData": {
-                        "albedoFactor": [
+                        "baseColorFactor": [
                             1.0,
                             1.0,
                             1.0,
@@ -228,15 +216,11 @@
                             0.0,
                             0.0
                         ],
-                        "glowFactor": 0.0,
-                        "heightScale": 0.05000000074505806,
-                        "ior": 1.5,
-                        "lightFactor": 1.0,
                         "metallicFactor": 1.0,
                         "normalScale": 1.0,
                         "roughnessFactor": 1.0
                     },
-                    "modelFileName": "test_4.fbx",
+                    "modelFileName": "test5.fbx",
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",
@@ -262,7 +246,7 @@
                     "type": "ColliderComponent"
                 }
             ],
-            "name": "GameObjectBase_7",
+            "name": "GameObjectBase_4",
             "position": [
                 8.75,
                 0.0,

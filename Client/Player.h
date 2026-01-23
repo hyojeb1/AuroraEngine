@@ -3,22 +3,26 @@
 
 class Player : public GameObjectBase
 {
-	std::deque<std::pair<LineBuffer, float>> m_lineBuffers = {}; // 선 버퍼 및 남은 표시 시간 큐
-
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_lineVertexBufferAndShader = {};
 	com_ptr<ID3D11PixelShader> m_linePixelShader = nullptr;
+	std::deque<std::pair<LineBuffer, float>> m_lineBuffers = {}; // 선 버퍼 및 남은 표시 시간 큐
 
-	com_ptr<ID3D11ShaderResourceView> m_crosshairSRV = nullptr;
-	DirectX::XMFLOAT2 m_crosshairOffset = {};
+	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_crosshairTextureAndOffset = {};
+	std::vector<std::pair<float, class Enemy*>> m_deadEyeTargets = {};
+
+	std::deque<float> m_UINode = {};
+
+	float m_moveSpeed = 5.0f;
+	float m_xSensitivity = 0.1f;
 
 	class CamRotObject* m_cameraObject = nullptr;
-	float m_cameraSensitivity = 0.1f;
+	float m_cameraYSensitivity = 0.1f;
 	GameObjectBase* m_gunObject = nullptr;
+	class FSMComponentGun* m_gunFSM = nullptr;
 
 	bool m_isDeadEyeActive = false;
 	const float m_deadEyeDuration = 0.25f;
 	float m_deadEyeTime = 0.0f;
-	std::vector<std::pair<float, class Enemy*>> m_deadEyeTargets = {};
 
 	PostProcessingBuffer m_postProcessingBuffer = {};
 
@@ -35,4 +39,15 @@ private:
 	void Update() override;
 	void Render() override;
 	void Finalize() override;
+
+	void PlayerMove(float deltaTime, class InputManager& input);
+	void PlayerShoot();
+	void PlayerDeadEyeStart();
+	void PlayerDeadEye(float deltaTime);
+	void PlayerDeadEyeEnd();
+
+	void RenderCrosshairUI(class Renderer& renderer);
+	void RenderLineBuffers(class Renderer& renderer);
+	void RenderDeadEyeTargetsUI(class Renderer& renderer);
+	void RenderUINode(class Renderer& renderer);
 };
