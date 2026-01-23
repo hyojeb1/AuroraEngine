@@ -692,7 +692,6 @@ struct Model
 	MaterialTexture materialTexture = {};
 	DirectX::BoundingBox boundingBox = {};
 
-	// 애니메이션 데이터 (정적 모델인 경우 비워둠)
 	Skeleton skeleton = {};
 	std::vector<AnimationClip> animations = {};
 };

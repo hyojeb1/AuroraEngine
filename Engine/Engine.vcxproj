@@ -173,6 +173,7 @@
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="ListenerComponent.h" />
     <ClInclude Include="ModelComponent.h" />
+    <ClInclude Include="ParticleComponent.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Resource.h" />
@@ -203,6 +204,7 @@
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="ListenerComponent.cpp" />
     <ClCompile Include="ModelComponent.cpp" />
+    <ClCompile Include="ParticleComponent.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="SceneBase.cpp" />
