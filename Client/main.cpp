@@ -11,8 +11,7 @@ using namespace std;
 
 
 
-//#ifdef _DEBUG
-#ifndef ASD
+#ifdef _DEBUG
 int main()
 {
 	cout << "==================================" << endl;
