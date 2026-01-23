@@ -358,3 +358,9 @@ void ColliderComponent::Deserialize(const nlohmann::json& jsonData)
 		AddBoundingFrustum(frustum);
 	}
 }
+
+void ColliderComponent::BakeToNavMesh()
+{
+	vector<array<XMVECTOR, 3>> triangles;
+	array<XMFLOAT3, 8> corners;
+}

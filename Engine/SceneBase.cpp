@@ -6,7 +6,6 @@
 #include "Renderer.h"
 #include "ResourceManager.h"
 #include "TimeManager.h"
-#include "NavigationManager.h"
 
 #ifdef _DEBUG
 #include "InputManager.h"

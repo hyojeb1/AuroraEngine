@@ -12,7 +12,7 @@ void NavigationManager::AddTriangle(const XMVECTOR& a, const XMVECTOR& b, const 
 	m_vertices.emplace_back(b);
 	m_vertices.emplace_back(c);
 
-	NavPoly poly;
+	NavPoly poly = {};
 	poly.indexs = { base, base + 1, base + 2 };
 	poly.centroid = XMVectorScale(XMVectorAdd(XMVectorAdd(a, b), c), 1.0f / 3.0f);
 	m_navPolys.push_back(poly);

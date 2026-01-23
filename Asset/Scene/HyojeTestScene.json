@@ -23,13 +23,13 @@
                                 {
                                     "blendState": 0,
                                     "materialFactorData": {
+                                        "ambientOcclusionFactor": 1.0,
                                         "baseColorFactor": [
                                             1.0,
                                             1.0,
                                             1.0,
                                             1.0
                                         ],
-                                        "ambientOcclusionFactor": 1.0,
                                         "emissionFactor": [
                                             0.0,
                                             0.0,
@@ -127,13 +127,13 @@
                 {
                     "blendState": 0,
                     "materialFactorData": {
+                        "ambientOcclusionFactor": 1.0,
                         "baseColorFactor": [
                             1.0,
                             1.0,
                             1.0,
                             1.0
                         ],
-                        "ambientOcclusionFactor": 1.0,
                         "emissionFactor": [
                             0.0,
                             0.0,
@@ -203,13 +203,13 @@
                 {
                     "blendState": 0,
                     "materialFactorData": {
+                        "ambientOcclusionFactor": 1.0,
                         "baseColorFactor": [
                             1.0,
                             1.0,
                             1.0,
                             1.0
                         ],
-                        "ambientOcclusionFactor": 1.0,
                         "emissionFactor": [
                             0.0,
                             0.0,
@@ -263,6 +263,57 @@
                 1.0,
                 1.0,
                 1.0,
+                1.0
+            ],
+            "type": "GameObjectBase"
+        },
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "blendState": 0,
+                    "materialFactorData": {
+                        "ambientOcclusionFactor": 1.0,
+                        "baseColorFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "emissionFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "metallicFactor": 1.0,
+                        "normalScale": 1.0,
+                        "roughnessFactor": 1.0
+                    },
+                    "modelFileName": "test_wood2.fbx",
+                    "psShaderName": "PSModel.hlsl",
+                    "rasterState": 1,
+                    "type": "ModelComponent",
+                    "vsShaderName": "VSModel.hlsl"
+                }
+            ],
+            "name": "GameObjectBase_6",
+            "position": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                50.0,
+                50.0,
+                50.0,
                 1.0
             ],
             "type": "GameObjectBase"
