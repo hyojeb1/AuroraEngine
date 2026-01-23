@@ -314,7 +314,7 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 			D3D11_BIND_SHADER_RESOURCE,
 			0,
 			D3D11_RESOURCE_MISC_GENERATE_MIPS, // mipmap 자동 생성
-			type == TextureType::BaseColor || type == TextureType::Emissive ? WIC_LOADER_IGNORE_SRGB : WIC_LOADER_IGNORE_SRGB,
+			type == TextureType::BaseColor || type == TextureType::Emissive ? WIC_LOADER_FORCE_SRGB : WIC_LOADER_IGNORE_SRGB,
 			nullptr,
 			m_textures[fileName].GetAddressOf()
 		);
