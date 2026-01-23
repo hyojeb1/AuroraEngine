@@ -23,7 +23,6 @@ void Player::Initialize()
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_lineVertexBufferAndShader = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_linePixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
-
 	m_crosshairTextureAndOffset = resourceManager.GetTextureAndOffset("Crosshair.png");
 
 	m_cameraObject = dynamic_cast<CamRotObject*>(GetChildGameObject("CamRotObject_2"));
@@ -82,16 +81,16 @@ void Player::PlayerMove(float deltaTime, InputManager& input)
 
 void Player::PlayerShoot()
 {
-	float distance = 0.0f;
-
-	if (m_gunObject) if (m_gunFSM) m_gunFSM->Fire();
+	if (!m_gunObject) return;
 
 	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 	const XMVECTOR& origin = mainCamera.GetPosition();
 	const XMVECTOR& direction = mainCamera.GetForwardVector();
+	float distance = 0.0f;
 	GameObjectBase* hit = ColliderComponent::CheckCollision(origin, direction, distance);
 	if (hit)
 	{
+		if (m_gunFSM) m_gunFSM->Fire();
 		if (Enemy* enemy = dynamic_cast<Enemy*>(hit)) enemy->Die();
 
 		LineBuffer lineBuffer = {};
