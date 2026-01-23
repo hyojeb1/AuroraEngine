@@ -10,9 +10,9 @@ cbuffer PostProcessParams : register(b0)
 {
     uint PostProcessingFlags;
     
-    float Gamma;
     float GrayScaleIntensity;
     float MotionBlurIntensity;
+    float paddingA;
 };
 
 cbuffer CameraPosition : register(b1)

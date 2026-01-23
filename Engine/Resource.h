@@ -501,9 +501,9 @@ struct PostProcessingBuffer
 	};
 	UINT flags = static_cast<UINT>(PostProcessingFlag::None); // 후처리 플래그
 
-	float gamma = 1.0f / 2.2f; // 감마 보정 값
 	float grayScaleIntensity = 0.0f; // 그레이스케일 강도
 	float motionBlurIntensity = 0.0f; // 모션 블러 강도
+	float paddingA = 1.0f; // 패딩
 };
 struct CameraPositionBuffer // 카메라 위치 상수 버퍼 구조체
 {

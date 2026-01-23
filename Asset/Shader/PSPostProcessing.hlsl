@@ -4,7 +4,7 @@ float4 main(PS_INPUT_POS_UV input) : SV_TARGET
 {
     float4 color = sceneTexture.Sample(SamplerPointClamp, input.UV);
     
-    color.rgb = pow(color.rgb, Gamma); // 감마 보정 해제
+    color.rgb = pow(color.rgb, 1.0f); // 감마 보정 해제
     
     if (PostProcessingFlags & 0x1) // 그레이스케일
     {
