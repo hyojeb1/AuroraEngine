@@ -1,8 +1,8 @@
 /// ParticleComponent.h의 시작
 ///
-/// 바운딩 박스를 이용한 컬링은 주석으로 남겨 놓겠습니다. 
-/// 성능을 위해서 중점 컬링을 합니다.
-/// 하지만 만약 큰 파티클의 경우 바운딩 박스를 이용하거나 구면컬링을 준비해야 자연스러울 것입니다.
+/// 바운딩 박스를 이용한 컬링은 주석으로 남겨 놓음. 
+/// 성능을 위해서 중점 컬링을 함.
+/// 하지만 만약 큰 파티클의 경우 바운딩 박스를 이용하거나 구면컬링을 준비해야 자연스러울 것임.
 /// 
 #pragma once
 #include "ComponentBase.h"
@@ -46,9 +46,17 @@ protected:
 	com_ptr<ID3D11ShaderResourceView> particle_texture_srv_ = nullptr;
 
 	MaterialFactorBuffer m_materialFactorData = {}; // 재질 상수 버퍼 데이터
-	BlendState m_blendState = BlendState::AlphaBlend; // 기본 블렌드 상태
+	//BlendState m_blendState = BlendState::AlphaBlend; // 기본 블렌드 상태
+	BlendState m_blendState = BlendState::Opaque; // 기본 블렌드 상태
 	RasterState m_rasterState = RasterState::SolidCullNone; // 기본 래스터 상태
-//
+
+	//std::string texture_file_name_ = "Crosshair.png";
+	std::string texture_file_name_ = "temple_OcclusionRoughnessMetallic.png";
+	DirectX::XMFLOAT2 uv_offset_ = { 0.0f, 0.0f };
+	DirectX::XMFLOAT2 uv_scale_ = { 1.0f, 1.0f };
+	bool is_billboard_ = true;
+
+
 //	DirectX::BoundingBox m_boundingBox;
 //	DirectX::BoundingBox m_localBoundingBox;
 //#ifdef _DEBUG
