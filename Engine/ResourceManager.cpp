@@ -322,6 +322,30 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 	return m_textures[fileName];
 }
 
+std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> ResourceManager::GetTextureAndOffset(const std::string& fileName)
+{
+	com_ptr<ID3D11ShaderResourceView> textureSRV = GetTexture(fileName);
+	XMFLOAT2 offset = {};
+
+	// srv에서 크기 정보 얻기
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	textureSRV->GetDesc(&srvDesc);
+	if (srvDesc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2D)
+	{
+		D3D11_TEX2D_SRV tex2DSRV = srvDesc.Texture2D;
+		com_ptr<ID3D11Resource> resource = nullptr;
+		textureSRV->GetResource(resource.GetAddressOf());
+		com_ptr<ID3D11Texture2D> texture2D = nullptr;
+		resource.As(&texture2D);
+		D3D11_TEXTURE2D_DESC textureDesc = {};
+		texture2D->GetDesc(&textureDesc);
+		offset.x = static_cast<float>(textureDesc.Width) * 0.5f;
+		offset.y = static_cast<float>(textureDesc.Height) * 0.5f;
+	}
+
+	return { textureSRV, offset };
+}
+
 const Model* ResourceManager::LoadModel(const string& fileName)
 {
 	auto it = m_models.find(fileName);

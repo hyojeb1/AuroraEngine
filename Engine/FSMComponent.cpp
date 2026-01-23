@@ -10,8 +10,7 @@ using namespace nlohmann;
 
 void FSMComponent::ChangeState(StateID next_state)
 {
-	if (current_state_ == next_state)
-		return;
+	if (current_state_ == next_state) return;
 
 	OnExitState(current_state_);
 	current_state_ = next_state;
