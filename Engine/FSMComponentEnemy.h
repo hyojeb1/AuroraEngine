@@ -3,19 +3,39 @@
 #include "FSMComponent.h"
 #include <DirectXMath.h>
 
+class SkinnedModelComponent;
+
 class FSMComponentEnemy : public FSMComponent
 {
+public:
+	enum EState
+	{
+		EIdle,
+		ERun,     // Chase 상태일 때 재생
+		EAttack,  // PreAttack 시점에 재생 시작
+		EDead,
+		ECount
+	};
+
 public:
 	FSMComponentEnemy() = default;
 	~FSMComponentEnemy() override = default;
 
+	std::string StateToString(StateID state) const override;
+	StateID StringToState(const std::string& str) const override;
+
+	void SetModelComponent(SkinnedModelComponent* model) { model_ = model; }
+
 protected:
-	void OnEnterState(EState state) override;
-	void OnUpdateState(EState state, float delta_time) override;
-	void OnExitState(EState state) override;
+	void OnEnterState(StateID state) override;
+	void OnUpdateState(StateID state) override;
+	void OnExitState(StateID state) override;
+
+	void Initialize() override;
+	void RenderImGui() override;
 
 private:
-	float recoil_timer_ = 0.0f;
-	DirectX::XMVECTOR origin_rotation_{0,0,0,0};
+	SkinnedModelComponent* model_ = nullptr;
+	float death_timer_ = 0.0f;
 };
 ///EOF FSMComponentEnemy.h

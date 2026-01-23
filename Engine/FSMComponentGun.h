@@ -5,17 +5,35 @@
 
 class FSMComponentGun : public FSMComponent
 {
+protected:
+	enum EState
+	{
+		EIdle,   // 0
+		EAttack, 
+		EReload, 
+		ECount
+	};
+
 public:
 	FSMComponentGun() = default;
 	~FSMComponentGun() override = default;
 
+	std::string StateToString(StateID state) const override;
+	StateID StringToState(const std::string& str) const override;
+	
+	void Fire();
+	void Reload();
+
 protected:
-	void OnEnterState(EState state) override;
-	void OnUpdateState(EState state, float delta_time) override;
-	void OnExitState(EState state) override;
+	void OnEnterState(StateID state) override;
+	void OnUpdateState(StateID state) override;
+	void OnExitState(StateID state) override;
+
+	void RenderImGui() override;
 
 private:
-	float recoil_timer_ = 0.0f;
+
+	float timer_ = 0.0f;
 	DirectX::XMVECTOR origin_rotation_{0,0,0,0};
 };
 ///EOF FSMComponentGun.h

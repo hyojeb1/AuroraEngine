@@ -149,6 +149,17 @@ GameObjectBase* GameObjectBase::GetChildGameObject(const string& name)
 	return nullptr;
 }
 
+GameObjectBase* GameObjectBase::GetGameObjectRecursive(const string& name)
+{
+	for (auto& child : m_childrens)
+	{
+		if (child->m_name == name) return child.get();
+		GameObjectBase* found = child->GetGameObjectRecursive(name);
+		if (found) return found;
+	}
+	return nullptr;
+}
+
 void GameObjectBase::BaseInitialize()
 {
 	m_type = GetTypeName(*this);

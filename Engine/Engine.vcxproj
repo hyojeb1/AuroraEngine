@@ -162,7 +162,10 @@
     <ClInclude Include="DebugCamera.h" />
     <ClInclude Include="EmitterComponent.h" />
     <ClInclude Include="FSMComponent.h" />
-    <ClInclude Include="FSMComponentEnemy.h" />
+    <ClInclude Include="FSMComponentEnemy.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="FSMComponentGun.h" />
     <ClInclude Include="GameObjectBase.h" />
     <ClInclude Include="Base.h" />
@@ -190,7 +193,10 @@
     <ClCompile Include="DebugCamera.cpp" />
     <ClCompile Include="EmitterComponent.cpp" />
     <ClCompile Include="FSMComponent.cpp" />
-    <ClCompile Include="FSMComponentEnemy.cpp" />
+    <ClCompile Include="FSMComponentEnemy.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="FSMComponentGun.cpp" />
     <ClCompile Include="GameObjectBase.cpp" />
     <ClCompile Include="Base.cpp" />
@@ -219,12 +225,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="..\Asset\Shader\PSOnlyAlbedo.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\Asset\Shader\VSCoordinateLine.hlsl">

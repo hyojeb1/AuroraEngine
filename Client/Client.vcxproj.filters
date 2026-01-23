@@ -5,9 +5,6 @@
     <ClCompile Include="TestScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="GunObject.cpp">
-      <Filter>GameObject</Filter>
-    </ClCompile>
     <ClCompile Include="HyojeTestScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
@@ -28,9 +25,6 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TestScene.h">
       <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="GunObject.h">
-      <Filter>GameObject</Filter>
     </ClInclude>
     <ClInclude Include="HyojeTestScene.h">
       <Filter>Scene</Filter>

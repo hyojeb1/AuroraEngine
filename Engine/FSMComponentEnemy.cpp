@@ -2,101 +2,125 @@
 #include "stdafx.h"
 #include "FSMComponentEnemy.h"
 #include "GameObjectBase.h"
+#include "SkinnedModelComponent.h"
+#include "TimeManager.h"
 
 REGISTER_TYPE(FSMComponentEnemy)
 
 using namespace std;
 using namespace DirectX;
 
-void FSMComponentEnemy::OnEnterState(EState state)
+
+void FSMComponentEnemy::Initialize()
+{
+	model_ = GetOwner()->GetComponent<SkinnedModelComponent>();
+	FSMComponent::Initialize();
+}
+
+std::string FSMComponentEnemy::StateToString(StateID state) const
 {
 	switch (state)
 	{
-	case EState::Idle:
-		recoil_timer_ = 0.0f;
-#ifdef _DEBUG
-		cout << "Gun is now Idle." << endl;
-#endif
-		break;
+	case EIdle:   return "Idle";
+	case ERun:    return "Run";
+	case EAttack: return "Attack";
+	case EDead:   return "Dead";
+	default:     return "Unknown";
+	}
+}
 
-	case EState::Attack:
-#ifdef _DEBUG
-		cout << "Start    !" << endl;
-#endif
-		recoil_timer_ = 0.0f;
-		origin_rotation_ = GetOwner()->GetRotation();
-		break;
+FSMComponent::StateID FSMComponentEnemy::StringToState(const std::string& str) const
+{
+	if (str == "Idle")   return EIdle;
+	if (str == "Run")    return ERun;
+	if (str == "Attack") return EAttack;
+	if (str == "Dead")   return EDead;
+	return EIdle;
+}
 
-	default:
+void FSMComponentEnemy::OnEnterState(StateID state)
+{
+	if (!model_) return;
+	if (!model_->GetAnimator()) return;
+
+	switch (state)
+	{
+	case EIdle:
+		model_->GetAnimator()->PlayAnimation("rig|rigAction", true);
+		model_->SetBlendState(BlendState::Opaque);
+		break;
+	case EDead:
+		death_timer_ = 0.0f;
+		model_->GetAnimator()->PlayAnimation("rig|PlaneAction", false);
+		model_->SetBlendState(BlendState::AlphaBlend);
+		break;
+	case ERun:
+	case EAttack:
 		break;
 	}
 }
 
-void FSMComponentEnemy::OnUpdateState(EState state, float dt)
+void FSMComponentEnemy::OnUpdateState(StateID state)
 {
+	float dt = TimeManager::GetInstance().GetDeltaTime();
+
 	switch (state)
 	{
-	case EState::Idle:
-		break;
-
-	case EState::Attack:
+	case EDead:
 	{
-		recoil_timer_ += dt;
-		constexpr float kRecoilAngle = -90.0f;
-		constexpr float kRecoilDuration = 0.12f;
-		const float half_duration = kRecoilDuration * 0.5f;
+		death_timer_ += dt;
 
-		// 반동 계산 로직
-		const XMVECTOR recoil_rotation = XMVectorSet(
-			XMVectorGetX(origin_rotation_) + kRecoilAngle,
-			XMVectorGetY(origin_rotation_),
-			XMVectorGetZ(origin_rotation_),
-			0.0f
-		);
+		// 1.5초 후부터 0.5초간 서서히 투명해지기 (총 2초)
+		// Enemy.h의 m_deathDuration(2.0f)과 타이밍을 맞춰야 함
+		constexpr float kFadeStartTime = 0.5f;
+		constexpr float kFadeDuration = 1.5f;
 
-		float t = 0.0f;
-		if (recoil_timer_ <= half_duration)
+		if (death_timer_ >= kFadeStartTime)
 		{
-			t = recoil_timer_ / half_duration;
-			GetOwner()->SetRotation(XMVectorLerp(origin_rotation_, recoil_rotation, t));
-		}
-		else
-		{
-			t = (recoil_timer_ - half_duration) / half_duration;
-			GetOwner()->SetRotation(XMVectorLerp(recoil_rotation, origin_rotation_, t));
-		}
+			float alpha = 1.0f - ((death_timer_ - kFadeStartTime) / kFadeDuration);
+			if (alpha < 0.0f) alpha = 0.0f;
 
-		if (recoil_timer_ >= kRecoilDuration)
-		{
-			GetOwner()->SetRotation(origin_rotation_);
-			ChangeState(EState::Idle);
+			if (model_) model_->SetAlpha(alpha);
 		}
 	}
 	break;
-
-	default:
-		break;
 	}
 }
 
-void FSMComponentEnemy::OnExitState(EState state)
+void FSMComponentEnemy::OnExitState(StateID state)
 {
-	switch (state)
+
+}
+
+void FSMComponentEnemy::RenderImGui()
+{
+	if (ImGui::TreeNode("FSM Component Gun"))
 	{
-	case EState::Idle:
-#ifdef _DEBUG
-		cout << "Gun is not Idle anymore." << endl;
-#endif
-		break;
+		string currentName = StateToString(current_state_);
+		ImGui::Text("Current State: %s", currentName.c_str());
 
-	case EState::Attack:
-#ifdef _DEBUG
-		cout << "Stop Shooting." << endl;
-#endif
-		break;
+		if (ImGui::BeginCombo("Force State", currentName.c_str()))
+		{
+			for (int i = 0; i < ECount; ++i)
+			{
+				EState state = (EState)i;
+				string stateName = StateToString(state);
+				bool isSelected = (current_state_ == state);
+				if (ImGui::Selectable(stateName.c_str(), isSelected))
+				{
+					ChangeState(state);
+				}
+				if (isSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
 
-	default:
-		break;
+		ImGui::TreePop();
 	}
 }
+
+
 ///EOF FSMComponentEnemy.cpp

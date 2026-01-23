@@ -6,7 +6,7 @@
 #include "SoundManager.h"
 #include "TimeManager.h"
 
-constexpr size_t ChannelCount = 64; //profiling í•„ìš”
+constexpr size_t ChannelCount = 64; //profiling ?•„?š”
 
 void SoundManager::Initialize()
 {
@@ -209,9 +209,9 @@ void SoundManager::ConvertUISource()
 	}
 }
 
-float Hann(int n, int N)
+static float Hann(int n, int N)
 {
-	return 0.5f * (1.0f - cosf(2.0f * DirectX::XM_PI * n / (N - 1)));
+	return 0.5f * (1.0f - cosf(2.0f * DirectX::XM_PI * static_cast<float>(n) / static_cast<float>(N - 1)));
 }
 
 struct Segment
@@ -312,11 +312,11 @@ void SoundManager::CreateNodeData(const std::string& filename)
 	float deltaSum = 0.0f;
 	int deltaCount = 0;
 
-	// íŠœë‹ íŒŒë¼ë¯¸í„°
-	float deltaMultiplier = 1.1f;   // í‚¥ ë¯¼ê°ë„
-	float decayRatio = 0.3f;        // í‚¥ ê¸¸ì´ (30%ê¹Œì§€ ê°ì‡ )
+	// ?Šœ?‹ ?ŒŒ?¼ë¯¸í„°
+	float deltaMultiplier = 1.1f;   // ?‚¥ ë¯¼ê°?„
+	float decayRatio = 0.3f;        // ?‚¥ ê¸¸ì´ (30%ê¹Œì?? ê°ì‡ )
 
-	// í‚¥ í”¼í¬ ê²€ì¶œìš©
+	// ?‚¥ ?”¼?¬ ê²?ì¶œìš©
 	float prev2Energy = 0.0f;
 	float prev1Energy = 0.0f;
 
@@ -483,15 +483,15 @@ void SoundManager::BGM_Shot(const std::string filename)
 
 		m_BGMGroup->getDSPClock(&dspClock, &parentClock);
 
-		// ì§€ì—° ì‹œê°„ (ì´ˆ â†’ ìƒ˜í”Œ)
-		float delaySec = 2.05f; // 2ì´ˆ ë’¤ ìž¬ìƒ
+		// ì§??—° ?‹œê°? (ì´? ?†’ ?ƒ˜?”Œ)
+		float delaySec = 2.05f; // 2ì´? ?’¤ ?ž¬?ƒ
 		unsigned long long delaySamples =
 			(unsigned long long)(delaySec * sampleRate);
 
-		// ìž¬ìƒ ì‹œìž‘ ì‹œì  ì„¤ì •
+		// ?ž¬?ƒ ?‹œ?ž‘ ?‹œ?  ?„¤? •
 		m_BGMChannel->setDelay(dspClock + delaySamples, 0, false);
 
-		// ì´ì œ ìž¬ìƒ ì‹œìž‘
+		// ?´? œ ?ž¬?ƒ ?‹œ?ž‘
 		m_BGMChannel->setPaused(false);
 	}
 	else

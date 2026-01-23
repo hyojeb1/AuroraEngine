@@ -2,6 +2,8 @@
 #pragma once
 #include "ModelComponent.h"
 
+class Animator;
+
 class SkinnedModelComponent : public ModelComponent
 {
 private:
@@ -22,6 +24,7 @@ public:
 	bool NeedsUpdate() const override { return true; }
 	bool NeedsRender() const override { return true; }
 
+	std::shared_ptr<Animator>& GetAnimator() { return animator_; }
 private:
 	void Initialize() override;
 	void Update() override;
