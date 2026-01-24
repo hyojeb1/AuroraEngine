@@ -343,10 +343,10 @@ void ParticleComponent::RefreshQuadUVs()
 
 	for (int i = 0; i < 4; ++i)
 	{
-		//quad_[i].UV.x = (baseUVs[i].x * uv_scale_.x) + uv_offset_.x;
-		//quad_[i].UV.y = (baseUVs[i].y * uv_scale_.y) + uv_offset_.y;
-		quad_[i].UV.x = (baseUVs[i].x );
-		quad_[i].UV.y = (baseUVs[i].y );
+		quad_[i].UV.x = (baseUVs[i].x * uv_scale_.x) + uv_offset_.x;
+		quad_[i].UV.y = (baseUVs[i].y * uv_scale_.y) + uv_offset_.y;
+		//quad_[i].UV.x = (baseUVs[i].x );
+		//quad_[i].UV.y = (baseUVs[i].y );
 	}
 }
 /// ParticleComponent.cpp의 끝

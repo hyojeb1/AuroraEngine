@@ -10,6 +10,17 @@ REGISTER_TYPE(FlipbookParticleComponent)
 void FlipbookParticleComponent::Initialize()
 {
 	ParticleComponent::Initialize();
+	ClampFrame();
+
+	const int maxFrames = GetMaxFrames();
+	if (random_start_ && maxFrames > 0)
+	{
+		m_currentFrame = std::rand() % maxFrames;
+	}
+	if (!auto_play_)
+	{
+		m_playing = false;
+	}
 	ApplyFrameToUV();
 }
 
@@ -23,9 +34,10 @@ void FlipbookParticleComponent::Update()
 	if (maxFrames <= 1) return;
 
 	if (m_framesPerSecond <= 0.0f) return;
+	if (playback_speed_ <= 0.0f) return;
 
 	const float delta_time = TimeManager::GetInstance().GetDeltaTime();
-	m_accumulatedTime += delta_time;
+	m_accumulatedTime += delta_time * playback_speed_;
 
 	const float frameDuration = 1.0f / m_framesPerSecond;
 
@@ -46,6 +58,12 @@ void FlipbookParticleComponent::Update()
 			{
 				m_currentFrame = maxFrames - 1;
 				m_playing = false;
+				#ifdef _DEBUG
+				if (destroy_on_finish_)
+				{
+					std::cout << "FlipbookParticleComponent: destroy_on_finish_ requested." << std::endl;
+				}
+				#endif // _DEBUG
 				break;
 			}
 		}
@@ -68,15 +86,43 @@ void FlipbookParticleComponent::RenderImGui()
 		changed |= ImGui::DragInt("Columns", &m_columns, 1, 1, 128);
 		changed |= ImGui::DragInt("Total Frames", &m_totalFrames, 1, 1, 4096);
 		changed |= ImGui::DragFloat("FPS", &m_framesPerSecond, 0.1f, 0.0f, 120.0f);
+		changed |= ImGui::DragFloat("Playback Speed", &playback_speed_, 0.1f, 0.1f, 4.0f);
 		ImGui::Checkbox("Loop", &m_loop);
-		ImGui::Checkbox("Playing", &m_playing);
+		ImGui::Checkbox("Auto Play", &auto_play_);
+		ImGui::Checkbox("Random Start", &random_start_);
+		ImGui::Checkbox("Destroy On Finish", &destroy_on_finish_);
+
+		const char* playLabel = m_playing ? "Pause" : "Play";
+		if (ImGui::Button(playLabel))
+		{
+			m_playing = !m_playing;
+		}
 
 		if (ImGui::Button("Restart"))
 		{
-			m_currentFrame = 0;
+			const int maxFrames = GetMaxFrames();
+			if (random_start_ && maxFrames > 0)
+			{
+				m_currentFrame = std::rand() % maxFrames;
+			}
+			else
+			{
+				m_currentFrame = 0;
+			}
 			m_accumulatedTime = 0.0f;
-			m_playing = true;
+			m_playing = auto_play_;
 			ApplyFrameToUV();
+		}
+
+		const int maxFrames = GetMaxFrames();
+		if (maxFrames > 0)
+		{
+			int frameIndex = m_currentFrame;
+			if (ImGui::SliderInt("Frame", &frameIndex, 0, maxFrames - 1))
+			{
+				m_currentFrame = frameIndex;
+				ApplyFrameToUV();
+			}
 		}
 
 		if (changed)
@@ -85,7 +131,33 @@ void FlipbookParticleComponent::RenderImGui()
 			ApplyFrameToUV();
 		}
 
-		ImGui::Text("Current Frame: %d / %d", m_currentFrame + 1, GetMaxFrames());
+		ImGui::Text("Current Frame: %d / %d", m_currentFrame + 1, maxFrames);
+
+		if (particle_texture_srv_)
+		{
+			const ImVec2 previewSize(200.0f, 200.0f);
+			const ImTextureID textureId = reinterpret_cast<ImTextureID>(particle_texture_srv_.Get());
+			ImGui::Image(textureId, previewSize);
+
+			const ImVec2 p0 = ImGui::GetItemRectMin();
+			const ImVec2 p1 = ImGui::GetItemRectMax();
+			const ImVec2 imageSize(p1.x - p0.x, p1.y - p0.y);
+
+			const ImVec2 rectMin(
+				p0.x + uv_offset_.x * imageSize.x,
+				p0.y + uv_offset_.y * imageSize.y);
+			const ImVec2 rectMax(
+				rectMin.x + uv_scale_.x * imageSize.x,
+				rectMin.y + uv_scale_.y * imageSize.y);
+
+			ImDrawList* drawList = ImGui::GetWindowDrawList();
+			const ImU32 rectColor = IM_COL32(255, 230, 0, 255);
+			drawList->AddRect(rectMin, rectMax, rectColor, 0.0f, 0, 2.0f);
+		}
+		else
+		{
+			ImGui::Text("Texture preview: (none)");
+		}
 	}
 }
 
@@ -100,6 +172,10 @@ nlohmann::json FlipbookParticleComponent::Serialize()
 	jsonData["flipbookLoop"] = m_loop;
 	jsonData["flipbookPlaying"] = m_playing;
 	jsonData["flipbookCurrentFrame"] = m_currentFrame;
+	jsonData["flipbookAutoPlay"] = auto_play_;
+	jsonData["flipbookRandomStart"] = random_start_;
+	jsonData["flipbookDestroyOnFinish"] = destroy_on_finish_;
+	jsonData["flipbookPlaybackSpeed"] = playback_speed_;
 
 	return jsonData;
 }
@@ -115,6 +191,10 @@ void FlipbookParticleComponent::Deserialize(const nlohmann::json& jsonData)
 	if (jsonData.contains("flipbookLoop")) m_loop = jsonData["flipbookLoop"].get<bool>();
 	if (jsonData.contains("flipbookPlaying")) m_playing = jsonData["flipbookPlaying"].get<bool>();
 	if (jsonData.contains("flipbookCurrentFrame")) m_currentFrame = jsonData["flipbookCurrentFrame"].get<int>();
+	if (jsonData.contains("flipbookAutoPlay")) auto_play_ = jsonData["flipbookAutoPlay"].get<bool>();
+	if (jsonData.contains("flipbookRandomStart")) random_start_ = jsonData["flipbookRandomStart"].get<bool>();
+	if (jsonData.contains("flipbookDestroyOnFinish")) destroy_on_finish_ = jsonData["flipbookDestroyOnFinish"].get<bool>();
+	if (jsonData.contains("flipbookPlaybackSpeed")) playback_speed_ = jsonData["flipbookPlaybackSpeed"].get<float>();
 
 	m_accumulatedTime = 0.0f;
 	ClampFrame();

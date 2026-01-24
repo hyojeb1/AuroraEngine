@@ -10,6 +10,10 @@ class FlipbookParticleComponent : public ParticleComponent
 	float m_framesPerSecond = 8.0f;
 	bool m_loop = true;
 	bool m_playing = true;
+	bool auto_play_ = true;
+	bool random_start_ = false;
+	bool destroy_on_finish_ = false;
+	float playback_speed_ = 1.0f;
 	int m_currentFrame = 0;
 	float m_accumulatedTime = 0.0f;
 
