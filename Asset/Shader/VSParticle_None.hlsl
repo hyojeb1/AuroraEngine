@@ -9,8 +9,9 @@ VS_OUTPUT_STD main(VS_INPUT_POS_UV input)
     output.WorldPosition = mul(input.Position, WorldMatrix);
     output.Position = mul(output.WorldPosition, VPMatrix);
 
-    output.UV = input.UV;
-
+    //output.UV = input.UV;
+    output.UV = (input.UV * UVScale) + UVOffset;
+    
     // 노멀 계산 (월드 회전 적용)
     float3 N = normalize(mul(float3(0, 0, -1), (float3x3) WorldMatrix)); // Quad가 기본적으로 -Z를 본다고 가정 시
     // 혹은 일반적인 메시라면 Tangent/Binormal 계산 필요하지만, 

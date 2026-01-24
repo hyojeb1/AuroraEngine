@@ -270,6 +270,8 @@ enum class InputElement
 	Blendindex,
 	Blendweight,
 
+
+
 	Count
 };
 constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement::Count)> INPUT_ELEMENT_DESC_TEMPLATES =
@@ -370,6 +372,7 @@ enum class VSConstBuffers
 	Bone,
 
 	Line,
+	Particle,
 
 	Count
 };
@@ -396,7 +399,7 @@ struct TimeBuffer
 	float sinTime = 0.0f; // 시간의 사인 값
 	float cosTime = 0.0f; // 시간의 코사인 값
 };
-constexpr int MAX_BONES = 256;
+constexpr int MAX_BONES = 100;
 struct BoneBuffer
 {
 	std::array<DirectX::XMFLOAT4X4, MAX_BONES> boneMatrix = {};
@@ -411,6 +414,16 @@ struct LineBuffer
 {
 	std::array<DirectX::XMFLOAT4, 2> linePoints = { DirectX::XMFLOAT4{0.0f, 0.0f, 0.0f, 1.0f}, DirectX::XMFLOAT4{0.0f, 0.0f, 0.0f, 1.0f} }; // 선 시작 및 끝 점 위치
 	std::array<DirectX::XMFLOAT4, 2> lineColors = { DirectX::XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f}, DirectX::XMFLOAT4{1.0f, 1.0f, 1.0f, 1.0f} }; // 선 시작 및 끝 색상
+};
+
+struct ParticleBuffer
+{
+	DirectX::XMFLOAT2 uvOffset = { 0.0f, 0.0f }; // 현재 프레임의 오프셋
+	DirectX::XMFLOAT2 uvScale = { 1.0f, 1.0f };  // 1칸의 크기 (1.0 / 행, 1.0 / 열)
+
+	// 나중을 대비한 패딩 or 추가 데이터 (지금은 딱 16바이트라 패딩 불필요)
+	// 인스턴싱 단계로 가면 uvOffset은 Instance Data로 빠지고, 
+	// 대신 이곳에 float2 gridDim (Rows, Cols) 등이 들어올 수 있음.
 };
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Count)> VS_CONST_BUFFER_DESCS =
 {
@@ -473,6 +486,16 @@ constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Coun
 	D3D11_BUFFER_DESC
 	{
 		.ByteWidth = sizeof(LineBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	},
+
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(ParticleBuffer),
 		.Usage = D3D11_USAGE_DEFAULT,
 		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
 		.CPUAccessFlags = 0,

@@ -43,6 +43,12 @@ cbuffer Line : register(b5)
     float4 LineColors[2];
 };
 
+cbuffer ParticleData : register(b6)
+{
+    float2 UVOffset;
+    float2 UVScale;
+};
+
 // --------------------------------------------------------
 // Input Structures
 // --------------------------------------------------------

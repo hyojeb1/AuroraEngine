@@ -26,6 +26,7 @@ protected:
 
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
 	const WorldNormalBuffer* m_worldNormalData = nullptr; // 월드, 월드 역행렬 상수 버퍼 데이터
+	ParticleBuffer uv_buffer_data_ = {};
 
 	std::string m_vsShaderName = "VSParticle.hlsl"; // 기본 Particle 정점 셰이더
 	std::string m_psShaderName = "PSParticle.hlsl"; // 기본 Particle 픽셀 셰이더
@@ -56,9 +57,9 @@ protected:
 	RasterState m_rasterState = RasterState::SolidCullNone; // 기본 래스터 상태
 
 	std::string texture_file_name_ = "Crosshair.png";
-	//std::string texture_file_name_ = "temple_BaseColor.png";
 	DirectX::XMFLOAT2 uv_offset_ = { 0.0f, 0.0f };
 	DirectX::XMFLOAT2 uv_scale_ = { 1.0f, 1.0f };
+
 	BillboardType billboard_type_ = BillboardType::Spherical;
 
 
@@ -100,7 +101,7 @@ protected:
 
 	virtual void CreateShaders();
 	virtual void CreateBuffers();
-	virtual void UpdateUVs();
-	virtual void RefreshQuadUVs();
+
+	virtual std::string GetBillboardVSName(BillboardType type);
 };
 /// ParticleComponent.h의 끝

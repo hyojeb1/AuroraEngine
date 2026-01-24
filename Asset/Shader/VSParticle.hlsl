@@ -19,8 +19,9 @@ VS_OUTPUT_STD main(VS_INPUT_POS_UV input)
     output.WorldPosition = float4(centerWorldPos + positionOffset, 1.0f);
     output.Position = mul(output.WorldPosition, VPMatrix);
 
-    output.UV = input.UV;
-
+    //output.UV = input.UV;
+    output.UV = (input.UV * UVScale) + UVOffset;
+    
     float3 N = normalize(cross(cameraUp, cameraRight)); 
     output.TBN = float3x3(cameraRight, cameraUp, N);
 

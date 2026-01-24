@@ -13,22 +13,6 @@ using namespace DirectX;
 
 REGISTER_TYPE(ParticleComponent)
 
-namespace
-{
-	string GetBillboardVSName(BillboardType type)
-	{
-		switch (type)
-		{
-		case BillboardType::None:
-			return "VSParticle_None.hlsl";
-		case BillboardType::Cylindrical:
-			return "VSParticle_Cylindrical.hlsl";
-		case BillboardType::Spherical:
-		default:
-			return "VSParticle.hlsl";
-		}
-	}
-}
 
 void ParticleComponent::Initialize()
 {
@@ -37,7 +21,6 @@ void ParticleComponent::Initialize()
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
 	CreateShaders();
-	RefreshQuadUVs();
 	CreateBuffers();
 	particle_texture_srv_ = resourceManager.GetTexture(texture_file_name_);
 #ifdef _DEBUG
@@ -84,7 +67,10 @@ void ParticleComponent::Render()
 			// 상수 버퍼 업데이트
 			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal).Get(), 0, nullptr, m_worldNormalData, 0, 0);
 
+			uv_buffer_data_.uvOffset = uv_offset_;
+			uv_buffer_data_.uvScale = uv_scale_;
 
+			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Particle).Get(),0, nullptr, &uv_buffer_data_, 0, 0);
 
 			UINT stride = sizeof(VertexPosUV);
 			UINT offset = 0;
@@ -168,9 +154,7 @@ void ParticleComponent::RenderImGui()
 
 		bool uvChanged = false; 
 		uvChanged |= ImGui::DragFloat2("UV Offset", &uv_offset_.x, 0.01f);
-		uvChanged |= ImGui::DragFloat2("UV Scale", &uv_scale_.x, 0.01f);
-
-		if (uvChanged) UpdateUVs();
+		uvChanged |= ImGui::DragFloat2("UV Scale", &uv_scale_.x, 0.01f);		
 
 	}
 
@@ -318,35 +302,18 @@ void ParticleComponent::CreateBuffers()
 	assert(SUCCEEDED(hr));
 }
 
-void ParticleComponent::UpdateUVs()
+
+string ParticleComponent::GetBillboardVSName(BillboardType type)
 {
-	RefreshQuadUVs();
-
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	HRESULT hr = m_deviceContext->Map(m_vertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-
-	if (SUCCEEDED(hr))
+	switch (type)
 	{
-		memcpy(mappedResource.pData, quad_.data(), sizeof(VertexPosUV) * quad_.size());
-		m_deviceContext->Unmap(m_vertexBuffer.Get(), 0);
-	}
-}
-
-void ParticleComponent::RefreshQuadUVs()
-{
-	static const DirectX::XMFLOAT2 baseUVs[4] = {
-		{0.0f, 0.0f}, 
-		{1.0f, 0.0f}, 
-		{0.0f, 1.0f}, 
-		{1.0f, 1.0f}  
-	};
-
-	for (int i = 0; i < 4; ++i)
-	{
-		quad_[i].UV.x = (baseUVs[i].x * uv_scale_.x) + uv_offset_.x;
-		quad_[i].UV.y = (baseUVs[i].y * uv_scale_.y) + uv_offset_.y;
-		//quad_[i].UV.x = (baseUVs[i].x );
-		//quad_[i].UV.y = (baseUVs[i].y );
+	case BillboardType::None:
+		return "VSParticle_None.hlsl";
+	case BillboardType::Cylindrical:
+		return "VSParticle_Cylindrical.hlsl";
+	case BillboardType::Spherical:
+	default:
+		return "VSParticle.hlsl";
 	}
 }
 /// ParticleComponent.cpp의 끝

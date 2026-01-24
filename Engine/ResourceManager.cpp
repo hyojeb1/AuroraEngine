@@ -105,6 +105,9 @@ void ResourceManager::SetAllConstantBuffers()
 
 	//선 그리기용 상수 버퍼
 	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Line), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Line)].GetAddressOf());
+	// 파티클 상수 버퍼
+	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Particle), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Particle)].GetAddressOf());
+
 
 	// 픽셀 셰이더용 상수 버퍼 설정
 	// 후처리 상수 버퍼
@@ -115,6 +118,7 @@ void ResourceManager::SetAllConstantBuffers()
 	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::GlobalLight), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::GlobalLight)].GetAddressOf());
 	// 재질 팩터 상수 버퍼
 	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::MaterialFactor), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::MaterialFactor)].GetAddressOf());
+
 }
 
 void ResourceManager::SetAllSamplerStates()
@@ -493,6 +497,10 @@ void ResourceManager::CreateConstantBuffers()
 	
 	//선 그리기용 상수 버퍼
 	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::Line)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Line)].GetAddressOf());
+	CheckResult(hr, "LineColor 상수 버퍼 생성 실패.");
+	
+	//파티클 상수 버퍼
+	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::Particle)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Particle)].GetAddressOf());
 	CheckResult(hr, "LineColor 상수 버퍼 생성 실패.");
 
 	// 픽셀 셰이더용 상수 버퍼 생성

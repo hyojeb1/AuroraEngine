@@ -29,7 +29,8 @@ VS_OUTPUT_STD main(VS_INPUT_POS_UV input)
     output.WorldPosition = float4(centerWorldPos + positionOffset, 1.0f);
     output.Position = mul(output.WorldPosition, VPMatrix);
 
-    output.UV = input.UV;
+    //output.UV = input.UV;
+    output.UV = (input.UV * UVScale) + UVOffset;
 
     // 노멀 계산 (라이팅이 필요하다면 평면의 노멀은 Right와 Up의 외적)
     float3 N = normalize(cross(fixedUp, flatRight));

@@ -265,8 +265,5 @@
     <None Include="..\Asset\Shader\CommonPS.hlsli">
       <Filter>Shader</Filter>
     </None>
-    <None Include="..\Asset\Shader\CommonSkinning.hlsli">
-      <Filter>Shader</Filter>
-    </None>
   </ItemGroup>
 </Project>

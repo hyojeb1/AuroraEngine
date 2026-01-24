@@ -240,14 +240,5 @@ void FlipbookParticleComponent::ApplyFrameToUV()
 	uv_scale_.y = 1.0f / static_cast<float>(max(1, m_rows));
 	uv_offset_.x = static_cast<float>(columnIndex) * uv_scale_.x;
 	uv_offset_.y = static_cast<float>(rowIndex) * uv_scale_.y;
-
-	if (m_vertexBuffer)
-	{
-		UpdateUVs();
-	}
-	else
-	{
-		RefreshQuadUVs();
-	}
 }
 /// FlipbookParticleComponent.cpp의 끝
