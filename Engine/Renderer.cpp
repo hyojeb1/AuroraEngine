@@ -292,7 +292,7 @@ void Renderer::CreateBackBufferRenderTarget()
 	// 렌더 타겟 뷰 생성
 	const D3D11_RENDER_TARGET_VIEW_DESC rtvDesc =
 	{
-		.Format = m_swapChainDesc.Format,
+		.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, // 감마 보정
 		.ViewDimension = m_swapChainDesc.SampleDesc.Count > 1 ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D
 	};
 	hr = m_device->CreateRenderTargetView(RENDER_TARGET(RenderStage::BackBuffer).renderTarget.Get(), &rtvDesc, RENDER_TARGET(RenderStage::BackBuffer).renderTargetView.GetAddressOf());

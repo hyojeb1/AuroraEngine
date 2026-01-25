@@ -4,6 +4,7 @@
 #include "GameObjectBase.h"
 #include "ResourceManager.h"
 #include "Renderer.h"
+#include "NavigationManager.h"
 
 using namespace std;
 using namespace DirectX;
@@ -277,6 +278,8 @@ void ColliderComponent::RenderImGui()
 
 		ImGui::TreePop();
 	}
+
+	if (ImGui::Button("Bake This To NavMesh")) ColliderComponent::BakeToNavMesh();
 }
 
 void ColliderComponent::Finalize()
@@ -361,6 +364,122 @@ void ColliderComponent::Deserialize(const nlohmann::json& jsonData)
 
 void ColliderComponent::BakeToNavMesh()
 {
-	vector<array<XMVECTOR, 3>> triangles;
-	array<XMFLOAT3, 8> corners;
+	NavigationManager& nav = NavigationManager::GetInstance();
+
+	auto addTriIfWalkable = [&](const DirectX::XMVECTOR& a, const DirectX::XMVECTOR& b, const DirectX::XMVECTOR& c)
+		{
+			using namespace DirectX;
+			XMVECTOR ab = XMVectorSubtract(b, a);
+			XMVECTOR ac = XMVectorSubtract(c, a);
+			XMVECTOR n = XMVector3Normalize(XMVector3Cross(ab, ac));
+
+			constexpr XMVECTOR UP = { 0.0f, 1.0f, 0.0f, 0.0f };
+			float upDot = XMVectorGetX(XMVector3Dot(n, UP));
+
+			constexpr float WALKABLE_THRESHOLD = 0.7f;
+			if (upDot >= WALKABLE_THRESHOLD)
+			{
+				nav.AddTriangle(a, b, c);
+			}
+		};
+
+	auto addBoxAsTriangles = [&](const DirectX::BoundingBox& box)
+		{
+			using namespace DirectX;
+			std::array<XMFLOAT3, 8> corners = {};
+			box.GetCorners(corners.data());
+
+			std::array<XMVECTOR, 8> v;
+			for (int i = 0; i < 8; ++i) v[i] = XMLoadFloat3(&corners[i]);
+
+			constexpr int faces[6][4] =
+			{
+				{0,1,2,3}, // -Z
+				{4,5,6,7}, // +Z
+				{0,1,5,4}, // -Y
+				{2,3,7,6}, // +Y
+				{1,2,6,5}, // +X
+				{0,3,7,4}  // -X
+			};
+
+			for (int f = 0; f < 6; ++f)
+			{
+				int a = faces[f][0];
+				int b = faces[f][1];
+				int c = faces[f][2];
+				int d = faces[f][3];
+
+				addTriIfWalkable(v[a], v[b], v[c]);
+				addTriIfWalkable(v[a], v[c], v[d]);
+			}
+		};
+
+	for (const auto& [boxLocal, boxWorld] : m_boundingBoxes)
+	{
+		addBoxAsTriangles(boxWorld);
+	}
+
+	for (const auto& [obbLocal, obbWorld] : m_boundingOrientedBoxes)
+	{
+		using namespace DirectX;
+		std::array<XMFLOAT3, 8> corners = {};
+		obbWorld.GetCorners(corners.data());
+
+		std::array<XMVECTOR, 8> v;
+		for (int i = 0; i < 8; ++i) v[i] = XMLoadFloat3(&corners[i]);
+
+		constexpr int faces[6][4] =
+		{
+			{0,1,2,3},
+			{4,5,6,7},
+			{0,1,5,4},
+			{2,3,7,6},
+			{1,2,6,5},
+			{0,3,7,4}
+		};
+
+		for (int f = 0; f < 6; ++f)
+		{
+			int a = faces[f][0];
+			int b = faces[f][1];
+			int c = faces[f][2];
+			int d = faces[f][3];
+
+			addTriIfWalkable(v[a], v[b], v[c]);
+			addTriIfWalkable(v[a], v[c], v[d]);
+		}
+	}
+
+	for (const auto& [frustumLocal, frustumWorld] : m_boundingFrustums)
+	{
+		using namespace DirectX;
+		std::array<XMFLOAT3, 8> corners = {};
+		frustumWorld.GetCorners(corners.data());
+
+		std::array<XMVECTOR, 8> v;
+		for (int i = 0; i < 8; ++i) v[i] = XMLoadFloat3(&corners[i]);
+
+		constexpr int faces[6][4] =
+		{
+			{0,1,2,3},
+			{4,5,6,7},
+			{0,1,5,4},
+			{2,3,7,6},
+			{1,2,6,5},
+			{0,3,7,4}
+		};
+
+		for (int f = 0; f < 6; ++f)
+		{
+			int a = faces[f][0];
+			int b = faces[f][1];
+			int c = faces[f][2];
+			int d = faces[f][3];
+
+			addTriIfWalkable(v[a], v[b], v[c]);
+			addTriIfWalkable(v[a], v[c], v[d]);
+		}
+	}
+
+	nav.BuildAdjacency();
 }

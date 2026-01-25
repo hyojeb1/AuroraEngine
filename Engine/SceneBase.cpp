@@ -6,6 +6,7 @@
 #include "Renderer.h"
 #include "ResourceManager.h"
 #include "TimeManager.h"
+#include "NavigationManager.h"
 
 #ifdef _DEBUG
 #include "InputManager.h"
@@ -58,6 +59,8 @@ GameObjectBase* SceneBase::GetGameObjectRecursive(const string& name)
 
 void SceneBase::BaseInitialize()
 {
+	NavigationManager::GetInstance().Initialize();
+
 	m_type = GetTypeName(*this);
 
 	#ifdef _DEBUG
@@ -221,6 +224,8 @@ void SceneBase::BaseRender()
 
 	// 게임 오브젝트 렌더링
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseRender();
+
+	NavigationManager::GetInstance().RenderNavMesh();
 }
 
 void SceneBase::BaseRenderImGui()
@@ -236,6 +241,9 @@ void SceneBase::BaseRenderImGui()
 	#ifdef _DEBUG
 	ImGui::Checkbox("Debug Coordinates", &m_isRenderDebugCoordinates);
 	#endif
+
+	static float gamma = 1.0f;
+	if (ImGui::DragFloat("Gamma", &gamma, 0.01f, 0.1f, 5.0f)) Renderer::GetInstance().SetGamma(gamma);
 
 	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);
 	ImGui::DragFloat("IBL Intensity", &m_globalLightData.lightColor.w, 0.001f, 0.0f, 1.0f);

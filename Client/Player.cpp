@@ -180,10 +180,8 @@ void Player::PlayerDeadEyeEnd()
 	m_deadEyeTargets.clear();
 
 	Renderer& renderer = Renderer::GetInstance();
-	PostProcessingBuffer postProcessingBuffer = renderer.GetPostProcessingBuffer();
-	postProcessingBuffer.flags &= ~static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Grayscale);
-	postProcessingBuffer.grayScaleIntensity = 0.0f;
-	renderer.SetPostProcessingBuffer(postProcessingBuffer);
+	renderer.SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, false);
+	renderer.SetGrayScaleIntensity(0.0f);
 }
 
 void Player::RenderCrosshairUI(Renderer& renderer)

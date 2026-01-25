@@ -15,6 +15,9 @@ class NavigationManager : public Singleton<NavigationManager>
 	std::vector<DirectX::XMVECTOR> m_vertices = {};
 	std::vector<NavPoly> m_navPolys = {};
 
+	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_navMeshVertexShaderAndInputLayout = {};
+	com_ptr<ID3D11PixelShader> m_navMeshPixelShader = {};
+
 public:
 	NavigationManager() = default;
 	~NavigationManager() = default;
@@ -23,12 +26,16 @@ public:
 	NavigationManager(NavigationManager&&) = delete;
 	NavigationManager& operator=(NavigationManager&&) = delete;
 
+	void Initialize();
+
 	void ClearNavMesh() { m_vertices.clear(); m_navPolys.clear(); }
 
 	// 삼각형 추가
 	void AddTriangle(const DirectX::XMVECTOR& a, const DirectX::XMVECTOR& b, const DirectX::XMVECTOR& c);
 	// 인접 정보 구축
 	void BuildAdjacency();
+
+	void RenderNavMesh();
 
 	// 가장 가까운 폴리곤 찾기
 	int FindNearestPoly(const DirectX::XMVECTOR& point) const;

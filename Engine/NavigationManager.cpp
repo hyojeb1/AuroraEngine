@@ -1,8 +1,20 @@
 #include "stdafx.h"
 #include "NavigationManager.h"
 
+#include "Renderer.h"
+#include "ResourceManager.h"
+
 using namespace std;
 using namespace DirectX;
+
+void NavigationManager::Initialize()
+{
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
+	m_navMeshVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
+	m_navMeshPixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
+
+	ClearNavMesh();
+}
 
 void NavigationManager::AddTriangle(const XMVECTOR& a, const XMVECTOR& b, const XMVECTOR& c)
 {
@@ -46,6 +58,65 @@ void NavigationManager::BuildAdjacency()
 			}
 		}
 	}
+}
+
+void NavigationManager::RenderNavMesh()
+{
+	if (m_vertices.empty() || m_navPolys.empty()) return;
+
+	Renderer::GetInstance().RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
+	(
+		numeric_limits<float>::max(),
+		[&]()
+		{
+			ResourceManager& resourceManager = ResourceManager::GetInstance();
+			com_ptr<ID3D11DeviceContext> deviceContext = Renderer::GetInstance().GetDeviceContext();
+
+			deviceContext->IASetInputLayout(m_navMeshVertexShaderAndInputLayout.second.Get());
+			deviceContext->VSSetShader(m_navMeshVertexShaderAndInputLayout.first.Get(), nullptr, 0);
+			deviceContext->PSSetShader(m_navMeshPixelShader.Get(), nullptr, 0);
+
+			resourceManager.SetRasterState(RasterState::SolidCullNone);
+			resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+			LineBuffer lineBufferData = {};
+
+			for (const NavPoly& poly : m_navPolys)
+			{
+				// validate indices
+				if (poly.indexs[0] < 0 || poly.indexs[1] < 0 || poly.indexs[2] < 0) continue;
+
+				XMVECTOR a = m_vertices[poly.indexs[0]];
+				XMVECTOR b = m_vertices[poly.indexs[1]];
+				XMVECTOR c = m_vertices[poly.indexs[2]];
+
+				XMFLOAT3 fa, fb, fc;
+				XMStoreFloat3(&fa, a);
+				XMStoreFloat3(&fb, b);
+				XMStoreFloat3(&fc, c);
+
+				// edge AB
+				lineBufferData.linePoints[0] = XMFLOAT4{ fa.x, fa.y, fa.z, 1.0f };
+				lineBufferData.linePoints[1] = XMFLOAT4{ fb.x, fb.y, fb.z, 1.0f };
+				lineBufferData.lineColors[0] = XMFLOAT4{ 0.0f, 1.0f, 1.0f, 1.0f };
+				lineBufferData.lineColors[1] = XMFLOAT4{ 0.0f, 1.0f, 1.0f, 1.0f };
+				deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
+				deviceContext->Draw(2, 0);
+
+				// edge BC
+				lineBufferData.linePoints[0] = XMFLOAT4{ fb.x, fb.y, fb.z, 1.0f };
+				lineBufferData.linePoints[1] = XMFLOAT4{ fc.x, fc.y, fc.z, 1.0f };
+				deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
+				deviceContext->Draw(2, 0);
+
+				// edge CA
+				lineBufferData.linePoints[0] = XMFLOAT4{ fc.x, fc.y, fc.z, 1.0f };
+				lineBufferData.linePoints[1] = XMFLOAT4{ fa.x, fa.y, fa.z, 1.0f };
+				deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
+				deviceContext->Draw(2, 0);
+			}
+		}
+	);
 }
 
 int NavigationManager::FindNearestPoly(const XMVECTOR& point) const
