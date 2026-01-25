@@ -18,6 +18,15 @@ class NavigationManager : public Singleton<NavigationManager>
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_navMeshVertexShaderAndInputLayout = {};
 	com_ptr<ID3D11PixelShader> m_navMeshPixelShader = {};
 
+	bool m_hasPreview = false;
+	DirectX::XMVECTOR m_previewPoint = DirectX::XMVectorZero();
+	int m_previewEdgeVertexIndexA = -1;
+	int m_previewEdgeVertexIndexB = -1;
+
+	bool m_pathStartSet = false;
+	DirectX::XMVECTOR m_pathStartPoint = DirectX::XMVectorZero();
+	std::vector<DirectX::XMVECTOR> m_currentPath = {};
+
 public:
 	NavigationManager() = default;
 	~NavigationManager() = default;
@@ -28,13 +37,14 @@ public:
 
 	void Initialize();
 
-	void ClearNavMesh() { m_vertices.clear(); m_navPolys.clear(); }
+	void ClearNavMesh() { m_vertices.clear(); m_navPolys.clear(); m_hasPreview = false; m_previewEdgeVertexIndexA = m_previewEdgeVertexIndexB = -1; m_pathStartSet = false; m_currentPath.clear(); }
 
 	// 삼각형 추가
-	void AddTriangle(const DirectX::XMVECTOR& a, const DirectX::XMVECTOR& b, const DirectX::XMVECTOR& c);
+	void AddPolygon(const DirectX::XMVECTOR& a, const DirectX::XMVECTOR& b, const DirectX::XMVECTOR& c);
 	// 인접 정보 구축
 	void BuildAdjacency();
 
+	// 네비메시 렌더링
 	void RenderNavMesh();
 
 	// 가장 가까운 폴리곤 찾기
@@ -42,7 +52,8 @@ public:
 	// 경로 찾기
 	std::vector<DirectX::XMVECTOR> FindPath(const DirectX::XMVECTOR& start, const DirectX::XMVECTOR& end) const;
 
+	void HandlePlaceLink();
+
 private:
 	bool PointInTriangle(const DirectX::XMVECTOR& point, const std::array<int, 3>& indexs) const;
-	std::vector<DirectX::XMVECTOR> StringPull(const std::vector<std::pair<DirectX::XMVECTOR, DirectX::XMVECTOR>>& portals, const DirectX::XMVECTOR& start, const DirectX::XMVECTOR& end) const;
 };

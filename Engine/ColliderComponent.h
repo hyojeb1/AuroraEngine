@@ -56,7 +56,4 @@ protected:
 
 	nlohmann::json Serialize() override;
 	void Deserialize(const nlohmann::json& jsonData) override;
-
-private:
-	void BakeToNavMesh();
 };

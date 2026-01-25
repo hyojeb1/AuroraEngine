@@ -121,6 +121,9 @@ void SceneBase::BaseUpdate()
 
 		cout << "씬: " << m_type << " 저장 완료!" << endl;
 	}
+
+	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink();
+
 	#endif
 }
 
@@ -225,7 +228,7 @@ void SceneBase::BaseRender()
 	// 게임 오브젝트 렌더링
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseRender();
 
-	NavigationManager::GetInstance().RenderNavMesh();
+	if (m_isNavMeshCreating) NavigationManager::GetInstance().RenderNavMesh();
 }
 
 void SceneBase::BaseRenderImGui()
@@ -240,6 +243,8 @@ void SceneBase::BaseRenderImGui()
 
 	#ifdef _DEBUG
 	ImGui::Checkbox("Debug Coordinates", &m_isRenderDebugCoordinates);
+
+	ImGui::Checkbox("NavMesh Creating", &m_isNavMeshCreating);
 	#endif
 
 	static float gamma = 1.0f;

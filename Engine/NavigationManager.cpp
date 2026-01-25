@@ -3,6 +3,8 @@
 
 #include "Renderer.h"
 #include "ResourceManager.h"
+#include "InputManager.h"
+#include "CameraComponent.h"
 
 using namespace std;
 using namespace DirectX;
@@ -13,10 +15,10 @@ void NavigationManager::Initialize()
 	m_navMeshVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_navMeshPixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
 
-	ClearNavMesh();
+	AddPolygon(XMVectorSet(-1.0f, 0.0f, -1.0f, 1.0f), XMVectorSet(1.0f, 0.0f, -1.0f, 1.0f), XMVectorSet(0.0f, 0.0f, 1.0f, 1.0f));
 }
 
-void NavigationManager::AddTriangle(const XMVECTOR& a, const XMVECTOR& b, const XMVECTOR& c)
+void NavigationManager::AddPolygon(const XMVECTOR& a, const XMVECTOR& b, const XMVECTOR& c)
 {
 	const int base = static_cast<int>(m_vertices.size());
 
@@ -95,7 +97,6 @@ void NavigationManager::RenderNavMesh()
 				XMStoreFloat3(&fb, b);
 				XMStoreFloat3(&fc, c);
 
-				// edge AB
 				lineBufferData.linePoints[0] = XMFLOAT4{ fa.x, fa.y, fa.z, 1.0f };
 				lineBufferData.linePoints[1] = XMFLOAT4{ fb.x, fb.y, fb.z, 1.0f };
 				lineBufferData.lineColors[0] = XMFLOAT4{ 0.0f, 1.0f, 1.0f, 1.0f };
@@ -103,17 +104,66 @@ void NavigationManager::RenderNavMesh()
 				deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
 				deviceContext->Draw(2, 0);
 
-				// edge BC
 				lineBufferData.linePoints[0] = XMFLOAT4{ fb.x, fb.y, fb.z, 1.0f };
 				lineBufferData.linePoints[1] = XMFLOAT4{ fc.x, fc.y, fc.z, 1.0f };
 				deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
 				deviceContext->Draw(2, 0);
 
-				// edge CA
 				lineBufferData.linePoints[0] = XMFLOAT4{ fc.x, fc.y, fc.z, 1.0f };
 				lineBufferData.linePoints[1] = XMFLOAT4{ fa.x, fa.y, fa.z, 1.0f };
 				deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
 				deviceContext->Draw(2, 0);
+			}
+
+			if (m_hasPreview && m_previewEdgeVertexIndexA >= 0 && m_previewEdgeVertexIndexB >= 0)
+			{
+				XMVECTOR va = m_vertices[m_previewEdgeVertexIndexA];
+				XMVECTOR vb = m_vertices[m_previewEdgeVertexIndexB];
+				XMFLOAT3 fa, fb, fm;
+				XMStoreFloat3(&fa, va);
+				XMStoreFloat3(&fb, vb);
+				XMStoreFloat3(&fm, m_previewPoint);
+
+				lineBufferData.linePoints[0] = XMFLOAT4{ fm.x, fm.y, fm.z, 1.0f };
+				lineBufferData.linePoints[1] = XMFLOAT4{ fa.x, fa.y, fa.z, 1.0f };
+				lineBufferData.lineColors[0] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
+				lineBufferData.lineColors[1] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
+				deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
+				deviceContext->Draw(2, 0);
+
+				lineBufferData.linePoints[0] = XMFLOAT4{ fm.x, fm.y, fm.z, 1.0f };
+				lineBufferData.linePoints[1] = XMFLOAT4{ fb.x, fb.y, fb.z, 1.0f };
+				deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
+				deviceContext->Draw(2, 0);
+			}
+
+			if (m_pathStartSet && m_currentPath.empty())
+			{
+				XMFLOAT3 sp;
+				XMStoreFloat3(&sp, m_pathStartPoint);
+				lineBufferData.linePoints[0] = XMFLOAT4{ sp.x - 0.1f, sp.y, sp.z, 1.0f };
+				lineBufferData.linePoints[1] = XMFLOAT4{ sp.x + 0.1f, sp.y, sp.z, 1.0f };
+				lineBufferData.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 0.0f, 1.0f };
+				lineBufferData.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 0.0f, 1.0f };
+				deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
+				deviceContext->Draw(2, 0);
+			}
+
+			if (!m_currentPath.empty())
+			{
+				for (size_t i = 0; i + 1 < m_currentPath.size(); ++i)
+				{
+					XMFLOAT3 p0, p1;
+					XMStoreFloat3(&p0, m_currentPath[i]);
+					XMStoreFloat3(&p1, m_currentPath[i + 1]);
+
+					lineBufferData.linePoints[0] = XMFLOAT4{ p0.x, p0.y, p0.z, 1.0f };
+					lineBufferData.linePoints[1] = XMFLOAT4{ p1.x, p1.y, p1.z, 1.0f };
+					lineBufferData.lineColors[0] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f };
+					lineBufferData.lineColors[1] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f };
+					deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
+					deviceContext->Draw(2, 0);
+				}
 			}
 		}
 	);
@@ -236,7 +286,27 @@ vector<XMVECTOR> NavigationManager::FindPath(const XMVECTOR& start, const XMVECT
 		}
 	}
 
-	return StringPull(portals, start, end);
+	vector<XMVECTOR> result;
+	if (portals.empty())
+	{
+		result.push_back(start);
+		result.push_back(end);
+		return result;
+	}
+
+	result.reserve(portals.size() + 2);
+	result.push_back(start);
+
+	for (const auto& p : portals)
+	{
+		XMVECTOR mid = XMVectorScale(XMVectorAdd(p.first, p.second), 0.5f);
+		mid = XMVectorSetY(mid, 0.0f);
+		result.push_back(mid);
+	}
+
+	result.push_back(end);
+
+	return result;
 }
 
 bool NavigationManager::PointInTriangle(const XMVECTOR& point, const array<int, 3>& indexs) const
@@ -258,70 +328,112 @@ bool NavigationManager::PointInTriangle(const XMVECTOR& point, const array<int, 
 	return (u >= 0) && (v >= 0) && (u + v < 1);
 }
 
-vector<XMVECTOR> NavigationManager::StringPull(const vector<pair<XMVECTOR, XMVECTOR>>& portals, const XMVECTOR& start, const XMVECTOR& end) const
+void NavigationManager::HandlePlaceLink()
 {
-	vector<XMVECTOR> smoothPath;
-	if (portals.empty()) { smoothPath.push_back(start); smoothPath.push_back(end); return smoothPath; }
+	InputManager& input = InputManager::GetInstance();
 
-	vector<XMVECTOR> left = {};
-	vector<XMVECTOR> right = {};
-	left.push_back(start);
-	right.push_back(start);
-	for (const auto& portal : portals) { left.push_back(portal.first); right.push_back(portal.second); }
-	left.push_back(end);
-	right.push_back(end);
+	const POINT& mouse = input.GetRelativeMousePosition();
+	const DXGI_SWAP_CHAIN_DESC1& scDesc = Renderer::GetInstance().GetSwapChainDesc();
+	const CameraComponent& cam = CameraComponent::GetMainCamera();
 
-	int apex = 0;
-	int leftIndex = 0;
-	int rightIndex = 0;
-	XMVECTOR apexPoint = left[0];
-	XMVECTOR leftPoint = left[1];
-	XMVECTOR rightPoint = right[1];
+	XMVECTOR screenNear = XMVectorSet(static_cast<float>(mouse.x), static_cast<float>(mouse.y), 0.0f, 0.0f);
+	XMVECTOR screenFar  = XMVectorSet(static_cast<float>(mouse.x), static_cast<float>(mouse.y), 1.0f, 0.0f);
 
-	smoothPath.push_back(apexPoint);
+	XMVECTOR nearPoint = XMVector3Unproject(screenNear, 0.0f, 0.0f, static_cast<float>(scDesc.Width), static_cast<float>(scDesc.Height), 0.0f, 1.0f, cam.GetProjectionMatrix(), cam.GetViewMatrix(), XMMatrixIdentity());
+	XMVECTOR farPoint  = XMVector3Unproject(screenFar,  0.0f, 0.0f, static_cast<float>(scDesc.Width), static_cast<float>(scDesc.Height), 0.0f, 1.0f, cam.GetProjectionMatrix(), cam.GetViewMatrix(), XMMatrixIdentity());
 
-	for (int i = 1; i < static_cast<int>(left.size()); ++i)
+	XMVECTOR dir = XMVectorSubtract(farPoint, nearPoint);
+	dir = XMVector3Normalize(dir);
+
+	float dirY = XMVectorGetY(dir);
+	if (fabs(dirY) < numeric_limits<float>::epsilon()) return;
+
+	float t = -XMVectorGetY(nearPoint) / dirY;
+	if (t < 0.0f) return;
+
+	XMVECTOR hit = XMVectorAdd(nearPoint, XMVectorScale(dir, t));
+	hit = XMVectorSetY(hit, 0.0f);
+
+	if (m_navPolys.empty() || m_vertices.empty()) return;
+
+	int polyIndex = FindNearestPoly(hit);
+	if (polyIndex < 0) return;
+
+	const NavPoly& poly = m_navPolys[polyIndex];
+	float bestDistSq = numeric_limits<float>::max();
+	int bestA = -1, bestB = -1;
+
+	for (int index = 0; index < 3; ++index)
 	{
-		XMVECTOR newLeft = left[i];
-		XMVECTOR newRight = right[i];
+		int indexA = poly.indexs[index];
+		int indexB = poly.indexs[(index + 1) % 3];
 
-		XMVECTOR crossR = XMVector3Cross(XMVectorSubtract(newRight, apexPoint), XMVectorSubtract(rightPoint, apexPoint));
-		if (XMVectorGetX(XMVector3Dot(crossR, crossR)) > numeric_limits<float>::epsilon())
-		{
-			if (XMVectorGetY(XMVector3Cross(XMVectorSubtract(newRight, apexPoint), XMVectorSubtract(apexPoint, leftPoint))) > 0.0f)
-			{
-				apexPoint = leftPoint;
-				smoothPath.push_back(apexPoint);
-				apex = leftIndex;
-				leftIndex = apex;
-				rightIndex = apex;
-				if (apex + 1 < static_cast<int>(left.size())) { leftPoint = left[apex + 1]; rightPoint = right[apex + 1]; }
-				i = apex;
-				continue;
-			}
-			rightPoint = newRight;
-			rightIndex = i;
-		}
+		XMVECTOR v0 = m_vertices[indexA];
+		XMVECTOR v1 = m_vertices[indexB];
+		XMVECTOR edge = XMVectorSubtract(v1, v0);
+		XMVECTOR toHit = XMVectorSubtract(hit, v0);
 
-		XMVECTOR crossL = XMVector3Cross(XMVectorSubtract(leftPoint, apexPoint), XMVectorSubtract(newLeft, apexPoint));
-		if (XMVectorGetX(XMVector3Dot(crossL, crossL)) > numeric_limits<float>::epsilon())
+		float edgeLenSq = XMVectorGetX(XMVector3Dot(edge, edge));
+		float u = 0.0f;
+		if (edgeLenSq > 0.0f) u = XMVectorGetX(XMVector3Dot(toHit, edge)) / edgeLenSq;
+		u = std::clamp(u, 0.0f, 1.0f);
+
+		XMVECTOR proj = XMVectorAdd(v0, XMVectorScale(edge, u));
+		float distSq = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(hit, proj)));
+
+		if (distSq < bestDistSq)
 		{
-			if (XMVectorGetY(XMVector3Cross(XMVectorSubtract(leftPoint, apexPoint), XMVectorSubtract(newLeft, apexPoint))) > 0.0f)
-			{
-				apexPoint = rightPoint;
-				smoothPath.push_back(apexPoint);
-				apex = rightIndex;
-				leftIndex = apex;
-				rightIndex = apex;
-				if (apex + 1 < static_cast<int>(left.size())) { leftPoint = left[apex + 1]; rightPoint = right[apex + 1]; }
-				i = apex;
-				continue;
-			}
-			leftPoint = newLeft;
-			leftIndex = i;
+			bestDistSq = distSq;
+			bestA = indexA;
+			bestB = indexB;
 		}
 	}
 
-	smoothPath.push_back(end);
-	return smoothPath;
+	if (bestA < 0 || bestB < 0) return;
+
+	m_hasPreview = true;
+	m_previewPoint = hit;
+	m_previewEdgeVertexIndexA = bestA;
+	m_previewEdgeVertexIndexB = bestB;
+
+	if (input.GetKeyDown(KeyCode::E))
+	{
+		int newIndex = static_cast<int>(m_vertices.size());
+		m_vertices.emplace_back(hit);
+
+		NavPoly newPoly = {};
+		newPoly.indexs = { bestA, bestB, newIndex };
+
+		XMVECTOR ca = m_vertices[newPoly.indexs[0]];
+		XMVECTOR cb = m_vertices[newPoly.indexs[1]];
+		XMVECTOR cc = m_vertices[newPoly.indexs[2]];
+		newPoly.centroid = XMVectorScale(XMVectorAdd(XMVectorAdd(ca, cb), cc), 1.0f / 3.0f);
+
+		m_navPolys.push_back(newPoly);
+
+		BuildAdjacency();
+
+		m_hasPreview = false;
+		m_previewEdgeVertexIndexA = -1;
+		m_previewEdgeVertexIndexB = -1;
+	}
+
+	if (input.GetKeyDown(KeyCode::Q))
+	{
+		if (!m_pathStartSet)
+		{
+			m_pathStartSet = true;
+			m_pathStartPoint = hit;
+			m_currentPath.clear();
+		}
+		else if (m_currentPath.empty())
+		{
+			m_currentPath = FindPath(m_pathStartPoint, hit);
+		}
+		else
+		{
+			m_pathStartSet = false;
+			m_currentPath.clear();
+		}
+	}
 }

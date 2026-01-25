@@ -30,6 +30,7 @@ public:
     bool GetKeyUp(KeyCode key) const;
 
     const POINT& GetMousePosition() const { return m_mousePos; }
+    const POINT& GetRelativeMousePosition() const;
     const POINT& GetMouseDelta() const { return m_mouseDelta; }
     int GetMouseWheel() const { return m_wheelDelta; }
 

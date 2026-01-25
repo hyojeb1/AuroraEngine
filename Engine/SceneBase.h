@@ -9,6 +9,7 @@ class SceneBase : public Base
 {
 	#ifdef _DEBUG
 	std::unique_ptr<DebugCamera> m_debugCamera = nullptr; // 디버그 카메라 게임 오브젝트
+	bool m_isNavMeshCreating = false; // 네비게이션 메시 생성 중 여부
 	#endif
 
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트 포인터
