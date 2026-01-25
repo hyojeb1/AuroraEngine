@@ -55,6 +55,9 @@
 #include <imgui_impl_win32.h>
 #include <imgui_impl_dx11.h>
 
+// ImGuizmo 헤더
+#include <ImGuizmo.h>
+
 // JSON 헤더
 #include <nlohmann/json.hpp>
 

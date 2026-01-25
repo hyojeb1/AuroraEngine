@@ -75,7 +75,7 @@
                     "blendState": 2,
                     "flipbookAutoPlay": true,
                     "flipbookColumns": 8,
-                    "flipbookCurrentFrame": 21,
+                    "flipbookCurrentFrame": 36,
                     "flipbookDestroyOnFinish": false,
                     "flipbookFPS": 60.0,
                     "flipbookLoop": true,
@@ -89,8 +89,8 @@
                     "textureFileName": "runner_atlas.png",
                     "type": "FlipbookParticleComponent",
                     "uvOffset": [
-                        0.625,
-                        0.25
+                        0.5,
+                        0.5
                     ],
                     "uvScale": [
                         0.125,
@@ -257,22 +257,22 @@
             ],
             "name": "GameObjectBase_6",
             "position": [
+                0.1149185299873352,
                 0.0,
                 0.0,
-                0.0,
-                0.0
+                1.0
             ],
             "rotation": [
+                -0.0,
                 0.0,
-                0.0,
-                0.0,
+                -0.0,
                 1.0
             ],
             "scale": [
                 1.0,
                 1.0,
                 1.0,
-                1.0
+                0.0
             ],
             "type": "GameObjectBase"
         }

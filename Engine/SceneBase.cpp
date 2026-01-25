@@ -266,6 +266,111 @@ void SceneBase::BaseRenderImGui()
 	}
 
 	ImGui::End();
+
+	#ifdef _DEBUG
+	GameObjectBase* selectedObject = GameObjectBase::GetSelectedObject();
+	if (selectedObject)
+	{
+		static ImGuizmo::OPERATION gizmoOperation = ImGuizmo::TRANSLATE;
+		static ImGuizmo::MODE gizmoMode = ImGuizmo::LOCAL;
+		static bool useSnap = false;
+		static float snapTranslation[3] = { 0.5f, 0.5f, 0.5f };
+		static float snapRotation = 15.0f;
+		static float snapScale = 0.1f;
+
+		ImGui::Begin("Gizmo");
+		ImGui::Text("Selected: %s", selectedObject->GetName().c_str());
+		if (ImGui::RadioButton("Translate", gizmoOperation == ImGuizmo::TRANSLATE)) gizmoOperation = ImGuizmo::TRANSLATE;
+		ImGui::SameLine();
+		if (ImGui::RadioButton("Rotate", gizmoOperation == ImGuizmo::ROTATE)) gizmoOperation = ImGuizmo::ROTATE;
+		ImGui::SameLine();
+		if (ImGui::RadioButton("Scale", gizmoOperation == ImGuizmo::SCALE)) gizmoOperation = ImGuizmo::SCALE;
+
+		if (gizmoOperation != ImGuizmo::SCALE)
+		{
+			if (ImGui::RadioButton("Local", gizmoMode == ImGuizmo::LOCAL)) gizmoMode = ImGuizmo::LOCAL;
+			ImGui::SameLine();
+			if (ImGui::RadioButton("World", gizmoMode == ImGuizmo::WORLD)) gizmoMode = ImGuizmo::WORLD;
+		}
+
+		ImGui::Checkbox("Snap", &useSnap);
+		if (useSnap)
+		{
+			if (gizmoOperation == ImGuizmo::TRANSLATE) ImGui::InputFloat3("Snap T", snapTranslation);
+			else if (gizmoOperation == ImGuizmo::ROTATE) ImGui::InputFloat("Snap R", &snapRotation);
+			else if (gizmoOperation == ImGuizmo::SCALE) ImGui::InputFloat("Snap S", &snapScale);
+		}
+		ImGui::End();
+
+		ImGuiIO& io = ImGui::GetIO();
+		ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
+		
+		{
+			//아마 파섹으로 작업하고 있어서 그런 듯? 화면이 옆에서 그려지네
+			//ImGuizmo::SetRect(0.0f, 0.0f, io.DisplaySize.x, io.DisplaySize.y);
+			ImVec2 pos = ImGui::GetWindowPos();
+			ImVec2 size = ImGui::GetWindowSize();
+			ImGuizmo::SetRect(pos.x, pos.y, size.x, size.y);
+		}
+		
+		
+		ImGuizmo::SetOrthographic(false);
+
+		const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
+		DirectX::XMFLOAT4X4 viewMatrix = {};
+		DirectX::XMFLOAT4X4 projectionMatrix = {};
+		DirectX::XMFLOAT4X4 worldMatrix = {};
+		DirectX::XMStoreFloat4x4(&viewMatrix, mainCamera.GetViewMatrix());
+		DirectX::XMStoreFloat4x4(&projectionMatrix, mainCamera.GetProjectionMatrix());
+		DirectX::XMStoreFloat4x4(&worldMatrix, selectedObject->GetWorldMatrix());
+
+
+
+		float gizmoMatrix[16] = {};
+		std::memcpy(gizmoMatrix, &worldMatrix, sizeof(gizmoMatrix));
+
+		const float* snap = nullptr;
+		float snapValues[3] = {};
+		if (useSnap)
+		{
+			if (gizmoOperation == ImGuizmo::TRANSLATE)
+			{
+				snapValues[0] = snapTranslation[0];
+				snapValues[1] = snapTranslation[1];
+				snapValues[2] = snapTranslation[2];
+				snap = snapValues;
+			}
+			else if (gizmoOperation == ImGuizmo::ROTATE)
+			{
+				snapValues[0] = snapRotation;
+				snap = snapValues;
+			}
+			else if (gizmoOperation == ImGuizmo::SCALE)
+			{
+				snapValues[0] = snapScale;
+				snap = snapValues;
+			}
+		}
+
+		ImGuizmo::Manipulate
+		(
+			&viewMatrix.m[0][0],
+			&projectionMatrix.m[0][0],
+			gizmoOperation,
+			gizmoMode,
+			gizmoMatrix,
+			nullptr,
+			snap
+		);
+
+		if (ImGuizmo::IsUsing())
+		{
+			std::memcpy(&worldMatrix, gizmoMatrix, sizeof(gizmoMatrix));
+			const DirectX::XMMATRIX newWorld = DirectX::XMLoadFloat4x4(&worldMatrix);
+			selectedObject->ApplyWorldMatrix(newWorld);
+		}
+	}
+	#endif
 }
 
 void SceneBase::BaseFinalize()

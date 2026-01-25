@@ -463,6 +463,8 @@ void Renderer::BeginImGuiFrame()
 {
 	ImGui_ImplDX11_NewFrame();
 	ImGui::NewFrame();
+	ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
+	ImGuizmo::BeginFrame();
 	ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 }
 
