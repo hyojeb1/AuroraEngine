@@ -22,10 +22,6 @@ void Renderer::Initialize()
 
 void Renderer::BeginFrame()
 {
-	//ResourceManager& resourceManager = ResourceManager::GetInstance();
-	//resourceManager.SetAllConstantBuffers();
-	//resourceManager.SetAllSamplerStates();
-
 	#ifdef _DEBUG
 	// ImGui 프레임 시작
 	BeginImGuiFrame();
