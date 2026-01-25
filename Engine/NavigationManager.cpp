@@ -342,8 +342,7 @@ void NavigationManager::HandlePlaceLink()
 	XMVECTOR nearPoint = XMVector3Unproject(screenNear, 0.0f, 0.0f, static_cast<float>(scDesc.Width), static_cast<float>(scDesc.Height), 0.0f, 1.0f, cam.GetProjectionMatrix(), cam.GetViewMatrix(), XMMatrixIdentity());
 	XMVECTOR farPoint  = XMVector3Unproject(screenFar,  0.0f, 0.0f, static_cast<float>(scDesc.Width), static_cast<float>(scDesc.Height), 0.0f, 1.0f, cam.GetProjectionMatrix(), cam.GetViewMatrix(), XMMatrixIdentity());
 
-	XMVECTOR dir = XMVectorSubtract(farPoint, nearPoint);
-	dir = XMVector3Normalize(dir);
+	XMVECTOR dir = XMVector3Normalize(XMVectorSubtract(farPoint, nearPoint));
 
 	float dirY = XMVectorGetY(dir);
 	if (fabs(dirY) < numeric_limits<float>::epsilon()) return;
