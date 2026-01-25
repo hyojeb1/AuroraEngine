@@ -117,6 +117,9 @@
     <ClCompile Include="FlipbookParticleComponent.cpp">
       <Filter>Base\Component\Particle</Filter>
     </ClCompile>
+    <ClCompile Include="InstancedParticleComponent.cpp">
+      <Filter>Base\Component\Particle</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -207,6 +210,9 @@
     <ClInclude Include="FlipbookParticleComponent.h">
       <Filter>Base\Component\Particle</Filter>
     </ClInclude>
+    <ClInclude Include="InstancedParticleComponent.h">
+      <Filter>Base\Component\Particle</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Asset\Shader\PSPostProcessing.hlsl">
@@ -252,6 +258,9 @@
       <Filter>Shader</Filter>
     </FxCompile>
     <FxCompile Include="..\Asset\Shader\VSParticle_None.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Asset\Shader\VSParticleInstanced.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
   </ItemGroup>
