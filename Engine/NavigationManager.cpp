@@ -374,7 +374,7 @@ void NavigationManager::HandlePlaceLink()
 		float edgeLenSq = XMVectorGetX(XMVector3Dot(edge, edge));
 		float u = 0.0f;
 		if (edgeLenSq > 0.0f) u = XMVectorGetX(XMVector3Dot(toHit, edge)) / edgeLenSq;
-		u = std::clamp(u, 0.0f, 1.0f);
+		u = clamp(u, 0.0f, 1.0f);
 
 		XMVECTOR proj = XMVectorAdd(v0, XMVectorScale(edge, u));
 		float distSq = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(hit, proj)));
