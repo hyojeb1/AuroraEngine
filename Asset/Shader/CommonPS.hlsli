@@ -49,11 +49,10 @@ SamplerState SamplerPointClamp : register(s0); // PostProcess
 SamplerState SamplerLinearWrap : register(s1); // Model, Skybox
 SamplerComparisonState SamplerComparisonClamp : register(s2); // Shadow Map
 
-
 // --------------------------------------------------------
 // Textures
 // --------------------------------------------------------
-Texture2D sceneTexture : register(t0);
+Texture2DArray sceneTexture : register(t0);
 TextureCube environmentMapTexture : register(t1);
 Texture2D directionalShadowMapTexture : register(t2);
 

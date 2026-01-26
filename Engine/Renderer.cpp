@@ -422,6 +422,8 @@ void Renderer::CreateSceneRenderTarget()
 
 void Renderer::CreateShadowMapRenderTargets()
 {
+	HRESULT hr = S_OK;
+
 	// 방향성 광원 그림자 맵 텍스처 생성
 	const D3D11_TEXTURE2D_DESC shadowMapDesc =
 	{
@@ -436,7 +438,7 @@ void Renderer::CreateShadowMapRenderTargets()
 		.CPUAccessFlags = 0,
 		.MiscFlags = 0
 	};
-	HRESULT hr = m_device->CreateTexture2D(&shadowMapDesc, nullptr, RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilTexture.GetAddressOf());
+	hr = m_device->CreateTexture2D(&shadowMapDesc, nullptr, RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilTexture.GetAddressOf());
 	CheckResult(hr, "방향성 광원 그림자 맵 텍스처 생성 실패.");
 
 	// 방향성 광원 그림자 맵 깊이-스텐실 뷰 생성

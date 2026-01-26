@@ -2,7 +2,7 @@
 
 float4 main(PS_INPUT_POS_UV input) : SV_TARGET
 {
-    float4 color = sceneTexture.Sample(SamplerPointClamp, input.UV);
+    float4 color = sceneTexture.Sample(SamplerPointClamp, float3(input.UV, 0.0f));
     
     color.rgb = pow(color.rgb, Gamma); // 감마 보정
     
