@@ -141,8 +141,6 @@ void NavigationManager::RenderNavMesh()
 			for (const NavPoly& poly : m_navPolys)
 			{
 				if (poly.indices[0] < 0 || poly.indices[1] < 0 || poly.indices[2] < 0) continue;
-				if (poly.indices[0] == m_previewLine.first && poly.indices[1] == m_previewLine.second) continue;
-				//if (poly.indices[1] == m_previewLine.first && poly.indices[0] == m_previewLine.second) continue;
 
 				XMVECTOR a = m_vertices[poly.indices[0]];
 				XMVECTOR b = m_vertices[poly.indices[1]];
@@ -427,7 +425,8 @@ void NavigationManager::HandlePlaceLink()
 			{
 				for (int edgeIndex = 0; edgeIndex < 3; ++edgeIndex)
 				{
-					float dist = XMVectorGetX(XMVector3LinePointDistance(m_vertices[poly.indices[edgeIndex]], m_vertices[poly.indices[(edgeIndex + 1) % 3]], m_previewPoint));
+					float dist = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(XMVectorScale(XMVectorAdd(m_vertices[poly.indices[edgeIndex]], m_vertices[poly.indices[(edgeIndex + 1) % 3]]), 0.5f), m_previewPoint)));
+
 					if (dist < bestLineDist)
 					{
 						bestLineDist = dist;
@@ -438,8 +437,25 @@ void NavigationManager::HandlePlaceLink()
 		}
 		else
 		{
-			AddPolygon({ m_previewPoint }, { m_previewLine.first, m_previewLine.second, static_cast<int>(m_vertices.size()) });
+			float bestVertexDist = numeric_limits<float>::max();
+			int bestVertexIndex = -1;
+			for (int i = 0; i < static_cast<int>(m_vertices.size()); ++i)
+			{
+				if (i == m_previewLine.first || i == m_previewLine.second) continue;
 
+				float dist = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(m_vertices[i], m_previewPoint)));
+				if (dist < bestVertexDist)
+				{
+					bestVertexDist = dist;
+					bestVertexIndex = i;
+				}
+			}
+			if (bestVertexIndex < 0) return;
+
+			if (bestVertexDist < 1.0f) AddPolygon({}, { m_previewLine.first, m_previewLine.second, bestVertexIndex });
+			else AddPolygon({ m_previewPoint }, { m_previewLine.first, m_previewLine.second, static_cast<int>(m_vertices.size()) });
+
+			BuildAdjacency();
 			m_previewLine = { -1, -1 };
 		}
 	}
