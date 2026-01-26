@@ -44,6 +44,35 @@ XMFLOAT2 CameraComponent::WorldToScreenPosition(const XMVECTOR& worldPosition) c
 	return result;
 }
 
+pair<XMVECTOR, XMVECTOR> CameraComponent::RayCast(float screenX, float screenY) const
+{
+	const DXGI_SWAP_CHAIN_DESC1& swapChainDesc = Renderer::GetInstance().GetSwapChainDesc();
+
+	return
+	{
+		XMVector3Unproject
+		(
+			XMVectorSet(screenX, screenY, 0.0f, 1.0f),
+			0.0f, 0.0f,
+			static_cast<float>(swapChainDesc.Width), static_cast<float>(swapChainDesc.Height),
+			0.0f, 1.0f,
+			m_projectionMatrix,
+			m_viewMatrix,
+			XMMatrixIdentity()
+		),
+		XMVector3Unproject
+		(
+			XMVectorSet(screenX, screenY, 1.0f, 1.0f),
+			0.0f, 0.0f,
+			static_cast<float>(swapChainDesc.Width), static_cast<float>(swapChainDesc.Height),
+			0.0f, 1.0f,
+			m_projectionMatrix,
+			m_viewMatrix,
+			XMMatrixIdentity()
+		)
+	};
+}
+
 void CameraComponent::Initialize()
 {
 	#ifdef _DEBUG

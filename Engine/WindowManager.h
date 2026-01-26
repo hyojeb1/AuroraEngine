@@ -26,8 +26,6 @@ public:
 
 	// 윈도우 핸들 얻기
 	HWND GetHWnd() const { return m_hWnd; }
-	// 윈도우 전체 크기 얻기
-	RECT GetWindowRect() const { RECT rect; ::GetWindowRect(m_hWnd, &rect); return rect; }
 	// 클라이언트 영역 크기 얻기
 	RECT GetClientPosRect() const;
 

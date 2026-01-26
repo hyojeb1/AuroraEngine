@@ -8,6 +8,7 @@
 #include "TimeManager.h"
 #include "NavigationManager.h"
 #include "WindowManager.h"
+#include "ModelComponent.h"
 
 #ifdef _DEBUG
 #include "InputManager.h"
@@ -94,6 +95,7 @@ void SceneBase::BaseUpdate()
 	#ifdef _DEBUG
 	m_debugCamera->Update();
 	static_cast<Base*>(m_debugCamera.get())->BaseUpdate();
+	PickObjectDebugCamera();
 	#else
 	Update();
 	#endif
@@ -320,59 +322,41 @@ void SceneBase::BaseRenderImGui()
 		
 		ImGuizmo::SetOrthographic(false);
 
-		const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
-		DirectX::XMFLOAT4X4 viewMatrix = {};
-		DirectX::XMFLOAT4X4 projectionMatrix = {};
-		DirectX::XMFLOAT4X4 worldMatrix = {};
-		DirectX::XMStoreFloat4x4(&viewMatrix, mainCamera.GetViewMatrix());
-		DirectX::XMStoreFloat4x4(&projectionMatrix, mainCamera.GetProjectionMatrix());
-		DirectX::XMStoreFloat4x4(&worldMatrix, selectedObject->GetWorldMatrix());
-
-
-
-		float gizmoMatrix[16] = {};
-		memcpy(gizmoMatrix, &worldMatrix, sizeof(gizmoMatrix));
-
 		const float* snap = nullptr;
-		float snapValues[3] = {};
+		array<float, 3> snapValues = { 0.0f, 0.0f, 0.0f };
 		if (useSnap)
 		{
 			if (gizmoOperation == ImGuizmo::TRANSLATE)
 			{
-				snapValues[0] = snapTranslation[0];
-				snapValues[1] = snapTranslation[1];
-				snapValues[2] = snapTranslation[2];
-				snap = snapValues;
+				memcpy(snapValues.data(), snapTranslation, sizeof(float) * 3);
+				snap = snapValues.data();
 			}
 			else if (gizmoOperation == ImGuizmo::ROTATE)
 			{
 				snapValues[0] = snapRotation;
-				snap = snapValues;
+				snap = snapValues.data();
 			}
 			else if (gizmoOperation == ImGuizmo::SCALE)
 			{
 				snapValues[0] = snapScale;
-				snap = snapValues;
+				snap = snapValues.data();
 			}
 		}
 
+		const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
+		XMMATRIX worldMatrix = selectedObject->GetWorldMatrix();
 		ImGuizmo::Manipulate
 		(
-			&viewMatrix.m[0][0],
-			&projectionMatrix.m[0][0],
+			&mainCamera.GetViewMatrix().r[0].m128_f32[0],
+			&mainCamera.GetProjectionMatrix().r[0].m128_f32[0],
 			gizmoOperation,
 			gizmoMode,
-			gizmoMatrix,
+			&worldMatrix.r[0].m128_f32[0],
 			nullptr,
 			snap
 		);
 
-		if (ImGuizmo::IsUsing())
-		{
-			std::memcpy(&worldMatrix, gizmoMatrix, sizeof(gizmoMatrix));
-			const DirectX::XMMATRIX newWorld = DirectX::XMLoadFloat4x4(&worldMatrix);
-			selectedObject->ApplyWorldMatrix(newWorld);
-		}
+		if (ImGuizmo::IsUsing()) selectedObject->ApplyWorldMatrix(worldMatrix);
 	}
 	#endif
 }
@@ -566,6 +550,16 @@ void SceneBase::RenderSkybox()
 }
 
 #ifdef _DEBUG
+void SceneBase::PickObjectDebugCamera()
+{
+	InputManager& inputManager = InputManager::GetInstance();
+	if (!inputManager.GetKeyDown(KeyCode::MouseLeft)) return;
+
+	const POINT& mouse = inputManager.GetMousePosition();
+	pair<XMVECTOR, XMVECTOR> ray = CameraComponent::GetMainCamera().RayCast(static_cast<float>(mouse.x), static_cast<float>(mouse.y));
+	GameObjectBase::SetSelectedObject(ModelComponent::CheckCollision(ray.first, ray.second));
+}
+
 void SceneBase::RenderDebugCoordinates()
 {
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
