@@ -426,17 +426,15 @@ void NavigationManager::HandlePlaceLink()
 		int indexA = poly.indexs[index];
 		int indexB = poly.indexs[(index + 1) % 3];
 
-		XMVECTOR v0 = m_vertices[indexA];
-		XMVECTOR v1 = m_vertices[indexB];
-		XMVECTOR edge = XMVectorSubtract(v1, v0);
-		XMVECTOR toHit = XMVectorSubtract(hit, v0);
+		XMVECTOR edge = XMVectorSubtract(m_vertices[indexB], m_vertices[indexA]);
+		XMVECTOR toHit = XMVectorSubtract(hit, m_vertices[indexA]);
 
 		float edgeLenSq = XMVectorGetX(XMVector3Dot(edge, edge));
 		float u = 0.0f;
 		if (edgeLenSq > 0.0f) u = XMVectorGetX(XMVector3Dot(toHit, edge)) / edgeLenSq;
 		u = clamp(u, 0.0f, 1.0f);
 
-		XMVECTOR proj = XMVectorAdd(v0, XMVectorScale(edge, u));
+		XMVECTOR proj = XMVectorAdd(m_vertices[indexA], XMVectorScale(edge, u));
 		float distSq = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(hit, proj)));
 
 		if (distSq < bestDistSq)
@@ -456,11 +454,10 @@ void NavigationManager::HandlePlaceLink()
 
 	if (input.GetKeyDown(KeyCode::E))
 	{
-		int newIndex = static_cast<int>(m_vertices.size());
 		m_vertices.emplace_back(hit);
 
 		NavPoly newPoly = {};
-		newPoly.indexs = { bestA, bestB, newIndex };
+		newPoly.indexs = { bestA, bestB, static_cast<int>(m_vertices.size()) };
 
 		XMVECTOR ca = m_vertices[newPoly.indexs[0]];
 		XMVECTOR cb = m_vertices[newPoly.indexs[1]];

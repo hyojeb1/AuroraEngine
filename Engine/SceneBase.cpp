@@ -220,7 +220,9 @@ void SceneBase::BaseRender()
 	// 게임 오브젝트 렌더링
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseRender();
 
+	#ifdef _DEBUG
 	if (m_isNavMeshCreating) NavigationManager::GetInstance().RenderNavMesh();
+	#endif
 }
 
 void SceneBase::BaseRenderImGui()
