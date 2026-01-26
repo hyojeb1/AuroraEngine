@@ -63,9 +63,6 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     
     // IBL 최종 기여도
     float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w;
-    
-    // 최종 색상
-    baseColor.rgb = Lo + ibl;
    
-    return float4((baseColor.rgb + emission.rgb), baseColor.a);
+    return float4(Lo + ibl + emission.rgb, baseColor.a);
 }
