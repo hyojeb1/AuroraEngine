@@ -9,6 +9,7 @@ class InputManager : public Singleton<InputManager>
 	std::array<bool, 256> m_keyUpState = {};
 
 	POINT m_mousePos = { 0, 0 };
+	POINT m_screenMousePos = { 0, 0 };
 	POINT m_mouseDelta = { 0, 0 };
 	int m_wheelDelta = 0;
 
@@ -30,7 +31,7 @@ public:
     bool GetKeyUp(KeyCode key) const;
 
     const POINT& GetMousePosition() const { return m_mousePos; }
-    const POINT& GetRelativeMousePosition() const;
+	const POINT& GetScreenMousePosition() const { return m_screenMousePos; }
     const POINT& GetMouseDelta() const { return m_mouseDelta; }
     int GetMouseWheel() const { return m_wheelDelta; }
 

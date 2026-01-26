@@ -85,7 +85,6 @@ void NavigationManager::RenderNavMesh()
 
 			for (const NavPoly& poly : m_navPolys)
 			{
-				// validate indices
 				if (poly.indexs[0] < 0 || poly.indexs[1] < 0 || poly.indexs[2] < 0) continue;
 
 				XMVECTOR a = m_vertices[poly.indexs[0]];
@@ -332,7 +331,7 @@ void NavigationManager::HandlePlaceLink()
 {
 	InputManager& input = InputManager::GetInstance();
 
-	const POINT& mouse = input.GetRelativeMousePosition();
+	const POINT& mouse = input.GetScreenMousePosition();
 	const DXGI_SWAP_CHAIN_DESC1& scDesc = Renderer::GetInstance().GetSwapChainDesc();
 	const CameraComponent& cam = CameraComponent::GetMainCamera();
 

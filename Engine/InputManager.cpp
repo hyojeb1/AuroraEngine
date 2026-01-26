@@ -132,6 +132,7 @@ void InputManager::ProcessRawMouse(const RAWMOUSE& mouse)
 	m_mouseDelta.y += static_cast<int>(mouse.lLastY);
 
 	GetCursorPos(&m_mousePos);
+	ScreenToClient(WindowManager::GetInstance().GetHWnd(), &m_screenMousePos);
 }
 
 bool InputManager::GetKeyDown(KeyCode key) const
@@ -153,15 +154,6 @@ bool InputManager::GetKeyUp(KeyCode key) const
 	int vKey = MapKeyCodeToVKey(key);
 
 	return (vKey < 256) ? m_keyUpState[vKey] : false;
-}
-
-const POINT& InputManager::GetRelativeMousePosition() const
-{
-	HWND hWnd = WindowManager::GetInstance().GetHWnd();
-	POINT clientPos = m_mousePos;
-	ScreenToClient(hWnd, &clientPos);
-
-	return clientPos;
 }
 
 int InputManager::MapKeyCodeToVKey(KeyCode key) const
