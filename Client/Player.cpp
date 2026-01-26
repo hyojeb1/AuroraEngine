@@ -38,12 +38,15 @@ void Player::Initialize()
 
 void Player::Update()
 {
+	PlayNode();
+
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	InputManager& input = InputManager::GetInstance();
+	auto& sm = SoundManager::GetInstance();
 
 	PlayerMove(deltaTime, input);
 
-	if (input.GetKeyDown(KeyCode::MouseLeft)) PlayerShoot();
+	if (input.GetKeyDown(KeyCode::MouseLeft) && sm.CheckRhythm(0.1f)) PlayerShoot();
 	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight)) PlayerDeadEyeStart();
 	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime);
 
@@ -51,7 +54,6 @@ void Player::Update()
 	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();
 	for_each(m_UINode.begin(), m_UINode.end(), [&](auto& time) { time -= TimeManager::GetInstance().GetNSDeltaTime(); });
 	if (!m_UINode.empty() && m_UINode.front() < 0.0f) m_UINode.pop_front();
-
 }
 
 void Player::Render()
@@ -191,8 +193,12 @@ void Player::PlayerDeadEyeEnd()
 
 void Player::PlayNode()
 {
-	auto nd = SoundManager::GetInstance().GetNodeDataPtr();
+	auto& sm = SoundManager::GetInstance();
 
+	if (!sm.ConsumeNodeChanged())
+		return;
+
+	m_UINode.push_back(sm.GetRhythmOffset());
 }
 
 constexpr float CrossHairSize = 0.3f;
@@ -251,9 +257,11 @@ void Player::RenderUINode(Renderer& renderer)
 		{
 			for (const auto& time : m_UINode)
 			{
-				float pos = clamp(lerp(0.5f, 0.25f, time),0.0f,0.5f);
+				float temp = time / SoundManager::GetInstance().GetRhythmOffset();
 
-				float scale = clamp(lerp(CrossHairSize, 0.1f, time), 0.0f, CrossHairSize);
+				float pos = clamp(lerp(0.5f, 0.25f, temp),0.0f,0.5f);
+
+				float scale = clamp(lerp(CrossHairSize, 0.1f, temp), 0.0f, CrossHairSize);
 
 				Renderer::GetInstance().RenderImageUIPosition(m_NodeAndOffset.first, { pos, 0.5f }, m_NodeAndOffset.second, scale);
 				Renderer::GetInstance().RenderImageUIPosition(m_NodeAndOffset.first, { 1.0f - pos, 0.5f }, m_NodeAndOffset.second, -scale);

@@ -33,6 +33,7 @@ public:
 	void CreateNodeData(const std::string& filename);
 	void LoadNodeData();
 	void UpdateNodeIndex();
+	void UpdateUINodeIndex();
 	bool CheckRhythm(float correction);
 
 	std::vector<std::pair<float, float>>* GetNodeDataPtr() { return &m_NodeData; }
@@ -58,7 +59,11 @@ public:
 	size_t GetRhythmTimerIndex() { return m_rhythmTimerIndex; };
 	void   ResetRhythmIndex() { m_rhythmTimerIndex = 0; }
 
+	float GetRhythmOffset() { return m_RhythmOffSet; }
+
 	FMOD_VECTOR ToFMOD(DirectX::XMVECTOR vector);
+
+	bool ConsumeNodeChanged();
 
 	//void UpdateSoundResourceUsage();
 
@@ -88,10 +93,14 @@ private:
 
 	std::string m_CurrentTrackName{};
 
-	size_t m_rhythmTimerIndex = 0;
+	size_t m_rhythmTimerIndex = 0;	//raw time
+	size_t m_rhythmUIIndex = 0;
 	//FMOD_CPU_USAGE m_Usage;
 
 	unsigned long long m_MainBGM_StartTime = 0;
-	float m_deltaDSPTime = 0;
+
+	float m_RhythmOffSet = 1.28f;
+
+	bool m_OnNodeChanged = false;
 };
 

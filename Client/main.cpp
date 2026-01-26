@@ -11,16 +11,16 @@ using namespace std;
 
 
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
 int main()
 {
 	cout << "==================================" << endl;
 	cout << "Welcome to Aurora Engine" << endl;
 	cout << "==================================" << endl;
-#else
-int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
-{
-#endif
+//#else
+//int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+//{
+//#endif
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();

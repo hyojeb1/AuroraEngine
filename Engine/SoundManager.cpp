@@ -76,6 +76,7 @@ void SoundManager::Update()
 {
 	m_CoreSystem->update();
 	UpdateNodeIndex();
+	UpdateUINodeIndex();
 
 	//std::cout << m_rhythmTimerIndex << " : index "
 	//	<< m_NodeData[m_rhythmTimerIndex].first << " : startTime "
@@ -307,11 +308,9 @@ void SoundManager::CreateNodeData(const std::string& filename)
 	float deltaSum = 0.0f;
 	int deltaCount = 0;
 
-	// ?뒠?떇 ?뙆?씪誘명꽣
-	float deltaMultiplier = 1.1f;   // ?궏 誘쇨컧?룄
-	float decayRatio = 0.3f;        // ?궏 湲몄씠 (30%源뚯?? 媛먯뇿)
+	float deltaMultiplier = 1.1f;
+	float decayRatio = 0.3f;
 
-	// ?궏 ?뵾?겕 寃?異쒖슜
 	float prev2Energy = 0.0f;
 	float prev1Energy = 0.0f;
 
@@ -399,8 +398,8 @@ void SoundManager::CreateNodeData(const std::string& filename)
 	for (auto& s : filtered)
 	{
 		root["segments"].push_back({
-			{ "start", s.start },
-			{ "end",   s.end }
+			{ "start", s.start - m_RhythmOffSet },
+			{ "end",   s.end - m_RhythmOffSet }
 			});
 	}
 
@@ -423,41 +422,48 @@ void SoundManager::LoadNodeData()
 	}
 }
 
-void SoundManager::UpdateNodeIndex()
+void SoundManager::UpdateNodeIndex() //raw time
 {
 	if (m_NodeData.empty())
 	{
 		return;
 	}
-	if (m_NodeData[m_rhythmTimerIndex].second < GetCurrentPlaybackTime())
+	if (m_rhythmTimerIndex + 1 < m_NodeData.size() &&
+		m_NodeData[m_rhythmTimerIndex].second + m_RhythmOffSet < GetCurrentPlaybackTime())
 	{
 		m_rhythmTimerIndex++;
 	}
 }
 
+void SoundManager::UpdateUINodeIndex()
+{
+	if (m_NodeData.empty())
+	{
+		return;
+	}
+	if (m_rhythmTimerIndex + 1 < m_NodeData.size() &&
+		m_NodeData[m_rhythmUIIndex].first < GetCurrentPlaybackTime())
+	{
+		m_rhythmUIIndex++;
+		m_OnNodeChanged = true;
+	}
+}
+
 bool SoundManager::CheckRhythm(float correction)
 {
-	const float& time = GetCurrentPlaybackTime();
+	const float time = GetCurrentPlaybackTime();
 
-	if (m_NodeData[m_rhythmTimerIndex].first - correction <= time && m_NodeData[m_rhythmTimerIndex].second + correction >= time)
+	if (m_NodeData[m_rhythmTimerIndex].first - correction + m_RhythmOffSet <= time && m_NodeData[m_rhythmTimerIndex].second + correction + m_RhythmOffSet >= time)
 	{
-		std::cout << "Success! : " << 
-			m_NodeData[m_rhythmTimerIndex].first <<
-			"s " <<
-			"Time: " << time << std::endl;
+		std::cout << "Success! : " << std::endl;
 		return true;
 	}
 	else
 	{
-		std::cout << "Faild : " <<
-			m_NodeData[m_rhythmTimerIndex].first <<
-			"s " <<
-			"Time: " << time << "s" << std::endl;
+		std::cout << "Failed! : " << std::endl;
 
 		return false;
 	}
-
-	
 }
 
 void SoundManager::BGM_Shot(const std::string filename, float delayTime)
@@ -537,6 +543,16 @@ FMOD_VECTOR SoundManager::ToFMOD(DirectX::XMVECTOR vector)
 	FMOD_pos.z = pos.z;
 
 	return FMOD_pos;
+}
+
+bool SoundManager::ConsumeNodeChanged()
+{
+	if (m_OnNodeChanged)
+	{
+		m_OnNodeChanged = false;
+		return true;
+	}
+	return false;
 }
 
 //void SoundManager::UpdateSoundResourceUsage()

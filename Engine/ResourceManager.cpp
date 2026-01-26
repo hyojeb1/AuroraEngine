@@ -268,7 +268,7 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 		#ifdef _DEBUG
 		cerr << "텍스처 캐시에서 파일을 찾을 수 없습니다: " << fileName << endl;
 		#else
-		MessageBoxA(nullptr, ("텍스처 캐시에서 파일을 찾을 수 없습니다: " + fileName).c_str(), "오류", MB_OK | MB_ICONERROR);
+		//MessageBoxA(nullptr, ("텍스처 캐시에서 파일을 찾을 수 없습니다: " + fileName).c_str(), "오류", MB_OK | MB_ICONERROR);
 		#endif
 
 		switch (type)
