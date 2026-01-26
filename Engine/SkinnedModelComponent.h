@@ -30,10 +30,11 @@ private:
 	void Update() override;
 	void Render() override;
 	void RenderImGui() override;
+	void Finalize() override;
 
 	nlohmann::json Serialize() override;
 	void Deserialize(const nlohmann::json& jsonData) override;
 
-	void CreateShaders();
+	void CreateShaders() override;
 };
 /// SkinnedModelComponent.h의 끝

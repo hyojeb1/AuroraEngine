@@ -38,6 +38,9 @@ protected:
 	std::vector<Base*> m_updateComponents = {}; // 업데이트할 컴포넌트 배열
 	std::vector<Base*> m_renderComponents = {}; // 렌더링할 컴포넌트 배열
 
+	// 선택된 게임 오브젝트 포인터 (에디터 전용)
+	static GameObjectBase* s_selectedObject;
+
 protected:
 	GameObjectBase* m_parent = nullptr; // 부모 게임 오브젝트 포인터
 	std::vector<std::unique_ptr<GameObjectBase>> m_childrens = {}; // 소유한 자식 게임 오브젝트 배열
@@ -135,7 +138,6 @@ private:
 	void SetDirty();
 	// 월드 행렬 갱신
 	const DirectX::XMMATRIX& UpdateWorldMatrix();
-	static GameObjectBase* s_selectedObject;
 };
 
 template<typename T> requires std::derived_from<T, ComponentBase>

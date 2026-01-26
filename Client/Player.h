@@ -5,7 +5,7 @@ class Player : public GameObjectBase
 {
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_lineVertexBufferAndShader = {};
 	com_ptr<ID3D11PixelShader> m_linePixelShader = nullptr;
-	std::deque<std::pair<LineBuffer, float>> m_lineBuffers = {}; // ?ê½? è¸°ê¾ª? è«?? ?ê¶???? ?ëª???–† ??–†åª?? ?ê±?
+	std::deque<std::pair<LineBuffer, float>> m_lineBuffers = {};
 
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_crosshairTextureAndOffset = {};
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_NodeAndOffset = {};
