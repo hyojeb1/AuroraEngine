@@ -306,11 +306,13 @@ void SceneBase::BaseRenderImGui()
 		ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
 		
 		{
-			//아마 파섹으로 작업하고 있어서 그런 듯? 화면이 옆에서 그려지네
-			//ImGuizmo::SetRect(0.0f, 0.0f, io.DisplaySize.x, io.DisplaySize.y);
-			ImVec2 pos = ImGui::GetWindowPos();
-			ImVec2 size = ImGui::GetWindowSize();
-			ImGuizmo::SetRect(pos.x, pos.y, size.x, size.y);
+			// 전체 화면이 아니면 기즈모 실패!
+			ImGuizmo::SetRect(0.0f, 0.0f, io.DisplaySize.x, io.DisplaySize.y);
+
+			//ImVec2 imageMin = ImGui::GetItemRectMin();
+			//ImVec2 imageMax = ImGui::GetItemRectMax();
+
+			//ImGuizmo::SetRect(imageMin.x, imageMin.y, imageMax.x - imageMin.x, imageMax.y - imageMin.y);
 		}
 		
 		
