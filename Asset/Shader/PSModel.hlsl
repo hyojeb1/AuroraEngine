@@ -2,13 +2,7 @@
 #include "CommonPS.hlsli"
 #include "CommonMath.hlsli"
 
-struct PS_OUTPUT
-{
-    float4 Target0 : SV_TARGET0;
-    float4 Target1 : SV_TARGET1;
-};
-
-PS_OUTPUT main(PS_INPUT_STD input)
+float4 main(PS_INPUT_STD input) : SV_TARGET
 {
     // 텍스처 샘플링
     // 베이스 컬러 텍스처
@@ -69,11 +63,6 @@ PS_OUTPUT main(PS_INPUT_STD input)
     
     // IBL 최종 기여도
     float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w;
-    
-    // 최종 색상
-    PS_OUTPUT output;
-    output.Target0 = float4(Lo + ibl + emission.rgb, baseColor.a);
-    output.Target1 = float4(N * 0.5f + 0.5f, 1.0f);
    
-    return output;
+    return float4(Lo + ibl + emission.rgb, baseColor.a);
 }
