@@ -24,8 +24,6 @@ class Player : public GameObjectBase
 	const float m_deadEyeDuration = 0.25f;
 	float m_deadEyeTime = 0.0f;
 
-	PostProcessingBuffer m_postProcessingBuffer = {};
-
 public:
 	Player() = default;
 	~Player() = default;
