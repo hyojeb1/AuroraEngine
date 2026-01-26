@@ -20,17 +20,32 @@ void NavigationManager::Deserialize(const nlohmann::json& jsonData)
 {
 	ClearNavMesh();
 
-	if (jsonData.contains("navPoly"))
+	if (jsonData.find("navPolyIndices") == jsonData.end() || jsonData.find("navVertices") == jsonData.end()) return;
+
+	const nlohmann::json& navPolyData = jsonData["navPolyIndices"];
+	const nlohmann::json& navVertexData = jsonData["navVertices"];
+
+	for (const auto& vertexData : navVertexData)
 	{
-		for (const nlohmann::json& polyData : jsonData["navPoly"])
-		{
-			XMVECTOR a = XMVectorSet(polyData["a"][0], polyData["a"][1], polyData["a"][2], 1.0f);
-			XMVECTOR b = XMVectorSet(polyData["b"][0], polyData["b"][1], polyData["b"][2], 1.0f);
-			XMVECTOR c = XMVectorSet(polyData["c"][0], polyData["c"][1], polyData["c"][2], 1.0f);
-			AddPolygon(a, b, c);
-		}
+		XMVECTOR vertex = XMVectorSet
+		(
+			vertexData[0].get<float>(),
+			vertexData[1].get<float>(),
+			vertexData[2].get<float>(),
+			1.0f
+		);
+		m_vertices.emplace_back(vertex);
 	}
-	else AddPolygon(XMVectorSet(-1.0f, 0.0f, -1.0f, 1.0f), XMVectorSet(1.0f, 0.0f, -1.0f, 1.0f), XMVectorSet(0.0f, 0.0f, 1.0f, 1.0f));
+	for (const auto& polyData : navPolyData)
+	{
+		array<int, 3> indices =
+		{
+			polyData[0].get<int>(),
+			polyData[1].get<int>(),
+			polyData[2].get<int>()
+		};
+		m_navPolys.emplace_back(NavPoly{ indices, { -1, -1, -1 }, XMVectorScale(XMVectorAdd(XMVectorAdd(m_vertices[indices[0]], m_vertices[indices[1]]), m_vertices[indices[2]]), 1.0f / 3.0f) });
+	}
 
 	BuildAdjacency();
 }
@@ -38,25 +53,20 @@ void NavigationManager::Deserialize(const nlohmann::json& jsonData)
 nlohmann::json NavigationManager::Serialize() const
 {
 	nlohmann::json jsonData = {};
-	nlohmann::json navMeshData = nlohmann::json::array();
+	nlohmann::json navPolyData = nlohmann::json::array();
+	nlohmann::json navVertexData = nlohmann::json::array();
 
-	for (const NavPoly& poly : m_navPolys)
+	for (const NavPoly& poly : m_navPolys) navPolyData.push_back({ poly.indices[0], poly.indices[1], poly.indices[2] });
+	for (const XMVECTOR& vertex : m_vertices)
 	{
-		if (poly.indexs[0] < 0 || poly.indexs[1] < 0 || poly.indexs[2] < 0) continue;
-
-		XMFLOAT3 a, b, c;
-		XMStoreFloat3(&a, m_vertices[poly.indexs[0]]);
-		XMStoreFloat3(&b, m_vertices[poly.indexs[1]]);
-		XMStoreFloat3(&c, m_vertices[poly.indexs[2]]);
-
-		nlohmann::json polyData = {};
-		polyData["a"] = { a.x, a.y, a.z };
-		polyData["b"] = { b.x, b.y, b.z };
-		polyData["c"] = { c.x, c.y, c.z };
-		navMeshData.push_back(polyData);
+		XMFLOAT3 float3;
+		XMStoreFloat3(&float3, vertex);
+		navVertexData.push_back({ float3.x, float3.y, float3.z });
 	}
 
-	jsonData["navPoly"] = navMeshData;
+	jsonData["navPolyIndices"] = navPolyData;
+	jsonData["navVertices"] = navVertexData;
+
 	return jsonData;
 }
 
@@ -65,24 +75,16 @@ void NavigationManager::ClearNavMesh()
 	m_vertices.clear();
 	m_navPolys.clear();
 
-	m_hasPreview = false;
-	m_previewEdgeVertexIndexA = m_previewEdgeVertexIndexB = -1;
+	m_previewLine = { -1, -1 };
 	m_pathStartSet = false;
 	m_currentPath.clear();
 }
 
-void NavigationManager::AddPolygon(const XMVECTOR& a, const XMVECTOR& b, const XMVECTOR& c)
+void NavigationManager::AddPolygon(const vector<XMVECTOR>& vertices, const array<int, 3>& indices)
 {
-	const int base = static_cast<int>(m_vertices.size());
+	m_vertices.insert(m_vertices.end(), vertices.begin(), vertices.end());
 
-	m_vertices.emplace_back(a);
-	m_vertices.emplace_back(b);
-	m_vertices.emplace_back(c);
-
-	NavPoly poly = {};
-	poly.indexs = { base, base + 1, base + 2 };
-	poly.centroid = XMVectorScale(XMVectorAdd(XMVectorAdd(a, b), c), 1.0f / 3.0f);
-	m_navPolys.push_back(poly);
+	m_navPolys.emplace_back(NavPoly{ indices, { -1, -1, -1 }, XMVectorScale(XMVectorAdd(XMVectorAdd(m_vertices[indices[0]], m_vertices[indices[1]]), m_vertices[indices[2]]), 1.0f / 3.0f) });
 }
 
 void NavigationManager::BuildAdjacency()
@@ -102,7 +104,7 @@ void NavigationManager::BuildAdjacency()
 	{
 		for (int edge = 0; edge < 3; ++edge)
 		{
-			pair<int, int> normalizedEdge = minmax(m_navPolys[polygon].indexs[edge], m_navPolys[polygon].indexs[(edge + 1) % 3]);
+			pair<int, int> normalizedEdge = minmax(m_navPolys[polygon].indices[edge], m_navPolys[polygon].indices[(edge + 1) % 3]);
 			auto it = edgeMap.find(normalizedEdge);
 
 			if (it == edgeMap.end()) edgeMap[normalizedEdge] = { polygon, edge };
@@ -138,11 +140,13 @@ void NavigationManager::RenderNavMesh()
 
 			for (const NavPoly& poly : m_navPolys)
 			{
-				if (poly.indexs[0] < 0 || poly.indexs[1] < 0 || poly.indexs[2] < 0) continue;
+				if (poly.indices[0] < 0 || poly.indices[1] < 0 || poly.indices[2] < 0) continue;
+				if (poly.indices[0] == m_previewLine.first && poly.indices[1] == m_previewLine.second) continue;
+				//if (poly.indices[1] == m_previewLine.first && poly.indices[0] == m_previewLine.second) continue;
 
-				XMVECTOR a = m_vertices[poly.indexs[0]];
-				XMVECTOR b = m_vertices[poly.indexs[1]];
-				XMVECTOR c = m_vertices[poly.indexs[2]];
+				XMVECTOR a = m_vertices[poly.indices[0]];
+				XMVECTOR b = m_vertices[poly.indices[1]];
+				XMVECTOR c = m_vertices[poly.indices[2]];
 
 				XMFLOAT3 fa, fb, fc;
 				XMStoreFloat3(&fa, a);
@@ -167,24 +171,19 @@ void NavigationManager::RenderNavMesh()
 				deviceContext->Draw(2, 0);
 			}
 
-			if (m_hasPreview && m_previewEdgeVertexIndexA >= 0 && m_previewEdgeVertexIndexB >= 0)
+			if (m_previewLine.first >= 0 && m_previewLine.second >= 0)
 			{
-				XMVECTOR va = m_vertices[m_previewEdgeVertexIndexA];
-				XMVECTOR vb = m_vertices[m_previewEdgeVertexIndexB];
-				XMFLOAT3 fa, fb, fm;
-				XMStoreFloat3(&fa, va);
-				XMStoreFloat3(&fb, vb);
-				XMStoreFloat3(&fm, m_previewPoint);
-
-				lineBufferData.linePoints[0] = XMFLOAT4{ fm.x, fm.y, fm.z, 1.0f };
-				lineBufferData.linePoints[1] = XMFLOAT4{ fa.x, fa.y, fa.z, 1.0f };
+				XMStoreFloat4(&lineBufferData.linePoints[0], m_previewPoint);
+				XMStoreFloat4(&lineBufferData.linePoints[1], m_vertices[m_previewLine.first]);
 				lineBufferData.lineColors[0] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
 				lineBufferData.lineColors[1] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
 				deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
 				deviceContext->Draw(2, 0);
 
-				lineBufferData.linePoints[0] = XMFLOAT4{ fm.x, fm.y, fm.z, 1.0f };
-				lineBufferData.linePoints[1] = XMFLOAT4{ fb.x, fb.y, fb.z, 1.0f };
+				XMStoreFloat4(&lineBufferData.linePoints[0], m_previewPoint);
+				XMStoreFloat4(&lineBufferData.linePoints[1], m_vertices[m_previewLine.second]);
+				lineBufferData.lineColors[0] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f };
+				lineBufferData.lineColors[1] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f };
 				deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
 				deviceContext->Draw(2, 0);
 			}
@@ -228,7 +227,7 @@ int NavigationManager::FindNearestPoly(const XMVECTOR& point) const
 
 	for (int i = 0; i < static_cast<int>(m_navPolys.size()); ++i)
 	{
-		if (PointInTriangle(point, m_navPolys[i].indexs)) return i;
+		if (PointInTriangle(point, m_navPolys[i].indices)) return i;
 
 		float dist = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(point, m_navPolys[i].centroid)));
 		if (dist < bestDist) { bestDist = dist; best = i; }
@@ -316,11 +315,11 @@ vector<XMVECTOR> NavigationManager::FindPath(const XMVECTOR& start, const XMVECT
 		bool foundEdge = false;
 		for (int edgeIndexI = 0; edgeIndexI < 3 && !foundEdge; ++edgeIndexI)
 		{
-			pair<int, int> edgeA = { m_navPolys[polyPath[i]].indexs[edgeIndexI], m_navPolys[polyPath[i]].indexs[(edgeIndexI + 1) % 3] };
+			pair<int, int> edgeA = { m_navPolys[polyPath[i]].indices[edgeIndexI], m_navPolys[polyPath[i]].indices[(edgeIndexI + 1) % 3] };
 
 			for (int edgeIndexJ = 0; edgeIndexJ < 3 && !foundEdge; ++edgeIndexJ)
 			{
-				pair<int, int> edgeB = { m_navPolys[polyPath[i + 1]].indexs[edgeIndexJ], m_navPolys[polyPath[i + 1]].indexs[(edgeIndexJ + 1) % 3] };
+				pair<int, int> edgeB = { m_navPolys[polyPath[i + 1]].indices[edgeIndexJ], m_navPolys[polyPath[i + 1]].indices[(edgeIndexJ + 1) % 3] };
 
 				if ((edgeA.first == edgeB.first && edgeA.second == edgeB.second) || (edgeA.first == edgeB.second && edgeA.second == edgeB.first))
 				{
@@ -387,7 +386,11 @@ void NavigationManager::HandlePlaceLink()
 	if (input.GetKeyDown(KeyCode::R))
 	{
 		ClearNavMesh();
-		AddPolygon(XMVectorSet(-1.0f, 0.0f, -1.0f, 1.0f), XMVectorSet(1.0f, 0.0f, -1.0f, 1.0f), XMVectorSet(0.0f, 0.0f, 1.0f, 1.0f));
+
+		const vector<XMVECTOR> VERTICES = { XMVECTOR{-5.0f, 0.0f, -5.0f, 1.0f}, XMVECTOR{5.0f, 0.0f, -5.0f, 1.0f}, XMVECTOR{0.0f, 0.0f, 5.0f, 1.0f} };
+		constexpr array<int, 3> INDICES = { 0, 1, 2 };
+		AddPolygon(VERTICES, INDICES);
+
 		BuildAdjacency();
 	}
 
@@ -409,68 +412,36 @@ void NavigationManager::HandlePlaceLink()
 	float t = -XMVectorGetY(nearPoint) / dirY;
 	if (t < 0.0f) return;
 
-	XMVECTOR hit = XMVectorAdd(nearPoint, XMVectorScale(dir, t));
-	hit = XMVectorSetY(hit, 0.0f);
+	m_previewPoint = XMVectorAdd(nearPoint, XMVectorScale(dir, t));
+	m_previewPoint = XMVectorSetY(m_previewPoint, 0.0f);
 
 	if (m_navPolys.empty() || m_vertices.empty()) return;
 
-	int polyIndex = FindNearestPoly(hit);
-	if (polyIndex < 0) return;
-
-	const NavPoly& poly = m_navPolys[polyIndex];
-	float bestDistSq = numeric_limits<float>::max();
-	int bestA = -1, bestB = -1;
-
-	for (int index = 0; index < 3; ++index)
-	{
-		int indexA = poly.indexs[index];
-		int indexB = poly.indexs[(index + 1) % 3];
-
-		XMVECTOR edge = XMVectorSubtract(m_vertices[indexB], m_vertices[indexA]);
-		XMVECTOR toHit = XMVectorSubtract(hit, m_vertices[indexA]);
-
-		float edgeLenSq = XMVectorGetX(XMVector3Dot(edge, edge));
-		float u = 0.0f;
-		if (edgeLenSq > 0.0f) u = XMVectorGetX(XMVector3Dot(toHit, edge)) / edgeLenSq;
-		u = clamp(u, 0.0f, 1.0f);
-
-		XMVECTOR proj = XMVectorAdd(m_vertices[indexA], XMVectorScale(edge, u));
-		float distSq = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(hit, proj)));
-
-		if (distSq < bestDistSq)
-		{
-			bestDistSq = distSq;
-			bestA = indexA;
-			bestB = indexB;
-		}
-	}
-
-	if (bestA < 0 || bestB < 0) return;
-
-	m_hasPreview = true;
-	m_previewPoint = hit;
-	m_previewEdgeVertexIndexA = bestA;
-	m_previewEdgeVertexIndexB = bestB;
-
 	if (input.GetKeyDown(KeyCode::E))
 	{
-		m_vertices.emplace_back(hit);
+		if (m_previewLine.first < 0 && m_previewLine.second < 0)
+		{
+			float bestLineDist = numeric_limits<float>::max();
 
-		NavPoly newPoly = {};
-		newPoly.indexs = { bestA, bestB, static_cast<int>(m_vertices.size()) };
+			for (const NavPoly& poly : m_navPolys)
+			{
+				for (int edgeIndex = 0; edgeIndex < 3; ++edgeIndex)
+				{
+					float dist = XMVectorGetX(XMVector3LinePointDistance(m_vertices[poly.indices[edgeIndex]], m_vertices[poly.indices[(edgeIndex + 1) % 3]], m_previewPoint));
+					if (dist < bestLineDist)
+					{
+						bestLineDist = dist;
+						m_previewLine = { poly.indices[edgeIndex], poly.indices[(edgeIndex + 1) % 3] };
+					}
+				}
+			}
+		}
+		else
+		{
+			AddPolygon({ m_previewPoint }, { m_previewLine.first, m_previewLine.second, static_cast<int>(m_vertices.size()) });
 
-		XMVECTOR ca = m_vertices[newPoly.indexs[0]];
-		XMVECTOR cb = m_vertices[newPoly.indexs[1]];
-		XMVECTOR cc = m_vertices[newPoly.indexs[2]];
-		newPoly.centroid = XMVectorScale(XMVectorAdd(XMVectorAdd(ca, cb), cc), 1.0f / 3.0f);
-
-		m_navPolys.push_back(newPoly);
-
-		BuildAdjacency();
-
-		m_hasPreview = false;
-		m_previewEdgeVertexIndexA = -1;
-		m_previewEdgeVertexIndexB = -1;
+			m_previewLine = { -1, -1 };
+		}
 	}
 
 	if (input.GetKeyDown(KeyCode::Q))
@@ -478,12 +449,12 @@ void NavigationManager::HandlePlaceLink()
 		if (!m_pathStartSet)
 		{
 			m_pathStartSet = true;
-			m_pathStartPoint = hit;
+			m_pathStartPoint = m_previewPoint;
 			m_currentPath.clear();
 		}
 		else if (m_currentPath.empty())
 		{
-			m_currentPath = FindPath(m_pathStartPoint, hit);
+			m_currentPath = FindPath(m_pathStartPoint, m_previewPoint);
 		}
 		else
 		{

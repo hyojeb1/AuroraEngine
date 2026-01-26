@@ -4,7 +4,6 @@
 #include "GameObjectBase.h"
 #include "ResourceManager.h"
 #include "Renderer.h"
-#include "NavigationManager.h"
 
 using namespace std;
 using namespace DirectX;

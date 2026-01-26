@@ -3,7 +3,7 @@
 
 struct NavPoly
 {
-	std::array<int, 3> indexs = { -1, -1, -1 }; // 정점 인덱스
+	std::array<int, 3> indices = { -1, -1, -1 }; // 정점 인덱스
 	std::array<int, 3> neighbors = { -1, -1, -1 }; // 인접 폴리곤 인덱스
 	DirectX::XMVECTOR centroid = {}; // 중심점
 };
@@ -18,10 +18,8 @@ class NavigationManager : public Singleton<NavigationManager>
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_navMeshVertexShaderAndInputLayout = {};
 	com_ptr<ID3D11PixelShader> m_navMeshPixelShader = {};
 
-	bool m_hasPreview = false;
+	std::pair<int, int> m_previewLine = { -1, -1 };
 	DirectX::XMVECTOR m_previewPoint = DirectX::XMVectorZero();
-	int m_previewEdgeVertexIndexA = -1;
-	int m_previewEdgeVertexIndexB = -1;
 
 	bool m_pathStartSet = false;
 	DirectX::XMVECTOR m_pathStartPoint = DirectX::XMVectorZero();
@@ -43,7 +41,7 @@ public:
 	void ClearNavMesh();
 
 	// 삼각형 추가
-	void AddPolygon(const DirectX::XMVECTOR& a, const DirectX::XMVECTOR& b, const DirectX::XMVECTOR& c);
+	void AddPolygon(const std::vector<DirectX::XMVECTOR>& vertices, const std::array<int, 3>& indices);
 	// 인접 정보 구축
 	void BuildAdjacency();
 
