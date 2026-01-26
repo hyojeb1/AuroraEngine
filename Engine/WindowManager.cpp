@@ -151,3 +151,13 @@ void WindowManager::Finalize()
 	m_hWnd = nullptr;
 	UnregisterClass(L"EngineWindowClass", m_hInstance);
 }
+
+RECT WindowManager::GetClientPosRect() const
+{
+	RECT rect;
+
+	GetClientRect(m_hWnd, &rect);
+	ClientToScreen(m_hWnd, reinterpret_cast<POINT*>(&rect.left));
+
+	return rect;
+}

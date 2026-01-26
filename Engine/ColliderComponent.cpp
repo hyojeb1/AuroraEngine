@@ -15,14 +15,15 @@ vector<ColliderComponent*> ColliderComponent::s_colliders = {};
 GameObjectBase* ColliderComponent::CheckCollision(const XMVECTOR& origin, const XMVECTOR& direction, _Out_ float& distance)
 {
 	GameObjectBase* collidedObject = nullptr;
-	float closestDistance = FLT_MAX;
+	float closestDistance = numeric_limits<float>::max();
+	XMVECTOR dirNormalized = XMVector3Normalize(direction);
 
 	for (ColliderComponent* collider : s_colliders)
 	{
 		for (const auto& [box, transformedBox] : collider->m_boundingBoxes)
 		{
 			float dist = 0.0f;
-			if (transformedBox.Intersects(origin, direction, dist))
+			if (transformedBox.Intersects(origin, dirNormalized, dist))
 			{
 				if (dist < closestDistance)
 				{
@@ -34,7 +35,7 @@ GameObjectBase* ColliderComponent::CheckCollision(const XMVECTOR& origin, const 
 		for (const auto& [obb, transformedOBB] : collider->m_boundingOrientedBoxes)
 		{
 			float dist = 0.0f;
-			if (transformedOBB.Intersects(origin, direction, dist))
+			if (transformedOBB.Intersects(origin, dirNormalized, dist))
 			{
 				if (dist < closestDistance)
 				{
@@ -46,7 +47,7 @@ GameObjectBase* ColliderComponent::CheckCollision(const XMVECTOR& origin, const 
 		for (const auto& [frustum, transformedFrustum] : collider->m_boundingFrustums)
 		{
 			float dist = 0.0f;
-			if (transformedFrustum.Intersects(origin, direction, dist))
+			if (transformedFrustum.Intersects(origin, dirNormalized, dist))
 			{
 				if (dist < closestDistance)
 				{

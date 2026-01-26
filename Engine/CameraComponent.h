@@ -49,6 +49,8 @@ public:
 
 	// 월드 좌표계를 화면 좌표계로 변환
 	DirectX::XMFLOAT2 WorldToScreenPosition(const DirectX::XMVECTOR& worldPosition) const;
+	// 화면 좌표계를 월드 좌표계의 광선으로 변환
+	std::pair<DirectX::XMVECTOR, DirectX::XMVECTOR> RayCast(float screenX, float screenY) const;
 
 	bool NeedsFixedUpdate() const override { return false; }
 	bool NeedsUpdate() const override { return true; }

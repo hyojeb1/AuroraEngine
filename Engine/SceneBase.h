@@ -96,6 +96,8 @@ private:
 	void RenderSkybox();
 
 	#ifdef _DEBUG
+	// 디버그 카메라로 오브젝트 선택
+	void PickObjectDebugCamera();
 	// 디버그 좌표 렌더링
 	void RenderDebugCoordinates();
 	#endif
