@@ -38,9 +38,13 @@ public:
 
 	std::vector<std::pair<float, float>>* GetNodeDataPtr() { return &m_NodeData; }
 
-	void BGM_Shot(const std::string filename,float delayTime);
+	void Main_BGM_Shot(const std::string filename);
+	void Sub_BGM_Shot(const std::string filename);
 	void SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename);
 	void UI_Shot(const std::string filename);
+
+	void FadeIn(FMOD::Channel* chan, float sec);
+	void FadeOut(FMOD::Channel* chan, float sec, bool stopAfter);
 
 	void UpdateListener(ListenerComponent* listener);
 	
@@ -58,22 +62,25 @@ public:
 
 	size_t GetRhythmTimerIndex() { return m_rhythmTimerIndex; };
 	void   ResetRhythmIndex() { m_rhythmTimerIndex = 0; }
-
 	float GetRhythmOffset() { return m_RhythmOffSet; }
 
 	FMOD_VECTOR ToFMOD(DirectX::XMVECTOR vector);
 
 	bool ConsumeNodeChanged();
 
+	FMOD::Channel* GetBGMCh1() { return m_BGMChannel1; }
+	FMOD::Channel* GetBGMCh2() { return m_BGMChannel2; }
 	//void UpdateSoundResourceUsage();
+
+	void UpdateLowpass();
+	void ChangeLowpass() { m_IsLowpass = !m_IsLowpass; }
 
 private:
 
 	FMOD::System* m_CoreSystem = nullptr;
 
-	FMOD::Channel* m_BGMChannel = nullptr;
-
-	std::vector<FMOD::Channel*> m_loopSFXChannels;
+	FMOD::Channel* m_BGMChannel1 = nullptr;
+	FMOD::Channel* m_BGMChannel2 = nullptr;
 
 	std::vector<std::pair<float, float>> m_NodeData;
 
@@ -96,6 +103,10 @@ private:
 	size_t m_rhythmTimerIndex = 0;	//raw time
 	size_t m_rhythmUIIndex = 0;
 	//FMOD_CPU_USAGE m_Usage;
+
+	FMOD::DSP* m_lowpass = nullptr;
+	bool m_IsLowpass = false;
+	float m_lowpassCutOff = 22000.0f;
 
 	unsigned long long m_MainBGM_StartTime = 0;
 

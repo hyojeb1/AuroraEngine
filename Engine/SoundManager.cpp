@@ -66,7 +66,12 @@ void SoundManager::Initialize()
 			std::cout << n.first << std::endl;
 		}
 
-		SoundManager::GetInstance().BGM_Shot("Sample2", 0);
+		SoundManager::GetInstance().Main_BGM_Shot("Sample2");
+		SoundManager::GetInstance().LoadNodeData();
+
+		m_CoreSystem->createDSPByType(FMOD_DSP_TYPE_LOWPASS, &m_lowpass);
+		m_lowpass->setParameterFloat(FMOD_DSP_LOWPASS_CUTOFF, 22000.0f);
+		m_BGMChannel1->addDSP(0, m_lowpass);
 
 		m_CoreSystem->update();
 	}
@@ -75,6 +80,9 @@ void SoundManager::Initialize()
 void SoundManager::Update()
 {
 	m_CoreSystem->update();
+
+	UpdateLowpass();
+
 	UpdateNodeIndex();
 	UpdateUINodeIndex();
 
@@ -466,7 +474,7 @@ bool SoundManager::CheckRhythm(float correction)
 	}
 }
 
-void SoundManager::BGM_Shot(const std::string filename, float delayTime)
+void SoundManager::Main_BGM_Shot(const std::string filename)
 {
 	auto it = BGM_List.find(filename);
 	if (it == BGM_List.end()) { m_CurrentTrackName = "Invalid"; return; }
@@ -475,13 +483,19 @@ void SoundManager::BGM_Shot(const std::string filename, float delayTime)
 	m_NodeData.clear();
 	m_rhythmTimerIndex = 0;
 
-	m_CoreSystem->playSound(it->second, m_BGMGroup, false, &m_BGMChannel);
+	m_CoreSystem->playSound(it->second, m_BGMGroup, false, &m_BGMChannel1);
 
 	unsigned long long nowDSP = 0;
-	m_BGMChannel->getDSPClock(&nowDSP, nullptr);
+	m_BGMChannel1->getDSPClock(&nowDSP, nullptr);
 	m_MainBGM_StartTime = nowDSP;
+}
 
-	LoadNodeData();
+void SoundManager::Sub_BGM_Shot(const std::string filename)
+{
+	auto it = BGM_List.find(filename);
+	if (it == BGM_List.end()) { m_CurrentTrackName = "Invalid"; return; }
+
+	m_CoreSystem->playSound(it->second, m_BGMGroup, false, &m_BGMChannel2);
 }
 
 void SoundManager::SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename)
@@ -511,13 +525,63 @@ void SoundManager::UI_Shot(const std::string filename)
 	}
 }
 
+void SoundManager::FadeIn(FMOD::Channel* chan, float sec)
+{
+	if (!chan) return;
+
+	FMOD::System* sys = nullptr;
+	chan->getSystemObject(&sys);
+
+	FMOD::ChannelGroup* master = nullptr;
+	sys->getMasterChannelGroup(&master);
+
+	int rate = 0;
+	sys->getSoftwareFormat(&rate, nullptr, nullptr);
+
+	unsigned long long dspNow = 0;
+	master->getDSPClock(&dspNow, nullptr);
+
+	chan->setPaused(true);
+
+	chan->addFadePoint(dspNow, 0.0f);
+	chan->addFadePoint(dspNow + (unsigned long long)(rate * sec),
+		GetVolume_Main() * GetVolume_BGM());
+
+	chan->setPaused(false);
+}
+
+
+void SoundManager::FadeOut(FMOD::Channel* chan, float sec, bool stopAfter)
+{
+	if (!chan) return;
+
+	FMOD::System* sys = nullptr;
+	chan->getSystemObject(&sys);
+
+	FMOD::ChannelGroup* master = nullptr;
+	sys->getMasterChannelGroup(&master);
+
+	int rate = 0;
+	sys->getSoftwareFormat(&rate, nullptr, nullptr);
+
+	unsigned long long dspNow = 0;
+	master->getDSPClock(&dspNow, nullptr);
+
+	chan->addFadePoint(dspNow, GetVolume_Main() * GetVolume_BGM());
+	chan->addFadePoint(dspNow + (unsigned long long)(rate * sec), 0.0f);
+
+	if (stopAfter)
+		chan->setDelay(0, dspNow + (unsigned long long)(rate * sec), true);
+}
+
+
 float SoundManager::GetCurrentPlaybackTime()
 {
-	if (!m_BGMChannel)
+	if (!m_BGMChannel1)
 		return 0.0f;
 
 	unsigned long long nowDSP;
-	m_BGMChannel->getDSPClock(&nowDSP, nullptr);
+	m_BGMChannel1->getDSPClock(&nowDSP, nullptr);
 
 	if (nowDSP < m_MainBGM_StartTime)
 		return 0.0f;
@@ -553,6 +617,29 @@ bool SoundManager::ConsumeNodeChanged()
 		return true;
 	}
 	return false;
+}
+
+void SoundManager::UpdateLowpass()
+{
+	float delta = TimeManager::GetInstance().GetNSDeltaTime();
+	float speed = 60000.0f;
+
+	if (m_IsLowpass)
+	{
+		m_lowpassCutOff -= speed * delta;
+		m_lowpassCutOff = std::max(m_lowpassCutOff, 800.0f);
+
+		m_lowpass->setParameterFloat(FMOD_DSP_LOWPASS_CUTOFF, m_lowpassCutOff);
+	}
+	else
+	{
+		m_lowpassCutOff += speed * delta;
+		m_lowpassCutOff = std::min(m_lowpassCutOff, 22000.0f);
+
+		m_lowpass->setParameterFloat(FMOD_DSP_LOWPASS_CUTOFF, m_lowpassCutOff);
+	}
+
+	std::cout << m_IsLowpass << std::endl;
 }
 
 //void SoundManager::UpdateSoundResourceUsage()

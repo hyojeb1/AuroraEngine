@@ -46,7 +46,7 @@ void Player::Update()
 
 	PlayerMove(deltaTime, input);
 
-	if (input.GetKeyDown(KeyCode::MouseLeft) && sm.CheckRhythm(0.1f)) PlayerShoot();
+	if (input.GetKeyDown(KeyCode::MouseLeft) && sm.CheckRhythm(0.1f)) { PlayerShoot(); };
 	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight)) PlayerDeadEyeStart();
 	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime);
 
@@ -146,7 +146,10 @@ void Player::PlayerDeadEyeStart()
 
 		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [](const auto& a, const auto& b) { return get<0>(a) < get<0>(b); });
 		if (m_deadEyeTargets.size() > 6) m_deadEyeTargets.resize(6);
+
+		SoundManager::GetInstance().ChangeLowpass();
 	}
+	
 }
 
 void Player::PlayerDeadEye(float deltaTime)
@@ -172,6 +175,7 @@ void Player::PlayerDeadEye(float deltaTime)
 		}
 		PlayerDeadEyeEnd();
 	}
+	
 }
 
 void Player::PlayerDeadEyeEnd()
@@ -189,6 +193,8 @@ void Player::PlayerDeadEyeEnd()
 	Renderer& renderer = Renderer::GetInstance();
 	renderer.SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, false);
 	renderer.SetGrayScaleIntensity(0.0f);
+
+	SoundManager::GetInstance().ChangeLowpass();
 }
 
 void Player::PlayNode()
