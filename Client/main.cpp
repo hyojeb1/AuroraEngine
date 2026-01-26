@@ -18,7 +18,8 @@ int main()
 	cout << "Welcome to Aurora Engine" << endl;
 	cout << "==================================" << endl;
 #else
-int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+//int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+int main()
 {
 #endif
 	IMGUI_CHECKVERSION();

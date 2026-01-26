@@ -7,6 +7,7 @@
 #include "ResourceManager.h"
 #include "TimeManager.h"
 #include "NavigationManager.h"
+#include "WindowManager.h"
 
 #ifdef _DEBUG
 #include "InputManager.h"
@@ -312,19 +313,10 @@ void SceneBase::BaseRenderImGui()
 		}
 		ImGui::End();
 
-		ImGuiIO& io = ImGui::GetIO();
 		ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
-		
-		{
-			// 전체 화면이 아니면 기즈모 실패!
-			ImGuizmo::SetRect(0.0f, 0.0f, io.DisplaySize.x, io.DisplaySize.y);
 
-			//ImVec2 imageMin = ImGui::GetItemRectMin();
-			//ImVec2 imageMax = ImGui::GetItemRectMax();
-
-			//ImGuizmo::SetRect(imageMin.x, imageMin.y, imageMax.x - imageMin.x, imageMax.y - imageMin.y);
-		}
-		
+		RECT rect = WindowManager::GetInstance().GetClientPosRect();
+		ImGuizmo::SetRect(static_cast<float>(rect.left), static_cast<float>(rect.top), static_cast<float>(rect.right), static_cast<float>(rect.bottom));
 		
 		ImGuizmo::SetOrthographic(false);
 
@@ -339,7 +331,7 @@ void SceneBase::BaseRenderImGui()
 
 
 		float gizmoMatrix[16] = {};
-		std::memcpy(gizmoMatrix, &worldMatrix, sizeof(gizmoMatrix));
+		memcpy(gizmoMatrix, &worldMatrix, sizeof(gizmoMatrix));
 
 		const float* snap = nullptr;
 		float snapValues[3] = {};
