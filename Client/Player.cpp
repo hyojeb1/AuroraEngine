@@ -26,11 +26,14 @@ void Player::Initialize()
 	m_lineVertexBufferAndShader = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_linePixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
 
-	m_crosshairTextureAndOffset = resourceManager.GetTextureAndOffset("Crosshair.png");
+	m_crosshairTextureAndOffset = resourceManager.GetTextureAndOffset("cross_hair_middle.png");
+	m_NodeAndOffset				= resourceManager.GetTextureAndOffset("cross_hair_parts.png");
 
 	m_cameraObject = dynamic_cast<CamRotObject*>(GetChildGameObject("CamRotObject_2"));
 	m_gunObject = m_cameraObject->GetChildGameObject("Gun");
 	m_gunFSM = m_gunObject->CreateComponent<FSMComponentGun>();
+
+	m_NodeDataPtr = SoundManager::GetInstance().GetNodeDataPtr();
 }
 
 void Player::Update()
@@ -46,8 +49,9 @@ void Player::Update()
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
 	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();
-	for_each(m_UINode.begin(), m_UINode.end(), [&](auto& time) { time -= deltaTime; });
+	for_each(m_UINode.begin(), m_UINode.end(), [&](auto& time) { time -= TimeManager::GetInstance().GetNSDeltaTime(); });
 	if (!m_UINode.empty() && m_UINode.front() < 0.0f) m_UINode.pop_front();
+
 }
 
 void Player::Render()
@@ -104,8 +108,6 @@ void Player::PlayerShoot()
 
 		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
 	}
-
-	m_UINode.push_back(1.28f);
 }
 
 void Player::PlayerDeadEyeStart()
@@ -187,9 +189,16 @@ void Player::PlayerDeadEyeEnd()
 	m_postProcessingBuffer.grayScaleIntensity = 0.0f;
 }
 
+void Player::PlayNode()
+{
+	auto nd = SoundManager::GetInstance().GetNodeDataPtr();
+
+}
+
+constexpr float CrossHairSize = 0.3f;
 void Player::RenderCrosshairUI(Renderer& renderer)
 {
-	renderer.UI_RENDER_FUNCTIONS().emplace_back([&]() { Renderer::GetInstance().RenderImageUIPosition(m_crosshairTextureAndOffset.first, { 0.5f, 0.5f }, m_crosshairTextureAndOffset.second); });
+	renderer.UI_RENDER_FUNCTIONS().emplace_back([&]() { Renderer::GetInstance().RenderImageUIPosition(m_crosshairTextureAndOffset.first, { 0.5f, 0.5f }, m_crosshairTextureAndOffset.second, CrossHairSize); });
 }
 
 void Player::RenderLineBuffers(Renderer& renderer)
@@ -242,9 +251,12 @@ void Player::RenderUINode(Renderer& renderer)
 		{
 			for (const auto& time : m_UINode)
 			{
-				float pos = lerp(0.5f, 0.25f, time);
-				Renderer::GetInstance().RenderImageUIPosition(m_crosshairTextureAndOffset.first, { pos, 0.5f }, m_crosshairTextureAndOffset.second, 1.0f - (time * 0.5f));
-				Renderer::GetInstance().RenderImageUIPosition(m_crosshairTextureAndOffset.first, { 1.0f - pos, 0.5f }, m_crosshairTextureAndOffset.second, 1.0f - (time * 0.5f));
+				float pos = clamp(lerp(0.5f, 0.25f, time),0.0f,0.5f);
+
+				float scale = clamp(lerp(CrossHairSize, 0.1f, time), 0.0f, CrossHairSize);
+
+				Renderer::GetInstance().RenderImageUIPosition(m_NodeAndOffset.first, { pos, 0.5f }, m_NodeAndOffset.second, scale);
+				Renderer::GetInstance().RenderImageUIPosition(m_NodeAndOffset.first, { 1.0f - pos, 0.5f }, m_NodeAndOffset.second, -scale);
 			}
 		}
 	);

@@ -35,7 +35,9 @@ public:
 	void UpdateNodeIndex();
 	bool CheckRhythm(float correction);
 
-	void BGM_Shot(const std::string filename);
+	std::vector<std::pair<float, float>>* GetNodeDataPtr() { return &m_NodeData; }
+
+	void BGM_Shot(const std::string filename,float delayTime);
 	void SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename);
 	void UI_Shot(const std::string filename);
 
@@ -51,7 +53,10 @@ public:
 	float GetVolume_SFX() const { return m_Volume_SFX; }
 	float GetVolume_UI() const { return m_Volume_UI; }
 
-	void ResetRhythmIndex() { m_rhythmTimerIndex = 0; }
+	float GetCurrentPlaybackTime();
+
+	size_t GetRhythmTimerIndex() { return m_rhythmTimerIndex; };
+	void   ResetRhythmIndex() { m_rhythmTimerIndex = 0; }
 
 	FMOD_VECTOR ToFMOD(DirectX::XMVECTOR vector);
 
@@ -85,5 +90,8 @@ private:
 
 	size_t m_rhythmTimerIndex = 0;
 	//FMOD_CPU_USAGE m_Usage;
+
+	unsigned long long m_MainBGM_StartTime = 0;
+	float m_deltaDSPTime = 0;
 };
 

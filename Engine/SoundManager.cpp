@@ -6,7 +6,7 @@
 #include "SoundManager.h"
 #include "TimeManager.h"
 
-constexpr size_t ChannelCount = 64; //profiling ?•„?š”
+constexpr size_t ChannelCount = 64; //profiling ?ë¸˜?ìŠ‚
 
 void SoundManager::Initialize()
 {
@@ -66,16 +66,7 @@ void SoundManager::Initialize()
 			std::cout << n.first << std::endl;
 		}
 
-
-
-
-
-
-		SoundManager::GetInstance().BGM_Shot("Sample1_Beat(Kick)");
-		TimeManager::GetInstance().ResetRhythmTime();
-
-
-
+		SoundManager::GetInstance().BGM_Shot("Sample2", 0);
 
 		m_CoreSystem->update();
 	}
@@ -85,6 +76,10 @@ void SoundManager::Update()
 {
 	m_CoreSystem->update();
 	UpdateNodeIndex();
+
+	//std::cout << m_rhythmTimerIndex << " : index "
+	//	<< m_NodeData[m_rhythmTimerIndex].first << " : startTime "
+	//	<< m_NodeData[m_rhythmTimerIndex].second << " : EndTime " << std::endl;
 }
 
 void SoundManager::Stop_ChannelGroup()
@@ -312,11 +307,11 @@ void SoundManager::CreateNodeData(const std::string& filename)
 	float deltaSum = 0.0f;
 	int deltaCount = 0;
 
-	// ?Šœ?‹ ?ŒŒ?¼ë¯¸í„°
-	float deltaMultiplier = 1.1f;   // ?‚¥ ë¯¼ê°?„
-	float decayRatio = 0.3f;        // ?‚¥ ê¸¸ì´ (30%ê¹Œì?? ê°ì‡ )
+	// ?ë’ ?ë–‡ ?ë™†?ì”ªèª˜ëª…ê½£
+	float deltaMultiplier = 1.1f;   // ?ê¶ èª˜ì‡¨ì»§?ë£„
+	float decayRatio = 0.3f;        // ?ê¶ æ¹²ëª„ì”  (30%æºëš¯?? åª›ë¨¯ë‡¿)
 
-	// ?‚¥ ?”¼?¬ ê²?ì¶œìš©
+	// ?ê¶ ?ëµ¾?ê²• å¯ƒ?ç•°ì’–ìŠœ
 	float prev2Energy = 0.0f;
 	float prev1Energy = 0.0f;
 
@@ -434,7 +429,7 @@ void SoundManager::UpdateNodeIndex()
 	{
 		return;
 	}
-	if (m_NodeData[m_rhythmTimerIndex].second < TimeManager::GetInstance().GetRhythmTime())
+	if (m_NodeData[m_rhythmTimerIndex].second < GetCurrentPlaybackTime())
 	{
 		m_rhythmTimerIndex++;
 	}
@@ -442,7 +437,7 @@ void SoundManager::UpdateNodeIndex()
 
 bool SoundManager::CheckRhythm(float correction)
 {
-	const float& time = TimeManager::GetInstance().GetRhythmTime();
+	const float& time = GetCurrentPlaybackTime();
 
 	if (m_NodeData[m_rhythmTimerIndex].first - correction <= time && m_NodeData[m_rhythmTimerIndex].second + correction >= time)
 	{
@@ -465,39 +460,22 @@ bool SoundManager::CheckRhythm(float correction)
 	
 }
 
-void SoundManager::BGM_Shot(const std::string filename)
+void SoundManager::BGM_Shot(const std::string filename, float delayTime)
 {
 	auto it = BGM_List.find(filename);
+	if (it == BGM_List.end()) { m_CurrentTrackName = "Invalid"; return; }
 
-	if (it != BGM_List.end())
-	{
-		m_CoreSystem->playSound(it->second, m_BGMGroup, true, &m_BGMChannel);
-		m_CurrentTrackName = it->first;
-		LoadNodeData();
+	m_CurrentTrackName = it->first;
+	m_NodeData.clear();
+	m_rhythmTimerIndex = 0;
 
-		float sampleRate = 0.0f;
-		it->second->getDefaults(&sampleRate, nullptr);
+	m_CoreSystem->playSound(it->second, m_BGMGroup, false, &m_BGMChannel);
 
-		unsigned long long dspClock = 0;
-		unsigned long long parentClock = 0;
+	unsigned long long nowDSP = 0;
+	m_BGMChannel->getDSPClock(&nowDSP, nullptr);
+	m_MainBGM_StartTime = nowDSP;
 
-		m_BGMGroup->getDSPClock(&dspClock, &parentClock);
-
-		// ì§??—° ?‹œê°? (ì´? ?†’ ?ƒ˜?”Œ)
-		float delaySec = 2.05f; // 2ì´? ?’¤ ?ž¬?ƒ
-		unsigned long long delaySamples =
-			(unsigned long long)(delaySec * sampleRate);
-
-		// ?ž¬?ƒ ?‹œ?ž‘ ?‹œ?  ?„¤? •
-		m_BGMChannel->setDelay(dspClock + delaySamples, 0, false);
-
-		// ?´? œ ?ž¬?ƒ ?‹œ?ž‘
-		m_BGMChannel->setPaused(false);
-	}
-	else
-	{
-		m_CurrentTrackName = "Invalid";
-	}
+	LoadNodeData();
 }
 
 void SoundManager::SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename)
@@ -525,6 +503,27 @@ void SoundManager::UI_Shot(const std::string filename)
 	{
 		m_CoreSystem->playSound(it->second, m_UIGroup, false, &pChannel);
 	}
+}
+
+float SoundManager::GetCurrentPlaybackTime()
+{
+	if (!m_BGMChannel)
+		return 0.0f;
+
+	unsigned long long nowDSP;
+	m_BGMChannel->getDSPClock(&nowDSP, nullptr);
+
+	if (nowDSP < m_MainBGM_StartTime)
+		return 0.0f;
+
+	int dspSampleRate = 0;
+	m_CoreSystem->getSoftwareFormat(&dspSampleRate, nullptr, nullptr);
+
+	double songTime =
+		(double)(nowDSP - m_MainBGM_StartTime)
+		/ (double)dspSampleRate;
+
+	return static_cast<float>(songTime);
 }
 
 FMOD_VECTOR SoundManager::ToFMOD(DirectX::XMVECTOR vector)

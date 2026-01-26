@@ -5,9 +5,10 @@ class Player : public GameObjectBase
 {
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_lineVertexBufferAndShader = {};
 	com_ptr<ID3D11PixelShader> m_linePixelShader = nullptr;
-	std::deque<std::pair<LineBuffer, float>> m_lineBuffers = {}; // ?„  ë²„í¼ ë°? ?‚¨??? ?‘œ?‹œ ?‹œê°? ?
+	std::deque<std::pair<LineBuffer, float>> m_lineBuffers = {}; // ?ê½‘ è¸°ê¾ªë è«›? ?ê¶“??? ?ëª´?ë–† ?ë–†åª›? ?ê±§
 
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_crosshairTextureAndOffset = {};
+	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_NodeAndOffset = {};
 	std::vector<std::pair<float, class Enemy*>> m_deadEyeTargets = {};
 
 	std::deque<float> m_UINode = {};
@@ -25,6 +26,10 @@ class Player : public GameObjectBase
 	float m_deadEyeTime = 0.0f;
 
 	PostProcessingBuffer m_postProcessingBuffer = {};
+
+	std::vector<std::pair<float, float>>* m_NodeDataPtr = nullptr;
+	size_t m_currentNodeIndex = -1;
+
 
 public:
 	Player() = default;
@@ -45,6 +50,8 @@ private:
 	void PlayerDeadEyeStart();
 	void PlayerDeadEye(float deltaTime);
 	void PlayerDeadEyeEnd();
+
+	void PlayNode();
 
 	void RenderCrosshairUI(class Renderer& renderer);
 	void RenderLineBuffers(class Renderer& renderer);
