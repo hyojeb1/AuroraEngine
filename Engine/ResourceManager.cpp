@@ -2,6 +2,8 @@
 #include "stdafx.h"
 #include "ResourceManager.h"
 
+#include "NavigationManager.h"
+
 using namespace std;
 using namespace DirectX;
 
@@ -47,9 +49,13 @@ void ResourceManager::Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11Dev
 	CreateRasterStates();
 
 	CreateConstantBuffers();
+	SetAllConstantBuffers();
 	CreateSamplerStates();
+	SetAllSamplerStates();
 
 	CacheAllTexture();
+
+	NavigationManager::GetInstance().Initialize();
 }
 
 void ResourceManager::SetDepthStencilState(DepthStencilState state)
@@ -103,6 +109,9 @@ void ResourceManager::SetAllConstantBuffers()
 
 	//선 그리기용 상수 버퍼
 	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Line), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Line)].GetAddressOf());
+	// 파티클 상수 버퍼
+	m_deviceContext->VSSetConstantBuffers(static_cast<UINT>(VSConstBuffers::Particle), 1, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Particle)].GetAddressOf());
+
 
 	// 픽셀 셰이더용 상수 버퍼 설정
 	// 후처리 상수 버퍼
@@ -113,6 +122,7 @@ void ResourceManager::SetAllConstantBuffers()
 	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::GlobalLight), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::GlobalLight)].GetAddressOf());
 	// 재질 팩터 상수 버퍼
 	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::MaterialFactor), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::MaterialFactor)].GetAddressOf());
+
 }
 
 void ResourceManager::SetAllSamplerStates()
@@ -291,8 +301,8 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 			D3D11_USAGE_DEFAULT,
 			D3D11_BIND_SHADER_RESOURCE,
 			0,
-			0, // dds 는 mipmap 자동 생성 안함
-			DDS_LOADER_DEFAULT,
+			0, // dds 는 mipmap 자동 생성 못함
+			type == TextureType::BaseColor || type == TextureType::Emissive ? DDS_LOADER_FORCE_SRGB : DDS_LOADER_IGNORE_SRGB,
 			nullptr,
 			m_textures[fileName].GetAddressOf()
 		);
@@ -491,6 +501,10 @@ void ResourceManager::CreateConstantBuffers()
 	
 	//선 그리기용 상수 버퍼
 	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::Line)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Line)].GetAddressOf());
+	CheckResult(hr, "LineColor 상수 버퍼 생성 실패.");
+	
+	//파티클 상수 버퍼
+	hr = m_device->CreateBuffer(&VS_CONST_BUFFER_DESCS[static_cast<size_t>(VSConstBuffers::Particle)], nullptr, m_vsConstantBuffers[static_cast<size_t>(VSConstBuffers::Particle)].GetAddressOf());
 	CheckResult(hr, "LineColor 상수 버퍼 생성 실패.");
 
 	// 픽셀 셰이더용 상수 버퍼 생성

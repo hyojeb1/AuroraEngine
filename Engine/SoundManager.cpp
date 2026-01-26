@@ -1,12 +1,12 @@
 #include "stdafx.h"
 
-#include <numbers>
 #include "GameObjectBase.h"
 #include "ListenerComponent.h"
 
 #include "SoundManager.h"
+#include "TimeManager.h"
 
-constexpr size_t ChannelCount = 64; //profiling 필요
+constexpr size_t ChannelCount = 64; //profiling ?븘?슂
 
 void SoundManager::Initialize()
 {
@@ -66,7 +66,7 @@ void SoundManager::Initialize()
 			std::cout << n.first << std::endl;
 		}
 
-		
+		SoundManager::GetInstance().BGM_Shot("Sample2", 0);
 
 		m_CoreSystem->update();
 	}
@@ -75,6 +75,11 @@ void SoundManager::Initialize()
 void SoundManager::Update()
 {
 	m_CoreSystem->update();
+	UpdateNodeIndex();
+
+	//std::cout << m_rhythmTimerIndex << " : index "
+	//	<< m_NodeData[m_rhythmTimerIndex].first << " : startTime "
+	//	<< m_NodeData[m_rhythmTimerIndex].second << " : EndTime " << std::endl;
 }
 
 void SoundManager::Stop_ChannelGroup()
@@ -302,11 +307,11 @@ void SoundManager::CreateNodeData(const std::string& filename)
 	float deltaSum = 0.0f;
 	int deltaCount = 0;
 
-	// 튜닝 파라미터
-	float deltaMultiplier = 1.1f;   // 킥 민감도
-	float decayRatio = 0.3f;        // 킥 길이 (30%까지 감쇠)
+	// ?뒠?떇 ?뙆?씪誘명꽣
+	float deltaMultiplier = 1.1f;   // ?궏 誘쇨컧?룄
+	float decayRatio = 0.3f;        // ?궏 湲몄씠 (30%源뚯?? 媛먯뇿)
 
-	// 킥 피크 검출용
+	// ?궏 ?뵾?겕 寃?異쒖슜
 	float prev2Energy = 0.0f;
 	float prev1Energy = 0.0f;
 
@@ -405,14 +410,72 @@ void SoundManager::CreateNodeData(const std::string& filename)
 	out.close();
 }
 
-void SoundManager::BGM_Shot(const std::string filename)
+void SoundManager::LoadNodeData()
+{
+	std::string path = "../Asset/BeatMapData/" + m_CurrentTrackName + "_nodes.json";
+	std::ifstream in(path);
+	nlohmann::json j;
+	in >> j;
+
+	for (auto& seg : j["segments"])
+	{
+		m_NodeData.push_back({ seg["start"], seg["end"] });
+	}
+}
+
+void SoundManager::UpdateNodeIndex()
+{
+	if (m_NodeData.empty())
+	{
+		return;
+	}
+	if (m_NodeData[m_rhythmTimerIndex].second < GetCurrentPlaybackTime())
+	{
+		m_rhythmTimerIndex++;
+	}
+}
+
+bool SoundManager::CheckRhythm(float correction)
+{
+	const float& time = GetCurrentPlaybackTime();
+
+	if (m_NodeData[m_rhythmTimerIndex].first - correction <= time && m_NodeData[m_rhythmTimerIndex].second + correction >= time)
+	{
+		std::cout << "Success! : " << 
+			m_NodeData[m_rhythmTimerIndex].first <<
+			"s " <<
+			"Time: " << time << std::endl;
+		return true;
+	}
+	else
+	{
+		std::cout << "Faild : " <<
+			m_NodeData[m_rhythmTimerIndex].first <<
+			"s " <<
+			"Time: " << time << "s" << std::endl;
+
+		return false;
+	}
+
+	
+}
+
+void SoundManager::BGM_Shot(const std::string filename, float delayTime)
 {
 	auto it = BGM_List.find(filename);
+	if (it == BGM_List.end()) { m_CurrentTrackName = "Invalid"; return; }
 
-	if (it != BGM_List.end())
-	{
-		m_CoreSystem->playSound(it->second, m_BGMGroup, false, &m_BGMChannel);
-	}
+	m_CurrentTrackName = it->first;
+	m_NodeData.clear();
+	m_rhythmTimerIndex = 0;
+
+	m_CoreSystem->playSound(it->second, m_BGMGroup, false, &m_BGMChannel);
+
+	unsigned long long nowDSP = 0;
+	m_BGMChannel->getDSPClock(&nowDSP, nullptr);
+	m_MainBGM_StartTime = nowDSP;
+
+	LoadNodeData();
 }
 
 void SoundManager::SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename)
@@ -440,6 +503,27 @@ void SoundManager::UI_Shot(const std::string filename)
 	{
 		m_CoreSystem->playSound(it->second, m_UIGroup, false, &pChannel);
 	}
+}
+
+float SoundManager::GetCurrentPlaybackTime()
+{
+	if (!m_BGMChannel)
+		return 0.0f;
+
+	unsigned long long nowDSP;
+	m_BGMChannel->getDSPClock(&nowDSP, nullptr);
+
+	if (nowDSP < m_MainBGM_StartTime)
+		return 0.0f;
+
+	int dspSampleRate = 0;
+	m_CoreSystem->getSoftwareFormat(&dspSampleRate, nullptr, nullptr);
+
+	double songTime =
+		(double)(nowDSP - m_MainBGM_StartTime)
+		/ (double)dspSampleRate;
+
+	return static_cast<float>(songTime);
 }
 
 FMOD_VECTOR SoundManager::ToFMOD(DirectX::XMVECTOR vector)

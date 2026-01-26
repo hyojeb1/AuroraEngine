@@ -10,6 +10,8 @@ using namespace DirectX;
 
 REGISTER_TYPE(GameObjectBase)
 
+GameObjectBase* GameObjectBase::s_selectedObject = nullptr;
+
 GameObjectBase::GameObjectBase()
 {
 	static UINT idIndex = 0;
@@ -233,9 +235,14 @@ void GameObjectBase::BaseRenderImGui()
 	strcpy_s(nameBuffer.data(), nameBuffer.size(), m_name.c_str());
 	if (ImGui::InputText("", nameBuffer.data(), sizeof(nameBuffer))) m_name = nameBuffer.data();
 
-	if (ImGui::TreeNode(m_name.c_str()))
-	{
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+	if (s_selectedObject == this) flags |= ImGuiTreeNodeFlags_Selected;
 
+	bool isOpen = ImGui::TreeNodeEx(m_name.c_str(), flags);
+	if (ImGui::IsItemClicked()) SetSelectedObject(this);
+
+	if (isOpen)
+	{
 		// 위치
 		if (ImGui::DragFloat3("Position", &m_position.m128_f32[0], 0.05f)) SetDirty();
 		// 회전
@@ -300,6 +307,8 @@ void GameObjectBase::BaseRenderImGui()
 
 void GameObjectBase::BaseFinalize()
 {
+	if (s_selectedObject == this) s_selectedObject = nullptr;
+
 	#ifdef NDEBUG
 	Finalize();
 	#endif
@@ -449,6 +458,29 @@ void GameObjectBase::RemovePending()
 			return false;
 		}
 	);
+}
+
+void GameObjectBase::ApplyWorldMatrix(const XMMATRIX& worldMatrix)
+{
+	XMMATRIX localMatrix = worldMatrix;
+	if (m_parent)
+	{
+		const XMMATRIX parentWorld = m_parent->UpdateWorldMatrix();
+		const XMMATRIX invParent = XMMatrixInverse(nullptr, parentWorld);
+		localMatrix = worldMatrix * invParent;
+	}
+
+	XMVECTOR scale = XMVectorZero();
+	XMVECTOR rotationQuat = XMQuaternionIdentity();
+	XMVECTOR translation = XMVectorZero();
+	if (XMMatrixDecompose(&scale, &rotationQuat, &translation, localMatrix))
+	{
+		m_scale = scale;
+		m_quaternion = rotationQuat;
+		m_euler = ToDegrees(static_cast<XMVECTOR>(static_cast<SimpleMath::Quaternion>(rotationQuat).ToEuler()));
+		m_position = translation;
+		SetDirty();
+	}
 }
 
 void GameObjectBase::SetDirty()

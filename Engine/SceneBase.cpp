@@ -6,6 +6,7 @@
 #include "Renderer.h"
 #include "ResourceManager.h"
 #include "TimeManager.h"
+#include "NavigationManager.h"
 
 #ifdef _DEBUG
 #include "InputManager.h"
@@ -13,11 +14,6 @@
 
 using namespace std;
 using namespace DirectX;
-
-SceneBase::SceneBase()
-{
-	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
-}
 
 GameObjectBase* SceneBase::CreateRootGameObject(const string& typeName)
 {
@@ -58,6 +54,8 @@ GameObjectBase* SceneBase::GetGameObjectRecursive(const string& name)
 
 void SceneBase::BaseInitialize()
 {
+	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
+
 	m_type = GetTypeName(*this);
 
 	#ifdef _DEBUG
@@ -118,6 +116,9 @@ void SceneBase::BaseUpdate()
 
 		cout << "씬: " << m_type << " 저장 완료!" << endl;
 	}
+
+	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink();
+
 	#endif
 }
 
@@ -218,6 +219,10 @@ void SceneBase::BaseRender()
 
 	// 게임 오브젝트 렌더링
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseRender();
+
+	#ifdef _DEBUG
+	if (m_isNavMeshCreating) NavigationManager::GetInstance().RenderNavMesh();
+	#endif
 }
 
 void SceneBase::BaseRenderImGui()
@@ -232,7 +237,12 @@ void SceneBase::BaseRenderImGui()
 
 	#ifdef _DEBUG
 	ImGui::Checkbox("Debug Coordinates", &m_isRenderDebugCoordinates);
+
+	ImGui::Checkbox("NavMesh Creating", &m_isNavMeshCreating);
 	#endif
+
+	static float gamma = 1.0f;
+	if (ImGui::DragFloat("Gamma", &gamma, 0.01f, 0.1f, 5.0f)) Renderer::GetInstance().SetGamma(gamma);
 
 	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);
 	ImGui::DragFloat("IBL Intensity", &m_globalLightData.lightColor.w, 0.001f, 0.0f, 1.0f);
@@ -266,6 +276,113 @@ void SceneBase::BaseRenderImGui()
 	}
 
 	ImGui::End();
+
+	#ifdef _DEBUG
+	GameObjectBase* selectedObject = GameObjectBase::GetSelectedObject();
+	if (selectedObject)
+	{
+		static ImGuizmo::OPERATION gizmoOperation = ImGuizmo::TRANSLATE;
+		static ImGuizmo::MODE gizmoMode = ImGuizmo::LOCAL;
+		static bool useSnap = false;
+		static float snapTranslation[3] = { 0.5f, 0.5f, 0.5f };
+		static float snapRotation = 15.0f;
+		static float snapScale = 0.1f;
+
+		ImGui::Begin("Gizmo");
+		ImGui::Text("Selected: %s", selectedObject->GetName().c_str());
+		if (ImGui::RadioButton("Translate", gizmoOperation == ImGuizmo::TRANSLATE)) gizmoOperation = ImGuizmo::TRANSLATE;
+		ImGui::SameLine();
+		if (ImGui::RadioButton("Rotate", gizmoOperation == ImGuizmo::ROTATE)) gizmoOperation = ImGuizmo::ROTATE;
+		ImGui::SameLine();
+		if (ImGui::RadioButton("Scale", gizmoOperation == ImGuizmo::SCALE)) gizmoOperation = ImGuizmo::SCALE;
+
+		if (gizmoOperation != ImGuizmo::SCALE)
+		{
+			if (ImGui::RadioButton("Local", gizmoMode == ImGuizmo::LOCAL)) gizmoMode = ImGuizmo::LOCAL;
+			ImGui::SameLine();
+			if (ImGui::RadioButton("World", gizmoMode == ImGuizmo::WORLD)) gizmoMode = ImGuizmo::WORLD;
+		}
+
+		ImGui::Checkbox("Snap", &useSnap);
+		if (useSnap)
+		{
+			if (gizmoOperation == ImGuizmo::TRANSLATE) ImGui::InputFloat3("Snap T", snapTranslation);
+			else if (gizmoOperation == ImGuizmo::ROTATE) ImGui::InputFloat("Snap R", &snapRotation);
+			else if (gizmoOperation == ImGuizmo::SCALE) ImGui::InputFloat("Snap S", &snapScale);
+		}
+		ImGui::End();
+
+		ImGuiIO& io = ImGui::GetIO();
+		ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
+		
+		{
+			// 전체 화면이 아니면 기즈모 실패!
+			ImGuizmo::SetRect(0.0f, 0.0f, io.DisplaySize.x, io.DisplaySize.y);
+
+			//ImVec2 imageMin = ImGui::GetItemRectMin();
+			//ImVec2 imageMax = ImGui::GetItemRectMax();
+
+			//ImGuizmo::SetRect(imageMin.x, imageMin.y, imageMax.x - imageMin.x, imageMax.y - imageMin.y);
+		}
+		
+		
+		ImGuizmo::SetOrthographic(false);
+
+		const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
+		DirectX::XMFLOAT4X4 viewMatrix = {};
+		DirectX::XMFLOAT4X4 projectionMatrix = {};
+		DirectX::XMFLOAT4X4 worldMatrix = {};
+		DirectX::XMStoreFloat4x4(&viewMatrix, mainCamera.GetViewMatrix());
+		DirectX::XMStoreFloat4x4(&projectionMatrix, mainCamera.GetProjectionMatrix());
+		DirectX::XMStoreFloat4x4(&worldMatrix, selectedObject->GetWorldMatrix());
+
+
+
+		float gizmoMatrix[16] = {};
+		std::memcpy(gizmoMatrix, &worldMatrix, sizeof(gizmoMatrix));
+
+		const float* snap = nullptr;
+		float snapValues[3] = {};
+		if (useSnap)
+		{
+			if (gizmoOperation == ImGuizmo::TRANSLATE)
+			{
+				snapValues[0] = snapTranslation[0];
+				snapValues[1] = snapTranslation[1];
+				snapValues[2] = snapTranslation[2];
+				snap = snapValues;
+			}
+			else if (gizmoOperation == ImGuizmo::ROTATE)
+			{
+				snapValues[0] = snapRotation;
+				snap = snapValues;
+			}
+			else if (gizmoOperation == ImGuizmo::SCALE)
+			{
+				snapValues[0] = snapScale;
+				snap = snapValues;
+			}
+		}
+
+		ImGuizmo::Manipulate
+		(
+			&viewMatrix.m[0][0],
+			&projectionMatrix.m[0][0],
+			gizmoOperation,
+			gizmoMode,
+			gizmoMatrix,
+			nullptr,
+			snap
+		);
+
+		if (ImGuizmo::IsUsing())
+		{
+			std::memcpy(&worldMatrix, gizmoMatrix, sizeof(gizmoMatrix));
+			const DirectX::XMMATRIX newWorld = DirectX::XMLoadFloat4x4(&worldMatrix);
+			selectedObject->ApplyWorldMatrix(newWorld);
+		}
+	}
+	#endif
 }
 
 void SceneBase::BaseFinalize()
@@ -300,7 +417,12 @@ nlohmann::json SceneBase::BaseSerialize()
 		m_globalLightData.lightDirection.m128_f32[3]
 	};
 
+	// 환경 맵 파일 이름
 	jsonData["environmentMapFileName"] = m_environmentMapFileName;
+
+	// 네비게이션 메시 저장
+	nlohmann::json navMeshData = NavigationManager::GetInstance().Serialize();
+	if (!navMeshData.is_null() && navMeshData.is_object()) jsonData.merge_patch(navMeshData);
 
 	// 파생 클래스의 직렬화 호출
 	nlohmann::json derivedData = Serialize();
@@ -336,6 +458,9 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 
 	// 환경 맵 파일 이름
 	m_environmentMapFileName = jsonData["environmentMapFileName"].get<string>();
+
+	// 네비게이션 메시 로드
+	NavigationManager::GetInstance().Deserialize(jsonData);
 
 	// 파생 클래스의 데이터 로드
 	Deserialize(jsonData);

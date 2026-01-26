@@ -2,7 +2,6 @@
 #include "Singleton.h"
 
 class ListenerComponent;
-class XMVECTOR;
 
 struct SoundResourceUsage
 {
@@ -32,8 +31,13 @@ public:
 	void ConvertUISource();
 
 	void CreateNodeData(const std::string& filename);
+	void LoadNodeData();
+	void UpdateNodeIndex();
+	bool CheckRhythm(float correction);
 
-	void BGM_Shot(const std::string filename);
+	std::vector<std::pair<float, float>>* GetNodeDataPtr() { return &m_NodeData; }
+
+	void BGM_Shot(const std::string filename,float delayTime);
 	void SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename);
 	void UI_Shot(const std::string filename);
 
@@ -44,10 +48,15 @@ public:
 	void SetVolume_SFX(float volume);
 	void SetVolume_UI(float volume);
 
-	float GetVolume_Main() { return m_Volume_Main; }
-	float GetVolume_BGM() { return m_Volume_BGM; }
-	float GetVolume_SFX() { return m_Volume_SFX; }
-	float GetVolume_UI() { return m_Volume_UI; }
+	float GetVolume_Main() const { return m_Volume_Main; }
+	float GetVolume_BGM() const { return m_Volume_BGM; }
+	float GetVolume_SFX() const { return m_Volume_SFX; }
+	float GetVolume_UI() const { return m_Volume_UI; }
+
+	float GetCurrentPlaybackTime();
+
+	size_t GetRhythmTimerIndex() { return m_rhythmTimerIndex; };
+	void   ResetRhythmIndex() { m_rhythmTimerIndex = 0; }
 
 	FMOD_VECTOR ToFMOD(DirectX::XMVECTOR vector);
 
@@ -60,6 +69,8 @@ private:
 	FMOD::Channel* m_BGMChannel = nullptr;
 
 	std::vector<FMOD::Channel*> m_loopSFXChannels;
+
+	std::vector<std::pair<float, float>> m_NodeData;
 
 	FMOD::ChannelGroup* m_MainGroup = nullptr;
 	FMOD::ChannelGroup* m_BGMGroup = nullptr;
@@ -75,6 +86,12 @@ private:
 	std::unordered_map<std::string, FMOD::Sound*> SFX_List;
 	std::unordered_map<std::string, FMOD::Sound*> UI_List;
 
+	std::string m_CurrentTrackName{};
+
+	size_t m_rhythmTimerIndex = 0;
 	//FMOD_CPU_USAGE m_Usage;
+
+	unsigned long long m_MainBGM_StartTime = 0;
+	float m_deltaDSPTime = 0;
 };
 

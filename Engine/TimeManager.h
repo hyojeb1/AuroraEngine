@@ -12,6 +12,7 @@ class TimeManager : public Singleton<TimeManager>
 	float m_deltaTime = 0.0f; // 델타 타임 // 초 단위
 	float m_totalTime = 0.0f; // 총 경과 시간 // 초 단위
 
+	float m_deltaNoneScaleTime = 0.0f;
 public:
 	~TimeManager() = default;
 	TimeManager(const TimeManager&) = delete;
@@ -28,6 +29,7 @@ public:
 	// 델타 타임 얻기
 	float GetDeltaTime() const { return m_deltaTime; }
 	float GetTotalTime() const { return m_totalTime; }
+	float GetNSDeltaTime() const { return m_deltaNoneScaleTime; }
 private:
 	TimeManager() = default;
 };

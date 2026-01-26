@@ -45,11 +45,11 @@ void SceneManager::Run()
 	Renderer& m_renderer = Renderer::GetInstance();
 	m_renderer.BeginFrame();
 
-	m_currentScene->BaseRender();
-
 	#ifdef _DEBUG
 	m_currentScene->BaseRenderImGui();
 	#endif
+
+	m_currentScene->BaseRender();
 
 	m_renderer.EndFrame();
 	inputManager.EndFrame();

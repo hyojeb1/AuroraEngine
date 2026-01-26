@@ -31,13 +31,16 @@
     <Filter Include="Base\Component\FSM">
       <UniqueIdentifier>{e206fbc1-7550-415f-817f-17873c32267e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Base\Component\Particle">
+      <UniqueIdentifier>{7da666ea-9860-4739-888b-9a3705543096}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Base\Component\Model">
+      <UniqueIdentifier>{0871ba25-6187-468b-9cf2-5256db0e88f6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Renderer.cpp">
       <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="ModelComponent.cpp">
-      <Filter>Base\Component</Filter>
     </ClCompile>
     <ClCompile Include="CameraComponent.cpp">
       <Filter>Base\Component</Filter>
@@ -78,9 +81,6 @@
     <ClCompile Include="SoundManager.cpp">
       <Filter>Manager</Filter>
     </ClCompile>
-    <ClCompile Include="SkinnedModelComponent.cpp">
-      <Filter>Base\Component</Filter>
-    </ClCompile>
     <ClCompile Include="Animator.cpp">
       <Filter>Resource</Filter>
     </ClCompile>
@@ -102,15 +102,30 @@
     <ClCompile Include="FSMComponentEnemy.cpp">
       <Filter>Base\Component\FSM</Filter>
     </ClCompile>
+    <ClCompile Include="NavigationManager.cpp">
+      <Filter>Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelComponent.cpp">
+      <Filter>Base\Component\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="SkinnedModelComponent.cpp">
+      <Filter>Base\Component\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleComponent.cpp">
+      <Filter>Base\Component\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="FlipbookParticleComponent.cpp">
+      <Filter>Base\Component\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="InstancedParticleComponent.cpp">
+      <Filter>Base\Component\Particle</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="ModelComponent.h">
-      <Filter>Base\Component</Filter>
-    </ClInclude>
     <ClInclude Include="CameraComponent.h">
       <Filter>Base\Component</Filter>
     </ClInclude>
@@ -156,9 +171,6 @@
     <ClInclude Include="SoundManager.h">
       <Filter>Manager</Filter>
     </ClInclude>
-    <ClInclude Include="SkinnedModelComponent.h">
-      <Filter>Base\Component</Filter>
-    </ClInclude>
     <ClInclude Include="Animator.h">
       <Filter>Resource</Filter>
     </ClInclude>
@@ -182,6 +194,24 @@
     </ClInclude>
     <ClInclude Include="FSMComponentEnemy.h">
       <Filter>Base\Component\FSM</Filter>
+    </ClInclude>
+    <ClInclude Include="NavigationManager.h">
+      <Filter>Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelComponent.h">
+      <Filter>Base\Component\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinnedModelComponent.h">
+      <Filter>Base\Component\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleComponent.h">
+      <Filter>Base\Component\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="FlipbookParticleComponent.h">
+      <Filter>Base\Component\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="InstancedParticleComponent.h">
+      <Filter>Base\Component\Particle</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -218,6 +248,21 @@
     <FxCompile Include="..\Asset\Shader\VSLine.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
+    <FxCompile Include="..\Asset\Shader\PSParticle.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Asset\Shader\VSParticle.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Asset\Shader\VSParticle_Cylindrical.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Asset\Shader\VSParticle_None.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Asset\Shader\VSParticleInstanced.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Asset\Shader\CommonVS.hlsli">
@@ -227,9 +272,6 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="..\Asset\Shader\CommonPS.hlsli">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="..\Asset\Shader\CommonSkinning.hlsli">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

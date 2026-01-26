@@ -5,6 +5,7 @@
 #include "TestCameraObject.h"
 #include "CamRotObject.h"
 #include "TimeManager.h"
+#include "SoundManager.h"
 #include "Enemy.h"
 
 REGISTER_TYPE(TestScene)

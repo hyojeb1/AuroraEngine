@@ -21,7 +21,7 @@ void DebugCamera::Update()
     InputManager& input = InputManager::GetInstance();
 	POINT delta = input.GetMouseDelta();
 	int wheel = input.GetMouseWheel();
-	//bool isMouseLeft = input.GetKey(KeyCode::MouseLeft); //이건 피킹 구현할 때 개발할 예정
+
 	bool isMouseRight = input.GetKey(KeyCode::MouseRight);
 	bool isMouseMiddle = input.GetKey(KeyCode::MouseMiddle);
 	
