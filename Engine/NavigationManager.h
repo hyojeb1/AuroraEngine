@@ -37,7 +37,10 @@ public:
 
 	void Initialize();
 
-	void ClearNavMesh() { m_vertices.clear(); m_navPolys.clear(); m_hasPreview = false; m_previewEdgeVertexIndexA = m_previewEdgeVertexIndexB = -1; m_pathStartSet = false; m_currentPath.clear(); }
+	void Deserialize(const nlohmann::json& jsonData);
+	nlohmann::json Serialize() const;
+
+	void ClearNavMesh();
 
 	// 삼각형 추가
 	void AddPolygon(const DirectX::XMVECTOR& a, const DirectX::XMVECTOR& b, const DirectX::XMVECTOR& c);

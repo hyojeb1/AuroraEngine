@@ -15,11 +15,6 @@
 using namespace std;
 using namespace DirectX;
 
-SceneBase::SceneBase()
-{
-	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
-}
-
 GameObjectBase* SceneBase::CreateRootGameObject(const string& typeName)
 {
 	unique_ptr<GameObjectBase> gameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
@@ -59,7 +54,7 @@ GameObjectBase* SceneBase::GetGameObjectRecursive(const string& name)
 
 void SceneBase::BaseInitialize()
 {
-	NavigationManager::GetInstance().Initialize();
+	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
 
 	m_type = GetTypeName(*this);
 
@@ -173,9 +168,6 @@ void SceneBase::BaseRender()
 		{
 			Renderer& renderer = Renderer::GetInstance();
 			const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
-
-			//PostProcessingBuffer postProcessingBuffer = {};
-			//renderer.GetDeviceContext()->UpdateSubresource(ResourceManager::GetInstance().GetConstantBuffer(PSConstBuffers::PostProcessing).Get(), 0, nullptr, &postProcessingBuffer, 0, 0);
 
 			renderer.SetViewport();
 
@@ -316,7 +308,12 @@ nlohmann::json SceneBase::BaseSerialize()
 		m_globalLightData.lightDirection.m128_f32[3]
 	};
 
+	// 환경 맵 파일 이름
 	jsonData["environmentMapFileName"] = m_environmentMapFileName;
+
+	// 네비게이션 메시 저장
+	nlohmann::json navMeshData = NavigationManager::GetInstance().Serialize();
+	if (!navMeshData.is_null() && navMeshData.is_object()) jsonData.merge_patch(navMeshData);
 
 	// 파생 클래스의 직렬화 호출
 	nlohmann::json derivedData = Serialize();
@@ -352,6 +349,9 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 
 	// 환경 맵 파일 이름
 	m_environmentMapFileName = jsonData["environmentMapFileName"].get<string>();
+
+	// 네비게이션 메시 로드
+	NavigationManager::GetInstance().Deserialize(jsonData);
 
 	// 파생 클래스의 데이터 로드
 	Deserialize(jsonData);

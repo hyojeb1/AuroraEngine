@@ -50,7 +50,7 @@ class SceneBase : public Base
 	DirectX::SpriteFont* m_spriteFont = nullptr; // FPS 표시용 스프라이트 폰트
 
 public:
-	SceneBase();
+	SceneBase() = default;
 	virtual ~SceneBase() = default;
 	SceneBase(const SceneBase&) = delete; // 복사 금지
 	SceneBase& operator=(const SceneBase&) = delete; // 복사 대입 금지

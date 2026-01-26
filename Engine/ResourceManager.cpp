@@ -2,6 +2,8 @@
 #include "stdafx.h"
 #include "ResourceManager.h"
 
+#include "NavigationManager.h"
+
 using namespace std;
 using namespace DirectX;
 
@@ -52,6 +54,8 @@ void ResourceManager::Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11Dev
 	SetAllSamplerStates();
 
 	CacheAllTexture();
+
+	NavigationManager::GetInstance().Initialize();
 }
 
 void ResourceManager::SetDepthStencilState(DepthStencilState state)

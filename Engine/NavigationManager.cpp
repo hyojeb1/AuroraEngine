@@ -14,8 +14,61 @@ void NavigationManager::Initialize()
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_navMeshVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_navMeshPixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
+}
 
-	AddPolygon(XMVectorSet(-1.0f, 0.0f, -1.0f, 1.0f), XMVectorSet(1.0f, 0.0f, -1.0f, 1.0f), XMVectorSet(0.0f, 0.0f, 1.0f, 1.0f));
+void NavigationManager::Deserialize(const nlohmann::json& jsonData)
+{
+	ClearNavMesh();
+
+	if (jsonData.contains("navPoly"))
+	{
+		for (const nlohmann::json& polyData : jsonData["navPoly"])
+		{
+			XMVECTOR a = XMVectorSet(polyData["a"][0], polyData["a"][1], polyData["a"][2], 1.0f);
+			XMVECTOR b = XMVectorSet(polyData["b"][0], polyData["b"][1], polyData["b"][2], 1.0f);
+			XMVECTOR c = XMVectorSet(polyData["c"][0], polyData["c"][1], polyData["c"][2], 1.0f);
+			AddPolygon(a, b, c);
+		}
+	}
+	else AddPolygon(XMVectorSet(-1.0f, 0.0f, -1.0f, 1.0f), XMVectorSet(1.0f, 0.0f, -1.0f, 1.0f), XMVectorSet(0.0f, 0.0f, 1.0f, 1.0f));
+
+	BuildAdjacency();
+}
+
+nlohmann::json NavigationManager::Serialize() const
+{
+	nlohmann::json jsonData = {};
+	nlohmann::json navMeshData = nlohmann::json::array();
+
+	for (const NavPoly& poly : m_navPolys)
+	{
+		if (poly.indexs[0] < 0 || poly.indexs[1] < 0 || poly.indexs[2] < 0) continue;
+
+		XMFLOAT3 a, b, c;
+		XMStoreFloat3(&a, m_vertices[poly.indexs[0]]);
+		XMStoreFloat3(&b, m_vertices[poly.indexs[1]]);
+		XMStoreFloat3(&c, m_vertices[poly.indexs[2]]);
+
+		nlohmann::json polyData = {};
+		polyData["a"] = { a.x, a.y, a.z };
+		polyData["b"] = { b.x, b.y, b.z };
+		polyData["c"] = { c.x, c.y, c.z };
+		navMeshData.push_back(polyData);
+	}
+
+	jsonData["navPoly"] = navMeshData;
+	return jsonData;
+}
+
+void NavigationManager::ClearNavMesh()
+{
+	m_vertices.clear();
+	m_navPolys.clear();
+
+	m_hasPreview = false;
+	m_previewEdgeVertexIndexA = m_previewEdgeVertexIndexB = -1;
+	m_pathStartSet = false;
+	m_currentPath.clear();
 }
 
 void NavigationManager::AddPolygon(const XMVECTOR& a, const XMVECTOR& b, const XMVECTOR& c)
@@ -331,7 +384,14 @@ void NavigationManager::HandlePlaceLink()
 {
 	InputManager& input = InputManager::GetInstance();
 
-	const POINT& mouse = input.GetScreenMousePosition();
+	if (input.GetKeyDown(KeyCode::R))
+	{
+		ClearNavMesh();
+		AddPolygon(XMVectorSet(-1.0f, 0.0f, -1.0f, 1.0f), XMVectorSet(1.0f, 0.0f, -1.0f, 1.0f), XMVectorSet(0.0f, 0.0f, 1.0f, 1.0f));
+		BuildAdjacency();
+	}
+
+	const POINT& mouse = input.GetMousePosition();
 	const DXGI_SWAP_CHAIN_DESC1& scDesc = Renderer::GetInstance().GetSwapChainDesc();
 	const CameraComponent& cam = CameraComponent::GetMainCamera();
 
