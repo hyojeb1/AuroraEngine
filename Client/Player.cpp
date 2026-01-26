@@ -66,7 +66,7 @@ void Player::Render()
 
 void Player::Finalize()
 {
-	TimeManager::GetInstance().SetTimeScale(1.0f); // 시간 느린 상태에서 종료되는 상황 방지
+	TimeManager::GetInstance().SetTimeScale(1.0f); // ?���? ?���? ?��?��?��?�� 종료?��?�� ?��?�� 방�??
 }
 
 void Player::PlayerMove(float deltaTime, InputManager& input)
@@ -81,23 +81,23 @@ void Player::PlayerMove(float deltaTime, InputManager& input)
 	if (input.GetKey(KeyCode::A)) rightInput -= m_moveSpeed;
 	if (input.GetKey(KeyCode::D)) rightInput += m_moveSpeed;
 
-	// 대각선 이동 보정
+	// ???각선 ?��?�� 보정
 	if (forwardInput != 0.0f && rightInput != 0.0f) { forwardInput *= 0.7071f; rightInput *= 0.7071f; }
 	MovePosition(GetWorldDirectionVector(Direction::Forward) * forwardInput * deltaTime + GetWorldDirectionVector(Direction::Right) * rightInput * deltaTime);
 }
 
 void Player::PlayerShoot()
 {
-	float distance = 0.0f;
-
-	if (m_gunObject) if (m_gunFSM) m_gunFSM->Fire();
+	if (!m_gunObject) return;
 
 	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 	const XMVECTOR& origin = mainCamera.GetPosition();
 	const XMVECTOR& direction = mainCamera.GetForwardVector();
+	float distance = 0.0f;
 	GameObjectBase* hit = ColliderComponent::CheckCollision(origin, direction, distance);
 	if (hit)
 	{
+		if (m_gunFSM) m_gunFSM->Fire();
 		if (Enemy* enemy = dynamic_cast<Enemy*>(hit)) enemy->Die();
 
 		LineBuffer lineBuffer = {};
@@ -135,12 +135,12 @@ void Player::PlayerDeadEyeStart()
 		m_isDeadEyeActive = true;
 		m_deadEyeTime = m_deadEyeDuration;
 
-		TimeManager::GetInstance().SetTimeScale(0.1f); // 데드 아이 타임 활성화 시 시간 느리게
+		TimeManager::GetInstance().SetTimeScale(0.1f); // ?��?�� ?��?�� ????�� ?��?��?�� ?�� ?���? ?��리게
 		m_cameraYSensitivity = m_cameraObject->GetSensitivity();
-		m_cameraObject->SetSensitivity(0.01f); // 데드 아이 타임 활성화 시 카메라 감도 감소
+		m_cameraObject->SetSensitivity(0.01f); // ?��?�� ?��?�� ????�� ?��?��?�� ?�� 카메?�� 감도 감소
 		m_xSensitivity = m_cameraObject->GetSensitivity();
 
-		m_postProcessingBuffer.flags |= static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Grayscale);
+		Renderer::GetInstance().SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, true);
 
 		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [](const auto& a, const auto& b) { return get<0>(a) < get<0>(b); });
 		if (m_deadEyeTargets.size() > 6) m_deadEyeTargets.resize(6);
@@ -149,14 +149,14 @@ void Player::PlayerDeadEyeStart()
 
 void Player::PlayerDeadEye(float deltaTime)
 {
-	m_postProcessingBuffer.grayScaleIntensity = (1.0f - (m_deadEyeTime / m_deadEyeDuration)) * 2.0f;
+	Renderer::GetInstance().SetGrayScaleIntensity((1.0f - (m_deadEyeTime / m_deadEyeDuration)) * 2.0f);
 	m_deadEyeTime -= deltaTime;
 
-	if (m_deadEyeTime <= 0.0f) // 데드 아이 타임 종료
+	if (m_deadEyeTime <= 0.0f) // ?��?�� ?��?�� ????�� 종료
 	{
 		for (const auto& [timing, enemy] : m_deadEyeTargets)
 		{
-			if (timing > 999990.1f) continue; // 0.1초 이상 타이밍이 안맞으면 무시
+			if (timing > 999990.1f) continue; // 0.1�? ?��?�� ????��밍이 ?��맞으�? 무시
 
 			enemy->Die();
 
@@ -170,8 +170,6 @@ void Player::PlayerDeadEye(float deltaTime)
 		}
 		PlayerDeadEyeEnd();
 	}
-
-	Renderer::GetInstance().GetDeviceContext()->UpdateSubresource(ResourceManager::GetInstance().GetConstantBuffer(PSConstBuffers::PostProcessing).Get(), 0, nullptr, &m_postProcessingBuffer, 0, 0);
 }
 
 void Player::PlayerDeadEyeEnd()
@@ -180,13 +178,15 @@ void Player::PlayerDeadEyeEnd()
 
 	m_isDeadEyeActive = false;
 
-	TimeManager::GetInstance().SetTimeScale(1.0f); // 시간 정상화
-	m_cameraObject->SetSensitivity(m_cameraYSensitivity); // 카메라 감도 원래대로
+	TimeManager::GetInstance().SetTimeScale(1.0f); // ?���? ?��?��?��
+	m_cameraObject->SetSensitivity(m_cameraYSensitivity); // 카메?�� 감도 ?��?��???�?
 	m_xSensitivity = m_cameraObject->GetSensitivity();
 
 	m_deadEyeTargets.clear();
-	m_postProcessingBuffer.flags &= ~static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Grayscale);
-	m_postProcessingBuffer.grayScaleIntensity = 0.0f;
+
+	Renderer& renderer = Renderer::GetInstance();
+	renderer.SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, false);
+	renderer.SetGrayScaleIntensity(0.0f);
 }
 
 void Player::PlayNode()

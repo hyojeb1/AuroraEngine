@@ -52,6 +52,8 @@ public:
 
 	UINT GetID() const { return m_id; }
 	const std::string& GetName() const { return m_name; }
+	static GameObjectBase* GetSelectedObject() { return s_selectedObject; }
+	static void SetSelectedObject(GameObjectBase* selected) { s_selectedObject = selected; }
 
 	// 변환 관련 함수
 	// 위치 지정
@@ -89,6 +91,7 @@ public:
 
 	const DirectX::XMMATRIX& GetWorldMatrix() const { return m_worldMatrix; }
 	const WorldNormalBuffer& GetWorldNormalBuffer() const { return m_worldData; }
+	void ApplyWorldMatrix(const DirectX::XMMATRIX& worldMatrix);
 
 	// 컴포넌트 추가 // 컴포넌트 베이스 포인터 반환
 	ComponentBase* CreateComponent(const std::string& typeName);
@@ -132,6 +135,7 @@ private:
 	void SetDirty();
 	// 월드 행렬 갱신
 	const DirectX::XMMATRIX& UpdateWorldMatrix();
+	static GameObjectBase* s_selectedObject;
 };
 
 template<typename T> requires std::derived_from<T, ComponentBase>

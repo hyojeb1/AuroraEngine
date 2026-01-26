@@ -12,7 +12,116 @@
         -0.5,
         1.0
     ],
+    "navPolyIndices": [],
+    "navVertices": [],
     "rootGameObjects": [
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "baseColor": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "billboardType": 1,
+                    "blendState": 0,
+                    "psShaderName": "PSParticle.hlsl",
+                    "rasterState": 1,
+                    "textureFileName": "temple_OcclusionRoughnessMetallic.png",
+                    "type": "ParticleComponent",
+                    "uvOffset": [
+                        0.0,
+                        0.0
+                    ],
+                    "uvScale": [
+                        2.9800000190734863,
+                        3.109999895095825
+                    ],
+                    "vsShaderName": "VSParticle.hlsl"
+                }
+            ],
+            "name": "GameObjectBase_1",
+            "position": [
+                -1.482597827911377,
+                2.0,
+                0.0,
+                1.0
+            ],
+            "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
+                0.0
+            ],
+            "type": "GameObjectBase"
+        },
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "baseColor": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "billboardType": 1,
+                    "blendState": 2,
+                    "flipbookAutoPlay": true,
+                    "flipbookColumns": 8,
+                    "flipbookCurrentFrame": 15,
+                    "flipbookDestroyOnFinish": false,
+                    "flipbookFPS": 60.0,
+                    "flipbookLoop": true,
+                    "flipbookPlaybackSpeed": 1.0,
+                    "flipbookPlaying": true,
+                    "flipbookRandomStart": false,
+                    "flipbookRows": 8,
+                    "flipbookTotalFrames": 64,
+                    "psShaderName": "PSParticle.hlsl",
+                    "rasterState": 1,
+                    "textureFileName": "runner_atlas.png",
+                    "type": "FlipbookParticleComponent",
+                    "uvOffset": [
+                        0.875,
+                        0.125
+                    ],
+                    "uvScale": [
+                        0.125,
+                        0.125
+                    ],
+                    "vsShaderName": "VSParticle.hlsl"
+                }
+            ],
+            "name": "GameObjectBase_2",
+            "position": [
+                0.0,
+                2.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "GameObjectBase"
+        },
         {
             "childGameObjects": [
                 {
@@ -23,18 +132,18 @@
                                 {
                                     "blendState": 0,
                                     "materialFactorData": {
+                                        "ambientOcclusionFactor": 1.0,
                                         "baseColorFactor": [
                                             1.0,
                                             1.0,
                                             1.0,
                                             1.0
                                         ],
-                                        "ambientOcclusionFactor": 1.0,
                                         "emissionFactor": [
-                                            0.0,
-                                            0.0,
-                                            0.0,
-                                            0.0
+                                            1.0,
+                                            1.0,
+                                            1.0,
+                                            1.0
                                         ],
                                         "metallicFactor": 1.0,
                                         "normalScale": 1.0,
@@ -49,21 +158,21 @@
                             ],
                             "name": "Gun",
                             "position": [
-                                0.07500000298023224,
-                                -0.04500000178813934,
-                                0.15000000596046448,
+                                0.44999998807907104,
+                                -0.4000000059604645,
+                                2.299999952316284,
                                 0.0
                             ],
                             "rotation": [
                                 0.0,
-                                -0.18223552405834198,
                                 0.0,
-                                0.9832549095153809
+                                0.0,
+                                1.0
                             ],
                             "scale": [
-                                0.009999999776482582,
-                                0.009999999776482582,
-                                0.019999999552965164,
+                                0.10000000149011612,
+                                0.09000000357627869,
+                                0.38999998569488525,
                                 1.0
                             ],
                             "type": "GameObjectBase"
@@ -80,7 +189,7 @@
                     "name": "CamRotObject_2",
                     "position": [
                         0.0,
-                        0.0,
+                        1.7000000476837158,
                         0.0,
                         0.0
                     ],
@@ -103,7 +212,7 @@
             "name": "Player",
             "position": [
                 0.0,
-                2.0,
+                1.0,
                 0.0,
                 0.0
             ],
@@ -125,145 +234,47 @@
             "childGameObjects": [],
             "components": [
                 {
-                    "blendState": 0,
-                    "materialFactorData": {
-                        "baseColorFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "ambientOcclusionFactor": 1.0,
-                        "emissionFactor": [
-                            0.0,
-                            0.0,
-                            0.0,
-                            0.0
-                        ],
-                        "metallicFactor": 1.0,
-                        "normalScale": 1.0,
-                        "roughnessFactor": 1.0
-                    },
-                    "modelFileName": "test5.fbx",
-                    "psShaderName": "PSModel.hlsl",
-                    "rasterState": 1,
-                    "type": "SkinnedModelComponent",
-                    "vsShaderName": "VSModelSkinAnim.hlsl"
-                },
-                {
-                    "boundingBoxes": [],
-                    "boundingFrustums": [],
-                    "boundingOrientedBoxes": [
-                        {
-                            "center": [
-                                0.0,
-                                2.0,
-                                0.0
-                            ],
-                            "extents": [
-                                1.0,
-                                3.5,
-                                1.0
-                            ],
-                            "orientation": [
-                                0.0,
-                                0.0,
-                                0.0,
-                                1.0
-                            ]
-                        }
+                    "baseColor": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
                     ],
-                    "type": "ColliderComponent"
+                    "billboardType": 1,
+                    "blendState": 2,
+                    "psShaderName": "PSParticle.hlsl",
+                    "rasterState": 2,
+                    "textureFileName": "Crosshair.png",
+                    "type": "InstancedParticleComponent",
+                    "uvOffset": [
+                        0.0,
+                        0.0
+                    ],
+                    "uvScale": [
+                        0.5,
+                        0.5
+                    ],
+                    "vsShaderName": "VSParticleInstanced.hlsl"
                 }
             ],
-            "name": "GameObjectBase_3",
+            "name": "GameObjectBase_6",
             "position": [
-                -4.699999809265137,
+                0.9323159456253052,
+                -0.9892309904098511,
                 0.0,
-                12.899999618530273,
-                0.0
+                1.0
             ],
             "rotation": [
+                -0.0,
                 0.0,
-                0.0,
-                0.0,
+                -0.0,
                 1.0
             ],
             "scale": [
                 1.0,
                 1.0,
                 1.0,
-                1.0
-            ],
-            "type": "GameObjectBase"
-        },
-        {
-            "childGameObjects": [],
-            "components": [
-                {
-                    "blendState": 0,
-                    "materialFactorData": {
-                        "baseColorFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "ambientOcclusionFactor": 1.0,
-                        "emissionFactor": [
-                            0.0,
-                            0.0,
-                            0.0,
-                            0.0
-                        ],
-                        "metallicFactor": 1.0,
-                        "normalScale": 1.0,
-                        "roughnessFactor": 1.0
-                    },
-                    "modelFileName": "test5.fbx",
-                    "psShaderName": "PSModel.hlsl",
-                    "rasterState": 1,
-                    "type": "SkinnedModelComponent",
-                    "vsShaderName": "VSModelSkinAnim.hlsl"
-                },
-                {
-                    "boundingBoxes": [
-                        {
-                            "center": [
-                                0.0,
-                                2.0,
-                                0.0
-                            ],
-                            "extents": [
-                                1.0,
-                                3.200000047683716,
-                                1.0
-                            ]
-                        }
-                    ],
-                    "boundingFrustums": [],
-                    "boundingOrientedBoxes": [],
-                    "type": "ColliderComponent"
-                }
-            ],
-            "name": "GameObjectBase_4",
-            "position": [
-                8.75,
-                0.0,
-                12.350000381469727,
                 0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
             ],
             "type": "GameObjectBase"
         }

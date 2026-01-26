@@ -1,3 +1,4 @@
+///BOF PSModel.hlsl
 #include "CommonPS.hlsli"
 #include "CommonMath.hlsli"
 
@@ -12,7 +13,7 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     // 노말 텍스처
     float4 bump = normalTexture.Sample(SamplerLinearWrap, input.UV);
     // 방출 텍스처
-    float4 emission = emissionTexture.Sample(SamplerLinearWrap, input.UV) * EmissionFactor;
+    float3 emission = emissionTexture.Sample(SamplerLinearWrap, input.UV).rgb * EmissionFactor.rgb;
     
     float3 V = normalize(CameraPosition.xyz - input.WorldPosition.xyz); // 뷰 벡터
     float3 L = -LightDirection.xyz; // 라이트 벡터
@@ -47,7 +48,7 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     
     // IBL 계산
     // 환경 맵에서 반사광 샘플링
-    float3 envReflection = environmentMapTexture.SampleLevel(SamplerLinearWrap, R, orm.g * 16.0f).rgb;
+    float3 envReflection = environmentMapTexture.SampleLevel(SamplerLinearWrap, R, orm.g * 32.0f).rgb;
     
     // 프레넬로 반사 강도 조절 (시야각에 따라 반사 강도 변화)
     float3 F_env = FresnelSchlickRoughness(NdotV, F0, orm.g);
@@ -55,16 +56,16 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float3 kD_env = (1.0f - F_env) * (1.0f - orm.b); // 디퓨즈 기여도
     
     // 환경 맵에서 디퓨즈 샘플링 (높은 MIP 레벨 사용)
-    float3 envDiffuse = environmentMapTexture.SampleLevel(SamplerLinearWrap, N, orm.g * 16.0f).rgb;
+    float3 envDiffuse = environmentMapTexture.SampleLevel(SamplerLinearWrap, N, orm.g * 32.0f).rgb;
     
-    float3 indirectDiffuse = envDiffuse * baseColor.rgb * kD_env * orm.r; // 환경광 디퓨즈
-    float3 indirectSpecular = envReflection * F_env; // 환경광 스페큘러
+    float3 indirectDiffuse = lerp(envDiffuse, LightColor.rgb, orm.r) * baseColor.rgb * kD_env; // 환경광 디퓨즈
+    float3 indirectSpecular = envReflection * F_env * shadow; // 환경광 스페큘러
     
     // IBL 최종 기여도
-    float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w * shadow;
+    float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w;
     
     // 최종 색상
     baseColor.rgb = Lo + ibl;
-    
-    return baseColor + emission;
+   
+    return float4((baseColor.rgb + emission.rgb), baseColor.a);
 }
