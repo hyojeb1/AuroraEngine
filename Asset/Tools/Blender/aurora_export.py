@@ -1,21 +1,25 @@
-﻿# Aurora Engine Blender Exporter
+﻿# bof aurora_export.py
+# Aurora Engine Blender Exporter
 # Exports per-object FBX and a scene JSON compatible with AuroraEngine.
 # Run in Blender Text Editor.
 
 import bpy
 import json
 import os
+import shutil
 from mathutils import Matrix, Vector
 from bpy_extras.io_utils import axis_conversion
 
 # ----- Config -----
 EXPORT_COLLECTION = "AE_Export"
 
+SCENE_NAME = "HyojeTestScene"
 # You can use Blender-relative paths with "//".
-FBX_DIR = r"C:\dev\AuroraEngine\Asset\Model\AuroraExport"
+FBX_DIR = rf"C:\dev\AuroraEngine\Asset\Model\{SCENE_NAME}"
 # Model root used to build modelFileName relative paths for Aurora.
 MODEL_ROOT = r"C:\dev\AuroraEngine\Asset\Model"
-SCENE_JSON_PATH = r"C:\dev\AuroraEngine\Asset\Scene\AuroraExport.json"
+SCENE_JSON_PATH = rf"C:\dev\AuroraEngine\Asset\Scene\{SCENE_NAME}.json"
+TEXTURE_DIR = rf"C:\dev\AuroraEngine\Asset\Texture\{SCENE_NAME}"
 
 # FBX axis settings. These should match how you want Aurora to see the model.
 FBX_AXIS_FORWARD = "-Z"
@@ -85,6 +89,7 @@ def collider_type(obj):
 
 def axis_convert_matrix():
     return axis_conversion(
+        # Blender default forward is Y, up is Z.
         from_forward="Y",
         from_up="Z",
         to_forward=FBX_AXIS_FORWARD,
@@ -156,8 +161,40 @@ def export_fbx_for_object(obj, fbx_path):
         add_leaf_bones=False,
         use_tspace=True,
         mesh_smooth_type="FACE",
+        path_mode='COPY',
+        embed_textures=False
     )
 
+def move_exported_textures(source_dir, target_dir):
+    # 이동시킬 이미지 확장자 목록
+    image_extensions = {".png", ".jpg", ".jpeg", ".tga", ".dds", ".bmp", ".tif", ".tiff"}
+    
+    # 소스 디렉토리가 없으면 패스
+    if not os.path.exists(source_dir):
+        return
+
+    files = os.listdir(source_dir)
+    moved_count = 0
+
+    for filename in files:
+        name, ext = os.path.splitext(filename)
+        if ext.lower() in image_extensions:
+            src_path = os.path.join(source_dir, filename)
+            dst_path = os.path.join(target_dir, filename)
+            
+            try:
+                # 목적지에 파일이 이미 있으면 삭제 (덮어쓰기 위해)
+                if os.path.exists(dst_path):
+                    os.remove(dst_path)
+                
+                # 파일 이동
+                shutil.move(src_path, dst_path)
+                moved_count += 1
+            except Exception as e:
+                print(f"Failed to move texture {filename}: {e}")
+
+    if moved_count > 0:
+        print(f"Moved {moved_count} textures to {target_dir}")
 
 def build_model_component(obj, model_file):
     return {
@@ -324,8 +361,11 @@ def main():
     # Resolve output paths
     fbx_dir = abspath(FBX_DIR)
     scene_path = abspath(SCENE_JSON_PATH)
+    texture_dir = abspath(TEXTURE_DIR)
+
     ensure_dir(fbx_dir)
     ensure_dir(os.path.dirname(scene_path))
+    ensure_dir(texture_dir)
 
     # Build unique model filenames
     used_names = {}
@@ -355,6 +395,8 @@ def main():
         rel = rel.replace("\\", "/")
         model_map[obj] = rel
 
+    move_exported_textures(fbx_dir, texture_dir)
+
     # Build scene JSON
     scene = bpy.context.scene
     scene_json = {
@@ -381,3 +423,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# eof aurora_export.py

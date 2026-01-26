@@ -37,6 +37,9 @@
     <Filter Include="Base\Component\Model">
       <UniqueIdentifier>{0871ba25-6187-468b-9cf2-5256db0e88f6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource\BlenderScript">
+      <UniqueIdentifier>{9d82b7b4-54ef-47d1-ad12-a14444fc248c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Renderer.cpp">
@@ -273,6 +276,15 @@
     </None>
     <None Include="..\Asset\Shader\CommonPS.hlsli">
       <Filter>Shader</Filter>
+    </None>
+    <None Include="..\Tools\Blender\aurora_export.py">
+      <Filter>Resource\BlenderScript</Filter>
+    </None>
+    <None Include="..\Tools\Blender\mesh2SM.py">
+      <Filter>Resource\BlenderScript</Filter>
+    </None>
+    <None Include="..\Tools\Blender\fbx_scale_fixer_gui.py">
+      <Filter>Resource\BlenderScript</Filter>
     </None>
   </ItemGroup>
 </Project>
