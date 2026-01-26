@@ -102,6 +102,9 @@
     <ClCompile Include="FSMComponentEnemy.cpp">
       <Filter>Base\Component\FSM</Filter>
     </ClCompile>
+    <ClCompile Include="NavigationManager.cpp">
+      <Filter>Manager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -182,6 +185,9 @@
     </ClInclude>
     <ClInclude Include="FSMComponentEnemy.h">
       <Filter>Base\Component\FSM</Filter>
+    </ClInclude>
+    <ClInclude Include="NavigationManager.h">
+      <Filter>Manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

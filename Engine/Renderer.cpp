@@ -22,10 +22,6 @@ void Renderer::Initialize()
 
 void Renderer::BeginFrame()
 {
-	ResourceManager& resourceManager = ResourceManager::GetInstance();
-	resourceManager.SetAllConstantBuffers();
-	resourceManager.SetAllSamplerStates();
-
 	#ifdef _DEBUG
 	// ImGui 프레임 시작
 	BeginImGuiFrame();
@@ -47,8 +43,12 @@ void Renderer::BeginFrame()
 			// 씬 렌더 타겟 MSAA 해제 및 결과 텍스처 복사
 			ResolveSceneMSAA();
 
+			ResourceManager& resourceManager = ResourceManager::GetInstance();
+
 			// 래스터 상태 변경
-			ResourceManager::GetInstance().SetRasterState(RasterState::BackBuffer);
+			resourceManager.SetRasterState(RasterState::BackBuffer);
+			// 후처리용 상수 버퍼 업데이트
+			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(PSConstBuffers::PostProcessing).Get(), 0, nullptr, &m_postProcessingBuffer, 0, 0);
 
 			// 백 버퍼로 씬 렌더링
 			RenderSceneToBackBuffer();
@@ -126,18 +126,13 @@ void Renderer::EndFrame()
 	}
 
 	// 2D UI 렌더링
-	m_spriteBatch->Begin(SpriteSortMode_Deferred, nullptr, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
-
-	for (function<void()>& uiRenderFunction : m_UIRenderFunctions) uiRenderFunction();
-	m_UIRenderFunctions.clear();
-
-	m_spriteBatch->End();
+	RenderXTKSpriteBatch();
 
 	#ifdef _DEBUG
 	ImGui::Begin("SRV");
 	ImGui::Image
 	(
-		(ImTextureID)m_sceneShaderResourceView.Get(),
+		(ImTextureID)m_directionalLightShadowMapSRV.Get(),
 		ImVec2(500.0f, 500.0f)
 	);
 	ImGui::End();
@@ -297,7 +292,7 @@ void Renderer::CreateBackBufferRenderTarget()
 	// 렌더 타겟 뷰 생성
 	const D3D11_RENDER_TARGET_VIEW_DESC rtvDesc =
 	{
-		.Format = m_swapChainDesc.Format,
+		.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, // 감마 보정
 		.ViewDimension = m_swapChainDesc.SampleDesc.Count > 1 ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D
 	};
 	hr = m_device->CreateRenderTargetView(RENDER_TARGET(RenderStage::BackBuffer).renderTarget.Get(), &rtvDesc, RENDER_TARGET(RenderStage::BackBuffer).renderTargetView.GetAddressOf());
@@ -352,7 +347,7 @@ void Renderer::CreateSceneRenderTarget()
 		.Height = m_swapChainDesc.Height,
 		.MipLevels = 1, // 단일 밉맵
 		.ArraySize = 1, // 단일 텍스처
-		.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, // 감마 보정 함
+		.Format = DXGI_FORMAT_R8G8B8A8_UNORM,
 		.SampleDesc = m_sceneBufferSampleDesc,
 		.Usage = D3D11_USAGE_DEFAULT, // GPU 읽기/쓰기
 		.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, // 렌더 타겟 및 셰이더 리소스
@@ -508,6 +503,112 @@ void Renderer::RenderSceneToBackBuffer()
 	m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::BackBuffer), 1, m_sceneShaderResourceView.GetAddressOf());
 
 	m_deviceContext->Draw(3, 0);
+}
+
+void Renderer::RenderXTKSpriteBatch()
+{
+	// 랜더 타겟과 깊이-스텐실 뷰 저장
+	array<ID3D11RenderTargetView*, 1> savedRTV = { nullptr };
+	ID3D11DepthStencilView* savedDSV = nullptr;
+	m_deviceContext->OMGetRenderTargets(1, savedRTV.data(), &savedDSV);
+
+	// 뷰포트 저장
+	array<D3D11_VIEWPORT, D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE> savedVP = {};
+	UINT vpCount = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+	m_deviceContext->RSGetViewports(&vpCount, savedVP.data());
+
+	// 랜스터, 블렌드, 깊이-스텐실 상태 저장
+	ID3D11RasterizerState* savedRS = nullptr;
+	ID3D11BlendState* savedBS = nullptr;
+	array<FLOAT, 4> savedBlendFactor = { 0.0f, 0.0f, 0.0f, 0.0f };
+	UINT savedSampleMask = 0;
+	ID3D11DepthStencilState* savedDSS = nullptr;
+	UINT savedStencilRef = 0;
+	m_deviceContext->RSGetState(&savedRS);
+	m_deviceContext->OMGetBlendState(&savedBS, savedBlendFactor.data(), &savedSampleMask);
+	m_deviceContext->OMGetDepthStencilState(&savedDSS, &savedStencilRef);
+
+	// Input assembler state 저장
+	ID3D11InputLayout* savedIL = nullptr;
+	ID3D11Buffer* savedVB[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT] = { nullptr };
+	array<UINT, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT> savedVBStrides = { 0 };
+	array<UINT, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT> savedVBOffsets = { 0 };
+	ID3D11Buffer* savedIB = nullptr;
+	DXGI_FORMAT savedIBFormat = DXGI_FORMAT_UNKNOWN;
+	UINT savedIBOffset = 0;
+	m_deviceContext->IAGetInputLayout(&savedIL);
+	m_deviceContext->IAGetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, savedVB, savedVBStrides.data(), savedVBOffsets.data());
+	m_deviceContext->IAGetIndexBuffer(&savedIB, &savedIBFormat, &savedIBOffset);
+	D3D11_PRIMITIVE_TOPOLOGY savedTopo = {};
+	m_deviceContext->IAGetPrimitiveTopology(&savedTopo);
+
+	// VS/PS shader 및 클래스 인스턴스 저장
+	ID3D11VertexShader* savedVS = nullptr;
+	ID3D11PixelShader* savedPS = nullptr;
+	array<ID3D11ClassInstance*, 1> savedVSCls = { nullptr };
+	array<ID3D11ClassInstance*, 1> savedPSCls = { nullptr };
+	UINT savedVSClsCount = 0, savedPSClsCount = 0;
+	m_deviceContext->VSGetShader(&savedVS, savedVSCls.data(), &savedVSClsCount);
+	m_deviceContext->PSGetShader(&savedPS, savedPSCls.data(), &savedPSClsCount);
+
+	// 픽셀 셰이더 리소스 뷰 및 샘플러 상태 저장
+	const UINT srvCount = static_cast<UINT>(TextureSlots::Count);
+	std::vector<ID3D11ShaderResourceView*> savedPSSRVs(srvCount, nullptr);
+	m_deviceContext->PSGetShaderResources(0, srvCount, savedPSSRVs.data());
+
+	std::vector<ID3D11SamplerState*> savedPSSamplers(srvCount, nullptr);
+	m_deviceContext->PSGetSamplers(0, srvCount, savedPSSamplers.data());
+
+	// 콘스탄트 버퍼 저장
+	const UINT cbSaveCount = 8;
+	std::vector<ID3D11Buffer*> savedPSCB(cbSaveCount, nullptr);
+	std::vector<ID3D11Buffer*> savedVSCB(cbSaveCount, nullptr);
+	m_deviceContext->PSGetConstantBuffers(0, cbSaveCount, savedPSCB.data());
+	m_deviceContext->VSGetConstantBuffers(0, cbSaveCount, savedVSCB.data());
+
+	// XTK SpriteBatch 렌더링
+	m_spriteBatch->Begin(SpriteSortMode_Deferred, nullptr, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
+	for (function<void()>& uiRenderFunction : m_UIRenderFunctions) uiRenderFunction();
+	m_UIRenderFunctions.clear();
+	m_spriteBatch->End();
+
+	// 이전 상태 복원
+	m_deviceContext->OMSetRenderTargets(1, savedRTV.data(), savedDSV);
+	m_deviceContext->RSSetViewports(vpCount, savedVP.data());
+	m_deviceContext->RSSetState(savedRS);
+	m_deviceContext->OMSetBlendState(savedBS, savedBlendFactor.data(), savedSampleMask);
+	m_deviceContext->OMSetDepthStencilState(savedDSS, savedStencilRef);
+
+	m_deviceContext->IASetInputLayout(savedIL);
+	m_deviceContext->IASetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, savedVB, savedVBStrides.data(), savedVBOffsets.data());
+	m_deviceContext->IASetIndexBuffer(savedIB, savedIBFormat, savedIBOffset);
+	m_deviceContext->IASetPrimitiveTopology(savedTopo);
+
+	m_deviceContext->VSSetShader(savedVS, savedVSClsCount ? savedVSCls.data() : nullptr, savedVSClsCount);
+	m_deviceContext->PSSetShader(savedPS, savedPSClsCount ? savedPSCls.data() : nullptr, savedPSClsCount);
+
+	m_deviceContext->PSSetShaderResources(0, srvCount, savedPSSRVs.data());
+	m_deviceContext->PSSetSamplers(0, srvCount, savedPSSamplers.data());
+	m_deviceContext->PSSetConstantBuffers(0, cbSaveCount, savedPSCB.data());
+	m_deviceContext->VSSetConstantBuffers(0, cbSaveCount, savedVSCB.data());
+
+	// 리소스 해제
+	for (UINT i = 0; i < srvCount; ++i) if (savedPSSRVs[i]) savedPSSRVs[i]->Release();
+	for (UINT i = 0; i < srvCount; ++i) if (savedPSSamplers[i]) savedPSSamplers[i]->Release();
+	for (UINT i = 0; i < cbSaveCount; ++i) if (savedPSCB[i]) savedPSCB[i]->Release();
+	for (UINT i = 0; i < cbSaveCount; ++i) if (savedVSCB[i]) savedVSCB[i]->Release();
+	if (savedRTV[0]) savedRTV[0]->Release();
+	if (savedDSV) savedDSV->Release();
+	if (savedRS) savedRS->Release();
+	if (savedBS) savedBS->Release();
+	if (savedDSS) savedDSS->Release();
+	if (savedIL) savedIL->Release();
+	for (auto& VB : savedVB) if (VB) VB->Release();
+	if (savedIB) savedIB->Release();
+	if (savedVS) savedVS->Release();
+	if (savedPS) savedPS->Release();
+	for (UINT i = 0; i < savedVSClsCount; ++i) if (savedVSCls[i]) savedVSCls[i]->Release();
+	for (UINT i = 0; i < savedPSClsCount; ++i) if (savedPSCls[i]) savedPSCls[i]->Release();
 }
 
 void Renderer::EndImGuiFrame()

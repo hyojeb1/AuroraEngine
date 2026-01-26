@@ -2,6 +2,8 @@
 #include "stdafx.h"
 #include "ResourceManager.h"
 
+#include "NavigationManager.h"
+
 using namespace std;
 using namespace DirectX;
 
@@ -47,9 +49,13 @@ void ResourceManager::Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11Dev
 	CreateRasterStates();
 
 	CreateConstantBuffers();
+	SetAllConstantBuffers();
 	CreateSamplerStates();
+	SetAllSamplerStates();
 
 	CacheAllTexture();
+
+	NavigationManager::GetInstance().Initialize();
 }
 
 void ResourceManager::SetDepthStencilState(DepthStencilState state)
@@ -291,8 +297,8 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 			D3D11_USAGE_DEFAULT,
 			D3D11_BIND_SHADER_RESOURCE,
 			0,
-			0, // dds 는 mipmap 자동 생성 안함
-			DDS_LOADER_DEFAULT,
+			0, // dds 는 mipmap 자동 생성 못함
+			type == TextureType::BaseColor || type == TextureType::Emissive ? DDS_LOADER_FORCE_SRGB : DDS_LOADER_IGNORE_SRGB,
 			nullptr,
 			m_textures[fileName].GetAddressOf()
 		);

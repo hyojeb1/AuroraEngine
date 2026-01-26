@@ -6,6 +6,7 @@
 #include "Renderer.h"
 #include "ResourceManager.h"
 #include "TimeManager.h"
+#include "NavigationManager.h"
 
 #ifdef _DEBUG
 #include "InputManager.h"
@@ -13,11 +14,6 @@
 
 using namespace std;
 using namespace DirectX;
-
-SceneBase::SceneBase()
-{
-	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
-}
 
 GameObjectBase* SceneBase::CreateRootGameObject(const string& typeName)
 {
@@ -58,6 +54,8 @@ GameObjectBase* SceneBase::GetGameObjectRecursive(const string& name)
 
 void SceneBase::BaseInitialize()
 {
+	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
+
 	m_type = GetTypeName(*this);
 
 	#ifdef _DEBUG
@@ -118,6 +116,9 @@ void SceneBase::BaseUpdate()
 
 		cout << "씬: " << m_type << " 저장 완료!" << endl;
 	}
+
+	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink();
+
 	#endif
 }
 
@@ -218,6 +219,10 @@ void SceneBase::BaseRender()
 
 	// 게임 오브젝트 렌더링
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseRender();
+
+	#ifdef _DEBUG
+	if (m_isNavMeshCreating) NavigationManager::GetInstance().RenderNavMesh();
+	#endif
 }
 
 void SceneBase::BaseRenderImGui()
@@ -232,7 +237,12 @@ void SceneBase::BaseRenderImGui()
 
 	#ifdef _DEBUG
 	ImGui::Checkbox("Debug Coordinates", &m_isRenderDebugCoordinates);
+
+	ImGui::Checkbox("NavMesh Creating", &m_isNavMeshCreating);
 	#endif
+
+	static float gamma = 1.0f;
+	if (ImGui::DragFloat("Gamma", &gamma, 0.01f, 0.1f, 5.0f)) Renderer::GetInstance().SetGamma(gamma);
 
 	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);
 	ImGui::DragFloat("IBL Intensity", &m_globalLightData.lightColor.w, 0.001f, 0.0f, 1.0f);
@@ -300,7 +310,12 @@ nlohmann::json SceneBase::BaseSerialize()
 		m_globalLightData.lightDirection.m128_f32[3]
 	};
 
+	// 환경 맵 파일 이름
 	jsonData["environmentMapFileName"] = m_environmentMapFileName;
+
+	// 네비게이션 메시 저장
+	nlohmann::json navMeshData = NavigationManager::GetInstance().Serialize();
+	if (!navMeshData.is_null() && navMeshData.is_object()) jsonData.merge_patch(navMeshData);
 
 	// 파생 클래스의 직렬화 호출
 	nlohmann::json derivedData = Serialize();
@@ -336,6 +351,9 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 
 	// 환경 맵 파일 이름
 	m_environmentMapFileName = jsonData["environmentMapFileName"].get<string>();
+
+	// 네비게이션 메시 로드
+	NavigationManager::GetInstance().Deserialize(jsonData);
 
 	// 파생 클래스의 데이터 로드
 	Deserialize(jsonData);

@@ -132,6 +132,7 @@ void InputManager::ProcessRawMouse(const RAWMOUSE& mouse)
 	m_mouseDelta.y += static_cast<int>(mouse.lLastY);
 
 	GetCursorPos(&m_mousePos);
+	ScreenToClient(WindowManager::GetInstance().GetHWnd(), &m_mousePos);
 }
 
 bool InputManager::GetKeyDown(KeyCode key) const
