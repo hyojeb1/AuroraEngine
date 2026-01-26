@@ -64,6 +64,7 @@ void SceneBase::BaseInitialize()
 	m_debugCamera = make_unique<DebugCamera>();
 	static_cast<Base*>(m_debugCamera.get())->BaseInitialize();
 	m_debugCamera->Initialize();
+	static_cast<GameObjectBase*>(m_debugCamera.get())->CreateComponent<CameraComponent>()->SetAsMainCamera();
 	#endif
 
 	// 저장된 씬 파일 불러오기
@@ -94,6 +95,7 @@ void SceneBase::BaseUpdate()
 	#ifdef _DEBUG
 	m_debugCamera->Update();
 	static_cast<Base*>(m_debugCamera.get())->BaseUpdate();
+	PickObjectDebugCamera();
 	#else
 	Update();
 	#endif
@@ -118,11 +120,8 @@ void SceneBase::BaseUpdate()
 		cout << "씬: " << m_type << " 저장 완료!" << endl;
 	}
 
-	// 네비게이션 메시 생성 모드일 때 링크 배치 처리
 	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink();
 
-	// 디버그 카메라로 오브젝트 선택
-	PickObjectDebugCamera();
 	#endif
 }
 
@@ -554,7 +553,7 @@ void SceneBase::RenderSkybox()
 void SceneBase::PickObjectDebugCamera()
 {
 	InputManager& inputManager = InputManager::GetInstance();
-	if (!inputManager.GetKeyDown(KeyCode::MouseRight)) return;
+	if (!inputManager.GetKeyDown(KeyCode::MouseLeft)) return;
 
 	const POINT& mouse = inputManager.GetMousePosition();
 	pair<XMVECTOR, XMVECTOR> ray = CameraComponent::GetMainCamera().RayCast(static_cast<float>(mouse.x), static_cast<float>(mouse.y));
