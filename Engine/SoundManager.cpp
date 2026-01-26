@@ -449,7 +449,7 @@ void SoundManager::UpdateUINodeIndex()
 	{
 		return;
 	}
-	if (m_rhythmTimerIndex + 1 < m_NodeData.size() &&
+	if (m_rhythmUIIndex + 1 < m_NodeData.size() &&
 		m_NodeData[m_rhythmUIIndex].first < GetCurrentPlaybackTime())
 	{
 		m_rhythmUIIndex++;

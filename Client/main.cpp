@@ -17,11 +17,10 @@ int main()
 	cout << "==================================" << endl;
 	cout << "Welcome to Aurora Engine" << endl;
 	cout << "==================================" << endl;
-#else
+//#else
 //int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
-int main()
-{
-#endif
+
+//#endif
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
@@ -31,7 +30,7 @@ int main()
 	windowManager.Initialize(L"Aurora");
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
-	sceneManager.ChangeScene("HyojeTestScene");
+	sceneManager.ChangeScene("TestScene");
 
 	SoundManager& soundManager = SoundManager::GetInstance();
 	soundManager.Initialize();
