@@ -49,7 +49,6 @@ SamplerState SamplerPointClamp : register(s0); // PostProcess
 SamplerState SamplerLinearWrap : register(s1); // Model, Skybox
 SamplerComparisonState SamplerComparisonClamp : register(s2); // Shadow Map
 
-
 // --------------------------------------------------------
 // Textures
 // --------------------------------------------------------
