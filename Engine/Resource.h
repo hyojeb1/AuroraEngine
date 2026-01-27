@@ -3,11 +3,8 @@
 
 struct RenderTarget
 {
-	com_ptr<ID3D11Texture2D> renderTarget = nullptr; // 렌더 타겟 텍스처
-	com_ptr<ID3D11RenderTargetView> renderTargetView = nullptr; // 렌더 타겟 뷰
-
-	com_ptr<ID3D11Texture2D> depthStencilTexture = nullptr; // 깊이-스텐실 텍스처
-	com_ptr<ID3D11DepthStencilView> depthStencilView = nullptr; // 깊이-스텐실 뷰
+	std::vector<std::pair<com_ptr<ID3D11Texture2D>, com_ptr<ID3D11RenderTargetView>>> renderTargets = {}; // 렌더 타겟 텍스처들과 뷰들
+	std::pair<com_ptr<ID3D11Texture2D>, com_ptr<ID3D11DepthStencilView>> depthStencil = {}; // 깊이-스텐실 텍스처와 뷰
 };
 
 constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 8192; // 방향성 광원 그림자 맵 크기

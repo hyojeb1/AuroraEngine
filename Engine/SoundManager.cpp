@@ -6,7 +6,7 @@
 #include "SoundManager.h"
 #include "TimeManager.h"
 
-constexpr size_t ChannelCount = 64; //profiling ?ë¸˜?ìŠ‚
+constexpr size_t ChannelCount = 64; //profiling ?ë¸???Š‚
 
 void SoundManager::Initialize()
 {
@@ -155,12 +155,19 @@ void SoundManager::SetVolume_UI(float volume)
 
 void SoundManager::ConvertBGMSource()
 {
+	bool hasfile = false;
+
 	const std::filesystem::path BGMDirectory = "../Asset/Sound/BGM/";
 
-	for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(BGMDirectory))
+	if (std::filesystem::exists(BGMDirectory))
 	{
-		if (dirEntry.is_regular_file())
+		for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(BGMDirectory))
 		{
+			if (!dirEntry.is_regular_file())
+				continue;
+
+			hasfile = true;
+			
 			std::string fileName = std::filesystem::path(dirEntry).stem().string();
 
 			FMOD::Sound* temp;
@@ -172,17 +179,33 @@ void SoundManager::ConvertBGMSource()
 
 			BGM_List.emplace(fileName, temp);
 		}
+		
+		if(!hasfile)
+		{
+			MessageBoxA(nullptr, "BGM resource not found", "Error", MB_OK | MB_ICONERROR);
+		}
+	}
+	else
+	{
+		MessageBoxA(nullptr, "BGM path not found", "Error", MB_OK | MB_ICONERROR);
 	}
 }
 
 void SoundManager::ConvertSFXSource()
 {
+	bool hasfile = false;
+
 	const std::filesystem::path SFXDirectory = "../Asset/Sound/SFX/";
 
-	for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(SFXDirectory))
+	if (std::filesystem::exists(SFXDirectory))
 	{
-		if (dirEntry.is_regular_file())
+		for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(SFXDirectory))
 		{
+			if (dirEntry.is_regular_file())
+				continue;
+
+			hasfile = true;
+
 			std::string fileName = std::filesystem::path(dirEntry).stem().string();
 
 			FMOD::Sound* temp;
@@ -190,18 +213,35 @@ void SoundManager::ConvertSFXSource()
 			m_CoreSystem->createSound(fullPath.c_str(), FMOD_DEFAULT | FMOD_3D, nullptr, &temp);
 
 			SFX_List.emplace(fileName, temp);
+			
 		}
+
+		if (!hasfile)
+		{
+			MessageBoxA(nullptr, "SFX resource not found", "Error", MB_OK | MB_ICONERROR);
+		}
+	}
+	else
+	{
+		MessageBoxA(nullptr, "SFX path not found", "Error", MB_OK | MB_ICONERROR);
 	}
 }
 
 void SoundManager::ConvertUISource()
 {
+	bool hasfile = false;
+
 	const std::filesystem::path UIDirectory = "../Asset/Sound/UI/";
 
-	for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(UIDirectory))
+	if (std::filesystem::exists(UIDirectory))
 	{
-		if (dirEntry.is_regular_file())
+		for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(UIDirectory))
 		{
+			if (dirEntry.is_regular_file())
+				continue;
+
+			hasfile = true;
+
 			std::string fileName = std::filesystem::path(dirEntry).stem().string();
 
 			FMOD::Sound* temp;
@@ -209,7 +249,16 @@ void SoundManager::ConvertUISource()
 			m_CoreSystem->createSound(fullPath.c_str(), FMOD_DEFAULT | FMOD_2D, nullptr, &temp);
 
 			UI_List.emplace(fileName, temp);
+
 		}
+		if (!hasfile)
+		{
+			MessageBoxA(nullptr, "UI resource not found", "Error", MB_OK | MB_ICONERROR);
+		}
+	}
+	else
+	{
+		MessageBoxA(nullptr, "UI path not found", "Error", MB_OK | MB_ICONERROR);
 	}
 }
 
@@ -232,6 +281,11 @@ void SoundManager::CreateNodeData(const std::string& filename)
 
 	std::string path = "../Asset/BeatMapData/";
 	std::string ext = "_nodes.json";
+
+	if (!std::filesystem::exists(path))
+	{
+		std::filesystem::create_directories(path);
+	}
 
 	std::ifstream file(path + filename + ext);
 
@@ -419,6 +473,12 @@ void SoundManager::CreateNodeData(const std::string& filename)
 
 void SoundManager::LoadNodeData()
 {
+	if (strcmp(m_CurrentTrackName.c_str(), "Invaild"))
+	{
+		MessageBoxA(nullptr, "Invaild Node Data", "Error", MB_OK | MB_ICONERROR);
+		return;
+	}
+
 	std::string path = "../Asset/BeatMapData/" + m_CurrentTrackName + "_nodes.json";
 	std::ifstream in(path);
 	nlohmann::json j;
