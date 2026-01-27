@@ -12,6 +12,9 @@ using namespace std;
 
 int main()
 {
+	cout << "==================================" << endl;
+	cout << "Welcome to Aurora Engine" << endl;
+	cout << "==================================" << endl;
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
