@@ -67,7 +67,7 @@ void SceneBase::SaveState()
 	const nlohmann::json inverseDiff = nlohmann::json::diff(sceneData, m_lastSavedSnapshot);
 	m_previousStateInversePatches.push_back(inverseDiff);
 
-	if (m_previousStateInversePatches.size() > 100) m_previousStateInversePatches.pop_front();
+	if (m_previousStateInversePatches.size() > 1000) m_previousStateInversePatches.pop_front();
 
 	m_lastSavedSnapshot = sceneData;
 }
@@ -115,6 +115,8 @@ void SceneBase::BaseInitialize()
 	#ifdef NDEBUG
 	Initialize();
 	#endif
+
+	SaveState();
 }
 
 void SceneBase::BaseFixedUpdate()
@@ -155,8 +157,8 @@ void SceneBase::BaseUpdate()
 		cout << "씬: " << m_type << " 저장 완료!" << endl;
 	}
 
-	if (inputManager.GetKeyDown(KeyCode::E)) SaveState();
-	if (inputManager.GetKeyDown(KeyCode::Q)) Undo();
+	if (inputManager.GetKeyUp(KeyCode::MouseLeft)) SaveState();
+	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::Z)) Undo();
 
 	// 디버그 카메라로 오브젝트 선택
 	PickObjectDebugCamera();
@@ -477,7 +479,11 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 	// 파생 클래스의 데이터 로드
 	Deserialize(jsonData);
 
-	// 기존 게임 오브젝트들 정리
+	// 선택된 게임 오브젝트 초기화
+	GameObjectBase::SetSelectedObject(nullptr);
+
+	// 기존 게임 오브젝트들 종료 및 제거
+	BaseFinalize();
 	m_gameObjects.clear();
 
 	// 게임 오브젝트들 로드
