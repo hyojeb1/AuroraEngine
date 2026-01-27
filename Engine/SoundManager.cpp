@@ -524,20 +524,19 @@ void SoundManager::UpdateUINodeIndex()
 
 bool SoundManager::CheckRhythm(float correction)
 {
-	//const float time = GetCurrentPlaybackTime();
+	const float time = GetCurrentPlaybackTime();
 
-	//if (m_NodeData[m_rhythmTimerIndex].first - correction + m_RhythmOffSet <= time && m_NodeData[m_rhythmTimerIndex].second + correction + m_RhythmOffSet >= time)
-	//{
-	//	std::cout << "Success! : " << std::endl;
-	//	return true;
-	//}
-	//else
-	//{
-	//	std::cout << "Failed! : " << std::endl;
+	if (m_NodeData[m_rhythmTimerIndex].first - correction + m_RhythmOffSet <= time && m_NodeData[m_rhythmTimerIndex].second + correction + m_RhythmOffSet >= time)
+	{
+		std::cout << "Success! : " << std::endl;
+		return true;
+	}
+	else
+	{
+		std::cout << "Failed! : " << std::endl;
 
-	//	return false;
-	//}
-	return false;
+		return false;
+	}
 }
 
 void SoundManager::Main_BGM_Shot(const std::string filename)
