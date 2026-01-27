@@ -19,8 +19,8 @@ int main()
 	cout << "==================================" << endl;
 //#else
 //int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
-
 //#endif
+
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
@@ -30,10 +30,10 @@ int main()
 	windowManager.Initialize(L"Aurora");
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
-	sceneManager.ChangeScene("TestScene");
+	sceneManager.ChangeScene("HyojeTestScene");
 
-	SoundManager& soundManager = SoundManager::GetInstance();
-	soundManager.Initialize();
+	//SoundManager& soundManager = SoundManager::GetInstance();
+	//soundManager.Initialize();
 
 	while (windowManager.ProcessMessages()) sceneManager.Run();
 
