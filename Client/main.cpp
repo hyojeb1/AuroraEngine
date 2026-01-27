@@ -14,7 +14,6 @@ using namespace std;
 
 int main()
 {
-
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
