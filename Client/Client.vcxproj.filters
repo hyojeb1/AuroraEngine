@@ -29,6 +29,9 @@
     <ClCompile Include="TaehyeonTestScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="TitleScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -57,6 +60,9 @@
       <Filter>Component</Filter>
     </ClInclude>
     <ClInclude Include="TaehyeonTestScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="TitleScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
   </ItemGroup>

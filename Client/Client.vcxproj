@@ -192,6 +192,7 @@
     <ClCompile Include="TaehyeonTestScene.cpp" />
     <ClCompile Include="TestCameraObject.cpp" />
     <ClCompile Include="TestScene.cpp" />
+    <ClCompile Include="TitleScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CamRotObject.h" />
@@ -204,6 +205,7 @@
     <ClInclude Include="TaehyeonTestScene.h" />
     <ClInclude Include="TestCameraObject.h" />
     <ClInclude Include="TestScene.h" />
+    <ClInclude Include="TitleScene.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Asset\Scene\HyojeTestScene.json" />
