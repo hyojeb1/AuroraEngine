@@ -9,10 +9,7 @@
 #include "NavigationManager.h"
 #include "WindowManager.h"
 #include "ModelComponent.h"
-
-#ifdef _DEBUG
 #include "InputManager.h"
-#endif
 
 using namespace std;
 using namespace DirectX;
@@ -121,11 +118,12 @@ void SceneBase::BaseInitialize()
 
 	GetResources();
 
-	#ifdef NDEBUG
+	#ifdef _DEBUG
+	SaveState();
+	#else
 	Initialize();
 	#endif
 
-	SaveState();
 }
 
 void SceneBase::BaseFixedUpdate()
@@ -277,6 +275,9 @@ void SceneBase::BaseRender()
 
 	// 게임 오브젝트 렌더링
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseRender();
+
+	// 버튼 렌더링
+	for (const unique_ptr<Button>& button : m_buttons) button->RenderButton(renderer);
 
 	#ifdef _DEBUG
 	if (m_isNavMeshCreating) NavigationManager::GetInstance().RenderNavMesh();
