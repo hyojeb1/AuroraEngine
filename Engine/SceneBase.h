@@ -10,6 +10,9 @@ class SceneBase : public Base
 	#ifdef _DEBUG
 	std::unique_ptr<DebugCamera> m_debugCamera = nullptr; // 디버그 카메라 게임 오브젝트
 	bool m_isNavMeshCreating = false; // 네비게이션 메시 생성 중 여부
+
+	std::deque<nlohmann::json> m_previousStateInversePatches = {}; // 이전 상태 역패치들
+	nlohmann::json m_lastSavedSnapshot = {}; // 마지막으로 저장된 스냅샷
 	#endif
 
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트 포인터
@@ -65,6 +68,11 @@ public:
 
 	GameObjectBase* GetRootGameObject(const std::string& name); // 이름으로 루트 게임 오브젝트 검색 // 없으면 nullptr 반환
 	GameObjectBase* GetGameObjectRecursive(const std::string& name); // 이름으로 게임 오브젝트 재귀 검색 // 없으면 nullptr 반환
+
+	#ifdef _DEBUG
+	void SaveState(); // 현재 상태 저장
+	void Undo(); // 이전 상태로 되돌리기
+	#endif
 
 private:
 	// 씬 초기화 // 씬 사용 전 반드시 호출해야 함
