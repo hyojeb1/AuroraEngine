@@ -66,7 +66,7 @@ void SoundManager::Initialize()
 			std::cout << n.first << std::endl;
 		}
 
-		SoundManager::GetInstance().Main_BGM_Shot("DOB_Music_suje_test");
+		SoundManager::GetInstance().Main_BGM_Shot("Sample2");
 		SoundManager::GetInstance().LoadNodeData();
 
 		m_CoreSystem->createDSPByType(FMOD_DSP_TYPE_LOWPASS, &m_lowpass);
@@ -478,7 +478,7 @@ void SoundManager::CreateNodeData(const std::string& filename)
 
 void SoundManager::LoadNodeData()
 {
-	if (strcmp(m_CurrentTrackName.c_str(), "Invaild"))
+	if (strcmp(m_CurrentTrackName.c_str(), "Invaild") == 0)
 	{
 		MessageBoxA(nullptr, "Invaild Node Data", "Error", MB_OK | MB_ICONERROR);
 		return;
