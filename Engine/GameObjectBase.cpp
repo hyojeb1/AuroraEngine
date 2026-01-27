@@ -111,11 +111,7 @@ ComponentBase* GameObjectBase::CreateComponent(const string& typeName)
 
 	if (m_components[type_index(typeid(*component))])
 	{
-		#ifdef _DEBUG
 		cerr << "오류: 게임 오브젝트 '" << m_name << "'에 이미 컴포넌트 '" << typeName << "'가 존재합니다." << endl;
-		#else
-		MessageBoxA(nullptr, ("오류: 게임 오브젝트 '" + m_name + "'에 이미 컴포넌트 '" + typeName + "'가 존재합니다.").c_str(), "GameObjectBase Error", MB_OK | MB_ICONERROR);
-		#endif
 		return nullptr;
 	}
 
@@ -386,14 +382,7 @@ void GameObjectBase::BaseDeserialize(const nlohmann::json& jsonData)
 		string typeName = componentData["type"].get<string>();
 		unique_ptr<ComponentBase> component = TypeRegistry::GetInstance().CreateComponent(typeName);
 
-		if (m_components[type_index(typeid(*component))])
-		{
-			#ifdef _DEBUG
-			cerr << "오류: 게임 오브젝트 '" << m_name << "'에 이미 컴포넌트 '" << typeName << "'가 존재합니다." << endl;
-			#else
-			MessageBoxA(nullptr, ("오류: 게임 오브젝트 '" + m_name + "'에 이미 컴포넌트 '" + typeName + "'가 존재합니다.").c_str(), "GameObjectBase Error", MB_OK | MB_ICONERROR);
-			#endif
-		}
+		if (m_components[type_index(typeid(*component))]) cerr << "오류: 게임 오브젝트 '" << m_name << "'에 이미 컴포넌트 '" << typeName << "'가 존재합니다." << endl;
 
 		component->SetOwner(this);
 		if (component->NeedsFixedUpdate()) m_fixedUpdateComponents.push_back(component.get());

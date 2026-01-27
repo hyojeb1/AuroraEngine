@@ -10,9 +10,6 @@
 
 using namespace std;
 
-
-
-//#ifdef _DEBUG
 int main()
 {
 	cout << "==================================" << endl;
