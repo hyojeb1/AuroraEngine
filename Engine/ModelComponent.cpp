@@ -232,7 +232,7 @@ void ModelComponent::RenderImGui()
 
 	ImGui::DragFloat("Normal Scale", &m_materialFactorData.normalScale, 0.01f, 0.0f, 5.0f);
 
-	ImGui::ColorEdit4("Emission Factor", &m_materialFactorData.emissionFactor.x);
+	ImGui::ColorEdit3("Emission Factor", &m_materialFactorData.emissionFactor.x);
 
 	ImGui::Separator();
 	int blendStateInt = static_cast<int>(m_blendState);
