@@ -6,7 +6,7 @@
 #include "SoundManager.h"
 #include "TimeManager.h"
 
-constexpr size_t ChannelCount = 64; //profiling ?ë¸???Š‚
+constexpr size_t ChannelCount = 64; //profiling ?é‡‰???ë’„
 
 void SoundManager::Initialize()
 {
@@ -66,7 +66,7 @@ void SoundManager::Initialize()
 			std::cout << n.first << std::endl;
 		}
 
-		SoundManager::GetInstance().Main_BGM_Shot("Sample2");
+		SoundManager::GetInstance().Main_BGM_Shot("DOB_Music_suje_test");
 		SoundManager::GetInstance().LoadNodeData();
 
 		m_CoreSystem->createDSPByType(FMOD_DSP_TYPE_LOWPASS, &m_lowpass);
@@ -201,7 +201,7 @@ void SoundManager::ConvertSFXSource()
 	{
 		for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(SFXDirectory))
 		{
-			if (dirEntry.is_regular_file())
+			if (!dirEntry.is_regular_file())
 				continue;
 
 			hasfile = true;
@@ -237,7 +237,7 @@ void SoundManager::ConvertUISource()
 	{
 		for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(UIDirectory))
 		{
-			if (dirEntry.is_regular_file())
+			if (!dirEntry.is_regular_file())
 				continue;
 
 			hasfile = true;
@@ -334,6 +334,11 @@ void SoundManager::CreateNodeData(const std::string& filename)
 				pcmFloat[i] = pcm16[i] / 32768.0f;
 			}
 		}
+	}
+	else
+	{
+		std::string msg = "\"" +  it->first  + "\""  + " format is Not PCM16";
+		MessageBoxA(nullptr, msg.c_str(), "Error", MB_OK | MB_ICONERROR);
 	}
 
 	sound->unlock(ptr1, ptr2, len1, len2);
