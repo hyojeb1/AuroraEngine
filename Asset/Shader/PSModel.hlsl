@@ -2,7 +2,7 @@
 #include "CommonPS.hlsli"
 #include "CommonMath.hlsli"
 
-float4 main(PS_INPUT_STD input) : SV_TARGET
+PS_SCENE_OUTPUT main(PS_INPUT_STD input)
 {
     // 텍스처 샘플링
     // 베이스 컬러 텍스처
@@ -63,6 +63,10 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     
     // IBL 최종 기여도
     float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w;
+    
+    PS_SCENE_OUTPUT output;
+    output.Color = float4(Lo + ibl + emission, baseColor.a);
+    output.ThresholdColor = float4(output.Color.rgb - 0.75f, baseColor.a);
    
-    return float4(Lo + ibl + emission.rgb, baseColor.a);
+    return output;
 }
