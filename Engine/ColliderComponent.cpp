@@ -4,6 +4,7 @@
 #include "GameObjectBase.h"
 #include "ResourceManager.h"
 #include "Renderer.h"
+#include "ModelComponent.h"
 
 using namespace std;
 using namespace DirectX;
@@ -278,6 +279,8 @@ void ColliderComponent::RenderImGui()
 
 		ImGui::TreePop();
 	}
+
+	if (ImGui::Button("Load From Model Mesh")) LoadFromModelMesh();
 }
 
 void ColliderComponent::Finalize()
@@ -358,4 +361,15 @@ void ColliderComponent::Deserialize(const nlohmann::json& jsonData)
 		frustum.Far = frustumData["far"];
 		AddBoundingFrustum(frustum);
 	}
+}
+
+void ColliderComponent::LoadFromModelMesh()
+{
+	ModelComponent* modelComp = m_owner->GetComponent<ModelComponent>();
+	if (!modelComp) return;
+
+	const Model* model = modelComp->GetModel();
+	if (!model) return;
+
+	for (const Mesh& mesh : model->meshes)AddBoundingBox(mesh.boundingBox);
 }
