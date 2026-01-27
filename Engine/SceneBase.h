@@ -144,6 +144,8 @@ class Button
 	std::function<void()> m_onClick = nullptr;
 
 public:
+	void SetActive(bool isActive) { m_isActive = isActive; }
+	void SetDead(bool isDead) { m_isDead = isDead; }
 	void SetTextureAndOffset(const std::string& fileName);
 	void SetUIPosition(const DirectX::XMFLOAT2& position) { m_UIPosition = position; UpdateRect(); }
 	void SetScale(float scale) { m_scale = scale; UpdateRect(); }
