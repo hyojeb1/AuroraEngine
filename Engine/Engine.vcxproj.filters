@@ -108,11 +108,11 @@
     <ClCompile Include="FlipbookParticleComponent.cpp">
       <Filter>Base\Component\Particle</Filter>
     </ClCompile>
-    <ClCompile Include="InstancedParticleComponent.cpp">
-      <Filter>Base\Component\Particle</Filter>
-    </ClCompile>
     <ClCompile Include="FSMComponent.cpp">
       <Filter>Base\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="InstancedParticleComponent.cpp">
+      <Filter>Base\Component\Particle</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -195,11 +195,11 @@
     <ClInclude Include="FlipbookParticleComponent.h">
       <Filter>Base\Component\Particle</Filter>
     </ClInclude>
-    <ClInclude Include="InstancedParticleComponent.h">
-      <Filter>Base\Component\Particle</Filter>
-    </ClInclude>
     <ClInclude Include="FSMComponent.h">
       <Filter>Base\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="InstancedParticleComponent.h">
+      <Filter>Base\Component\Particle</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -239,9 +239,6 @@
     <FxCompile Include="..\Asset\Shader\PSParticle.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
-    <FxCompile Include="..\Asset\Shader\VSParticle.hlsl">
-      <Filter>Shader</Filter>
-    </FxCompile>
     <FxCompile Include="..\Asset\Shader\VSParticle_Cylindrical.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
@@ -249,6 +246,9 @@
       <Filter>Shader</Filter>
     </FxCompile>
     <FxCompile Include="..\Asset\Shader\VSParticleInstanced.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Asset\Shader\VSParticle.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
   </ItemGroup>
