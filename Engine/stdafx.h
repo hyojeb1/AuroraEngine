@@ -120,11 +120,7 @@ constexpr void CheckResult(HRESULT hr, const char* msg)
 {
 	if (FAILED(hr))
 	{
-		#ifdef _DEBUG
 		std::cerr << msg << " 에러 코드: " << std::hex << hr << std::endl;
-		#else
-		MessageBoxA(nullptr, msg, "오류", MB_OK | MB_ICONERROR);
-		#endif
 		exit(EXIT_FAILURE);
 	}
 }

@@ -6,25 +6,15 @@
 
 #include "TestScene.h"
 #include "HyojeTestScene.h"
+#include "TaehyeonTestScene.h"
 
 using namespace std;
 
-
-
-//#ifdef _DEBUG
 int main()
 {
 	cout << "==================================" << endl;
 	cout << "Welcome to Aurora Engine" << endl;
 	cout << "==================================" << endl;
-<<<<<<< HEAD
-//#else
-//int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
-
-//#endif
-=======
-//int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
->>>>>>> origin/JuneDev260127
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
@@ -34,7 +24,7 @@ int main()
 	windowManager.Initialize(L"Aurora");
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
-	sceneManager.ChangeScene("TestScene");
+	sceneManager.ChangeScene("TitleScene");
 
 	SoundManager& soundManager = SoundManager::GetInstance();
 	soundManager.Initialize();

@@ -105,8 +105,8 @@ void Renderer::EndFrame()
 
 		const RenderStage RENDER_STAGE = static_cast<RenderStage>(&renderTarget - &m_renderPass[0].first);
 
-		// 렌더 타겟 클리어 // 백 버퍼는 클리어 안함
-		if (RENDER_STAGE != RenderStage::BackBuffer) ClearRenderTarget(renderTarget);
+		// 렌더 타겟 클리어
+		ClearRenderTarget(renderTarget);
 
 		for (auto& blendState : blendStates)
 		{
