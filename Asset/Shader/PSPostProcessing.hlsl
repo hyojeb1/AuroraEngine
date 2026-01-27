@@ -2,12 +2,12 @@
 
 float4 main(PS_INPUT_POS_UV input) : SV_TARGET
 {
-    float4 color = sceneTexture.Sample(SamplerPointClamp, float3(input.UV, 0.0f));
+    float4 color = sceneTexture.Sample(SamplerLinearClamp, float3(input.UV, 0.0f));
     
     float4 tresholdColor;
     
     [loop]
-    for (int i = 0; i < 11; ++i) tresholdColor += sceneTexture.SampleLevel(SamplerPointClamp, float3(input.UV, 0.0f), i);
+    for (int i = 0; i < 11; ++i) tresholdColor += sceneTexture.SampleLevel(SamplerLinearClamp, float3(input.UV, 0.0f), i);
     
     color = tresholdColor * 0.1f; // 블룸 합성
     
