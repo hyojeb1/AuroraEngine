@@ -639,7 +639,7 @@ void SoundManager::UpdateLowpass()
 		m_lowpass->setParameterFloat(FMOD_DSP_LOWPASS_CUTOFF, m_lowpassCutOff);
 	}
 
-	std::cout << m_IsLowpass << std::endl;
+	//std::cout << m_IsLowpass << std::endl;
 }
 
 //void SoundManager::UpdateSoundResourceUsage()
