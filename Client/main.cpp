@@ -10,9 +10,6 @@
 
 using namespace std;
 
-
-
-//#ifdef _DEBUG
 int main()
 {
 	cout << "==================================" << endl;
@@ -27,7 +24,7 @@ int main()
 	windowManager.Initialize(L"Aurora");
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
-	sceneManager.ChangeScene("TaehyeonTestScene");
+	sceneManager.ChangeScene("TitleScene");
 
 	SoundManager& soundManager = SoundManager::GetInstance();
 	soundManager.Initialize();

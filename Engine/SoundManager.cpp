@@ -6,7 +6,7 @@
 #include "SoundManager.h"
 #include "TimeManager.h"
 
-constexpr size_t ChannelCount = 64; //profiling ?ë¸???Š‚
+constexpr size_t ChannelCount = 64; //profiling
 
 void SoundManager::Initialize()
 {
@@ -182,12 +182,12 @@ void SoundManager::ConvertBGMSource()
 		
 		if(!hasfile)
 		{
-			MessageBoxA(nullptr, "BGM resource not found", "Error", MB_OK | MB_ICONERROR);
+			std::cerr << "BGM resource not found" << std::endl;
 		}
 	}
 	else
 	{
-		MessageBoxA(nullptr, "BGM path not found", "Error", MB_OK | MB_ICONERROR);
+		std::cerr << "BGM path not found" << std::endl;
 	}
 }
 
@@ -201,7 +201,7 @@ void SoundManager::ConvertSFXSource()
 	{
 		for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(SFXDirectory))
 		{
-			if (dirEntry.is_regular_file())
+			if (!dirEntry.is_regular_file())
 				continue;
 
 			hasfile = true;
@@ -218,12 +218,12 @@ void SoundManager::ConvertSFXSource()
 
 		if (!hasfile)
 		{
-			MessageBoxA(nullptr, "SFX resource not found", "Error", MB_OK | MB_ICONERROR);
+			std::cerr << "SFX resource not found" << std::endl;
 		}
 	}
 	else
 	{
-		MessageBoxA(nullptr, "SFX path not found", "Error", MB_OK | MB_ICONERROR);
+		std::cerr << "SFX path not found" << std::endl;
 	}
 }
 
@@ -237,7 +237,7 @@ void SoundManager::ConvertUISource()
 	{
 		for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(UIDirectory))
 		{
-			if (dirEntry.is_regular_file())
+			if (!dirEntry.is_regular_file())
 				continue;
 
 			hasfile = true;
@@ -253,12 +253,12 @@ void SoundManager::ConvertUISource()
 		}
 		if (!hasfile)
 		{
-			MessageBoxA(nullptr, "UI resource not found", "Error", MB_OK | MB_ICONERROR);
+			std::cerr << "UI resource not found" << std::endl;
 		}
 	}
 	else
 	{
-		MessageBoxA(nullptr, "UI path not found", "Error", MB_OK | MB_ICONERROR);
+		std::cerr << "UI path not found" << std::endl;
 	}
 }
 
@@ -334,6 +334,11 @@ void SoundManager::CreateNodeData(const std::string& filename)
 				pcmFloat[i] = pcm16[i] / 32768.0f;
 			}
 		}
+	}
+	else
+	{
+		std::string msg = "\"" +  it->first  + "\""  + " format is Not PCM16";
+		MessageBoxA(nullptr, msg.c_str(), "Error", MB_OK | MB_ICONERROR);
 	}
 
 	sound->unlock(ptr1, ptr2, len1, len2);
@@ -473,9 +478,9 @@ void SoundManager::CreateNodeData(const std::string& filename)
 
 void SoundManager::LoadNodeData()
 {
-	if (strcmp(m_CurrentTrackName.c_str(), "Invaild"))
+	if (strcmp(m_CurrentTrackName.c_str(), "Invaild") == 0)
 	{
-		MessageBoxA(nullptr, "Invaild Node Data", "Error", MB_OK | MB_ICONERROR);
+		std::cerr << "Invaild Node Data" << std::endl;
 		return;
 	}
 

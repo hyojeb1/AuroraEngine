@@ -7,7 +7,7 @@ struct PSInput
     float3 ViewDir : TEXCOORD0;
 };
 
-PS_SCENE_OUTPUT main(PSInput input) : SV_TARGET
+PS_SCENE_OUTPUT main(PSInput input)
 {
     PS_SCENE_OUTPUT output;
     output.Color = environmentMapTexture.Sample(SamplerLinearWrap, normalize(input.ViewDir));
