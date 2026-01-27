@@ -87,6 +87,15 @@ void SceneBase::Undo()
 }
 #endif
 
+Button* SceneBase::CreateButton()
+{
+	unique_ptr<Button> button = make_unique<Button>();
+	Button* buttonPtr = button.get();
+	m_buttons.push_back(move(button));
+
+	return buttonPtr;
+}
+
 void SceneBase::BaseInitialize()
 {
 	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
@@ -137,13 +146,19 @@ void SceneBase::BaseUpdate()
 	// 게임 오브젝트 업데이트
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseUpdate();
 
-	#ifdef _DEBUG
+	erase_if(m_buttons, [](const unique_ptr<Button>& button) { return button->GetDead(); });
 
+	InputManager& inputManager = InputManager::GetInstance();
+
+	const POINT& mousePosition = inputManager.GetMousePosition();
+	const bool isMouseClicked = inputManager.GetKeyDown(KeyCode::MouseLeft);
+	for (const unique_ptr<Button>& button : m_buttons) button->CheckInput(mousePosition, isMouseClicked);
+
+	#ifdef _DEBUG
 	// 네비게이션 메시 생성 모드일 때 링크 배치 처리
 	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink();
 
 	// Ctrl + S 입력 시 씬 저장
-	InputManager& inputManager = InputManager::GetInstance();
 	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::S))
 	{
 		cout << "씬: " << m_type << " 저장 중..." << endl;
@@ -624,3 +639,45 @@ void SceneBase::RenderDebugCoordinates()
 	m_deviceContext->DrawInstanced(2, 204, 0, 0);
 }
 #endif
+
+void Button::SetTextureAndOffset(const string& fileName)
+{
+	m_textureAndOffset = ResourceManager::GetInstance().GetTextureAndOffset(fileName);
+	UpdateRect();
+}
+
+void Button::RenderButton(Renderer& renderer)
+{
+	if (!m_isActive) return;
+
+	renderer.UI_RENDER_FUNCTIONS().emplace_back([&]() { Renderer::GetInstance().RenderImageUIPosition(m_textureAndOffset.first, m_UIPosition, m_textureAndOffset.second, m_scale, m_color, m_depth); });
+}
+
+void Button::CheckInput(const POINT& mousePosition, bool isMouseClicked)
+{
+	if (!m_isActive) return;
+
+	if (m_buttonRect.left <= mousePosition.x && mousePosition.x <= m_buttonRect.right && m_buttonRect.top <= mousePosition.y && mousePosition.y <= m_buttonRect.bottom)
+	{
+		m_isHoverd = true;
+		if (isMouseClicked && m_onClick) m_onClick();
+	}
+	else m_isHoverd = false;
+}
+
+void Button::UpdateRect()
+{
+	Renderer& renderer = Renderer::GetInstance();
+	const DXGI_SWAP_CHAIN_DESC1& swapChainDesc = renderer.GetSwapChainDesc();
+
+	const XMFLOAT2 windowPos = { static_cast<float>(swapChainDesc.Width) * m_UIPosition.x, static_cast<float>(swapChainDesc.Height) * m_UIPosition.y };
+	const XMFLOAT2 offset = { m_textureAndOffset.second.x * m_scale, m_textureAndOffset.second.y * m_scale };
+
+	m_buttonRect =
+	{
+		static_cast<LONG>(windowPos.x - offset.x),
+		static_cast<LONG>(windowPos.y - offset.y),
+		static_cast<LONG>(windowPos.x + offset.x),
+		static_cast<LONG>(windowPos.y + offset.y)
+	};
+}
