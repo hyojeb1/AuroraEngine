@@ -570,14 +570,14 @@ void Renderer::RenderXTKSpriteBatch()
 
 	// Input assembler state 저장
 	ID3D11InputLayout* savedIL = nullptr;
-	ID3D11Buffer* savedVB[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT] = { nullptr };
+	array<ID3D11Buffer*, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT> savedVB = { nullptr };
 	array<UINT, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT> savedVBStrides = { 0 };
 	array<UINT, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT> savedVBOffsets = { 0 };
 	ID3D11Buffer* savedIB = nullptr;
 	DXGI_FORMAT savedIBFormat = DXGI_FORMAT_UNKNOWN;
 	UINT savedIBOffset = 0;
 	m_deviceContext->IAGetInputLayout(&savedIL);
-	m_deviceContext->IAGetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, savedVB, savedVBStrides.data(), savedVBOffsets.data());
+	m_deviceContext->IAGetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, savedVB.data(), savedVBStrides.data(), savedVBOffsets.data());
 	m_deviceContext->IAGetIndexBuffer(&savedIB, &savedIBFormat, &savedIBOffset);
 	D3D11_PRIMITIVE_TOPOLOGY savedTopo = {};
 	m_deviceContext->IAGetPrimitiveTopology(&savedTopo);
@@ -620,7 +620,7 @@ void Renderer::RenderXTKSpriteBatch()
 	m_deviceContext->OMSetDepthStencilState(savedDSS, savedStencilRef);
 
 	m_deviceContext->IASetInputLayout(savedIL);
-	m_deviceContext->IASetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, savedVB, savedVBStrides.data(), savedVBOffsets.data());
+	m_deviceContext->IASetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, savedVB.data(), savedVBStrides.data(), savedVBOffsets.data());
 	m_deviceContext->IASetIndexBuffer(savedIB, savedIBFormat, savedIBOffset);
 	m_deviceContext->IASetPrimitiveTopology(savedTopo);
 
