@@ -7,8 +7,12 @@ struct PSInput
     float3 ViewDir : TEXCOORD0;
 };
 
-float4 main(PSInput input) : SV_TARGET
+PS_SCENE_OUTPUT main(PSInput input) : SV_TARGET
 {
-    return environmentMapTexture.Sample(SamplerLinearWrap, normalize(input.ViewDir));
+    PS_SCENE_OUTPUT output;
+    output.Color = environmentMapTexture.Sample(SamplerLinearWrap, normalize(input.ViewDir));
+    output.ThresholdColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    
+    return output;
 }
 /// PSSkybox.hlsl의 끝

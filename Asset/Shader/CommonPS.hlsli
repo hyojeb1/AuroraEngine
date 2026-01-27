@@ -45,14 +45,14 @@ cbuffer MaterialFactor : register(b3)
 // Sampler States
 // --------------------------------------------------------
 
-SamplerState SamplerPointClamp : register(s0); // PostProcess
+SamplerState SamplerLinearClamp : register(s0); // PostProcess
 SamplerState SamplerLinearWrap : register(s1); // Model, Skybox
 SamplerComparisonState SamplerComparisonClamp : register(s2); // Shadow Map
 
 // --------------------------------------------------------
 // Textures
 // --------------------------------------------------------
-Texture2D sceneTexture : register(t0);
+Texture2DArray sceneTexture : register(t0);
 TextureCube environmentMapTexture : register(t1);
 Texture2D directionalShadowMapTexture : register(t2);
 
@@ -84,6 +84,16 @@ struct PS_INPUT_POS_COLOR
 {
     float4 Position : SV_POSITION;
     float4 Color : COLOR0;
+};
+
+// --------------------------------------------------------
+// 출력 구조체
+// --------------------------------------------------------
+
+struct PS_SCENE_OUTPUT
+{
+    float4 Color : SV_TARGET0;
+    float4 ThresholdColor : SV_TARGET1; // 블룸용 임계값 출력
 };
 
 #endif // __COMMON_PS_HLSLI__
