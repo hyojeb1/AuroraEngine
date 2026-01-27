@@ -10,8 +10,6 @@
 
 using namespace std;
 
-
-
 int main()
 {
 	IMGUI_CHECKVERSION();

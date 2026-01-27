@@ -182,12 +182,12 @@ void SoundManager::ConvertBGMSource()
 		
 		if(!hasfile)
 		{
-			MessageBoxA(nullptr, "BGM resource not found", "Error", MB_OK | MB_ICONERROR);
+			std::cerr << "BGM resource not found" << std::endl;
 		}
 	}
 	else
 	{
-		MessageBoxA(nullptr, "BGM path not found", "Error", MB_OK | MB_ICONERROR);
+		std::cerr << "BGM path not found" << std::endl;
 	}
 }
 
@@ -218,12 +218,12 @@ void SoundManager::ConvertSFXSource()
 
 		if (!hasfile)
 		{
-			MessageBoxA(nullptr, "SFX resource not found", "Error", MB_OK | MB_ICONERROR);
+			std::cerr << "SFX resource not found" << std::endl;
 		}
 	}
 	else
 	{
-		MessageBoxA(nullptr, "SFX path not found", "Error", MB_OK | MB_ICONERROR);
+		std::cerr << "SFX path not found" << std::endl;
 	}
 }
 
@@ -253,12 +253,12 @@ void SoundManager::ConvertUISource()
 		}
 		if (!hasfile)
 		{
-			MessageBoxA(nullptr, "UI resource not found", "Error", MB_OK | MB_ICONERROR);
+			std::cerr << "UI resource not found" << std::endl;
 		}
 	}
 	else
 	{
-		MessageBoxA(nullptr, "UI path not found", "Error", MB_OK | MB_ICONERROR);
+		std::cerr << "UI path not found" << std::endl;
 	}
 }
 
@@ -480,7 +480,7 @@ void SoundManager::LoadNodeData()
 {
 	if (strcmp(m_CurrentTrackName.c_str(), "Invaild") == 0)
 	{
-		MessageBoxA(nullptr, "Invaild Node Data", "Error", MB_OK | MB_ICONERROR);
+		std::cerr << "Invaild Node Data" << std::endl;
 		return;
 	}
 
