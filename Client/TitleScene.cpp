@@ -13,7 +13,7 @@ void TitleScene::Initialize()
 	Button* startButton = CreateButton();
 	startButton->SetTextureAndOffset("Crosshair.png");
 	startButton->SetUIPosition({ 0.75f, 0.5f });
-	startButton->SetOnClick([&]() { SceneManager::GetInstance().ChangeScene("HyojeTestScene"); });
+	startButton->SetOnClick([]() { SceneManager::GetInstance().ChangeScene("TestScene"); });
 }
 
 void TitleScene::Update()
