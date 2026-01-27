@@ -7,6 +7,8 @@
 #include "ResourceManager.h"
 #include "TimeManager.h"
 #include "NavigationManager.h"
+#include "WindowManager.h"
+#include "ModelComponent.h"
 
 #ifdef _DEBUG
 #include "InputManager.h"
@@ -62,7 +64,6 @@ void SceneBase::BaseInitialize()
 	m_debugCamera = make_unique<DebugCamera>();
 	static_cast<Base*>(m_debugCamera.get())->BaseInitialize();
 	m_debugCamera->Initialize();
-	static_cast<GameObjectBase*>(m_debugCamera.get())->CreateComponent<CameraComponent>()->SetAsMainCamera();
 	#endif
 
 	// 저장된 씬 파일 불러오기
@@ -117,8 +118,11 @@ void SceneBase::BaseUpdate()
 		cout << "씬: " << m_type << " 저장 완료!" << endl;
 	}
 
+	// 네비게이션 메시 생성 모드일 때 링크 배치 처리
 	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink();
 
+	// 디버그 카메라로 오브젝트 선택
+	PickObjectDebugCamera();
 	#endif
 }
 
@@ -312,75 +316,48 @@ void SceneBase::BaseRenderImGui()
 		}
 		ImGui::End();
 
-		ImGuiIO& io = ImGui::GetIO();
 		ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
-		
-		{
-			// 전체 화면이 아니면 기즈모 실패!
-			ImGuizmo::SetRect(0.0f, 0.0f, io.DisplaySize.x, io.DisplaySize.y);
 
-			//ImVec2 imageMin = ImGui::GetItemRectMin();
-			//ImVec2 imageMax = ImGui::GetItemRectMax();
-
-			//ImGuizmo::SetRect(imageMin.x, imageMin.y, imageMax.x - imageMin.x, imageMax.y - imageMin.y);
-		}
-		
+		RECT rect = WindowManager::GetInstance().GetClientPosRect();
+		ImGuizmo::SetRect(static_cast<float>(rect.left), static_cast<float>(rect.top), static_cast<float>(rect.right), static_cast<float>(rect.bottom));
 		
 		ImGuizmo::SetOrthographic(false);
 
-		const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
-		DirectX::XMFLOAT4X4 viewMatrix = {};
-		DirectX::XMFLOAT4X4 projectionMatrix = {};
-		DirectX::XMFLOAT4X4 worldMatrix = {};
-		DirectX::XMStoreFloat4x4(&viewMatrix, mainCamera.GetViewMatrix());
-		DirectX::XMStoreFloat4x4(&projectionMatrix, mainCamera.GetProjectionMatrix());
-		DirectX::XMStoreFloat4x4(&worldMatrix, selectedObject->GetWorldMatrix());
-
-
-
-		float gizmoMatrix[16] = {};
-		std::memcpy(gizmoMatrix, &worldMatrix, sizeof(gizmoMatrix));
-
 		const float* snap = nullptr;
-		float snapValues[3] = {};
+		array<float, 3> snapValues = { 0.0f, 0.0f, 0.0f };
 		if (useSnap)
 		{
 			if (gizmoOperation == ImGuizmo::TRANSLATE)
 			{
-				snapValues[0] = snapTranslation[0];
-				snapValues[1] = snapTranslation[1];
-				snapValues[2] = snapTranslation[2];
-				snap = snapValues;
+				memcpy(snapValues.data(), snapTranslation, sizeof(float) * 3);
+				snap = snapValues.data();
 			}
 			else if (gizmoOperation == ImGuizmo::ROTATE)
 			{
 				snapValues[0] = snapRotation;
-				snap = snapValues;
+				snap = snapValues.data();
 			}
 			else if (gizmoOperation == ImGuizmo::SCALE)
 			{
 				snapValues[0] = snapScale;
-				snap = snapValues;
+				snap = snapValues.data();
 			}
 		}
 
+		const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
+		XMMATRIX worldMatrix = selectedObject->GetWorldMatrix();
 		ImGuizmo::Manipulate
 		(
-			&viewMatrix.m[0][0],
-			&projectionMatrix.m[0][0],
+			&mainCamera.GetViewMatrix().r[0].m128_f32[0],
+			&mainCamera.GetProjectionMatrix().r[0].m128_f32[0],
 			gizmoOperation,
 			gizmoMode,
-			gizmoMatrix,
+			&worldMatrix.r[0].m128_f32[0],
 			nullptr,
 			snap
 		);
 
-		if (ImGuizmo::IsUsing())
-		{
-			std::memcpy(&worldMatrix, gizmoMatrix, sizeof(gizmoMatrix));
-			const DirectX::XMMATRIX newWorld = DirectX::XMLoadFloat4x4(&worldMatrix);
-			selectedObject->ApplyWorldMatrix(newWorld);
-		}
+		if (ImGuizmo::IsUsing()) selectedObject->ApplyWorldMatrix(worldMatrix);
 	}
 	#endif
 }
@@ -574,6 +551,16 @@ void SceneBase::RenderSkybox()
 }
 
 #ifdef _DEBUG
+void SceneBase::PickObjectDebugCamera()
+{
+	InputManager& inputManager = InputManager::GetInstance();
+	if (!inputManager.GetKeyDown(KeyCode::MouseRight)) return;
+
+	const POINT& mouse = inputManager.GetMousePosition();
+	pair<XMVECTOR, XMVECTOR> ray = CameraComponent::GetMainCamera().RayCast(static_cast<float>(mouse.x), static_cast<float>(mouse.y));
+	GameObjectBase::SetSelectedObject(ModelComponent::CheckCollision(ray.first, ray.second));
+}
+
 void SceneBase::RenderDebugCoordinates()
 {
 	ResourceManager& resourceManager = ResourceManager::GetInstance();

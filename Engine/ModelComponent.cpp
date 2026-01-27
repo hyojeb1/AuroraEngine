@@ -12,6 +12,30 @@ using namespace DirectX;
 
 REGISTER_TYPE(ModelComponent)
 
+vector<ModelComponent*> ModelComponent::s_modelComponents = {};
+
+GameObjectBase* ModelComponent::CheckCollision(const XMVECTOR& origin, const XMVECTOR& direction)
+{
+	GameObjectBase* collidedObject = nullptr;
+	float closestDistance = numeric_limits<float>::max();
+	XMVECTOR dirNormalized = XMVector3Normalize(direction);
+
+	for (ModelComponent* modelComp : s_modelComponents)
+	{
+		float dist = 0.0f;
+		if (modelComp->m_boundingBox.Intersects(origin, dirNormalized, dist))
+		{
+			if (dist < closestDistance)
+			{
+				closestDistance = dist;
+				collidedObject = modelComp->m_owner;
+			}
+		}
+	}
+
+	return collidedObject;
+}
+
 void ModelComponent::Initialize()
 {
 	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
@@ -22,6 +46,8 @@ void ModelComponent::Initialize()
 	CreateShaders();
 
 	m_model = resourceManager.LoadModel(m_modelFileName);
+
+	s_modelComponents.emplace_back(this);
 }
 
 void ModelComponent::Render()
@@ -219,6 +245,12 @@ void ModelComponent::RenderImGui()
 	ImGui::Checkbox("Render Bounding Box", &m_renderBoundingBox);
 	ImGui::Checkbox("Render SubMesh Bounding Boxes", &m_renderSubMeshBoundingBoxes);
 	#endif
+}
+
+void ModelComponent::Finalize()
+{
+	auto it = find(s_modelComponents.begin(), s_modelComponents.end(), this);
+	if (it != s_modelComponents.end()) s_modelComponents.erase(it);
 }
 
 nlohmann::json ModelComponent::Serialize()

@@ -2,7 +2,7 @@
 #include "CommonPS.hlsli"
 #include "CommonMath.hlsli"
 
-float4 main(PS_INPUT_STD input) : SV_TARGET
+PS_SCENE_OUTPUT main(PS_INPUT_STD input)
 {
     // 텍스처 샘플링
     // 베이스 컬러 텍스처
@@ -11,14 +11,14 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     float3 orm = ORMTexture.Sample(SamplerLinearWrap, input.UV).xyz * float3(AmbientOcclusionFactor, RoughnessFactor, MetallicFactor);
     //orm.g += 1.0f; // 거칠기 오프셋 보정
     // 노말 텍스처
-    float4 bump = normalTexture.Sample(SamplerLinearWrap, input.UV);
+    float4 normal = normalTexture.Sample(SamplerLinearWrap, input.UV);
     // 방출 텍스처
     float3 emission = emissionTexture.Sample(SamplerLinearWrap, input.UV).rgb * EmissionFactor.rgb;
     
     float3 V = normalize(CameraPosition.xyz - input.WorldPosition.xyz); // 뷰 벡터
     float3 L = -LightDirection.xyz; // 라이트 벡터
     float3 H = normalize(V + L); // 하프 벡터
-    float3 N = UnpackNormal(bump.rgb, input.TBN, NormalScale); // 노말 벡터
+    float3 N = UnpackNormal(normal.rgb, input.TBN, NormalScale); // 노말 벡터
     float3 R = reflect(-V, N); // 반사 벡터
     
     float NdotL = saturate(dot(N, L)); // N과 L의 내적
@@ -64,8 +64,9 @@ float4 main(PS_INPUT_STD input) : SV_TARGET
     // IBL 최종 기여도
     float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w;
     
-    // 최종 색상
-    baseColor.rgb = Lo + ibl;
+    PS_SCENE_OUTPUT output;
+    output.Color = float4(Lo + ibl + emission, baseColor.a);
+    output.ThresholdColor = float4(output.Color.rgb - 0.75f, baseColor.a);
    
-    return float4((baseColor.rgb + emission.rgb), baseColor.a);
+    return output;
 }

@@ -6,7 +6,7 @@
 #include "SoundManager.h"
 #include "TimeManager.h"
 
-constexpr size_t ChannelCount = 64; //profiling ?븘?슂
+constexpr size_t ChannelCount = 64; //profiling ?�???��
 
 void SoundManager::Initialize()
 {
@@ -66,7 +66,12 @@ void SoundManager::Initialize()
 			std::cout << n.first << std::endl;
 		}
 
-		SoundManager::GetInstance().BGM_Shot("Sample2", 0);
+		SoundManager::GetInstance().Main_BGM_Shot("Sample2");
+		SoundManager::GetInstance().LoadNodeData();
+
+		m_CoreSystem->createDSPByType(FMOD_DSP_TYPE_LOWPASS, &m_lowpass);
+		m_lowpass->setParameterFloat(FMOD_DSP_LOWPASS_CUTOFF, 22000.0f);
+		m_BGMChannel1->addDSP(0, m_lowpass);
 
 		m_CoreSystem->update();
 	}
@@ -75,7 +80,11 @@ void SoundManager::Initialize()
 void SoundManager::Update()
 {
 	m_CoreSystem->update();
+
+	UpdateLowpass();
+
 	UpdateNodeIndex();
+	UpdateUINodeIndex();
 
 	//std::cout << m_rhythmTimerIndex << " : index "
 	//	<< m_NodeData[m_rhythmTimerIndex].first << " : startTime "
@@ -146,12 +155,19 @@ void SoundManager::SetVolume_UI(float volume)
 
 void SoundManager::ConvertBGMSource()
 {
+	bool hasfile = false;
+
 	const std::filesystem::path BGMDirectory = "../Asset/Sound/BGM/";
 
-	for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(BGMDirectory))
+	if (std::filesystem::exists(BGMDirectory))
 	{
-		if (dirEntry.is_regular_file())
+		for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(BGMDirectory))
 		{
+			if (!dirEntry.is_regular_file())
+				continue;
+
+			hasfile = true;
+			
 			std::string fileName = std::filesystem::path(dirEntry).stem().string();
 
 			FMOD::Sound* temp;
@@ -163,17 +179,33 @@ void SoundManager::ConvertBGMSource()
 
 			BGM_List.emplace(fileName, temp);
 		}
+		
+		if(!hasfile)
+		{
+			MessageBoxA(nullptr, "BGM resource not found", "Error", MB_OK | MB_ICONERROR);
+		}
+	}
+	else
+	{
+		MessageBoxA(nullptr, "BGM path not found", "Error", MB_OK | MB_ICONERROR);
 	}
 }
 
 void SoundManager::ConvertSFXSource()
 {
+	bool hasfile = false;
+
 	const std::filesystem::path SFXDirectory = "../Asset/Sound/SFX/";
 
-	for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(SFXDirectory))
+	if (std::filesystem::exists(SFXDirectory))
 	{
-		if (dirEntry.is_regular_file())
+		for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(SFXDirectory))
 		{
+			if (dirEntry.is_regular_file())
+				continue;
+
+			hasfile = true;
+
 			std::string fileName = std::filesystem::path(dirEntry).stem().string();
 
 			FMOD::Sound* temp;
@@ -181,18 +213,35 @@ void SoundManager::ConvertSFXSource()
 			m_CoreSystem->createSound(fullPath.c_str(), FMOD_DEFAULT | FMOD_3D, nullptr, &temp);
 
 			SFX_List.emplace(fileName, temp);
+			
 		}
+
+		if (!hasfile)
+		{
+			MessageBoxA(nullptr, "SFX resource not found", "Error", MB_OK | MB_ICONERROR);
+		}
+	}
+	else
+	{
+		MessageBoxA(nullptr, "SFX path not found", "Error", MB_OK | MB_ICONERROR);
 	}
 }
 
 void SoundManager::ConvertUISource()
 {
+	bool hasfile = false;
+
 	const std::filesystem::path UIDirectory = "../Asset/Sound/UI/";
 
-	for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(UIDirectory))
+	if (std::filesystem::exists(UIDirectory))
 	{
-		if (dirEntry.is_regular_file())
+		for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(UIDirectory))
 		{
+			if (dirEntry.is_regular_file())
+				continue;
+
+			hasfile = true;
+
 			std::string fileName = std::filesystem::path(dirEntry).stem().string();
 
 			FMOD::Sound* temp;
@@ -200,7 +249,16 @@ void SoundManager::ConvertUISource()
 			m_CoreSystem->createSound(fullPath.c_str(), FMOD_DEFAULT | FMOD_2D, nullptr, &temp);
 
 			UI_List.emplace(fileName, temp);
+
 		}
+		if (!hasfile)
+		{
+			MessageBoxA(nullptr, "UI resource not found", "Error", MB_OK | MB_ICONERROR);
+		}
+	}
+	else
+	{
+		MessageBoxA(nullptr, "UI path not found", "Error", MB_OK | MB_ICONERROR);
 	}
 }
 
@@ -223,6 +281,11 @@ void SoundManager::CreateNodeData(const std::string& filename)
 
 	std::string path = "../Asset/BeatMapData/";
 	std::string ext = "_nodes.json";
+
+	if (!std::filesystem::exists(path))
+	{
+		std::filesystem::create_directories(path);
+	}
 
 	std::ifstream file(path + filename + ext);
 
@@ -307,11 +370,9 @@ void SoundManager::CreateNodeData(const std::string& filename)
 	float deltaSum = 0.0f;
 	int deltaCount = 0;
 
-	// ?뒠?떇 ?뙆?씪誘명꽣
-	float deltaMultiplier = 1.1f;   // ?궏 誘쇨컧?룄
-	float decayRatio = 0.3f;        // ?궏 湲몄씠 (30%源뚯?? 媛먯뇿)
+	float deltaMultiplier = 1.1f;
+	float decayRatio = 0.3f;
 
-	// ?궏 ?뵾?겕 寃?異쒖슜
 	float prev2Energy = 0.0f;
 	float prev1Energy = 0.0f;
 
@@ -399,8 +460,8 @@ void SoundManager::CreateNodeData(const std::string& filename)
 	for (auto& s : filtered)
 	{
 		root["segments"].push_back({
-			{ "start", s.start },
-			{ "end",   s.end }
+			{ "start", s.start - m_RhythmOffSet },
+			{ "end",   s.end - m_RhythmOffSet }
 			});
 	}
 
@@ -412,6 +473,12 @@ void SoundManager::CreateNodeData(const std::string& filename)
 
 void SoundManager::LoadNodeData()
 {
+	if (strcmp(m_CurrentTrackName.c_str(), "Invaild"))
+	{
+		MessageBoxA(nullptr, "Invaild Node Data", "Error", MB_OK | MB_ICONERROR);
+		return;
+	}
+
 	std::string path = "../Asset/BeatMapData/" + m_CurrentTrackName + "_nodes.json";
 	std::ifstream in(path);
 	nlohmann::json j;
@@ -423,44 +490,51 @@ void SoundManager::LoadNodeData()
 	}
 }
 
-void SoundManager::UpdateNodeIndex()
+void SoundManager::UpdateNodeIndex() //raw time
 {
 	if (m_NodeData.empty())
 	{
 		return;
 	}
-	if (m_NodeData[m_rhythmTimerIndex].second < GetCurrentPlaybackTime())
+	if (m_rhythmTimerIndex + 1 < m_NodeData.size() &&
+		m_NodeData[m_rhythmTimerIndex].second + m_RhythmOffSet < GetCurrentPlaybackTime())
 	{
 		m_rhythmTimerIndex++;
 	}
 }
 
+void SoundManager::UpdateUINodeIndex()
+{
+	if (m_NodeData.empty())
+	{
+		return;
+	}
+	if (m_rhythmUIIndex + 1 < m_NodeData.size() &&
+		m_NodeData[m_rhythmUIIndex].first < GetCurrentPlaybackTime())
+	{
+		m_rhythmUIIndex++;
+		m_OnNodeChanged = true;
+	}
+}
+
 bool SoundManager::CheckRhythm(float correction)
 {
-	const float& time = GetCurrentPlaybackTime();
+	const float time = GetCurrentPlaybackTime();
 
-	if (m_NodeData[m_rhythmTimerIndex].first - correction <= time && m_NodeData[m_rhythmTimerIndex].second + correction >= time)
+	if (m_NodeData[m_rhythmTimerIndex].first - correction + m_RhythmOffSet <= time && m_NodeData[m_rhythmTimerIndex].second + correction + m_RhythmOffSet >= time)
 	{
-		std::cout << "Success! : " << 
-			m_NodeData[m_rhythmTimerIndex].first <<
-			"s " <<
-			"Time: " << time << std::endl;
+		std::cout << "Success! : " << std::endl;
 		return true;
 	}
 	else
 	{
-		std::cout << "Faild : " <<
-			m_NodeData[m_rhythmTimerIndex].first <<
-			"s " <<
-			"Time: " << time << "s" << std::endl;
+		std::cout << "Failed! : " << std::endl;
 
 		return false;
 	}
-
-	
 }
 
-void SoundManager::BGM_Shot(const std::string filename, float delayTime)
+void SoundManager::Main_BGM_Shot(const std::string filename)
 {
 	auto it = BGM_List.find(filename);
 	if (it == BGM_List.end()) { m_CurrentTrackName = "Invalid"; return; }
@@ -469,13 +543,19 @@ void SoundManager::BGM_Shot(const std::string filename, float delayTime)
 	m_NodeData.clear();
 	m_rhythmTimerIndex = 0;
 
-	m_CoreSystem->playSound(it->second, m_BGMGroup, false, &m_BGMChannel);
+	m_CoreSystem->playSound(it->second, m_BGMGroup, false, &m_BGMChannel1);
 
 	unsigned long long nowDSP = 0;
-	m_BGMChannel->getDSPClock(&nowDSP, nullptr);
+	m_BGMChannel1->getDSPClock(&nowDSP, nullptr);
 	m_MainBGM_StartTime = nowDSP;
+}
 
-	LoadNodeData();
+void SoundManager::Sub_BGM_Shot(const std::string filename)
+{
+	auto it = BGM_List.find(filename);
+	if (it == BGM_List.end()) { m_CurrentTrackName = "Invalid"; return; }
+
+	m_CoreSystem->playSound(it->second, m_BGMGroup, false, &m_BGMChannel2);
 }
 
 void SoundManager::SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename)
@@ -505,13 +585,63 @@ void SoundManager::UI_Shot(const std::string filename)
 	}
 }
 
+void SoundManager::FadeIn(FMOD::Channel* chan, float sec)
+{
+	if (!chan) return;
+
+	FMOD::System* sys = nullptr;
+	chan->getSystemObject(&sys);
+
+	FMOD::ChannelGroup* master = nullptr;
+	sys->getMasterChannelGroup(&master);
+
+	int rate = 0;
+	sys->getSoftwareFormat(&rate, nullptr, nullptr);
+
+	unsigned long long dspNow = 0;
+	master->getDSPClock(&dspNow, nullptr);
+
+	chan->setPaused(true);
+
+	chan->addFadePoint(dspNow, 0.0f);
+	chan->addFadePoint(dspNow + (unsigned long long)(rate * sec),
+		GetVolume_Main() * GetVolume_BGM());
+
+	chan->setPaused(false);
+}
+
+
+void SoundManager::FadeOut(FMOD::Channel* chan, float sec, bool stopAfter)
+{
+	if (!chan) return;
+
+	FMOD::System* sys = nullptr;
+	chan->getSystemObject(&sys);
+
+	FMOD::ChannelGroup* master = nullptr;
+	sys->getMasterChannelGroup(&master);
+
+	int rate = 0;
+	sys->getSoftwareFormat(&rate, nullptr, nullptr);
+
+	unsigned long long dspNow = 0;
+	master->getDSPClock(&dspNow, nullptr);
+
+	chan->addFadePoint(dspNow, GetVolume_Main() * GetVolume_BGM());
+	chan->addFadePoint(dspNow + (unsigned long long)(rate * sec), 0.0f);
+
+	if (stopAfter)
+		chan->setDelay(0, dspNow + (unsigned long long)(rate * sec), true);
+}
+
+
 float SoundManager::GetCurrentPlaybackTime()
 {
-	if (!m_BGMChannel)
+	if (!m_BGMChannel1)
 		return 0.0f;
 
 	unsigned long long nowDSP;
-	m_BGMChannel->getDSPClock(&nowDSP, nullptr);
+	m_BGMChannel1->getDSPClock(&nowDSP, nullptr);
 
 	if (nowDSP < m_MainBGM_StartTime)
 		return 0.0f;
@@ -537,6 +667,39 @@ FMOD_VECTOR SoundManager::ToFMOD(DirectX::XMVECTOR vector)
 	FMOD_pos.z = pos.z;
 
 	return FMOD_pos;
+}
+
+bool SoundManager::ConsumeNodeChanged()
+{
+	if (m_OnNodeChanged)
+	{
+		m_OnNodeChanged = false;
+		return true;
+	}
+	return false;
+}
+
+void SoundManager::UpdateLowpass()
+{
+	float delta = TimeManager::GetInstance().GetNSDeltaTime();
+	float speed = 60000.0f;
+
+	if (m_IsLowpass)
+	{
+		m_lowpassCutOff -= speed * delta;
+		m_lowpassCutOff = std::max(m_lowpassCutOff, 800.0f);
+
+		m_lowpass->setParameterFloat(FMOD_DSP_LOWPASS_CUTOFF, m_lowpassCutOff);
+	}
+	else
+	{
+		m_lowpassCutOff += speed * delta;
+		m_lowpassCutOff = std::min(m_lowpassCutOff, 22000.0f);
+
+		m_lowpass->setParameterFloat(FMOD_DSP_LOWPASS_CUTOFF, m_lowpassCutOff);
+	}
+
+	//std::cout << m_IsLowpass << std::endl;
 }
 
 //void SoundManager::UpdateSoundResourceUsage()

@@ -20,6 +20,15 @@
     <ClCompile Include="Enemy.cpp">
       <Filter>GameObject</Filter>
     </ClCompile>
+    <ClCompile Include="FSMComponentEnemy.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="FSMComponentGun.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="TaehyeonTestScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -41,6 +50,15 @@
     <ClInclude Include="Enemy.h">
       <Filter>GameObject</Filter>
     </ClInclude>
+    <ClInclude Include="FSMComponentEnemy.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="FSMComponentGun.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="TaehyeonTestScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Scene">
@@ -55,12 +73,18 @@
     <Filter Include="Scene\JSON">
       <UniqueIdentifier>{ebcf55c0-b195-40e1-9fbb-20909ace718c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Component">
+      <UniqueIdentifier>{8b1fb732-907a-4e85-8850-848e49ba2777}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Asset\Scene\HyojeTestScene.json">
       <Filter>Scene\JSON</Filter>
     </None>
     <None Include="..\Asset\Scene\TestScene.json">
+      <Filter>Scene\JSON</Filter>
+    </None>
+    <None Include="..\Asset\Scene\TaehyeonTestScene.json">
       <Filter>Scene\JSON</Filter>
     </None>
   </ItemGroup>

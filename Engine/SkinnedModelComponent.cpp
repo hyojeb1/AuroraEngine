@@ -211,6 +211,11 @@ void SkinnedModelComponent::RenderImGui()
 	}
 }
 
+void SkinnedModelComponent::Finalize()
+{
+	ModelComponent::Finalize();
+}
+
 nlohmann::json SkinnedModelComponent::Serialize()
 {
 	nlohmann::json jsonData = ModelComponent::Serialize();

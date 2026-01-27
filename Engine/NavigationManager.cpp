@@ -381,37 +381,11 @@ void NavigationManager::HandlePlaceLink()
 {
 	InputManager& input = InputManager::GetInstance();
 
-	if (input.GetKeyDown(KeyCode::R))
-	{
-		ClearNavMesh();
-
-		const vector<XMVECTOR> VERTICES = { XMVECTOR{-5.0f, 0.0f, -5.0f, 1.0f}, XMVECTOR{5.0f, 0.0f, -5.0f, 1.0f}, XMVECTOR{0.0f, 0.0f, 5.0f, 1.0f} };
-		constexpr array<int, 3> INDICES = { 0, 1, 2 };
-		AddPolygon(VERTICES, INDICES);
-
-		BuildAdjacency();
-	}
-
 	const POINT& mouse = input.GetMousePosition();
-	const DXGI_SWAP_CHAIN_DESC1& scDesc = Renderer::GetInstance().GetSwapChainDesc();
-	const CameraComponent& cam = CameraComponent::GetMainCamera();
+	const CameraComponent& camera = CameraComponent::GetMainCamera();
+	pair<XMVECTOR, XMVECTOR> ray = camera.RayCast(static_cast<float>(mouse.x), static_cast<float>(mouse.y));
 
-	XMVECTOR screenNear = XMVectorSet(static_cast<float>(mouse.x), static_cast<float>(mouse.y), 0.0f, 0.0f);
-	XMVECTOR screenFar  = XMVectorSet(static_cast<float>(mouse.x), static_cast<float>(mouse.y), 1.0f, 0.0f);
-
-	XMVECTOR nearPoint = XMVector3Unproject(screenNear, 0.0f, 0.0f, static_cast<float>(scDesc.Width), static_cast<float>(scDesc.Height), 0.0f, 1.0f, cam.GetProjectionMatrix(), cam.GetViewMatrix(), XMMatrixIdentity());
-	XMVECTOR farPoint  = XMVector3Unproject(screenFar,  0.0f, 0.0f, static_cast<float>(scDesc.Width), static_cast<float>(scDesc.Height), 0.0f, 1.0f, cam.GetProjectionMatrix(), cam.GetViewMatrix(), XMMatrixIdentity());
-
-	XMVECTOR dir = XMVector3Normalize(XMVectorSubtract(farPoint, nearPoint));
-
-	float dirY = XMVectorGetY(dir);
-	if (fabs(dirY) < numeric_limits<float>::epsilon()) return;
-
-	float t = -XMVectorGetY(nearPoint) / dirY;
-	if (t < 0.0f) return;
-
-	m_previewPoint = XMVectorAdd(nearPoint, XMVectorScale(dir, t));
-	m_previewPoint = XMVectorSetY(m_previewPoint, 0.0f);
+	m_previewPoint = XMPlaneIntersectLine(XMPlaneFromPointNormal(XMVectorZero(), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)), ray.first, ray.second);
 
 	int bestVertexIndex = -1;
 	if (m_previewLine.first >= 0 && m_previewLine.second >= 0)
@@ -480,5 +454,16 @@ void NavigationManager::HandlePlaceLink()
 			m_pathStartSet = false;
 			m_currentPath.clear();
 		}
+	}
+
+	if (input.GetKeyDown(KeyCode::R))
+	{
+		ClearNavMesh();
+
+		const vector<XMVECTOR> VERTICES = { XMVECTOR{-5.0f, 0.0f, -5.0f, 1.0f}, XMVECTOR{5.0f, 0.0f, -5.0f, 1.0f}, XMVECTOR{0.0f, 0.0f, 5.0f, 1.0f} };
+		constexpr array<int, 3> INDICES = { 0, 1, 2 };
+		AddPolygon(VERTICES, INDICES);
+
+		BuildAdjacency();
 	}
 }

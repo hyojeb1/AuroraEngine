@@ -99,7 +99,9 @@ void Renderer::EndFrame()
 		UnbindShaderResources();
 
 		// 백 버퍼 렌더 타겟으로 설정
-		m_deviceContext->OMSetRenderTargets(1, renderTarget.renderTargetView.GetAddressOf(), renderTarget.depthStencilView.Get());
+		vector<ID3D11RenderTargetView*> rtvs = {};
+		for (auto& [texture, rtv] : renderTarget.renderTargets) rtvs.push_back(rtv.Get());
+		m_deviceContext->OMSetRenderTargets(static_cast<UINT>(rtvs.size()), rtvs.data(), renderTarget.depthStencil.second.Get());
 
 		const RenderStage RENDER_STAGE = static_cast<RenderStage>(&renderTarget - &m_renderPass[0].first);
 
@@ -172,14 +174,11 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 	m_deviceContext->Flush();
 
 	// 백 버퍼 리소스 해제
-	RENDER_TARGET(RenderStage::BackBuffer).renderTarget.Reset();
-	RENDER_TARGET(RenderStage::BackBuffer).renderTargetView.Reset();
+	RENDER_TARGET(RenderStage::BackBuffer).renderTargets.clear();
 
 	// 씬 버퍼 리소스 해제
-	RENDER_TARGET(RenderStage::Scene).renderTarget.Reset();
-	RENDER_TARGET(RenderStage::Scene).renderTargetView.Reset();
-	RENDER_TARGET(RenderStage::Scene).depthStencilTexture.Reset();
-	RENDER_TARGET(RenderStage::Scene).depthStencilView.Reset();
+	RENDER_TARGET(RenderStage::Scene).renderTargets.clear();
+	RENDER_TARGET(RenderStage::Scene).depthStencil = {};
 
 	m_sceneResultTexture.Reset();
 	m_sceneShaderResourceView.Reset();
@@ -286,7 +285,8 @@ void Renderer::CreateBackBufferRenderTarget()
 {
 	HRESULT hr = S_OK;
 
-	hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(&RENDER_TARGET(RenderStage::BackBuffer).renderTarget));
+	com_ptr<ID3D11Texture2D> backBufferTexture = nullptr;
+	hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBufferTexture));
 	CheckResult(hr, "스왑 체인 버퍼 얻기 실패.");
 
 	// 렌더 타겟 뷰 생성
@@ -295,8 +295,11 @@ void Renderer::CreateBackBufferRenderTarget()
 		.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, // 감마 보정
 		.ViewDimension = m_swapChainDesc.SampleDesc.Count > 1 ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D
 	};
-	hr = m_device->CreateRenderTargetView(RENDER_TARGET(RenderStage::BackBuffer).renderTarget.Get(), &rtvDesc, RENDER_TARGET(RenderStage::BackBuffer).renderTargetView.GetAddressOf());
+	com_ptr<ID3D11RenderTargetView> backBufferRTV = nullptr;
+	hr = m_device->CreateRenderTargetView(backBufferTexture.Get(), &rtvDesc, backBufferRTV.GetAddressOf());
 	CheckResult(hr, "렌더 타겟 뷰 생성 실패.");
+
+	RENDER_TARGET(RenderStage::BackBuffer).renderTargets.emplace_back(backBufferTexture, backBufferRTV);
 }
 
 void Renderer::CreateBackBufferResources()
@@ -341,30 +344,43 @@ void Renderer::CreateSceneRenderTarget()
 	HRESULT hr = S_OK;
 
 	// 렌더 타겟 텍스처 생성
-	const D3D11_TEXTURE2D_DESC textureDesc =
+	D3D11_TEXTURE2D_DESC textureDesc =
 	{
 		.Width = m_swapChainDesc.Width,
 		.Height = m_swapChainDesc.Height,
 		.MipLevels = 1, // 단일 밉맵
 		.ArraySize = 1, // 단일 텍스처
 		.Format = DXGI_FORMAT_R8G8B8A8_UNORM,
-		.SampleDesc = m_sceneBufferSampleDesc,
+		.SampleDesc = { 4, 0 }, // 4x MSAA 샘플링
 		.Usage = D3D11_USAGE_DEFAULT, // GPU 읽기/쓰기
-		.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, // 렌더 타겟 및 셰이더 리소스
+		.BindFlags = D3D11_BIND_RENDER_TARGET, // 렌더 타겟 및 셰이더 리소스
 		.CPUAccessFlags = 0, // CPU 접근 없음
 		.MiscFlags = 0 // 기타 플래그 없음
 	};
-	hr = m_device->CreateTexture2D(&textureDesc, nullptr, RENDER_TARGET(RenderStage::Scene).renderTarget.GetAddressOf());
+	com_ptr<ID3D11Texture2D> sceneRenderTargetTexture = nullptr;
+	hr = m_device->CreateTexture2D(&textureDesc, nullptr, sceneRenderTargetTexture.GetAddressOf());
 	CheckResult(hr, "씬 렌더 타겟 텍스처 생성 실패.");
 
+	com_ptr<ID3D11Texture2D> sceneThresholdTexture = nullptr; // 임계값 텍스처 생성
+	hr = m_device->CreateTexture2D(&textureDesc, nullptr, sceneThresholdTexture.GetAddressOf());
+	CheckResult(hr, "씬 임계값 텍스처 생성 실패.");
+
 	// 렌더 타겟 뷰 생성
-	const D3D11_RENDER_TARGET_VIEW_DESC rtvDesc =
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc =
 	{
 		.Format = textureDesc.Format,
-		.ViewDimension = textureDesc.SampleDesc.Count > 1 ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D // 멀티샘플링 여부에 따른 뷰 차원
+		.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS
 	};
-	hr = m_device->CreateRenderTargetView(RENDER_TARGET(RenderStage::Scene).renderTarget.Get(), &rtvDesc, RENDER_TARGET(RenderStage::Scene).renderTargetView.GetAddressOf());
+	com_ptr<ID3D11RenderTargetView> sceneRenderTargetView = nullptr;
+	hr = m_device->CreateRenderTargetView(sceneRenderTargetTexture.Get(), &rtvDesc, sceneRenderTargetView.GetAddressOf());
 	CheckResult(hr, "씬 렌더 타겟 뷰 생성 실패.");
+
+	com_ptr<ID3D11RenderTargetView> sceneThresholdView = nullptr;
+	hr = m_device->CreateRenderTargetView(sceneThresholdTexture.Get(), &rtvDesc, sceneThresholdView.GetAddressOf());
+	CheckResult(hr, "씬 임계값 뷰 생성 실패.");
+
+	RENDER_TARGET(RenderStage::Scene).renderTargets.emplace_back(sceneRenderTargetTexture, sceneRenderTargetView); // 씬 렌더 타겟 등록
+	RENDER_TARGET(RenderStage::Scene).renderTargets.emplace_back(sceneThresholdTexture, sceneThresholdView); // 씬 임계값 렌더 타겟 등록
 
 	// 깊이-스텐실 텍스처 및 뷰 생성
 	const D3D11_TEXTURE2D_DESC depthStencilDesc =
@@ -380,31 +396,35 @@ void Renderer::CreateSceneRenderTarget()
 		.CPUAccessFlags = 0,
 		.MiscFlags = 0
 	};
-	hr = m_device->CreateTexture2D(&depthStencilDesc, nullptr, RENDER_TARGET(RenderStage::Scene).depthStencilTexture.GetAddressOf());
+	com_ptr<ID3D11Texture2D> depthStencilTexture = nullptr;
+	hr = m_device->CreateTexture2D(&depthStencilDesc, nullptr, depthStencilTexture.GetAddressOf());
 	CheckResult(hr, "씬 깊이-스텐실 텍스처 생성 실패.");
 
 	// 깊이-스텐실 뷰 생성
 	const D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc =
 	{
 		.Format = depthStencilDesc.Format,
-		.ViewDimension = depthStencilDesc.SampleDesc.Count > 1 ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D,
+		.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS,
 		.Flags = 0
 	};
-	hr = m_device->CreateDepthStencilView(RENDER_TARGET(RenderStage::Scene).depthStencilTexture.Get(), &dsvDesc, RENDER_TARGET(RenderStage::Scene).depthStencilView.GetAddressOf());
+	com_ptr<ID3D11DepthStencilView> depthStencilView = nullptr;
+	hr = m_device->CreateDepthStencilView(depthStencilTexture.Get(), &dsvDesc, depthStencilView.GetAddressOf());
 	CheckResult(hr, "씬 깊이-스텐실 뷰 생성 실패.");
+
+	RENDER_TARGET(RenderStage::Scene).depthStencil = { depthStencilTexture, depthStencilView };
 
 	const D3D11_TEXTURE2D_DESC sceneResultDesc =
 	{
 		.Width = m_swapChainDesc.Width,
 		.Height = m_swapChainDesc.Height,
-		.MipLevels = 1,
-		.ArraySize = 1,
+		.MipLevels = m_sceneResultMipLevels,
+		.ArraySize = static_cast<UINT>(RENDER_TARGET(RenderStage::Scene).renderTargets.size()),
 		.Format = textureDesc.Format,
 		.SampleDesc = { 1, 0 }, // 결과 텍스처는 단일 샘플링
 		.Usage = D3D11_USAGE_DEFAULT,
-		.BindFlags = D3D11_BIND_SHADER_RESOURCE, // 셰이더 리소스 용도
+		.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, // 셰이더 리소스 용도
 		.CPUAccessFlags = 0,
-		.MiscFlags = 0
+		.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS
 	};
 	hr = m_device->CreateTexture2D(&sceneResultDesc, nullptr, m_sceneResultTexture.GetAddressOf());
 	CheckResult(hr, "씬 결과 텍스처 생성 실패.");
@@ -413,8 +433,8 @@ void Renderer::CreateSceneRenderTarget()
 	const D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc =
 	{
 		.Format = textureDesc.Format,
-		.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D,
-		.Texture2D = {.MostDetailedMip = 0, .MipLevels = 1 }
+		.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY,
+		.Texture2DArray = {.MostDetailedMip = 0, .MipLevels = static_cast<UINT>(-1), .FirstArraySlice = 0, .ArraySize = sceneResultDesc.ArraySize }
 	};
 	hr = m_device->CreateShaderResourceView(m_sceneResultTexture.Get(), &srvDesc, m_sceneShaderResourceView.GetAddressOf());
 	CheckResult(hr, "씬 셰이더 리소스 뷰 생성 실패.");
@@ -422,6 +442,8 @@ void Renderer::CreateSceneRenderTarget()
 
 void Renderer::CreateShadowMapRenderTargets()
 {
+	HRESULT hr = S_OK;
+
 	// 방향성 광원 그림자 맵 텍스처 생성
 	const D3D11_TEXTURE2D_DESC shadowMapDesc =
 	{
@@ -436,7 +458,8 @@ void Renderer::CreateShadowMapRenderTargets()
 		.CPUAccessFlags = 0,
 		.MiscFlags = 0
 	};
-	HRESULT hr = m_device->CreateTexture2D(&shadowMapDesc, nullptr, RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilTexture.GetAddressOf());
+	com_ptr<ID3D11Texture2D> directionalLightShadowMapTexture = nullptr;
+	hr = m_device->CreateTexture2D(&shadowMapDesc, nullptr, directionalLightShadowMapTexture.GetAddressOf());
 	CheckResult(hr, "방향성 광원 그림자 맵 텍스처 생성 실패.");
 
 	// 방향성 광원 그림자 맵 깊이-스텐실 뷰 생성
@@ -447,7 +470,11 @@ void Renderer::CreateShadowMapRenderTargets()
 		.Flags = 0,
 		.Texture2D = { 0 }
 	};
-	hr = m_device->CreateDepthStencilView(RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilTexture.Get(), &dsvDesc, RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilView.GetAddressOf());
+	com_ptr<ID3D11DepthStencilView> directionalLightShadowMapDSV = nullptr;
+	hr = m_device->CreateDepthStencilView(directionalLightShadowMapTexture.Get(), &dsvDesc, directionalLightShadowMapDSV.GetAddressOf());
+	CheckResult(hr, "방향성 광원 그림자 맵 깊이-스텐실 뷰 생성 실패.");
+
+	RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencil = { directionalLightShadowMapTexture, directionalLightShadowMapDSV };
 
 	// 방향성 광원 그림자 맵 셰이더 리소스 뷰 생성
 	const D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc =
@@ -456,7 +483,8 @@ void Renderer::CreateShadowMapRenderTargets()
 		.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D,
 		.Texture2D = {.MostDetailedMip = 0, .MipLevels = 1 }
 	};
-	hr = m_device->CreateShaderResourceView(RENDER_TARGET(RenderStage::DirectionalLightShadow).depthStencilTexture.Get(), &srvDesc, m_directionalLightShadowMapSRV.GetAddressOf());
+	hr = m_device->CreateShaderResourceView(directionalLightShadowMapTexture.Get(), &srvDesc, m_directionalLightShadowMapSRV.GetAddressOf());
+	CheckResult(hr, "방향성 광원 그림자 맵 셰이더 리소스 뷰 생성 실패.");
 }
 
 void Renderer::BeginImGuiFrame()
@@ -479,14 +507,24 @@ void Renderer::ClearRenderTarget(RenderTarget& target)
 {
 	constexpr array<float, 4> clearColor = { 0.0f, 1.0f, 0.0f, 1.0f };
 
-	if (target.renderTargetView) m_deviceContext->ClearRenderTargetView(target.renderTargetView.Get(), clearColor.data());
-	if (target.depthStencilView) m_deviceContext->ClearDepthStencilView(target.depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	for (size_t i = 0; i < target.renderTargets.size(); ++i) if (target.renderTargets[i].second) m_deviceContext->ClearRenderTargetView(target.renderTargets[i].second.Get(), clearColor.data());
+	if (target.depthStencil.second) m_deviceContext->ClearDepthStencilView(target.depthStencil.second.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 
 void Renderer::ResolveSceneMSAA()
 {
-	if (m_sceneBufferSampleDesc.Count > 1) m_deviceContext->ResolveSubresource(m_sceneResultTexture.Get(), 0, RENDER_TARGET(RenderStage::Scene).renderTarget.Get(), 0, m_swapChainDesc.Format);
-	else m_deviceContext->CopyResource(m_sceneResultTexture.Get(), RENDER_TARGET(RenderStage::Scene).renderTarget.Get());
+	for (UINT slice = 0; slice < static_cast<UINT>(RENDER_TARGET(RenderStage::Scene).renderTargets.size()); ++slice)
+	{
+		m_deviceContext->ResolveSubresource
+		(
+			m_sceneResultTexture.Get(),
+			D3D11CalcSubresource(0, slice, m_sceneResultMipLevels),
+			RENDER_TARGET(RenderStage::Scene).renderTargets[slice].first.Get(),
+			0,
+			m_swapChainDesc.Format
+		);
+	}
+	m_deviceContext->GenerateMips(m_sceneShaderResourceView.Get());
 }
 
 void Renderer::RenderSceneToBackBuffer()
@@ -532,14 +570,14 @@ void Renderer::RenderXTKSpriteBatch()
 
 	// Input assembler state 저장
 	ID3D11InputLayout* savedIL = nullptr;
-	ID3D11Buffer* savedVB[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT] = { nullptr };
+	array<ID3D11Buffer*, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT> savedVB = { nullptr };
 	array<UINT, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT> savedVBStrides = { 0 };
 	array<UINT, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT> savedVBOffsets = { 0 };
 	ID3D11Buffer* savedIB = nullptr;
 	DXGI_FORMAT savedIBFormat = DXGI_FORMAT_UNKNOWN;
 	UINT savedIBOffset = 0;
 	m_deviceContext->IAGetInputLayout(&savedIL);
-	m_deviceContext->IAGetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, savedVB, savedVBStrides.data(), savedVBOffsets.data());
+	m_deviceContext->IAGetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, savedVB.data(), savedVBStrides.data(), savedVBOffsets.data());
 	m_deviceContext->IAGetIndexBuffer(&savedIB, &savedIBFormat, &savedIBOffset);
 	D3D11_PRIMITIVE_TOPOLOGY savedTopo = {};
 	m_deviceContext->IAGetPrimitiveTopology(&savedTopo);
@@ -582,7 +620,7 @@ void Renderer::RenderXTKSpriteBatch()
 	m_deviceContext->OMSetDepthStencilState(savedDSS, savedStencilRef);
 
 	m_deviceContext->IASetInputLayout(savedIL);
-	m_deviceContext->IASetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, savedVB, savedVBStrides.data(), savedVBOffsets.data());
+	m_deviceContext->IASetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, savedVB.data(), savedVBStrides.data(), savedVBOffsets.data());
 	m_deviceContext->IASetIndexBuffer(savedIB, savedIBFormat, savedIBOffset);
 	m_deviceContext->IASetPrimitiveTopology(savedTopo);
 

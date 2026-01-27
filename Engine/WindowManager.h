@@ -26,6 +26,8 @@ public:
 
 	// 윈도우 핸들 얻기
 	HWND GetHWnd() const { return m_hWnd; }
+	// 클라이언트 영역 크기 얻기
+	RECT GetClientPosRect() const;
 
 private:
 	WindowManager() = default;

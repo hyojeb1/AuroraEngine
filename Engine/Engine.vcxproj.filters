@@ -28,14 +28,14 @@
     <Filter Include="Resource">
       <UniqueIdentifier>{4464304c-e96e-4bc6-a072-cbd29faf101e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Base\Component\FSM">
-      <UniqueIdentifier>{e206fbc1-7550-415f-817f-17873c32267e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Base\Component\Particle">
       <UniqueIdentifier>{7da666ea-9860-4739-888b-9a3705543096}</UniqueIdentifier>
     </Filter>
     <Filter Include="Base\Component\Model">
       <UniqueIdentifier>{0871ba25-6187-468b-9cf2-5256db0e88f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource\BlenderScript">
+      <UniqueIdentifier>{9d82b7b4-54ef-47d1-ad12-a14444fc248c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -93,15 +93,6 @@
     <ClCompile Include="ColliderComponent.cpp">
       <Filter>Base\Component</Filter>
     </ClCompile>
-    <ClCompile Include="FSMComponent.cpp">
-      <Filter>Base\Component\FSM</Filter>
-    </ClCompile>
-    <ClCompile Include="FSMComponentGun.cpp">
-      <Filter>Base\Component\FSM</Filter>
-    </ClCompile>
-    <ClCompile Include="FSMComponentEnemy.cpp">
-      <Filter>Base\Component\FSM</Filter>
-    </ClCompile>
     <ClCompile Include="NavigationManager.cpp">
       <Filter>Manager</Filter>
     </ClCompile>
@@ -119,6 +110,9 @@
     </ClCompile>
     <ClCompile Include="InstancedParticleComponent.cpp">
       <Filter>Base\Component\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="FSMComponent.cpp">
+      <Filter>Base\Component</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -186,15 +180,6 @@
     <ClInclude Include="ColliderComponent.h">
       <Filter>Base\Component</Filter>
     </ClInclude>
-    <ClInclude Include="FSMComponent.h">
-      <Filter>Base\Component\FSM</Filter>
-    </ClInclude>
-    <ClInclude Include="FSMComponentGun.h">
-      <Filter>Base\Component\FSM</Filter>
-    </ClInclude>
-    <ClInclude Include="FSMComponentEnemy.h">
-      <Filter>Base\Component\FSM</Filter>
-    </ClInclude>
     <ClInclude Include="NavigationManager.h">
       <Filter>Manager</Filter>
     </ClInclude>
@@ -212,6 +197,9 @@
     </ClInclude>
     <ClInclude Include="InstancedParticleComponent.h">
       <Filter>Base\Component\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="FSMComponent.h">
+      <Filter>Base\Component</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -273,6 +261,15 @@
     </None>
     <None Include="..\Asset\Shader\CommonPS.hlsli">
       <Filter>Shader</Filter>
+    </None>
+    <None Include="..\Asset\Tools\Blender\aurora_export.py">
+      <Filter>Resource\BlenderScript</Filter>
+    </None>
+    <None Include="..\Asset\Tools\Blender\fbx_scale_fixer_gui.py">
+      <Filter>Resource\BlenderScript</Filter>
+    </None>
+    <None Include="..\Asset\Tools\Blender\mesh2SM.py">
+      <Filter>Resource\BlenderScript</Filter>
     </None>
   </ItemGroup>
 </Project>

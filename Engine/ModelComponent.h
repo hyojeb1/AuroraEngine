@@ -5,6 +5,8 @@
 
 class ModelComponent : public ComponentBase
 {
+	static std::vector<ModelComponent*> s_modelComponents; // 모든 모델 컴포넌트 배열
+
 protected:
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
 
@@ -50,6 +52,8 @@ public:
 	ModelComponent(ModelComponent&&) = default;
 	ModelComponent& operator=(ModelComponent&&) = default;
 
+	static class GameObjectBase* CheckCollision(const DirectX::XMVECTOR& origin, const DirectX::XMVECTOR& direction);
+
 	const std::string& GetVertexShaderName() const { return m_vsShaderName; }
 	void SetVertexShaderName(const std::string& vsShaderName) { m_vsShaderName = vsShaderName; }
 	const std::string& GetPixelShaderName() const { return m_psShaderName; }
@@ -69,6 +73,7 @@ protected:
 	void Initialize() override;
 	void Render() override;
 	void RenderImGui() override;
+	void Finalize() override;
 
 	nlohmann::json Serialize() override;
 	void Deserialize(const nlohmann::json& jsonData) override;
