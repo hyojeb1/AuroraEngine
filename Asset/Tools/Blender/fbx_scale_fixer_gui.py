@@ -1,3 +1,6 @@
+# 
+# https://github.com/Cosmic-Disaster/AliceBlenderBatchFBX
+# 
 # -*- coding: utf-8 -*-
 # Build:
 #   python -m PyInstaller --onefile --noconsole --icon Icon/Icon.ico fbx_scale_fixer_gui.py
