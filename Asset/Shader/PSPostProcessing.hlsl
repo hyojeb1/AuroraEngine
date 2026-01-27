@@ -6,10 +6,10 @@ float4 main(PS_INPUT_POS_UV input) : SV_TARGET
     
     float4 tresholdColor;
     
-    [loop]
-    for (int i = 0; i < 11; ++i) tresholdColor += sceneTexture.SampleLevel(SamplerLinearClamp, float3(input.UV, 0.0f), i);
+    [loop] // 겁나 싼 짭우시안 블러
+    for (int i = 0; i < 11; ++i) tresholdColor += sceneTexture.SampleLevel(SamplerLinearClamp, float3(input.UV, 1.0f), i);
     
-    color = tresholdColor * 0.1f; // 블룸 합성
+    color += tresholdColor * 0.1f; // 블룸 합성
     
     color.rgb = pow(color.rgb, Gamma); // 감마 보정
     
