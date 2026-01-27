@@ -122,7 +122,8 @@ constexpr void CheckResult(HRESULT hr, const char* msg)
 	{
 		#ifdef _DEBUG
 		std::cerr << msg << " 에러 코드: " << std::hex << hr << std::endl;
-		#else
+#else
+		std::cerr << msg << " 에러 코드: " << std::hex << hr << std::endl;
 		MessageBoxA(nullptr, msg, "오류", MB_OK | MB_ICONERROR);
 		#endif
 		exit(EXIT_FAILURE);
