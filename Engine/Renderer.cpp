@@ -354,7 +354,7 @@ void Renderer::CreateSceneRenderTarget()
 		.Format = DXGI_FORMAT_R8G8B8A8_UNORM,
 		.SampleDesc = { 4, 0 }, // 4x MSAA 샘플링
 		.Usage = D3D11_USAGE_DEFAULT, // GPU 읽기/쓰기
-		.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, // 렌더 타겟 및 셰이더 리소스
+		.BindFlags = D3D11_BIND_RENDER_TARGET, // 렌더 타겟 및 셰이더 리소스
 		.CPUAccessFlags = 0, // CPU 접근 없음
 		.MiscFlags = 0 // 기타 플래그 없음
 	};
@@ -418,14 +418,14 @@ void Renderer::CreateSceneRenderTarget()
 	{
 		.Width = m_swapChainDesc.Width,
 		.Height = m_swapChainDesc.Height,
-		.MipLevels = 1,
+		.MipLevels = 0,
 		.ArraySize = static_cast<UINT>(RENDER_TARGET(RenderStage::Scene).renderTargets.size()),
 		.Format = textureDesc.Format,
 		.SampleDesc = { 1, 0 }, // 결과 텍스처는 단일 샘플링
 		.Usage = D3D11_USAGE_DEFAULT,
-		.BindFlags = D3D11_BIND_SHADER_RESOURCE, // 셰이더 리소스 용도
+		.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, // 셰이더 리소스 용도
 		.CPUAccessFlags = 0,
-		.MiscFlags = 0
+		.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS
 	};
 	hr = m_device->CreateTexture2D(&sceneResultDesc, nullptr, m_sceneResultTexture.GetAddressOf());
 	CheckResult(hr, "씬 결과 텍스처 생성 실패.");
@@ -435,7 +435,7 @@ void Renderer::CreateSceneRenderTarget()
 	{
 		.Format = textureDesc.Format,
 		.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY,
-		.Texture2DArray = {.MostDetailedMip = 0, .MipLevels = 1, .FirstArraySlice = 0, .ArraySize = sceneResultDesc.ArraySize }
+		.Texture2DArray = {.MostDetailedMip = 0, .MipLevels = static_cast<UINT>(-1), .FirstArraySlice = 0, .ArraySize = sceneResultDesc.ArraySize }
 	};
 	hr = m_device->CreateShaderResourceView(m_sceneResultTexture.Get(), &srvDesc, m_sceneShaderResourceView.GetAddressOf());
 	CheckResult(hr, "씬 셰이더 리소스 뷰 생성 실패.");
@@ -514,8 +514,8 @@ void Renderer::ClearRenderTarget(RenderTarget& target)
 
 void Renderer::ResolveSceneMSAA()
 {
-	constexpr UINT mipLevels = 1;
-	for (UINT slice = 0; slice < static_cast<UINT>(RENDER_TARGET(RenderStage::Scene).renderTargets.size()); ++slice) m_deviceContext->ResolveSubresource(m_sceneResultTexture.Get(), D3D11CalcSubresource(0, slice, mipLevels), RENDER_TARGET(RenderStage::Scene).renderTargets[slice].first.Get(), 0, m_swapChainDesc.Format);
+	for (UINT slice = 0; slice < static_cast<UINT>(RENDER_TARGET(RenderStage::Scene).renderTargets.size()); ++slice) m_deviceContext->ResolveSubresource(m_sceneResultTexture.Get(), D3D11CalcSubresource(0, slice, 1), RENDER_TARGET(RenderStage::Scene).renderTargets[slice].first.Get(), 0, m_swapChainDesc.Format);
+	m_deviceContext->GenerateMips(m_sceneShaderResourceView.Get());
 }
 
 void Renderer::RenderSceneToBackBuffer()
