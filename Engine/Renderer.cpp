@@ -174,12 +174,11 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 	m_deviceContext->Flush();
 
 	// 백 버퍼 리소스 해제
-	for (auto& [texture, rtv] : RENDER_TARGET(RenderStage::BackBuffer).renderTargets) { texture.Reset(); rtv.Reset(); }
+	RENDER_TARGET(RenderStage::BackBuffer).renderTargets.clear();
 
 	// 씬 버퍼 리소스 해제
-	for (auto& [texture, rtv] : RENDER_TARGET(RenderStage::Scene).renderTargets) { texture.Reset(); rtv.Reset(); }
-	RENDER_TARGET(RenderStage::Scene).depthStencil.first.Reset();
-	RENDER_TARGET(RenderStage::Scene).depthStencil.second.Reset();
+	RENDER_TARGET(RenderStage::Scene).renderTargets.clear();
+	RENDER_TARGET(RenderStage::Scene).depthStencil = {};
 
 	m_sceneResultTexture.Reset();
 	m_sceneShaderResourceView.Reset();
@@ -418,7 +417,7 @@ void Renderer::CreateSceneRenderTarget()
 	{
 		.Width = m_swapChainDesc.Width,
 		.Height = m_swapChainDesc.Height,
-		.MipLevels = 0,
+		.MipLevels = m_sceneResultMipLevels,
 		.ArraySize = static_cast<UINT>(RENDER_TARGET(RenderStage::Scene).renderTargets.size()),
 		.Format = textureDesc.Format,
 		.SampleDesc = { 1, 0 }, // 결과 텍스처는 단일 샘플링
@@ -514,7 +513,17 @@ void Renderer::ClearRenderTarget(RenderTarget& target)
 
 void Renderer::ResolveSceneMSAA()
 {
-	for (UINT slice = 0; slice < static_cast<UINT>(RENDER_TARGET(RenderStage::Scene).renderTargets.size()); ++slice) m_deviceContext->ResolveSubresource(m_sceneResultTexture.Get(), D3D11CalcSubresource(0, slice, 1), RENDER_TARGET(RenderStage::Scene).renderTargets[slice].first.Get(), 0, m_swapChainDesc.Format);
+	for (UINT slice = 0; slice < static_cast<UINT>(RENDER_TARGET(RenderStage::Scene).renderTargets.size()); ++slice)
+	{
+		m_deviceContext->ResolveSubresource
+		(
+			m_sceneResultTexture.Get(),
+			D3D11CalcSubresource(0, slice, m_sceneResultMipLevels),
+			RENDER_TARGET(RenderStage::Scene).renderTargets[slice].first.Get(),
+			0,
+			m_swapChainDesc.Format
+		);
+	}
 	m_deviceContext->GenerateMips(m_sceneShaderResourceView.Get());
 }
 
