@@ -6,6 +6,7 @@
 
 #include "TestScene.h"
 #include "HyojeTestScene.h"
+#include "TaehyeonTestScene.h"
 
 using namespace std;
 
@@ -22,10 +23,10 @@ int main()
 	windowManager.Initialize(L"Aurora");
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
-	sceneManager.ChangeScene("HyojeTestScene");
+	sceneManager.ChangeScene("TaehyeonTestScene");
 
-	//SoundManager& soundManager = SoundManager::GetInstance();
-	//soundManager.Initialize();
+	SoundManager& soundManager = SoundManager::GetInstance();
+	soundManager.Initialize();
 
 	while (windowManager.ProcessMessages()) sceneManager.Run();
 
