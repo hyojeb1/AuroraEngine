@@ -54,6 +54,39 @@ GameObjectBase* SceneBase::GetGameObjectRecursive(const string& name)
 	return nullptr;
 }
 
+#ifdef _DEBUG
+void SceneBase::SaveState()
+{
+	nlohmann::json sceneData = BaseSerialize();
+
+	if (m_lastSavedSnapshot.is_null() || m_lastSavedSnapshot.empty()) { m_lastSavedSnapshot = sceneData; return; }
+
+	const nlohmann::json forwardDiff = nlohmann::json::diff(m_lastSavedSnapshot, sceneData);
+	if (forwardDiff.empty()) return;
+
+	const nlohmann::json inverseDiff = nlohmann::json::diff(sceneData, m_lastSavedSnapshot);
+	m_previousStateInversePatches.push_back(inverseDiff);
+
+	if (m_previousStateInversePatches.size() > 100) m_previousStateInversePatches.pop_front();
+
+	m_lastSavedSnapshot = sceneData;
+}
+
+void SceneBase::Undo()
+{
+	if (m_previousStateInversePatches.empty()) return;
+
+	nlohmann::json inversePatch = move(m_previousStateInversePatches.back());
+	m_previousStateInversePatches.pop_back();
+
+	nlohmann::json previousScene = BaseSerialize().patch(inversePatch);
+
+	BaseDeserialize(previousScene);
+
+	m_lastSavedSnapshot = previousScene;
+}
+#endif
+
 void SceneBase::BaseInitialize()
 {
 	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
@@ -71,7 +104,7 @@ void SceneBase::BaseInitialize()
 	if (filesystem::exists(sceneFilePath))
 	{
 		ifstream file(sceneFilePath);
-		nlohmann::json sceneData;
+		nlohmann::json sceneData = {};
 		file >> sceneData;
 		file.close();
 		BaseDeserialize(sceneData);
@@ -103,6 +136,10 @@ void SceneBase::BaseUpdate()
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseUpdate();
 
 	#ifdef _DEBUG
+
+	// 네비게이션 메시 생성 모드일 때 링크 배치 처리
+	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink();
+
 	// Ctrl + S 입력 시 씬 저장
 	InputManager& inputManager = InputManager::GetInstance();
 	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::S))
@@ -118,8 +155,8 @@ void SceneBase::BaseUpdate()
 		cout << "씬: " << m_type << " 저장 완료!" << endl;
 	}
 
-	// 네비게이션 메시 생성 모드일 때 링크 배치 처리
-	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink();
+	if (inputManager.GetKeyDown(KeyCode::E)) SaveState();
+	if (inputManager.GetKeyDown(KeyCode::Q)) Undo();
 
 	// 디버그 카메라로 오브젝트 선택
 	PickObjectDebugCamera();
@@ -288,7 +325,7 @@ void SceneBase::BaseRenderImGui()
 		static ImGuizmo::OPERATION gizmoOperation = ImGuizmo::TRANSLATE;
 		static ImGuizmo::MODE gizmoMode = ImGuizmo::LOCAL;
 		static bool useSnap = false;
-		static float snapTranslation[3] = { 0.5f, 0.5f, 0.5f };
+		array<float, 3> snapTranslation = { 0.5f, 0.5f, 0.5f };
 		static float snapRotation = 15.0f;
 		static float snapScale = 0.1f;
 
@@ -310,7 +347,7 @@ void SceneBase::BaseRenderImGui()
 		ImGui::Checkbox("Snap", &useSnap);
 		if (useSnap)
 		{
-			if (gizmoOperation == ImGuizmo::TRANSLATE) ImGui::InputFloat3("Snap T", snapTranslation);
+			if (gizmoOperation == ImGuizmo::TRANSLATE) ImGui::InputFloat3("Snap T", snapTranslation.data());
 			else if (gizmoOperation == ImGuizmo::ROTATE) ImGui::InputFloat("Snap R", &snapRotation);
 			else if (gizmoOperation == ImGuizmo::SCALE) ImGui::InputFloat("Snap S", &snapScale);
 		}
@@ -329,7 +366,7 @@ void SceneBase::BaseRenderImGui()
 		{
 			if (gizmoOperation == ImGuizmo::TRANSLATE)
 			{
-				memcpy(snapValues.data(), snapTranslation, sizeof(float) * 3);
+				memcpy(snapValues.data(), snapTranslation.data(), sizeof(float) * 3);
 				snap = snapValues.data();
 			}
 			else if (gizmoOperation == ImGuizmo::ROTATE)
@@ -377,7 +414,6 @@ nlohmann::json SceneBase::BaseSerialize()
 	nlohmann::json jsonData;
 
 	// 기본 씬 데이터 저장
-
 	// 씬 조명 정보
 	jsonData["lightColor"] =
 	{
@@ -416,7 +452,6 @@ nlohmann::json SceneBase::BaseSerialize()
 void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 {
 	// 기본 씬 데이터 로드
-
 	// 씬 조명 정보
 	m_globalLightData.lightColor = XMFLOAT4
 	(
@@ -441,6 +476,9 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 
 	// 파생 클래스의 데이터 로드
 	Deserialize(jsonData);
+
+	// 기존 게임 오브젝트들 정리
+	m_gameObjects.clear();
 
 	// 게임 오브젝트들 로드
 	for (const auto& gameObjectData : jsonData["rootGameObjects"])
