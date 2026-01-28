@@ -29,8 +29,8 @@ int main()
 	SceneManager& sceneManager = SceneManager::GetInstance();
 	sceneManager.ChangeScene("HyojeTestScene");
 
-	SoundManager& soundManager = SoundManager::GetInstance();
-	soundManager.Initialize();
+	//SoundManager& soundManager = SoundManager::GetInstance();
+	//soundManager.Initialize();
 
 	while (windowManager.ProcessMessages()) sceneManager.Run();
 

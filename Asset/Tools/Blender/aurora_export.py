@@ -14,9 +14,7 @@ from bpy_extras.io_utils import axis_conversion
 EXPORT_COLLECTION = "AE_Export"
 
 SCENE_NAME = "HyojeTestScene"
-# You can use Blender-relative paths with "//".
 FBX_DIR = rf"C:\dev\AuroraEngine\Asset\Model\{SCENE_NAME}"
-# Model root used to build modelFileName relative paths for Aurora.
 MODEL_ROOT = r"C:\dev\AuroraEngine\Asset\Model"
 SCENE_JSON_PATH = rf"C:\dev\AuroraEngine\Asset\Scene\{SCENE_NAME}.json"
 TEXTURE_DIR = rf"C:\dev\AuroraEngine\Asset\Texture\{SCENE_NAME}"

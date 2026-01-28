@@ -6,7 +6,7 @@
 #include "SoundManager.h"
 #include "TimeManager.h"
 
-constexpr size_t ChannelCount = 64; //profiling ?ë¸???Š‚
+constexpr size_t ChannelCount = 64; //profiling ?é‡‰???ë’„
 
 void SoundManager::Initialize()
 {
@@ -217,7 +217,7 @@ void SoundManager::ConvertSFXSource()
 		}
 
 		if (!hasfile)
-		{
+		{	
 			MessageBoxA(nullptr, "SFX resource not found", "Error", MB_OK | MB_ICONERROR);
 		}
 	}

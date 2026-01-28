@@ -20,7 +20,7 @@ void InstancedParticleComponent::Initialize()
 {
 	ParticleComponent::Initialize();
 
-#ifdef _DEBUG
+	#ifdef _DEBUG
 	if (instances_.empty())
 	{
 		uv_scale_ = { 0.5f, 0.5f };
@@ -54,7 +54,7 @@ void InstancedParticleComponent::Initialize()
 
 		SetInstances(debug_instances);
 	}
-#endif
+	#endif
 }
 
 void InstancedParticleComponent::SetInstances(const vector<InstanceData>& data)

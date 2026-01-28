@@ -4,9 +4,6 @@
 # -*- coding: utf-8 -*-
 # Build:
 #   python -m PyInstaller --onefile --noconsole --icon Icon/Icon.ico fbx_scale_fixer_gui.py
-# 실행 폴더 구조(윈도우 창 아이콘용):
-#   fbx_scale_fixer_gui.exe
-#   Icon/Icon.ico
 
 import os
 import sys
@@ -29,19 +26,16 @@ except ImportError:
 # App icon helpers
 # -----------------------------
 def app_base_dir() -> str:
-    """EXE로 빌드된 경우 exe가 있는 폴더, 스크립트 실행이면 .py가 있는 폴더"""
     if getattr(sys, "frozen", False):
         return os.path.dirname(sys.executable)
     return os.path.dirname(os.path.abspath(__file__))
 
 
 def app_icon_path() -> str:
-    """현재 폴더(=exe 옆 또는 py 옆)의 Icon/Icon.ico"""
     return os.path.join(app_base_dir(), "Icon", "Icon.ico")
 
 
 def decode_best_effort(b: bytes) -> str:
-    """윈도우/블렌더 출력 인코딩이 섞일 때 안전하게 문자열로 변환"""
     if b is None:
         return ""
     for enc in ("utf-8", "cp949", "euc-kr", "latin-1"):
@@ -54,12 +48,6 @@ def decode_best_effort(b: bytes) -> str:
 
 # -----------------------------
 # Blender batch script
-#   요구사항:
-#     1) Dimensions(보이는 크기) 유지
-#     2) Scale=1.0으로 정규화
-#     3) Rotation도 0,0,0으로(=현재 모습 유지한 채 Ctrl-A Rotation bake)
-#     4) Export 시 Apply Unit + Apply Scalings: FBX Units Scale 적용
-#     5) 그 외 옵션 유지
 # -----------------------------
 BLENDER_BATCH_SCRIPT = r'''
 import bpy
@@ -78,8 +66,6 @@ def reset_scene():
             bpy.ops.object.mode_set(mode='OBJECT')
         except:
             pass
-
-    # 단위는 기본(미터)로 고정(혼란 방지)
     try:
         us = bpy.context.scene.unit_settings
         us.system = 'METRIC'
@@ -102,30 +88,17 @@ def _hierarchy_depth(obj):
     return d
 
 def normalize_transforms_keep_dimensions(apply_armature_transform=False):
-    """
-    목표:
-      - 현재 보이는 Dimensions(크기)는 그대로
-      - Scale = 1,1,1
-      - Rotation = 0,0,0 (현재 모습 유지한 채 Rotation을 메시 데이터에 bake)
-        => Ctrl-A: Rotation + Scale 효과
-
-    중요:
-      - 회전/스케일을 오브젝트 트랜스폼이 아닌 "데이터"로 굽는다.
-      - Armature는 기본 False(리깅 깨질 수 있어서). 필요하면 옵션으로 켬.
-    """
-
     if bpy.ops.object.mode_set.poll():
         try:
             bpy.ops.object.mode_set(mode='OBJECT')
         except:
             pass
 
-    selectable_types = {"MESH"}  # 핵심은 Mesh
+    selectable_types = {"MESH"} 
     if apply_armature_transform:
         selectable_types.add("ARMATURE")
 
     objs = [o for o in bpy.context.scene.objects if o.type in selectable_types]
-    # 부모->자식 순서가 안전(부모 적용 시 자식 보정이 더 자연스러움)
     objs.sort(key=_hierarchy_depth)
 
     def is_non_identity_rot_scale(obj, eps=1e-6):
@@ -144,23 +117,19 @@ def normalize_transforms_keep_dimensions(apply_armature_transform=False):
             sc_before = obj.scale.copy()
             rot_before = obj.rotation_euler.copy()
 
-            # operator 컨텍스트
             bpy.ops.object.select_all(action='DESELECT')
             obj.select_set(True)
             bpy.context.view_layer.objects.active = obj
 
-            # Ctrl-A: Rotation + Scale (Location은 유지)
             bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 
             dim_after = obj.dimensions.copy()
             sc_after = obj.scale.copy()
             rot_after = obj.rotation_euler.copy()
 
-            # 대부분 여기서 끝. 그래도 dimensions가 눈에 띄게 흔들리면 MESH만 보정.
             if obj.type == "MESH":
                 def safe_ratio(a, b):
-                    if abs(b) < 1e-12:
-                        return 1.0
+                    if abs(b) < 1e-12: return 1.0
                     return a / b
 
                 rx = safe_ratio(dim_before.x, dim_after.x)
@@ -171,103 +140,88 @@ def normalize_transforms_keep_dimensions(apply_armature_transform=False):
                     m = Matrix.Diagonal((rx, ry, rz, 1.0))
                     obj.data.transform(m)
                     obj.data.update()
-
                     dim_after2 = obj.dimensions.copy()
-                    log(f"   [Bake] {obj.name}: rot {tuple(rot_before)} -> {tuple(rot_after)} | scale {tuple(sc_before)} -> {tuple(sc_after)} | dim {tuple(dim_before)} -> {tuple(dim_after2)}")
+                    log(f"   [Bake] {obj.name}: Corrected Dimensions.")
                 else:
-                    log(f"   [Bake] {obj.name}: rot {tuple(rot_before)} -> {tuple(rot_after)} | scale {tuple(sc_before)} -> {tuple(sc_after)} | dim 유지")
+                    log(f"   [Bake] {obj.name}: Dimensions OK.")
             else:
-                log(f"   [Bake] {obj.name}: rot {tuple(rot_before)} -> {tuple(rot_after)} | scale {tuple(sc_before)} -> {tuple(sc_after)}")
+                log(f"   [Bake] {obj.name}: Applied.")
 
         except Exception as e:
             log(f"   [Bake][WARN] {obj.name} failed: {e}")
 
 def export_fbx(path):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-
     bpy.ops.export_scene.fbx(
         filepath=path,
         use_selection=False,
         use_active_collection=False,
-
-        # 스케일 관련(요청사항)
         global_scale=1.0,
         apply_unit_scale=True,
-        apply_scale_options='FBX_SCALE_UNITS',  # Apply Scalings = FBX Units Scale
-
-        # 축/트랜스폼 (유지)
+        apply_scale_options='FBX_SCALE_UNITS',
         axis_forward='-Z',
         axis_up='Y',
         use_space_transform=True,
-        bake_space_transform=True,  # Apply Transform
-
-        # 오브젝트 타입
+        bake_space_transform=True,
         object_types={'EMPTY', 'CAMERA', 'LIGHT', 'ARMATURE', 'MESH', 'OTHER'},
-
-        # Leaf Bones off
         add_leaf_bones=False,
-
-        # Bone axis
         primary_bone_axis='Y',
         secondary_bone_axis='X',
-
         use_mesh_modifiers=True,
         use_custom_props=False,
         path_mode='AUTO',
         embed_textures=False,
     )
 
-def iter_fbx_files(root):
-    for dirpath, _, filenames in os.walk(root):
-        for fn in filenames:
-            if fn.lower().endswith(".fbx"):
-                yield os.path.join(dirpath, fn)
-
 def safe_overwrite(src_tmp, dst):
+    if os.path.exists(dst):
+        os.remove(dst)
     os.replace(src_tmp, dst)
 
 def main():
     argv = sys.argv
     argv = argv[argv.index("--") + 1:] if "--" in argv else []
+    
     if not argv:
-        log("[ERROR] No target directory provided.")
+        log("[ERROR] No input file provided.")
         return 2
 
-    target_root = os.path.abspath(argv[0])
-
-    # 옵션: Armature도 transform bake 할지 여부 (기본 False)
+    # argv[0] is the path to the text file containing the list of FBX files
+    input_list_file = argv[0]
     apply_armature_transform = ("--apply_armature_scale" in argv)
 
     log("=== Blender FBX Batch Fix ===")
-    log(f"Target : {target_root}")
-    log(f"Apply Armature Transform : {apply_armature_transform}")
-    log("Goal : keep Dimensions, set Scale=1.0 & Rotation=0, export with FBX Units Scale")
-    log("=============================")
-
-    if not os.path.isdir(target_root):
-        log("[ERROR] Target is not a directory.")
+    log(f"Input List : {input_list_file}")
+    log(f"Apply Armature : {apply_armature_transform}")
+    
+    files_to_process = []
+    if os.path.isfile(input_list_file):
+        with open(input_list_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                path = line.strip()
+                if path and os.path.exists(path):
+                    files_to_process.append(path)
+    else:
+        log("[ERROR] Input list file not found.")
         return 2
 
-    files = list(iter_fbx_files(target_root))
-    log(f"Found {len(files)} FBX files.")
+    log(f"Total Files to Process: {len(files_to_process)}")
 
     errors = []
 
-    for i, in_path in enumerate(files, 1):
+    for i, in_path in enumerate(files_to_process, 1):
         try:
-            log(f"\n[{i}/{len(files)}] {in_path}")
-
+            log(f"\n[{i}/{len(files_to_process)}] {in_path}")
+            
             base_dir = os.path.dirname(in_path)
             base_name = os.path.splitext(os.path.basename(in_path))[0]
             tmp_out = os.path.join(base_dir, base_name + ".__fbxfix_tmp__.fbx")
 
             reset_scene()
             import_fbx(in_path)
-
-            # 핵심: Rotation/Scale bake 해서 rot=0, scale=1, dim 유지
             normalize_transforms_keep_dimensions(apply_armature_transform=apply_armature_transform)
-
             export_fbx(tmp_out)
+            
             safe_overwrite(tmp_out, in_path)
             log("   OK (overwritten)")
 
@@ -275,18 +229,14 @@ def main():
             log("   FAILED: " + str(e))
             traceback.print_exc()
             errors.append((in_path, str(e)))
-
             try:
                 if os.path.exists(tmp_out):
                     os.remove(tmp_out)
-            except:
-                pass
+            except: pass
 
     log("\n=== Done ===")
     if errors:
         log(f"Errors: {len(errors)}")
-        for p, msg in errors:
-            log(" - " + p + " : " + msg)
         return 1
     else:
         log("All files processed successfully.")
@@ -296,56 +246,127 @@ if __name__ == "__main__":
     raise SystemExit(main())
 '''
 
+# -----------------------------
+# Scrollable Checkbox List Helper
+# -----------------------------
+class ScrollableCheckFrame(ttk.Frame):
+    def __init__(self, container, *args, **kwargs):
+        super().__init__(container, *args, **kwargs)
+        self.canvas = tk.Canvas(self, height=150, bg="#ffffff")
+        self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.scrollable_frame = ttk.Frame(self.canvas)
 
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        )
+
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scrollbar.pack(side="right", fill="y")
+        
+        # Mousewheel scrolling
+        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+        
+        self.check_vars = {} # path -> BooleanVar
+
+    def _on_mousewheel(self, event):
+        # Only scroll if needed
+        if self.canvas.winfo_height() < self.scrollable_frame.winfo_height():
+            self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+    def set_files(self, file_paths):
+        # Clear old
+        for widget in self.scrollable_frame.winfo_children():
+            widget.destroy()
+        self.check_vars.clear()
+
+        for fpath in file_paths:
+            var = tk.BooleanVar(value=True) # Default checked
+            self.check_vars[fpath] = var
+            
+            # Display simpler name, but store full path
+            display_name = os.path.basename(fpath)
+            parent_dir = os.path.basename(os.path.dirname(fpath))
+            full_display = f"[{parent_dir}] {display_name}"
+
+            chk = ttk.Checkbutton(self.scrollable_frame, text=full_display, variable=var)
+            chk.pack(anchor="w", padx=5, pady=2)
+
+    def get_checked_files(self):
+        return [path for path, var in self.check_vars.items() if var.get()]
+
+    def set_all(self, value: bool):
+        for var in self.check_vars.values():
+            var.set(value)
+
+
+# -----------------------------
+# Main Application
+# -----------------------------
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("FBX Scale Fixer (Blender Batch)")
-        self.geometry("820x520")
-        self.resizable(True, True)
-
+        self.geometry("820x650") # Increased height for list
+        
         ico = app_icon_path()
         if os.path.exists(ico):
             try:
                 self.iconbitmap(ico)
-            except:
-                pass
+            except: pass
 
         self.blender_path_var = tk.StringVar()
         self.target_dir_var = tk.StringVar()
         self.running = False
         self.proc = None
 
+        # 1. Blender Path
         row1 = ttk.Frame(self)
         row1.pack(fill="x", padx=12, pady=(12, 6))
         ttk.Label(row1, text="Blender Path").pack(side="left")
         ttk.Entry(row1, textvariable=self.blender_path_var).pack(side="left", fill="x", expand=True, padx=8)
         ttk.Button(row1, text="Browse...", command=self.pick_blender).pack(side="left")
 
+        # 2. Target Folder
         row2 = ttk.Frame(self)
         row2.pack(fill="x", padx=12, pady=6)
         ttk.Label(row2, text="Target Folder").pack(side="left")
         ttk.Entry(row2, textvariable=self.target_dir_var).pack(side="left", fill="x", expand=True, padx=8)
         ttk.Button(row2, text="Browse...", command=self.pick_target).pack(side="left")
 
-        row_opt = ttk.Frame(self)
-        row_opt.pack(fill="x", padx=12, pady=(0, 6))
+        # 3. File Selection Controls
+        row_ctrl = ttk.Frame(self)
+        row_ctrl.pack(fill="x", padx=12, pady=(10, 2))
+        ttk.Label(row_ctrl, text="Files found:").pack(side="left")
+        ttk.Button(row_ctrl, text="Uncheck All", command=lambda: self.file_list.set_all(False)).pack(side="right")
+        ttk.Button(row_ctrl, text="Check All", command=lambda: self.file_list.set_all(True)).pack(side="right", padx=5)
 
-        # 기존 옵션명은 그대로 두되, 실제로는 Armature에 Rotation/Scale bake까지 포함(리깅 주의)
+        # 4. File List Area
+        self.file_list = ScrollableCheckFrame(self, borderwidth=1, relief="sunken")
+        self.file_list.pack(fill="both", expand=True, padx=12, pady=2)
+
+        # 5. Options & Run
+        row_opt = ttk.Frame(self)
+        row_opt.pack(fill="x", padx=12, pady=(10, 6))
+
         self.armature_scale_var = tk.BooleanVar(value=False)
         ttk.Checkbutton(
             row_opt, text="(주의) Apply Armature Transform too", variable=self.armature_scale_var
         ).pack(side="left")
 
-        self.run_btn = ttk.Button(row_opt, text="RUN (Overwrite Originals)", command=self.run)
+        self.run_btn = ttk.Button(row_opt, text="RUN (Selected Files)", command=self.run)
         self.run_btn.pack(side="right")
 
+        # 6. Progress & Log
         self.progress = ttk.Progressbar(self, mode="indeterminate")
         self.progress.pack(fill="x", padx=12, pady=(0, 8))
 
         ttk.Label(self, text="Log").pack(anchor="w", padx=12)
-        self.text = tk.Text(self, height=18)
-        self.text.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+        self.text = tk.Text(self, height=10) # Log slightly smaller
+        self.text.pack(fill="x", padx=12, pady=(0, 12))
         self.text.configure(state="disabled")
 
         self.autofill_blender_path()
@@ -356,189 +377,103 @@ class App(tk.Tk):
         self.text.see("end")
         self.text.configure(state="disabled")
 
-    # -----------------------------
-    # Blender auto-discovery
-    # -----------------------------
+    # ... (Blender Discovery Logic unchanged) ...
     def _parse_version_score(self, blender_exe_path: str) -> int:
         p = blender_exe_path.lower()
         score = 0
-        if "lts" in p:
-            score += 1000
-
-        m = re.search(r'blender[\s_-]?(\d+)\.(\d+)(?:\.(\d+))?', p)
-        if not m:
-            m = re.search(r'\\(\d+)\.(\d+)(?:\.(\d+))?\\blender\.exe$', p)
-        if not m:
-            m = re.search(r'(\d+)\.(\d+)(?:\.(\d+))?', p)
-
-        if m:
-            major = int(m.group(1))
-            minor = int(m.group(2))
-            patch = int(m.group(3)) if m.group(3) else 0
-            score += major * 1_000_000 + minor * 10_000 + patch * 100
-
-        if "\\program files" in p:
-            score += 50
-        if "\\program files (x86)" in p:
-            score += 10
+        if "lts" in p: score += 1000
+        m = re.search(r'blender[\s_-]?(\d+)\.(\d+)', p)
+        if m: score += int(m.group(1))*10000 + int(m.group(2))*100
+        if "\\program files" in p: score += 50
         return score
 
     def _find_blender_candidates_fast(self):
         candidates = set()
-
         try:
             which = shutil.which("blender")
-            if which and which.lower().endswith("blender.exe") and os.path.exists(which):
-                candidates.add(os.path.abspath(which))
-        except:
-            pass
-
-        if winreg:
-            reg_paths = [
-                (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\blender.exe"),
-                (winreg.HKEY_CURRENT_USER, r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\blender.exe"),
-            ]
-            for root, subkey in reg_paths:
-                try:
-                    with winreg.OpenKey(root, subkey) as k:
-                        val, _ = winreg.QueryValueEx(k, "")
-                        if val and os.path.exists(val):
-                            candidates.add(os.path.abspath(val))
-                except:
-                    pass
-
-        pf_roots = [
-            os.environ.get("ProgramFiles", r"C:\Program Files"),
-            os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"),
-        ]
+            if which and which.lower().endswith("blender.exe"): candidates.add(os.path.abspath(which))
+        except: pass
+        
+        pf_roots = [os.environ.get("ProgramFiles", r"C:\Program Files"), os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")]
         for pf in pf_roots:
-            if not pf or not os.path.isdir(pf):
-                continue
+            if not pf: continue
             base = os.path.join(pf, "Blender Foundation")
             if os.path.isdir(base):
-                try:
-                    for entry in os.listdir(base):
-                        d = os.path.join(base, entry)
-                        exe = os.path.join(d, "blender.exe")
-                        if os.path.exists(exe):
-                            candidates.add(os.path.abspath(exe))
-                except:
-                    pass
-
-        return sorted(candidates)
-
-    def _find_blender_candidates_deep_c(self, max_results=50):
-        candidates = set()
-
-        priority_dirs = [
-            r"C:\Program Files\Blender Foundation",
-            r"C:\Program Files (x86)\Blender Foundation",
-            r"C:\Program Files\Steam",
-            r"C:\Program Files (x86)\Steam",
-            os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs"),
-        ]
-
-        for base in priority_dirs:
-            if base and os.path.isdir(base):
-                for root, _, files in os.walk(base):
-                    for f in files:
-                        if f.lower() == "blender.exe":
-                            candidates.add(os.path.abspath(os.path.join(root, f)))
-                            if len(candidates) >= max_results:
-                                return sorted(candidates)
-
-        for root, _, files in os.walk(r"C:\\"):
-            low = root.lower()
-            if any(x in low for x in [
-                r"\windows",
-                r"\programdata",
-                r"\$recycle.bin",
-                r"\system volume information",
-            ]):
-                continue
-            for f in files:
-                if f.lower() == "blender.exe":
-                    candidates.add(os.path.abspath(os.path.join(root, f)))
-                    if len(candidates) >= max_results:
-                        return sorted(candidates)
-
+                for entry in os.listdir(base):
+                    exe = os.path.join(base, entry, "blender.exe")
+                    if os.path.exists(exe): candidates.add(os.path.abspath(exe))
         return sorted(candidates)
 
     def autofill_blender_path(self):
-        if self.blender_path_var.get():
-            return
-
-        candidates = self._find_blender_candidates_fast()
-        if not candidates:
-            self.append_log("[Auto] Blender not found in common locations. Deep scanning C:\\ (may take a bit)...")
-            candidates = self._find_blender_candidates_deep_c()
-
-        if not candidates:
-            self.append_log("[Auto] Blender not found. Please select blender.exe manually.")
-            return
-
-        best = max(candidates, key=self._parse_version_score)
-        self.blender_path_var.set(best)
-        self.append_log(f"[Auto] Found Blender: {best}")
+        if self.blender_path_var.get(): return
+        cands = self._find_blender_candidates_fast()
+        if cands:
+            best = max(cands, key=self._parse_version_score)
+            self.blender_path_var.set(best)
+            self.append_log(f"[Auto] Found Blender: {best}")
+        else:
+            self.append_log("[Auto] Blender not found automatically.")
 
     # -----------------------------
-    # UI handlers
+    # UI Handlers
     # -----------------------------
     def pick_blender(self):
-        path = filedialog.askopenfilename(
-            title="Select blender.exe",
-            filetypes=[("Blender Executable", "blender.exe"), ("All files", "*.*")]
-        )
-        if path:
-            self.blender_path_var.set(path)
+        path = filedialog.askopenfilename(title="Select blender.exe", filetypes=[("Blender", "blender.exe")])
+        if path: self.blender_path_var.set(path)
 
     def pick_target(self):
         path = filedialog.askdirectory(title="Select Target Folder")
         if path:
             self.target_dir_var.set(path)
+            self.scan_files(path)
 
-    def validate(self):
-        blender = self.blender_path_var.get().strip('" ')
-        target = self.target_dir_var.get().strip('" ')
-        if not blender or not os.path.isfile(blender):
-            messagebox.showerror("Error", "Valid blender.exe path is required.")
-            return None
-        if not target or not os.path.isdir(target):
-            messagebox.showerror("Error", "Valid target folder is required.")
-            return None
-        return blender, target
+    def scan_files(self, root_dir):
+        # Find all fbx files
+        found = []
+        for dirpath, _, filenames in os.walk(root_dir):
+            for fn in filenames:
+                if fn.lower().endswith(".fbx"):
+                    found.append(os.path.join(dirpath, fn))
+        
+        self.file_list.set_files(found)
+        self.append_log(f"Scanned: found {len(found)} FBX files.")
 
     def run(self):
-        if self.running:
-            messagebox.showinfo("Running", "Already running.")
+        if self.running: return
+
+        blender = self.blender_path_var.get().strip('" ')
+        target = self.target_dir_var.get().strip('" ')
+        
+        if not os.path.isfile(blender):
+            messagebox.showerror("Error", "Blender path is invalid.")
             return
 
-        vt = self.validate()
-        if not vt:
-            return
-        blender, target = vt
-
-        if not messagebox.askyesno(
-            "Confirm Overwrite",
-            "This will OVERWRITE all .fbx files under the target folder.\n\nProceed?"
-        ):
+        # Get checked files
+        selected_files = self.file_list.get_checked_files()
+        if not selected_files:
+            messagebox.showwarning("Warning", "No files selected.")
             return
 
+        if not messagebox.askyesno("Confirm", f"Process {len(selected_files)} files?\n(Originals will be overwritten)"):
+            return
+
+        # Write selected files to temp file
         tmp_dir = tempfile.mkdtemp(prefix="fbxfix_")
-        script_path = os.path.join(tmp_dir, "blender_batch_fbx_fix.py")
+        list_file = os.path.join(tmp_dir, "file_list.txt")
+        script_path = os.path.join(tmp_dir, "blender_batch.py")
+
+        with open(list_file, "w", encoding="utf-8") as f:
+            for p in selected_files:
+                f.write(p + "\n")
+
         with open(script_path, "w", encoding="utf-8") as f:
             f.write(BLENDER_BATCH_SCRIPT)
 
-        args = [blender, "-b", "-P", script_path, "--", target]
+        args = [blender, "-b", "-P", script_path, "--", list_file]
         if self.armature_scale_var.get():
-            # Blender 스크립트 안에서는 이 플래그를 "armature transform bake"로 사용
             args.append("--apply_armature_scale")
 
-        self.append_log("===================================")
-        self.append_log("RUNNING Blender batch...")
-        self.append_log("Command: " + " ".join(f'"{a}"' if " " in a else a for a in args))
-        self.append_log("===================================")
-
+        self.append_log(f"Starting batch for {len(selected_files)} files...")
         self.progress.start(10)
         self.run_btn.configure(state="disabled")
         self.running = True
@@ -547,24 +482,14 @@ class App(tk.Tk):
             try:
                 env = os.environ.copy()
                 env["PYTHONIOENCODING"] = "utf-8"
-
-                self.proc = subprocess.Popen(
-                    args,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    env=env,
-                )
-
-                assert self.proc.stdout is not None
+                self.proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+                
                 for raw in iter(self.proc.stdout.readline, b""):
-                    if not raw:
-                        break
+                    if not raw: break
                     line = decode_best_effort(raw).rstrip("\r\n")
                     self.safe_log(line)
-
-                rc = self.proc.wait()
-                self.safe_log(f"\n[Exit Code] {rc}")
-
+                
+                self.proc.wait()
             except Exception as e:
                 self.safe_log(f"[ERROR] {e}")
             finally:
@@ -580,10 +505,8 @@ class App(tk.Tk):
             self.progress.stop()
             self.run_btn.configure(state="normal")
             self.running = False
-            self.proc = None
             self.append_log("=== Finished ===")
         self.after(0, done_ui)
-
 
 if __name__ == "__main__":
     app = App()

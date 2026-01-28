@@ -7,9 +7,9 @@
         1.0
     ],
     "lightDirection": [
-        -0.5,
-        -1.0,
-        -0.5,
+        -0.7302482724189758,
+        -0.4415314495563507,
+        0.5213324427604675,
         1.0
     ],
     "navPolyIndices": [],
@@ -19,92 +19,36 @@
             "childGameObjects": [],
             "components": [
                 {
-                    "baseColor": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "billboardType": 1,
                     "blendState": 0,
-                    "psShaderName": "PSParticle.hlsl",
+                    "materialFactorData": {
+                        "ambientOcclusionFactor": 1.0,
+                        "baseColorFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "emissionFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "metallicFactor": 1.0,
+                        "normalScale": 5.0,
+                        "roughnessFactor": 1.0
+                    },
+                    "modelFileName": "Sand.fbx",
+                    "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
-                    "textureFileName": "temple_OcclusionRoughnessMetallic.png",
-                    "type": "ParticleComponent",
-                    "uvOffset": [
-                        0.0,
-                        0.0
-                    ],
-                    "uvScale": [
-                        2.9800000190734863,
-                        3.109999895095825
-                    ],
-                    "vsShaderName": "VSParticle.hlsl"
+                    "type": "ModelComponent",
+                    "vsShaderName": "VSModel.hlsl"
                 }
             ],
             "name": "GameObjectBase_1",
             "position": [
-                -1.482597827911377,
-                2.0,
                 0.0,
-                1.0
-            ],
-            "rotation": [
-                -0.0,
                 0.0,
-                -0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0,
-                0.0
-            ],
-            "type": "GameObjectBase"
-        },
-        {
-            "childGameObjects": [],
-            "components": [
-                {
-                    "baseColor": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "billboardType": 1,
-                    "blendState": 2,
-                    "flipbookAutoPlay": true,
-                    "flipbookColumns": 8,
-                    "flipbookCurrentFrame": 15,
-                    "flipbookDestroyOnFinish": false,
-                    "flipbookFPS": 60.0,
-                    "flipbookLoop": true,
-                    "flipbookPlaybackSpeed": 1.0,
-                    "flipbookPlaying": true,
-                    "flipbookRandomStart": false,
-                    "flipbookRows": 8,
-                    "flipbookTotalFrames": 64,
-                    "psShaderName": "PSParticle.hlsl",
-                    "rasterState": 1,
-                    "textureFileName": "runner_atlas.png",
-                    "type": "FlipbookParticleComponent",
-                    "uvOffset": [
-                        0.875,
-                        0.125
-                    ],
-                    "uvScale": [
-                        0.125,
-                        0.125
-                    ],
-                    "vsShaderName": "VSParticle.hlsl"
-                }
-            ],
-            "name": "GameObjectBase_2",
-            "position": [
-                0.0,
-                2.0,
                 0.0,
                 0.0
             ],
@@ -115,9 +59,9 @@
                 1.0
             ],
             "scale": [
+                100.0,
                 1.0,
-                1.0,
-                1.0,
+                100.0,
                 1.0
             ],
             "type": "GameObjectBase"
@@ -234,47 +178,50 @@
             "childGameObjects": [],
             "components": [
                 {
-                    "baseColor": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "billboardType": 1,
-                    "blendState": 2,
-                    "psShaderName": "PSParticle.hlsl",
-                    "rasterState": 2,
-                    "textureFileName": "Crosshair.png",
-                    "type": "InstancedParticleComponent",
-                    "uvOffset": [
-                        0.0,
-                        0.0
-                    ],
-                    "uvScale": [
-                        0.5,
-                        0.5
-                    ],
-                    "vsShaderName": "VSParticleInstanced.hlsl"
+                    "blendState": 0,
+                    "materialFactorData": {
+                        "ambientOcclusionFactor": 1.0,
+                        "baseColorFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "emissionFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "metallicFactor": 1.0,
+                        "normalScale": 1.0,
+                        "roughnessFactor": 1.0
+                    },
+                    "modelFileName": "test_house_tex/test_house_tex.fbx",
+                    "psShaderName": "PSModel.hlsl",
+                    "rasterState": 1,
+                    "type": "ModelComponent",
+                    "vsShaderName": "VSModel.hlsl"
                 }
             ],
-            "name": "GameObjectBase_6",
+            "name": "GameObjectBase_5",
             "position": [
-                0.9323159456253052,
-                -0.9892309904098511,
                 0.0,
-                1.0
+                0.0,
+                0.0,
+                0.0
             ],
             "rotation": [
-                -0.0,
                 0.0,
-                -0.0,
+                0.0,
+                0.0,
                 1.0
             ],
             "scale": [
                 1.0,
                 1.0,
                 1.0,
-                0.0
+                1.0
             ],
             "type": "GameObjectBase"
         }

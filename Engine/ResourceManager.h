@@ -101,6 +101,8 @@ public:
 	DirectX::SpriteBatch* GetSpriteBatch() { return m_spriteBatch.get(); }
 	DirectX::SpriteFont* GetSpriteFont(const std::wstring& fontName);
 
+	std::string FindTextureFromCache(const std::string& rawPath);
+
 private:
 	ResourceManager() = default;
 

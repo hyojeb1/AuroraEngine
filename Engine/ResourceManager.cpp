@@ -446,6 +446,29 @@ SpriteFont* ResourceManager::GetSpriteFont(const wstring& fontName)
 	return m_spriteFonts[fontName].get();
 }
 
+string ResourceManager::FindTextureFromCache(const string& rawPath)
+{
+	if (rawPath.empty()) return "";
+
+	// 1. 경로 정규화 (역슬래시를 슬래시로)
+	filesystem::path p(rawPath);
+	string filename = p.filename().string(); // "Wall_BaseColor.png"만 추출
+
+	// 2. 캐시 맵에서 파일명이 일치하는지 검색
+	// (주의: 같은 이름의 파일이 다른 폴더에 있을 경우 오탐지 가능성이 있으나,
+	//  현재 구조상 Scene 이름별로 폴더가 나뉘므로 비교적 안전함)
+	for (const auto& pair : m_textureCaches)
+	{
+		filesystem::path cachePath(pair.first);
+		if (cachePath.filename().string() == filename)
+		{
+			return pair.first; // "SceneName/ImageName.png" 형태의 키 반환
+		}
+	}
+
+	return "";
+}
+
 void ResourceManager::CreateDepthStencilStates()
 {
 	HRESULT hr = S_OK;

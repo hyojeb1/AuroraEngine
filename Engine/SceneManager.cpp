@@ -28,7 +28,7 @@ void SceneManager::Run()
 	}
 
 	TimeManager::GetInstance().UpdateTime();
-	SoundManager::GetInstance().Update();
+	//SoundManager::GetInstance().Update();
 
 	m_accumulator += TimeManager::GetInstance().GetDeltaTime();
 
