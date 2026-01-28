@@ -247,26 +247,20 @@ void ModelComponent::RenderImGui()
 	#endif
 
 
-	// ==========================================================
-	// [추가됨] 텍스처 미리보기 섹션
-	// ==========================================================
+	// 텍스처 미리보기 섹션
 	ImGui::Separator();
 	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Material Textures");
 
 	if (m_model)
 	{
-		// 텍스처 출력을 위한 람다 헬퍼 함수
 		auto ShowTextureSlot = [](const char* name, ID3D11ShaderResourceView* srv)
 			{
-				ImGui::PushID(name); // 이름 충돌 방지
+				ImGui::PushID(name);
 				ImGui::Text("%s", name);
 
 				if (srv)
 				{
-					// 이미지 출력: (void*)srv, 크기(64x64)
-					ImGui::Image((ImTextureID)srv, ImVec2(64, 64), ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 0.5f)); // 테두리 포함
-
-					// (선택 기능) 마우스를 올리면 크게 보여주기 (Tooltip)
+					ImGui::Image((ImTextureID)srv, ImVec2(64, 64), ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 0.5f));
 					if (ImGui::IsItemHovered())
 					{
 						ImGui::BeginTooltip();
@@ -277,13 +271,12 @@ void ModelComponent::RenderImGui()
 				}
 				else
 				{
-					// 텍스처가 없을 때 표시할 박스
 					ImGui::Button("(Empty)", ImVec2(64, 64));
 				}
 				ImGui::PopID();
 			};
 
-		// 한 줄에 2개씩 보여주기 위해 Columns 사용 (취향에 따라 제거 가능)
+		// 한 줄에 2개씩 보여주기 위해 Columns 사용 
 		ImGui::Columns(2, "TextureColumns", false);
 
 		ShowTextureSlot("Base Color", m_model->materialTexture.baseColorTextureSRV.Get());
@@ -297,13 +290,12 @@ void ModelComponent::RenderImGui()
 
 		ShowTextureSlot("Emission", m_model->materialTexture.emissionTextureSRV.Get());
 
-		ImGui::Columns(1); // 컬럼 복구
+		ImGui::Columns(1);
 	}
 	else
 	{
 		ImGui::TextDisabled("Model is not loaded.");
 	}
-	// ==========================================================
 
 }
 

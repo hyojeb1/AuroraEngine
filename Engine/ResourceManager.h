@@ -101,7 +101,6 @@ public:
 	DirectX::SpriteBatch* GetSpriteBatch() { return m_spriteBatch.get(); }
 	DirectX::SpriteFont* GetSpriteFont(const std::wstring& fontName);
 
-	std::string FindTextureFromCache(const std::string& rawPath);
 
 private:
 	ResourceManager() = default;
@@ -146,5 +145,8 @@ private:
 
 	// 셰이더 컴파일 함수
 	com_ptr<ID3DBlob> CompileShader(const std::string& shaderName, const char* shaderModel);
+
+	std::string FindTextureFromCache(const std::string& rawPath);
+	com_ptr<ID3D11ShaderResourceView> LoadTextureHybrid(const aiMaterial* material, const std::string& model_name,  aiTextureType aiType, const std::string& suffix, TextureType engine_type);
 };
 ///ResourceManager.h의 끝

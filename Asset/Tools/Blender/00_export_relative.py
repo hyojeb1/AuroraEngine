@@ -10,7 +10,8 @@ SCENE_NAME = "test_house_tex"  # 현재 작업 중인 씬 이름 (변수화 필�
 
 # 목표 디렉토리
 MODEL_DIR = os.path.join(PROJECT_ROOT, "Model", SCENE_NAME)
-TEXTURE_DIR = os.path.join(PROJECT_ROOT, "Texture", SCENE_NAME)
+# TEXTURE_DIR = os.path.join(PROJECT_ROOT, "Texture", SCENE_NAME)
+TEXTURE_DIR = os.path.join(PROJECT_ROOT, "Texture")
 
 # 디렉토리가 없으면 생성
 os.makedirs(MODEL_DIR, exist_ok=True)
