@@ -300,8 +300,7 @@ void SceneBase::BaseRenderImGui()
 	ImGui::Checkbox("NavMesh Creating", &m_isNavMeshCreating);
 	#endif
 
-	static float gamma = 1.0f;
-	if (ImGui::DragFloat("Gamma", &gamma, 0.01f, 0.1f, 5.0f)) Renderer::GetInstance().SetGamma(gamma);
+	if (ImGui::DragFloat("Gamma", &m_sceneGamma, 0.01f, 0.1f, 5.0f)) Renderer::GetInstance().SetGamma(m_sceneGamma);
 
 	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);
 	ImGui::DragFloat("IBL Intensity", &m_globalLightData.lightColor.w, 0.001f, 0.0f, 1.0f);
@@ -455,6 +454,9 @@ nlohmann::json SceneBase::BaseSerialize()
 	nlohmann::json navMeshData = NavigationManager::GetInstance().Serialize();
 	if (!navMeshData.is_null() && navMeshData.is_object()) jsonData.merge_patch(navMeshData);
 
+	// 씬 감마 값
+	jsonData["gamma"] = m_sceneGamma;
+
 	// 파생 클래스의 직렬화 호출
 	nlohmann::json derivedData = Serialize();
 	if (!derivedData.is_null() && derivedData.is_object()) jsonData.merge_patch(derivedData);
@@ -471,23 +473,32 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 {
 	// 기본 씬 데이터 로드
 	// 씬 조명 정보
-	m_globalLightData.lightColor = XMFLOAT4
-	(
-		jsonData["lightColor"][0].get<float>(),
-		jsonData["lightColor"][1].get<float>(),
-		jsonData["lightColor"][2].get<float>(),
-		jsonData["lightColor"][3].get<float>()
-	);
-	m_globalLightData.lightDirection = XMVectorSet
-	(
-		jsonData["lightDirection"][0].get<float>(),
-		jsonData["lightDirection"][1].get<float>(),
-		jsonData["lightDirection"][2].get<float>(),
-		jsonData["lightDirection"][3].get<float>()
-	);
+	if (jsonData.contains("lightColor"))
+	{
+		m_globalLightData.lightColor = XMFLOAT4
+		(
+			jsonData["lightColor"][0].get<float>(),
+			jsonData["lightColor"][1].get<float>(),
+			jsonData["lightColor"][2].get<float>(),
+			jsonData["lightColor"][3].get<float>()
+		);
+	}
+	if (jsonData.contains("lightDirection"))
+	{
+		m_globalLightData.lightDirection = XMVectorSet
+		(
+			jsonData["lightDirection"][0].get<float>(),
+			jsonData["lightDirection"][1].get<float>(),
+			jsonData["lightDirection"][2].get<float>(),
+			jsonData["lightDirection"][3].get<float>()
+		);
+	}
 
 	// 환경 맵 파일 이름
-	m_environmentMapFileName = jsonData["environmentMapFileName"].get<string>();
+	if (jsonData.contains("environmentMapFileName")) m_environmentMapFileName = jsonData["environmentMapFileName"].get<string>();
+
+	// 씬 감마 값
+	if (jsonData.contains("gamma")) m_sceneGamma = jsonData["gamma"].get<float>();
 
 	// 네비게이션 메시 로드
 	NavigationManager::GetInstance().Deserialize(jsonData);
@@ -497,7 +508,6 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 
 	// 선택된 게임 오브젝트 초기화
 	GameObjectBase::SetSelectedObject(nullptr);
-
 	// 기존 게임 오브젝트들 종료 및 제거
 	BaseFinalize();
 	m_gameObjects.clear();

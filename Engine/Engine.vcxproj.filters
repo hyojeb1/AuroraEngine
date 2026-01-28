@@ -108,11 +108,11 @@
     <ClCompile Include="FlipbookParticleComponent.cpp">
       <Filter>Base\Component\Particle</Filter>
     </ClCompile>
-    <ClCompile Include="InstancedParticleComponent.cpp">
-      <Filter>Base\Component\Particle</Filter>
-    </ClCompile>
     <ClCompile Include="FSMComponent.cpp">
       <Filter>Base\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="RNG.cpp">
+      <Filter>Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -195,11 +195,11 @@
     <ClInclude Include="FlipbookParticleComponent.h">
       <Filter>Base\Component\Particle</Filter>
     </ClInclude>
-    <ClInclude Include="InstancedParticleComponent.h">
-      <Filter>Base\Component\Particle</Filter>
-    </ClInclude>
     <ClInclude Include="FSMComponent.h">
       <Filter>Base\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="RNG.h">
+      <Filter>Manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
