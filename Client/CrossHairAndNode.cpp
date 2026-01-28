@@ -24,7 +24,7 @@ void CrossHairAndNode::Initialize()
 	m_NodeStart = 0.25f;
 	m_NodeEnd = 0.5f;
 
-	m_linePos = 0.45;
+	m_linePos = 0.45f;
 	m_lineScl = 0.04f;
 }
 
