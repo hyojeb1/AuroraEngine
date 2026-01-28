@@ -19,9 +19,10 @@ float rand(float seed)
 }
 
 // 3D 벡터 유사 난수 생성
-float3 rand3(float seed)
+float3 rand3(float seed, float spread = 0.0f)
 {
-    return normalize(float3(rand(rand(seed)) - 0.5f, rand(rand(rand(seed))) - 0.5f, rand(rand(rand(rand(seed)))) - 0.5f));
+    if (spread <= 0.5f) return normalize(float3(rand(rand(seed)), rand(rand(rand(seed))), rand(rand(rand(rand(seed))))) - 0.5f);
+    return normalize(pow(float3(rand(rand(seed)), rand(rand(rand(seed))), rand(rand(rand(rand(seed))))), rcp(spread)));
 }
 
 // 노말 맵핑 

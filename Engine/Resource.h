@@ -419,8 +419,8 @@ struct ParticleBuffer
 	DirectX::XMFLOAT2 uvScale = { 1.0f, 1.0f };  // 1칸의 크기 (1.0 / 행, 1.0 / 열)
 
 	float imageScale = 1.0f; // 이미지 스케일
+	float spreadRadius = 1.0f; // 퍼짐 반경
 	float spreadDistance = 0.0f; // 퍼짐 거리
-	float spreadRadius = 0.0f; // 퍼짐 반경
 	float eclipsedTime = 0.0f; // 경과 시간
 };
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Count)> VS_CONST_BUFFER_DESCS =
