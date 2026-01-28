@@ -7,22 +7,40 @@ static const float TWO_PI = 6.28318530718f;
 static const float INV_PI = 0.31830988618f;
 static const float EPSILON = 1e-6f;
 
-static const float GAMMA = 2.2f;
-static const float INV_GAMMA = 1.0f / GAMMA;
+// 난수 생성 상수
+static const float INV_16777216 = 1.0f / 16777216.0f;
 
 // 유틸리티 함수
 
-// 0~1 범위의 유사 난수 생성
-float rand(float seed)
+// Wang 해시 함수
+uint WangHash(uint x)
 {
-    return frac(sin(seed * 12.9898 + 78.233) * 43758.5453);
+    x = (x ^ 61u) ^ (x >> 16);
+    x *= 9u;
+    x = x ^ (x >> 4);
+    x *= 0x27d4eb2du;
+    x = x ^ (x >> 15);
+    return x;
+}
+
+// 유사 난수 생성 (0.0 ~ 1.0)
+float Rand(uint u)
+{
+    return float(u & 0x00FFFFFFu) * INV_16777216;
 }
 
 // 3D 벡터 유사 난수 생성
-float3 rand3(float seed, float spread = 0.0f)
+float3 Rand3(float seed, float spread = 0.0f)
 {
-    if (spread <= 0.5f) return normalize(float3(rand(rand(seed)), rand(rand(rand(seed))), rand(rand(rand(rand(seed))))) - 0.5f);
-    return normalize(pow(float3(rand(rand(seed)), rand(rand(rand(seed))), rand(rand(rand(rand(seed))))), rcp(spread)));
+    uint s = asuint(seed * 12345.678f + 0.5f);
+    uint h1 = WangHash(s);
+    uint h2 = WangHash(h1);
+    uint h3 = WangHash(h2);
+
+    float3 r = float3(Rand(h1), Rand(h2), Rand(h3));
+
+    if (spread <= 0.5f) return normalize(r - 0.5f);
+    return normalize(pow(r, rcp(spread)));
 }
 
 // 노말 맵핑 
