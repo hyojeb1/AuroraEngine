@@ -174,21 +174,24 @@ void ParticleComponent::Deserialize(const nlohmann::json& jsonData)
 
 	if (jsonData.contains("uvOffset"))
 	{
-		auto uv = jsonData["uvOffset"];
-		uv_buffer_data_.uvOffset = { uv[0], uv[1] };
+		uv_buffer_data_.uvOffset.x = jsonData["uvOffset"][0].get<float>();
+		uv_buffer_data_.uvOffset.y = jsonData["uvOffset"][1].get<float>();
 	}
 	if (jsonData.contains("uvScale"))
 	{
-		auto uv = jsonData["uvScale"];
-		uv_buffer_data_.uvScale = { uv[0], uv[1] };
+		uv_buffer_data_.uvScale.x = jsonData["uvScale"][0].get<float>();
+		uv_buffer_data_.uvScale.y = jsonData["uvScale"][1].get<float>();
 	}
 	if (jsonData.contains("imageScale")) uv_buffer_data_.imageScale = jsonData["imageScale"].get<float>();
 	if (jsonData.contains("spreadRadius")) uv_buffer_data_.spreadRadius = jsonData["spreadRadius"].get<float>();
 	if (jsonData.contains("spreadDistance")) uv_buffer_data_.spreadDistance = jsonData["spreadDistance"].get<float>();
 	if (jsonData.contains("particleTotalTime")) m_particleTotalTime = jsonData["particleTotalTime"].get<float>();
 
-	if (jsonData.contains("billboardType")) billboard_type_ = static_cast<BillboardType>(jsonData["billboardType"].get<int>());
-	m_vsShaderName = GetBillboardVSName(billboard_type_);
+	if (jsonData.contains("billboardType"))
+	{
+		billboard_type_ = static_cast<BillboardType>(jsonData["billboardType"].get<int>());
+		m_vsShaderName = GetBillboardVSName(billboard_type_);
+	}
 	if (jsonData.contains("blendState")) m_blendState = static_cast<BlendState>(jsonData["blendState"].get<int>());
 	if (jsonData.contains("rasterState")) m_rasterState = static_cast<RasterState>(jsonData["rasterState"].get<int>());
 }

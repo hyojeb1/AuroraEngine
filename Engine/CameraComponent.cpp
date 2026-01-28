@@ -171,7 +171,7 @@ nlohmann::json CameraComponent::Serialize()
 
 void CameraComponent::Deserialize(const nlohmann::json& jsonData)
 {
-	m_fovY = jsonData["fovY"].get<float>();
-	m_nearZ = jsonData["nearZ"].get<float>();
-	m_farZ = jsonData["farZ"].get<float>();
+	if (jsonData.contains("fovY")) m_fovY = jsonData["fovY"].get<float>();
+	if (jsonData.contains("nearZ")) m_nearZ = jsonData["nearZ"].get<float>();
+	if (jsonData.contains("farZ")) m_farZ = jsonData["farZ"].get<float>();
 }
