@@ -1,4 +1,4 @@
-# bof aurora_export.py
+# bof 22_aurora_export.py
 import bpy
 import json
 import os
@@ -7,8 +7,8 @@ import math
 from mathutils import Matrix, Vector, Quaternion
 
 # ----- [설정] -----
-SCENE_NAME = "TaehyeonTestScene"  # 여기에 원하는 씬 이름을 적거나, 블렌더 UI 패널로 뺄 수 있습니다.
-PROJECT_ROOT = r"C:\dev\AuroraEngine\Asset" # 경로 설정 (예: C:\dev\AuroraEngine\Asset)
+SCENE_NAME = "TaehyeonTestScene"  
+PROJECT_ROOT = r"C:\dev\AuroraEngine\Asset"
 
 PATH_MODELS = os.path.join(PROJECT_ROOT, "Model", SCENE_NAME)
 PATH_SCENE = os.path.join(PROJECT_ROOT, "Scene")
