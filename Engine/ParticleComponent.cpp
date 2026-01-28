@@ -23,6 +23,20 @@ void ParticleComponent::Initialize()
 	CreateShaders();
 	CreateBuffers();
 	particle_texture_srv_ = resourceManager.GetTexture(texture_file_name_);
+
+	uv_buffer_data_.spreadDistance = 10.0f;
+}
+
+void ParticleComponent::Update()
+{
+	uv_buffer_data_.uvOffset = uv_offset_;
+	uv_buffer_data_.uvScale = uv_scale_;
+
+	uv_buffer_data_.imageScale = 1.0f;
+
+	static float elapsedTime = 0.0f;
+	elapsedTime += TimeManager::GetInstance().GetDeltaTime();
+	uv_buffer_data_.eclipsedTime = fmodf(elapsedTime, 1.0f); // 0~1 사이 값으로 유지
 }
 
 void ParticleComponent::Render()
@@ -42,10 +56,6 @@ void ParticleComponent::Render()
 
 			// 상수 버퍼 업데이트
 			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal).Get(), 0, nullptr, m_worldNormalData, 0, 0);
-
-			uv_buffer_data_.uvOffset = uv_offset_;
-			uv_buffer_data_.uvScale = uv_scale_;
-
 			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Particle).Get(),0, nullptr, &uv_buffer_data_, 0, 0);
 
 			constexpr UINT stride = sizeof(VertexPosUV);
@@ -58,7 +68,7 @@ void ParticleComponent::Render()
 			m_deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::BaseColor), 1, particle_texture_srv_.GetAddressOf());
 
-			m_deviceContext->DrawInstanced(4, 2, 0, 0);
+			m_deviceContext->DrawInstanced(4, 100, 0, 0);
 		}
 	);
 }

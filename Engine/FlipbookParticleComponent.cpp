@@ -57,6 +57,8 @@ void FlipbookParticleComponent::Update()
 	}
 
 	if (updated) ApplyFrameToUV();
+
+	ParticleComponent::Update();
 }
 
 void FlipbookParticleComponent::RenderImGui()

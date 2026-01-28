@@ -74,11 +74,12 @@ public:
 	void SetAlpha(const float& alpha) { m_materialFactorData.baseColorFactor.w = alpha; }
 
 	bool NeedsFixedUpdate() const override { return false; }
-	bool NeedsUpdate() const override { return false; }
+	bool NeedsUpdate() const override { return true; }
 	bool NeedsRender() const override { return true; }
 
 protected:
 	void Initialize() override;
+	void Update() override;
 	void Render() override;
 	void RenderImGui() override;
 
