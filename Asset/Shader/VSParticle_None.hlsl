@@ -8,8 +8,8 @@ VS_OUTPUT_POS_UV main(VS_INPUT_POS_UV input, uint instanceID : SV_InstanceID)
     float4 worldPos = mul(input.Position, WorldMatrix);
     
     float rndTime = Rand(WangHash(instanceID));
-    float rndDirSeed = Rand(WangHash(instanceID + 1));
-    float rndMag = Rand(WangHash(instanceID + 2));
+    float rndDirSeed = Rand(WangHash(instanceID + 1u));
+    float rndMag = Rand(WangHash(instanceID + 2u));
     
     float randomTime = fmod(EclipsedTime + rndTime, 1.0f);
     float3 dir = Rand3(rndDirSeed, SpreadRadius);
