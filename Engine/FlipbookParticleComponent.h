@@ -1,4 +1,3 @@
-/// FlipbookParticleComponent.h의 시작
 #pragma once
 #include "ParticleComponent.h"
 
@@ -40,4 +39,3 @@ private:
 	void ClampFrame();
 	void ApplyFrameToUV();
 };
-/// FlipbookParticleComponent.h의 끝
