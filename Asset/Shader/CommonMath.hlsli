@@ -12,15 +12,25 @@ static const float INV_16777216 = 1.0f / 16777216.0f;
 
 // 유틸리티 함수
 
-// Wang 해시 함수
-uint WangHash(uint x)
+// PCG 해시 함수 // 고품질 난수 생성
+uint PCG(uint seed)
 {
-    x = (x ^ 61u) ^ (x >> 16);
-    x *= 9u;
-    x = x ^ (x >> 4);
-    x *= 0x27d4eb2du;
-    x = x ^ (x >> 15);
-    return x;
+    uint state = seed * 747796405u + 2891336453u;
+    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    
+    return (word >> 22u) ^ word;
+}
+
+// LowBias32 해시 함수 // 저품질 난수 생성, 빠름
+uint LowBias32(uint seed)
+{
+    seed ^= seed >> 16;
+    seed *= 0x7feb352du;
+    seed ^= seed >> 15;
+    seed *= 0x846ca68bu;
+    seed ^= seed >> 16;
+    
+    return seed;
 }
 
 // 유사 난수 생성 (0.0 ~ 1.0)
@@ -33,9 +43,9 @@ float Rand(uint u)
 float3 Rand3(float seed, float spread = 0.0f)
 {
     uint s = asuint(seed * 12345.678f + 0.5f);
-    uint h1 = WangHash(s);
-    uint h2 = WangHash(h1);
-    uint h3 = WangHash(h2);
+    uint h1 = LowBias32(s);
+    uint h2 = LowBias32(h1);
+    uint h3 = LowBias32(h2);
 
     float3 r = float3(Rand(h1), Rand(h2), Rand(h3));
 
