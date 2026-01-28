@@ -79,6 +79,7 @@ void InputManager::ProcessRawInput(LPARAM lParam)
 void InputManager::ProcessRawKeyboard(const RAWKEYBOARD& keyboard)
 {
 	unsigned int vKey = keyboard.VKey;
+
 	if (vKey >= 256) return;
 
 	bool isKeyDown = !(keyboard.Flags & RI_KEY_BREAK);
@@ -158,7 +159,7 @@ bool InputManager::GetKeyUp(KeyCode key) const
 
 int InputManager::MapKeyCodeToVKey(KeyCode key) const
 {
-	if ((key >= KeyCode::A && key <= KeyCode::Z) || (key >= KeyCode::Num0 && key <= KeyCode::Num9)) return static_cast<int>(key);
+	if ((key >= KeyCode::A && key <= KeyCode::Z) ||(key >= KeyCode::Num0 && key <= KeyCode::Num9)) return static_cast<int>(key);
 
 	switch (key)
 	{
@@ -190,6 +191,8 @@ int InputManager::MapKeyCodeToVKey(KeyCode key) const
 	case KeyCode::F10:          return VK_F10;
 	case KeyCode::F11:          return VK_F11;
 	case KeyCode::F12:          return VK_F12;
+	case KeyCode::LeftBracket:  return VK_OEM_4;
+	case KeyCode::RightBracket: return VK_OEM_6;
 	default:                    return 0;
 	}
 }
