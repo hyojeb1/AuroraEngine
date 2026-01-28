@@ -19,6 +19,7 @@
 #include <optional>
 #include <cstdint>
 #include <algorithm>
+#include <random>
 
 // 윈도우 헤더
 #include <winsock2.h>

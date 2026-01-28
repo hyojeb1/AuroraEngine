@@ -1,7 +1,9 @@
 /// FlipbookParticleComponent.cpp의 시작
 #include "stdafx.h"
 #include "FlipbookParticleComponent.h"
+
 #include "TimeManager.h"
+#include "RNG.h"
 
 using namespace std;
 
@@ -13,26 +15,17 @@ void FlipbookParticleComponent::Initialize()
 	ClampFrame();
 
 	const int maxFrames = GetMaxFrames();
-	if (random_start_ && maxFrames > 0)
-	{
-		m_currentFrame = std::rand() % maxFrames;
-	}
-	if (!auto_play_)
-	{
-		m_playing = false;
-	}
+	if (random_start_ && maxFrames > 0) m_currentFrame = RNG::GetInstance().Range(0, maxFrames - 1);
+	if (!auto_play_) m_playing = false;
 	ApplyFrameToUV();
 }
 
 void FlipbookParticleComponent::Update()
 {
 	if (!m_playing) return;
-
 	if (m_rows <= 0 || m_columns <= 0) return;
-
 	const int maxFrames = GetMaxFrames();
 	if (maxFrames <= 1) return;
-
 	if (m_framesPerSecond <= 0.0f) return;
 	if (playback_speed_ <= 0.0f) return;
 
@@ -50,29 +43,22 @@ void FlipbookParticleComponent::Update()
 
 		if (m_currentFrame >= maxFrames)
 		{
-			if (m_loop)
-			{
-				m_currentFrame = 0;
-			}
+			if (m_loop) m_currentFrame = 0;
 			else
 			{
 				m_currentFrame = maxFrames - 1;
 				m_playing = false;
 				#ifdef _DEBUG
-				if (destroy_on_finish_)
-				{
-					std::cout << "FlipbookParticleComponent: destroy_on_finish_ requested." << std::endl;
-				}
-				#endif // _DEBUG
+				if (destroy_on_finish_) cout << "FlipbookParticleComponent: destroy_on_finish_ requested." << endl;
+				#endif
 				break;
 			}
 		}
 	}
 
-	if (updated)
-	{
-		ApplyFrameToUV();
-	}
+	if (updated) ApplyFrameToUV();
+
+	ParticleComponent::Update();
 }
 
 void FlipbookParticleComponent::RenderImGui()
@@ -93,22 +79,14 @@ void FlipbookParticleComponent::RenderImGui()
 		ImGui::Checkbox("Destroy On Finish", &destroy_on_finish_);
 
 		const char* playLabel = m_playing ? "Pause" : "Play";
-		if (ImGui::Button(playLabel))
-		{
-			m_playing = !m_playing;
-		}
+		if (ImGui::Button(playLabel)) m_playing = !m_playing;
 
 		if (ImGui::Button("Restart"))
 		{
 			const int maxFrames = GetMaxFrames();
-			if (random_start_ && maxFrames > 0)
-			{
-				m_currentFrame = std::rand() % maxFrames;
-			}
-			else
-			{
-				m_currentFrame = 0;
-			}
+			if (random_start_ && maxFrames > 0) m_currentFrame = RNG::GetInstance().Range(0, maxFrames - 1);
+			else m_currentFrame = 0;
+
 			m_accumulatedTime = 0.0f;
 			m_playing = auto_play_;
 			ApplyFrameToUV();
@@ -143,21 +121,21 @@ void FlipbookParticleComponent::RenderImGui()
 			const ImVec2 p1 = ImGui::GetItemRectMax();
 			const ImVec2 imageSize(p1.x - p0.x, p1.y - p0.y);
 
-			const ImVec2 rectMin(
-				p0.x + uv_offset_.x * imageSize.x,
-				p0.y + uv_offset_.y * imageSize.y);
-			const ImVec2 rectMax(
-				rectMin.x + uv_scale_.x * imageSize.x,
-				rectMin.y + uv_scale_.y * imageSize.y);
+			const ImVec2 rectMin
+			{
+				p0.x + uv_buffer_data_.uvOffset.x * imageSize.x,
+				p0.y + uv_buffer_data_.uvOffset.y * imageSize.y
+			};
+			const ImVec2 rectMax
+			{
+				rectMin.x + uv_buffer_data_.uvScale.x * imageSize.x,
+				rectMin.y + uv_buffer_data_.uvScale.y * imageSize.y
+			};
 
-			ImDrawList* drawList = ImGui::GetWindowDrawList();
 			const ImU32 rectColor = IM_COL32(255, 230, 0, 255);
-			drawList->AddRect(rectMin, rectMax, rectColor, 0.0f, 0, 2.0f);
+			ImGui::GetWindowDrawList()->AddRect(rectMin, rectMax, rectColor, 0.0f, 0, 2.0f);
 		}
-		else
-		{
-			ImGui::Text("Texture preview: (none)");
-		}
+		else ImGui::Text("Texture preview: (none)");
 	}
 }
 
@@ -206,6 +184,7 @@ int FlipbookParticleComponent::GetMaxFrames() const
 	if (m_rows <= 0 || m_columns <= 0) return 0;
 	const int gridFrames = m_rows * m_columns;
 	if (m_totalFrames <= 0) return gridFrames;
+
 	return min(m_totalFrames, gridFrames);
 }
 
@@ -236,9 +215,8 @@ void FlipbookParticleComponent::ApplyFrameToUV()
 	const int columnIndex = frameIndex % columns;
 	const int rowIndex = frameIndex / columns;
 
-	uv_scale_.x = 1.0f / static_cast<float>(columns);
-	uv_scale_.y = 1.0f / static_cast<float>(max(1, m_rows));
-	uv_offset_.x = static_cast<float>(columnIndex) * uv_scale_.x;
-	uv_offset_.y = static_cast<float>(rowIndex) * uv_scale_.y;
+	uv_buffer_data_.uvScale.x = 1.0f / static_cast<float>(columns);
+	uv_buffer_data_.uvScale.y = 1.0f / static_cast<float>(max(1, m_rows));
+	uv_buffer_data_.uvOffset.x = static_cast<float>(columnIndex) * uv_buffer_data_.uvScale.x;
+	uv_buffer_data_.uvOffset.y = static_cast<float>(rowIndex) * uv_buffer_data_.uvScale.y;
 }
-/// FlipbookParticleComponent.cpp의 끝

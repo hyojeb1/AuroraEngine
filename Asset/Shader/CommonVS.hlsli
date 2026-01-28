@@ -47,6 +47,11 @@ cbuffer ParticleData : register(b6)
 {
     float2 UVOffset;
     float2 UVScale;
+    
+    float ImageScale;
+    float SpreadRadius;
+    float SpreadDistance;
+    float EclipsedTime;
 };
 
 // --------------------------------------------------------

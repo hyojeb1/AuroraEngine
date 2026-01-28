@@ -1,30 +1,22 @@
-/// VSParticle.hlsl의 시작
 #include "CommonVS.hlsli"
+#include "CommonMath.hlsli"
 
-VS_OUTPUT_STD main(VS_INPUT_POS_UV input)
+VS_OUTPUT_POS_UV main(VS_INPUT_POS_UV input, uint instanceID : SV_InstanceID)
 {
-    VS_OUTPUT_STD output;
-
+    VS_OUTPUT_POS_UV output;
+    
     float3 centerWorldPos = float3(WorldMatrix._41, WorldMatrix._42, WorldMatrix._43);
-
+    
     float3 cameraRight = float3(ViewMatrix._11, ViewMatrix._12, ViewMatrix._13);
     float3 cameraUp = float3(ViewMatrix._21, ViewMatrix._22, ViewMatrix._23);
     
-    float scaleX = length(float3(WorldMatrix._11, WorldMatrix._12, WorldMatrix._13));
-    float scaleY = length(float3(WorldMatrix._21, WorldMatrix._22, WorldMatrix._23));
+    float3 positionOffset = (cameraRight * input.Position.x + cameraUp * input.Position.y) * ImageScale;
 
-    float3 positionOffset = (input.Position.x * scaleX * cameraRight) +
-                            (input.Position.y * scaleY * cameraUp);
-
-    output.WorldPosition = float4(centerWorldPos + positionOffset, 1.0f);
-    output.Position = mul(output.WorldPosition, VPMatrix);
-
-    //output.UV = input.UV;
-    output.UV = (input.UV * UVScale) + UVOffset;
+    float4 worldPos = float4((centerWorldPos + positionOffset), 1.0f);
+    worldPos.xyz += mul(rand(instanceID) * rand3(instanceID, SpreadRadius) * SpreadDistance * EclipsedTime, (float3x3)WorldMatrix);
     
-    float3 N = normalize(cross(cameraUp, cameraRight)); 
-    output.TBN = float3x3(cameraRight, cameraUp, N);
+    output.Position = mul(worldPos, VPMatrix);
+    output.UV = (input.UV * UVScale) + UVOffset;
 
     return output;
 }
-/// VSParticle.hlsl의 끝

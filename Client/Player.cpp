@@ -26,20 +26,14 @@ void Player::Initialize()
 	m_lineVertexBufferAndShader = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_linePixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
 
-	m_crosshairTextureAndOffset = resourceManager.GetTextureAndOffset("cross_hair_middle.png");
-	m_NodeAndOffset				= resourceManager.GetTextureAndOffset("cross_hair_parts.png");
-
 	m_cameraObject = dynamic_cast<CamRotObject*>(GetChildGameObject("CamRotObject_2"));
 	m_gunObject = m_cameraObject->GetChildGameObject("Gun");
 	m_gunFSM = m_gunObject->CreateComponent<FSMComponentGun>();
 
-	m_NodeDataPtr = SoundManager::GetInstance().GetNodeDataPtr();
 }
 
 void Player::Update()
 {
-	PlayNode();
-
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	InputManager& input = InputManager::GetInstance();
 	auto& sm = SoundManager::GetInstance();
@@ -52,18 +46,15 @@ void Player::Update()
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
 	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();
-	for_each(m_UINode.begin(), m_UINode.end(), [&](auto& time) { time -= TimeManager::GetInstance().GetNSDeltaTime(); });
-	if (!m_UINode.empty() && m_UINode.front() < 0.0f) m_UINode.pop_front();
 }
 
 void Player::Render()
 {
 	Renderer& renderer = Renderer::GetInstance();
 
-	RenderCrosshairUI(renderer);
 	if (!m_lineBuffers.empty()) RenderLineBuffers(renderer);
 	if (!m_deadEyeTargets.empty()) RenderDeadEyeTargetsUI(renderer);
-	if (!m_UINode.empty()) RenderUINode(renderer);
+	
 }
 
 void Player::Finalize()
@@ -197,22 +188,6 @@ void Player::PlayerDeadEyeEnd()
 	SoundManager::GetInstance().ChangeLowpass();
 }
 
-void Player::PlayNode()
-{
-	auto& sm = SoundManager::GetInstance();
-
-	if (!sm.ConsumeNodeChanged())
-		return;
-
-	m_UINode.push_back(sm.GetRhythmOffset());
-}
-
-constexpr float CrossHairSize = 0.3f;
-void Player::RenderCrosshairUI(Renderer& renderer)
-{
-	renderer.UI_RENDER_FUNCTIONS().emplace_back([&]() { Renderer::GetInstance().RenderImageUIPosition(m_crosshairTextureAndOffset.first, { 0.5f, 0.5f }, m_crosshairTextureAndOffset.second, CrossHairSize); });
-}
-
 void Player::RenderLineBuffers(Renderer& renderer)
 {
 	renderer.RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
@@ -241,37 +216,16 @@ void Player::RenderLineBuffers(Renderer& renderer)
 
 void Player::RenderDeadEyeTargetsUI(Renderer& renderer)
 {
-	renderer.UI_RENDER_FUNCTIONS().emplace_back
-	(
-		[&]()
-		{
-			const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
+	//renderer.UI_RENDER_FUNCTIONS().emplace_back
+	//(
+	//	[&]()
+	//	{
+	//		const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 
-			for (const auto& [timing, enemy] : m_deadEyeTargets)
-			{
-				Renderer::GetInstance().RenderImageScreenPosition(m_crosshairTextureAndOffset.first, mainCamera.WorldToScreenPosition(enemy->GetWorldPosition()), m_crosshairTextureAndOffset.second, 0.5f);
-			}
-		}
-	);
-}
-
-void Player::RenderUINode(Renderer& renderer)
-{
-	renderer.UI_RENDER_FUNCTIONS().emplace_back
-	(
-		[&]()
-		{
-			for (const auto& time : m_UINode)
-			{
-				float temp = time / SoundManager::GetInstance().GetRhythmOffset();
-
-				float pos = clamp(lerp(0.5f, 0.25f, temp),0.0f,0.5f);
-
-				float scale = clamp(lerp(CrossHairSize, 0.1f, temp), 0.0f, CrossHairSize);
-
-				Renderer::GetInstance().RenderImageUIPosition(m_NodeAndOffset.first, { pos, 0.5f }, m_NodeAndOffset.second, scale);
-				Renderer::GetInstance().RenderImageUIPosition(m_NodeAndOffset.first, { 1.0f - pos, 0.5f }, m_NodeAndOffset.second, -scale);
-			}
-		}
-	);
+	//		for (const auto& [timing, enemy] : m_deadEyeTargets)
+	//		{
+	//			Renderer::GetInstance().RenderImageScreenPosition(m_crosshairTextureAndOffset.first, mainCamera.WorldToScreenPosition(enemy->GetWorldPosition()), m_crosshairTextureAndOffset.second, 0.5f);
+	//		}
+	//	}
+	//);
 }

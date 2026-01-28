@@ -16,32 +16,37 @@
         {
             "childGameObjects": [],
             "components": [
-                {
-                    "blendState": 0,
-                    "materialFactorData": {
-                        "ambientOcclusionFactor": 1.0,
-                        "baseColorFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "emissionFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "metallicFactor": 1.0,
-                        "normalScale": 5.0,
-                        "roughnessFactor": 1.0
-                    },
-                    "modelFileName": "Sand.fbx",
-                    "psShaderName": "PSModel.hlsl",
-                    "rasterState": 1,
-                    "type": "ModelComponent",
-                    "vsShaderName": "VSModel.hlsl"
-                }
+              {
+                "blendState": 0,
+                "materialFactorData": {
+                  "ambientOcclusionFactor": 1.0,
+                  "baseColorFactor": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                  ],
+                  "emissionFactor": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                  ],
+                  "metallicFactor": 1.0,
+                  "normalScale": 5.0,
+                  "roughnessFactor": 1.0
+                },
+                "modelFileName": "Sand.fbx",
+                "psShaderName": "PSModel.hlsl",
+                "rasterState": 1,
+                "type": "ModelComponent",
+                "vsShaderName": "VSModel.hlsl"
+              },
+              {
+                "type": "CrossHairAndNode",
+                "NodeStart": 0.25,
+                "NodeEnd":  0.5
+              }
             ],
             "name": "GameObjectBase_1",
             "position": [
@@ -121,12 +126,12 @@
                         }
                     ],
                     "components": [
-                        {
-                            "farZ": 1000.0,
-                            "fovY": 0.7853981852531433,
-                            "nearZ": 0.10000000149011612,
-                            "type": "CameraComponent"
-                        }
+                      {
+                        "farZ": 1000.0,
+                        "fovY": 0.7853981852531433,
+                        "nearZ": 0.10000000149011612,
+                        "type": "CameraComponent"
+                      }
                     ],
                     "name": "CamRotObject_2",
                     "position": [
