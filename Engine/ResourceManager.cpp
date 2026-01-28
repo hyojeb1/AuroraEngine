@@ -265,11 +265,7 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 	const auto cacheIt = m_textureCaches.find(fileName);
 	if (cacheIt == m_textureCaches.end())
 	{
-		#ifdef _DEBUG
 		cerr << "텍스처 캐시에서 파일을 찾을 수 없습니다: " << fileName << endl;
-		#else
-		//MessageBoxA(nullptr, ("텍스처 캐시에서 파일을 찾을 수 없습니다: " + fileName).c_str(), "오류", MB_OK | MB_ICONERROR);
-		#endif
 
 		switch (type)
 		{
@@ -398,11 +394,7 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
-		#ifdef _DEBUG
 		cerr << "모델 로드 실패: " << importer.GetErrorString() << endl;
-		#else
-		MessageBoxA(nullptr, ("모델 로드 실패: " + string(importer.GetErrorString())).c_str(), "오류", MB_OK | MB_ICONERROR);
-		#endif
 		exit(EXIT_FAILURE);
 	}
 

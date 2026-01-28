@@ -29,6 +29,12 @@
     <ClCompile Include="TaehyeonTestScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="TitleScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="CrossHairAndNode.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -59,6 +65,12 @@
     <ClInclude Include="TaehyeonTestScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
+    <ClInclude Include="TitleScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="CrossHairAndNode.h">
+      <Filter>Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Scene">
@@ -85,6 +97,9 @@
       <Filter>Scene\JSON</Filter>
     </None>
     <None Include="..\Asset\Scene\TaehyeonTestScene.json">
+      <Filter>Scene\JSON</Filter>
+    </None>
+    <None Include="..\Asset\Scene\TitleScene.json">
       <Filter>Scene\JSON</Filter>
     </None>
   </ItemGroup>

@@ -9,11 +9,10 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     float4 baseColor = baseColorTexture.Sample(SamplerLinearWrap, input.UV) * BaseColorFactor;
     // ORM 텍스처
     float3 orm = ORMTexture.Sample(SamplerLinearWrap, input.UV).xyz * float3(AmbientOcclusionFactor, RoughnessFactor, MetallicFactor);
-    //orm.g += 1.0f; // 거칠기 오프셋 보정
     // 노말 텍스처
     float4 normal = normalTexture.Sample(SamplerLinearWrap, input.UV);
     // 방출 텍스처
-    float3 emission = emissionTexture.Sample(SamplerLinearWrap, input.UV).rgb * EmissionFactor.rgb;
+    float3 emission = emissionTexture.Sample(SamplerLinearWrap, input.UV).rgb * EmissionFactor.rgb; // 나중에 w값 LOD로 쓸까?
     
     float3 V = normalize(CameraPosition.xyz - input.WorldPosition.xyz); // 뷰 벡터
     float3 L = -LightDirection.xyz; // 라이트 벡터

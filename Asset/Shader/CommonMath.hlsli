@@ -10,7 +10,22 @@ static const float EPSILON = 1e-6f;
 static const float GAMMA = 2.2f;
 static const float INV_GAMMA = 1.0f / GAMMA;
 
-// 노말 맵핑 유틸리티
+// 유틸리티 함수
+
+// 0~1 범위의 유사 난수 생성
+float rand(float seed)
+{
+    return frac(sin(seed * 12.9898 + 78.233) * 43758.5453);
+}
+
+// 3D 벡터 유사 난수 생성
+float3 rand3(float seed, float spread = 0.0f)
+{
+    if (spread <= 0.5f) return normalize(float3(rand(rand(seed)), rand(rand(rand(seed))), rand(rand(rand(rand(seed))))) - 0.5f);
+    return normalize(pow(float3(rand(rand(seed)), rand(rand(rand(seed))), rand(rand(rand(rand(seed))))), rcp(spread)));
+}
+
+// 노말 맵핑 
 float3 UnpackNormal(float3 packedNormal, float3x3 TBN, float intensity = 1.0f)
 {
     float3 localNormal = packedNormal * 2.0f - 1.0f;

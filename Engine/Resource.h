@@ -418,9 +418,10 @@ struct ParticleBuffer
 	DirectX::XMFLOAT2 uvOffset = { 0.0f, 0.0f }; // 현재 프레임의 오프셋
 	DirectX::XMFLOAT2 uvScale = { 1.0f, 1.0f };  // 1칸의 크기 (1.0 / 행, 1.0 / 열)
 
-	// 나중을 대비한 패딩 or 추가 데이터 (지금은 딱 16바이트라 패딩 불필요)
-	// 인스턴싱 단계로 가면 uvOffset은 Instance Data로 빠지고, 
-	// 대신 이곳에 float2 gridDim (Rows, Cols) 등이 들어올 수 있음.
+	float imageScale = 1.0f; // 이미지 스케일
+	float spreadRadius = 1.0f; // 퍼짐 반경
+	float spreadDistance = 0.0f; // 퍼짐 거리
+	float eclipsedTime = 0.0f; // 경과 시간
 };
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Count)> VS_CONST_BUFFER_DESCS =
 {
@@ -490,6 +491,7 @@ constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Coun
 		.StructureByteStride = 0
 	},
 
+	// ParticleBuffer
 	D3D11_BUFFER_DESC
 	{
 		.ByteWidth = sizeof(ParticleBuffer),
@@ -621,7 +623,6 @@ struct Vertex
 	std::array<uint32_t, 4> boneIndex = { 0, 0, 0, 0 };
 	DirectX::XMFLOAT4 boneWeight = { 0.f, 0.f, 0.f, 0.f };
 };
-
 
 struct BoneInfo
 {

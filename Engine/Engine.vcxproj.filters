@@ -108,8 +108,8 @@
     <ClCompile Include="FSMComponent.cpp">
       <Filter>Base\Component</Filter>
     </ClCompile>
-    <ClCompile Include="InstancedParticleComponent.cpp">
-      <Filter>Base\Component\Particle</Filter>
+    <ClCompile Include="RNG.cpp">
+      <Filter>Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -195,8 +195,8 @@
     <ClInclude Include="FSMComponent.h">
       <Filter>Base\Component</Filter>
     </ClInclude>
-    <ClInclude Include="InstancedParticleComponent.h">
-      <Filter>Base\Component\Particle</Filter>
+    <ClInclude Include="RNG.h">
+      <Filter>Manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -242,10 +242,10 @@
     <FxCompile Include="..\Asset\Shader\VSParticle_None.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
-    <FxCompile Include="..\Asset\Shader\VSParticleInstanced.hlsl">
+    <FxCompile Include="..\Asset\Shader\VSParticle.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
-    <FxCompile Include="..\Asset\Shader\VSParticle.hlsl">
+    <FxCompile Include="..\Asset\Shader\VSParticleInstanced.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
   </ItemGroup>

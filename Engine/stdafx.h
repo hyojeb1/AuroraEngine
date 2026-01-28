@@ -19,6 +19,7 @@
 #include <optional>
 #include <cstdint>
 #include <algorithm>
+#include <random>
 
 // 윈도우 헤더
 #include <winsock2.h>
@@ -120,11 +121,7 @@ constexpr void CheckResult(HRESULT hr, const char* msg)
 {
 	if (FAILED(hr))
 	{
-		#ifdef _DEBUG
 		std::cerr << msg << " 에러 코드: " << std::hex << hr << std::endl;
-		#else
-		MessageBoxA(nullptr, msg, "오류", MB_OK | MB_ICONERROR);
-		#endif
 		exit(EXIT_FAILURE);
 	}
 }

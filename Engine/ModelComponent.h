@@ -62,6 +62,7 @@ public:
 
 	const std::string& GetModelFileName() const { return m_modelFileName; }
 	void SetModelFileName(const std::string& modelFileName) { m_modelFileName = modelFileName; }
+	const Model* GetModel() const { return m_model; }
 
 	void SetBlendState(BlendState blendState) { m_blendState = blendState; }
 	void SetAlpha(const float& alpha) { m_materialFactorData.baseColorFactor.w = alpha; }

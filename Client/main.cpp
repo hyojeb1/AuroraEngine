@@ -10,9 +10,6 @@
 
 using namespace std;
 
-
-
-//#ifdef _DEBUG
 int main()
 {
 	cout << "==================================" << endl;
@@ -29,8 +26,8 @@ int main()
 	SceneManager& sceneManager = SceneManager::GetInstance();
 	sceneManager.ChangeScene("HyojeTestScene");
 
-	//SoundManager& soundManager = SoundManager::GetInstance();
-	//soundManager.Initialize();
+	SoundManager& soundManager = SoundManager::GetInstance();
+	soundManager.Initialize();
 
 	while (windowManager.ProcessMessages()) sceneManager.Run();
 

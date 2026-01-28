@@ -111,11 +111,7 @@ ComponentBase* GameObjectBase::CreateComponent(const string& typeName)
 
 	if (m_components[type_index(typeid(*component))])
 	{
-		#ifdef _DEBUG
 		cerr << "오류: 게임 오브젝트 '" << m_name << "'에 이미 컴포넌트 '" << typeName << "'가 존재합니다." << endl;
-		#else
-		MessageBoxA(nullptr, ("오류: 게임 오브젝트 '" + m_name + "'에 이미 컴포넌트 '" + typeName + "'가 존재합니다.").c_str(), "GameObjectBase Error", MB_OK | MB_ICONERROR);
-		#endif
 		return nullptr;
 	}
 
@@ -353,29 +349,38 @@ nlohmann::json GameObjectBase::BaseSerialize()
 void GameObjectBase::BaseDeserialize(const nlohmann::json& jsonData)
 {
 	// 기본 게임 오브젝트 데이터 로드
-	m_name = jsonData["name"].get<string>();
+	if (jsonData.contains("name")) m_name = jsonData["name"].get<string>();
 
-	m_position = XMVectorSet
-	(
-		jsonData["position"][0].get<float>(),
-		jsonData["position"][1].get<float>(),
-		jsonData["position"][2].get<float>(),
-		jsonData["position"][3].get<float>()
-	);
-	m_quaternion = XMVectorSet
-	(
-		jsonData["rotation"][0].get<float>(),
-		jsonData["rotation"][1].get<float>(),
-		jsonData["rotation"][2].get<float>(),
-		jsonData["rotation"][3].get<float>()
-	);
-	m_scale = XMVectorSet
-	(
-		jsonData["scale"][0].get<float>(),
-		jsonData["scale"][1].get<float>(),
-		jsonData["scale"][2].get<float>(),
-		jsonData["scale"][3].get<float>()
-	);
+	if (jsonData.contains("position"))
+	{
+		m_position = XMVectorSet
+		(
+			jsonData["position"][0].get<float>(),
+			jsonData["position"][1].get<float>(),
+			jsonData["position"][2].get<float>(),
+			jsonData["position"][3].get<float>()
+		);
+	}
+	if (jsonData.contains("rotation"))
+	{
+		m_quaternion = XMVectorSet
+		(
+			jsonData["rotation"][0].get<float>(),
+			jsonData["rotation"][1].get<float>(),
+			jsonData["rotation"][2].get<float>(),
+			jsonData["rotation"][3].get<float>()
+		);
+	}
+	if (jsonData.contains("scale"))
+	{
+		m_scale = XMVectorSet
+		(
+			jsonData["scale"][0].get<float>(),
+			jsonData["scale"][1].get<float>(),
+			jsonData["scale"][2].get<float>(),
+			jsonData["scale"][3].get<float>()
+		);
+	}
 
 	// 파생 클래스의 데이터 로드
 	Deserialize(jsonData);
@@ -386,14 +391,7 @@ void GameObjectBase::BaseDeserialize(const nlohmann::json& jsonData)
 		string typeName = componentData["type"].get<string>();
 		unique_ptr<ComponentBase> component = TypeRegistry::GetInstance().CreateComponent(typeName);
 
-		if (m_components[type_index(typeid(*component))])
-		{
-			#ifdef _DEBUG
-			cerr << "오류: 게임 오브젝트 '" << m_name << "'에 이미 컴포넌트 '" << typeName << "'가 존재합니다." << endl;
-			#else
-			MessageBoxA(nullptr, ("오류: 게임 오브젝트 '" + m_name + "'에 이미 컴포넌트 '" + typeName + "'가 존재합니다.").c_str(), "GameObjectBase Error", MB_OK | MB_ICONERROR);
-			#endif
-		}
+		if (m_components[type_index(typeid(*component))]) cerr << "오류: 게임 오브젝트 '" << m_name << "'에 이미 컴포넌트 '" << typeName << "'가 존재합니다." << endl;
 
 		component->SetOwner(this);
 		if (component->NeedsFixedUpdate()) m_fixedUpdateComponents.push_back(component.get());

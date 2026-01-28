@@ -232,7 +232,7 @@ void ModelComponent::RenderImGui()
 
 	ImGui::DragFloat("Normal Scale", &m_materialFactorData.normalScale, 0.01f, 0.0f, 5.0f);
 
-	ImGui::ColorEdit4("Emission Factor", &m_materialFactorData.emissionFactor.x);
+	ImGui::ColorEdit3("Emission Factor", &m_materialFactorData.emissionFactor.x);
 
 	ImGui::Separator();
 	int blendStateInt = static_cast<int>(m_blendState);
@@ -332,35 +332,40 @@ nlohmann::json ModelComponent::Serialize()
 
 void ModelComponent::Deserialize(const nlohmann::json& jsonData)
 {
-	m_vsShaderName = jsonData["vsShaderName"].get<string>();
-	m_psShaderName = jsonData["psShaderName"].get<string>();
-	m_modelFileName = jsonData["modelFileName"].get<string>();
+	if (jsonData.contains("vsShaderName")) m_vsShaderName = jsonData["vsShaderName"].get<string>();
+	if (jsonData.contains("psShaderName")) m_psShaderName = jsonData["psShaderName"].get<string>();
+	if (jsonData.contains("modelFileName")) m_modelFileName = jsonData["modelFileName"].get<string>();
 
 	// 재질 팩터
-	m_materialFactorData.baseColorFactor = XMFLOAT4
-	(
-		jsonData["materialFactorData"]["baseColorFactor"][0].get<float>(),
-		jsonData["materialFactorData"]["baseColorFactor"][1].get<float>(),
-		jsonData["materialFactorData"]["baseColorFactor"][2].get<float>(),
-		jsonData["materialFactorData"]["baseColorFactor"][3].get<float>()
-	);
+	if (jsonData.contains("materialFactorData"))
+	{
+		m_materialFactorData.baseColorFactor = XMFLOAT4
+		(
+			jsonData["materialFactorData"]["baseColorFactor"][0].get<float>(),
+			jsonData["materialFactorData"]["baseColorFactor"][1].get<float>(),
+			jsonData["materialFactorData"]["baseColorFactor"][2].get<float>(),
+			jsonData["materialFactorData"]["baseColorFactor"][3].get<float>()
+		);
+	}
 
-	m_materialFactorData.ambientOcclusionFactor = jsonData["materialFactorData"]["ambientOcclusionFactor"].get<float>();
-	m_materialFactorData.roughnessFactor = jsonData["materialFactorData"]["roughnessFactor"].get<float>();
-	m_materialFactorData.metallicFactor = jsonData["materialFactorData"]["metallicFactor"].get<float>();
+	if (jsonData["materialFactorData"].contains("ambientOcclusionFactor")) m_materialFactorData.ambientOcclusionFactor = jsonData["materialFactorData"]["ambientOcclusionFactor"].get<float>();
+	if (jsonData["materialFactorData"].contains("roughnessFactor")) m_materialFactorData.roughnessFactor = jsonData["materialFactorData"]["roughnessFactor"].get<float>();
+	if (jsonData["materialFactorData"].contains("metallicFactor")) m_materialFactorData.metallicFactor = jsonData["materialFactorData"]["metallicFactor"].get<float>();
+	if (jsonData["materialFactorData"].contains("normalScale")) m_materialFactorData.normalScale = jsonData["materialFactorData"]["normalScale"].get<float>();
 
-	m_materialFactorData.normalScale = jsonData["materialFactorData"]["normalScale"].get<float>();
+	if (jsonData["materialFactorData"].contains("emissionFactor"))
+	{
+		m_materialFactorData.emissionFactor = XMFLOAT4
+		(
+			jsonData["materialFactorData"]["emissionFactor"][0].get<float>(),
+			jsonData["materialFactorData"]["emissionFactor"][1].get<float>(),
+			jsonData["materialFactorData"]["emissionFactor"][2].get<float>(),
+			jsonData["materialFactorData"]["emissionFactor"][3].get<float>()
+		);
+	}
 
-	m_materialFactorData.emissionFactor = XMFLOAT4
-	(
-		jsonData["materialFactorData"]["emissionFactor"][0].get<float>(),
-		jsonData["materialFactorData"]["emissionFactor"][1].get<float>(),
-		jsonData["materialFactorData"]["emissionFactor"][2].get<float>(),
-		jsonData["materialFactorData"]["emissionFactor"][3].get<float>()
-	);
-
-	m_blendState = static_cast<BlendState>(jsonData["blendState"].get<int>());
-	m_rasterState = static_cast<RasterState>(jsonData["rasterState"].get<int>());
+	if (jsonData.contains("blendState")) m_blendState = static_cast<BlendState>(jsonData["blendState"].get<int>());
+	if (jsonData.contains("rasterState")) m_rasterState = static_cast<RasterState>(jsonData["rasterState"].get<int>());
 }
 
 void ModelComponent::CreateShaders()
