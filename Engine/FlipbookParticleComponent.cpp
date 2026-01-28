@@ -123,13 +123,13 @@ void FlipbookParticleComponent::RenderImGui()
 
 			const ImVec2 rectMin
 			{
-				p0.x + uv_offset_.x * imageSize.x,
-				p0.y + uv_offset_.y * imageSize.y
+				p0.x + uv_buffer_data_.uvOffset.x * imageSize.x,
+				p0.y + uv_buffer_data_.uvOffset.y * imageSize.y
 			};
 			const ImVec2 rectMax
 			{
-				rectMin.x + uv_scale_.x * imageSize.x,
-				rectMin.y + uv_scale_.y * imageSize.y
+				rectMin.x + uv_buffer_data_.uvScale.x * imageSize.x,
+				rectMin.y + uv_buffer_data_.uvScale.y * imageSize.y
 			};
 
 			const ImU32 rectColor = IM_COL32(255, 230, 0, 255);
@@ -215,8 +215,8 @@ void FlipbookParticleComponent::ApplyFrameToUV()
 	const int columnIndex = frameIndex % columns;
 	const int rowIndex = frameIndex / columns;
 
-	uv_scale_.x = 1.0f / static_cast<float>(columns);
-	uv_scale_.y = 1.0f / static_cast<float>(max(1, m_rows));
-	uv_offset_.x = static_cast<float>(columnIndex) * uv_scale_.x;
-	uv_offset_.y = static_cast<float>(rowIndex) * uv_scale_.y;
+	uv_buffer_data_.uvScale.x = 1.0f / static_cast<float>(columns);
+	uv_buffer_data_.uvScale.y = 1.0f / static_cast<float>(max(1, m_rows));
+	uv_buffer_data_.uvOffset.x = static_cast<float>(columnIndex) * uv_buffer_data_.uvScale.x;
+	uv_buffer_data_.uvOffset.y = static_cast<float>(rowIndex) * uv_buffer_data_.uvScale.y;
 }

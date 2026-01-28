@@ -27,9 +27,6 @@ void ParticleComponent::Initialize()
 
 void ParticleComponent::Update()
 {
-	uv_buffer_data_.uvOffset = uv_offset_;
-	uv_buffer_data_.uvScale = uv_scale_;
-
 	static float elapsedTime = 0.0f;
 	elapsedTime += TimeManager::GetInstance().GetDeltaTime();
 	uv_buffer_data_.eclipsedTime = fmodf(elapsedTime, m_particleTotalTime); // 0~1 사이 값으로 유지
@@ -64,7 +61,7 @@ void ParticleComponent::Render()
 			m_deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::BaseColor), 1, particle_texture_srv_.GetAddressOf());
 
-			m_deviceContext->DrawInstanced(4, 100, 0, 0);
+			m_deviceContext->DrawInstanced(4, m_particleAmount, 0, 0);
 		}
 	);
 }
@@ -74,6 +71,8 @@ void ParticleComponent::RenderImGui()
 	// 1. 파티클 설정 섹션
 	if (ImGui::CollapsingHeader("Particle Settings", ImGuiTreeNodeFlags_DefaultOpen))
 	{
+		ImGui::DragInt("Particle Amount", &m_particleAmount, 1, 1, 1000);
+
 		ImGui::DragFloat("Image Scale", &uv_buffer_data_.imageScale, 0.01f, 0.1f, 10.0f);
 		ImGui::DragFloat("Spread Radius", &uv_buffer_data_.spreadRadius, 0.1f, 0.0f, 100.0f);
 		ImGui::DragFloat("Spread Distance", &uv_buffer_data_.spreadDistance, 0.1f, 0.0f, 100.0f);
@@ -100,8 +99,8 @@ void ParticleComponent::RenderImGui()
 		ImGui::Separator();
 
 		bool uvChanged = false; 
-		uvChanged |= ImGui::DragFloat2("UV Offset", &uv_offset_.x, 0.01f);
-		uvChanged |= ImGui::DragFloat2("UV Scale", &uv_scale_.x, 0.01f);		
+		uvChanged |= ImGui::DragFloat2("UV Offset", &uv_buffer_data_.uvOffset.x, 0.01f);
+		uvChanged |= ImGui::DragFloat2("UV Scale", &uv_buffer_data_.uvScale.x, 0.01f);
 	}
 
 	// 3. 렌더링 옵션 섹션
@@ -142,8 +141,11 @@ nlohmann::json ParticleComponent::Serialize()
 	jsonData["psShaderName"] = m_psShaderName;
 
 	jsonData["textureFileName"] = texture_file_name_;
-	jsonData["uvOffset"] = { uv_offset_.x, uv_offset_.y };
-	jsonData["uvScale"] = { uv_scale_.x, uv_scale_.y };
+
+	jsonData["particleAmount"] = m_particleAmount;
+
+	jsonData["uvOffset"] = { uv_buffer_data_.uvOffset.x, uv_buffer_data_.uvOffset.y };
+	jsonData["uvScale"] = { uv_buffer_data_.uvScale.x, uv_buffer_data_.uvScale.y };
 	jsonData["imageScale"] = uv_buffer_data_.imageScale;
 	jsonData["spreadRadius"] = uv_buffer_data_.spreadRadius;
 	jsonData["spreadDistance"] = uv_buffer_data_.spreadDistance;
@@ -168,15 +170,17 @@ void ParticleComponent::Deserialize(const nlohmann::json& jsonData)
 		particle_texture_srv_ = ResourceManager::GetInstance().GetTexture(texture_file_name_);
 	}
 
+	if (jsonData.contains("particleAmount")) m_particleAmount = jsonData["particleAmount"].get<int>();
+
 	if (jsonData.contains("uvOffset"))
 	{
 		auto uv = jsonData["uvOffset"];
-		uv_offset_ = { uv[0], uv[1] };
+		uv_buffer_data_.uvOffset = { uv[0], uv[1] };
 	}
 	if (jsonData.contains("uvScale"))
 	{
 		auto uv = jsonData["uvScale"];
-		uv_scale_ = { uv[0], uv[1] };
+		uv_buffer_data_.uvScale = { uv[0], uv[1] };
 	}
 	if (jsonData.contains("imageScale")) uv_buffer_data_.imageScale = jsonData["imageScale"].get<float>();
 	if (jsonData.contains("spreadRadius")) uv_buffer_data_.spreadRadius = jsonData["spreadRadius"].get<float>();
