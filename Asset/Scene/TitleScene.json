@@ -54,7 +54,7 @@
                     "blendState": 1,
                     "flipbookAutoPlay": true,
                     "flipbookColumns": 8,
-                    "flipbookCurrentFrame": 27,
+                    "flipbookCurrentFrame": 5,
                     "flipbookDestroyOnFinish": false,
                     "flipbookFPS": 8.0,
                     "flipbookLoop": true,
@@ -63,17 +63,18 @@
                     "flipbookRandomStart": false,
                     "flipbookRows": 8,
                     "flipbookTotalFrames": 64,
-                    "imageScale": 1.0,
+                    "imageScale": 0.7599999904632568,
+                    "particleAmount": 1000,
                     "particleTotalTime": 1.0,
                     "psShaderName": "PSParticle.hlsl",
                     "rasterState": 2,
-                    "spreadDistance": 11.300000190734863,
-                    "spreadRadius": 1.0,
+                    "spreadDistance": 5.5,
+                    "spreadRadius": 0.0,
                     "textureFileName": "runner_atlas.png",
                     "type": "FlipbookParticleComponent",
                     "uvOffset": [
-                        0.375,
-                        0.375
+                        0.625,
+                        0.0
                     ],
                     "uvScale": [
                         0.125,
@@ -86,7 +87,7 @@
             "position": [
                 0.0,
                 0.0,
-                0.0,
+                4.300000190734863,
                 0.0
             ],
             "rotation": [
