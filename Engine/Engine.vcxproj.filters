@@ -22,9 +22,6 @@
     <Filter Include="Base\GameObject">
       <UniqueIdentifier>{f03bcef5-616c-4bf6-897d-ed1300e98a76}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Base\Scene">
-      <UniqueIdentifier>{cf7d56b7-51bf-4646-a63f-11327a933aec}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource">
       <UniqueIdentifier>{4464304c-e96e-4bc6-a072-cbd29faf101e}</UniqueIdentifier>
     </Filter>
@@ -110,6 +107,9 @@
     </ClCompile>
     <ClCompile Include="RNG.cpp">
       <Filter>Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource.cpp">
+      <Filter>Resource</Filter>
     </ClCompile>
     <ClCompile Include="LUT.cpp">
       <Filter>Manager</Filter>
@@ -200,6 +200,9 @@
     </ClInclude>
     <ClInclude Include="RNG.h">
       <Filter>Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceEnum.h">
+      <Filter>Resource</Filter>
     </ClInclude>
     <ClInclude Include="LUT.h">
       <Filter>Manager</Filter>

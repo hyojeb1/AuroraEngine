@@ -1,9 +1,7 @@
-/// FlipbookParticleComponent.cpp의 시작
 #include "stdafx.h"
 #include "FlipbookParticleComponent.h"
 
 #include "TimeManager.h"
-#include "RNG.h"
 
 using namespace std;
 

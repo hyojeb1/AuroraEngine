@@ -1,5 +1,6 @@
 #pragma once
 #include "ComponentBase.h"
+#include "Resource.h"
 
 enum class BillboardType
 {
@@ -7,7 +8,6 @@ enum class BillboardType
 	Spherical,		// 구형 빌보드 (항상 카메라 정면 응시)
 	Cylindrical		// 원통형 빌보드 (Y축은 고정, 나무/풀 등에 적합)
 };
-
 
 class ParticleComponent : public ComponentBase
 {
@@ -90,4 +90,3 @@ protected:
 
 	virtual std::string GetBillboardVSName(BillboardType type);
 };
-/// ParticleComponent.h의 끝

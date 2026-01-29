@@ -102,4 +102,9 @@ constexpr std::string GetTypeName(T& obj)
 }
 
 // 사용자 정의 헤더
-#include "Resource.h"
+#include "Singleton.h"
+#include "TypeRegistry.h"
+#include "RNG.h"
+#include "Base.h"
+#include "ResourceEnum.h"
+#include "Renderer.h"

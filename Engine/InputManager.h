@@ -1,9 +1,10 @@
 #pragma once
-#include "Singleton.h"
 #include "KeyCode.h"
 
 class InputManager : public Singleton<InputManager>
 {
+	HWND m_hWnd = nullptr;
+
 	std::array<bool, 256> m_keyState = {};
 	std::array<bool, 256> m_keyDownState = {};
 	std::array<bool, 256> m_keyUpState = {};
@@ -19,11 +20,10 @@ public:
     using WPARAM = std::uintptr_t;
     using LPARAM = std::intptr_t;
 
-	void Initialize();
+	void Initialize(HWND hWnd);
 
+	void ClearInput();
     void HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam);
-
-    void EndFrame();
 
     bool GetKeyDown(KeyCode key) const;
     bool GetKey(KeyCode key) const;
@@ -36,12 +36,10 @@ public:
 private:
 	InputManager() = default;
 
-    void RegisterRawDevice();
+	void RegisterRawDevice();
 	void ProcessRawInput(LPARAM lParam);
 	void ProcessRawKeyboard(const RAWKEYBOARD& keyboard);
 	void ProcessRawMouse(const RAWMOUSE& mouse);
 
     int MapKeyCodeToVKey(KeyCode key) const;
 };
-
-/// InputManager.h의 끝

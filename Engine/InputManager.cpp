@@ -1,44 +1,17 @@
 #include "stdafx.h" 
 #include "InputManager.h"
-#include "WindowManager.h"
 
 using namespace std;
 
-void InputManager::Initialize()
+void InputManager::Initialize(HWND hWnd)
 {
+	m_hWnd = hWnd;
 	m_keyState.fill(false);
-	m_keyDownState.fill(false);
-	m_keyUpState.fill(false);
 
     RegisterRawDevice();
 }
 
-void InputManager::RegisterRawDevice()
-{
-	HWND hWnd = WindowManager::GetInstance().GetHWnd();
-
-	const array<RAWINPUTDEVICE, 2> rid =
-	{
-		RAWINPUTDEVICE
-		{
-			.usUsagePage = 0x01, // HID_USAGE_PAGE_GENERIC
-			.usUsage = 0x06, // HID_USAGE_GENERIC_KEYBOARD
-			.dwFlags = 0,
-			.hwndTarget = hWnd
-		},
-		RAWINPUTDEVICE
-		{
-			.usUsagePage = 0x01, // HID_USAGE_PAGE_GENERIC
-			.usUsage = 0x02, // HID_USAGE_GENERIC_MOUSE
-			.dwFlags = 0,
-			.hwndTarget = hWnd
-		}
-	};
-
-	if (!RegisterRawInputDevices(rid.data(), 2, sizeof(RAWINPUTDEVICE))) DWORD error = GetLastError();
-}
-
-void InputManager::EndFrame()
+void InputManager::ClearInput()
 {
 	m_keyDownState.fill(false);
 	m_keyUpState.fill(false);
@@ -50,16 +23,37 @@ void InputManager::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
-	case WM_INPUT:
-	{
-		ProcessRawInput(lParam);
-		break;
-	}
-
 	case WM_MOUSEWHEEL:
 		m_wheelDelta += GET_WHEEL_DELTA_WPARAM(wParam);
 		break;
+
+	case WM_INPUT:
+		ProcessRawInput(lParam);
+		break;
 	}
+}
+
+void InputManager::RegisterRawDevice()
+{
+	const array<RAWINPUTDEVICE, 2> rid =
+	{
+		RAWINPUTDEVICE
+		{
+			.usUsagePage = 0x01, // HID_USAGE_PAGE_GENERIC
+			.usUsage = 0x06, // HID_USAGE_GENERIC_KEYBOARD
+			.dwFlags = 0,
+			.hwndTarget = m_hWnd
+		},
+		RAWINPUTDEVICE
+		{
+			.usUsagePage = 0x01, // HID_USAGE_PAGE_GENERIC
+			.usUsage = 0x02, // HID_USAGE_GENERIC_MOUSE
+			.dwFlags = 0,
+			.hwndTarget = m_hWnd
+		}
+	};
+
+	if (!RegisterRawInputDevices(rid.data(), 2, sizeof(RAWINPUTDEVICE))) DWORD error = GetLastError();
 }
 
 void InputManager::ProcessRawInput(LPARAM lParam)
@@ -133,7 +127,7 @@ void InputManager::ProcessRawMouse(const RAWMOUSE& mouse)
 	m_mouseDelta.y += static_cast<int>(mouse.lLastY);
 
 	GetCursorPos(&m_mousePos);
-	ScreenToClient(WindowManager::GetInstance().GetHWnd(), &m_mousePos);
+	ScreenToClient(m_hWnd, &m_mousePos);
 }
 
 bool InputManager::GetKeyDown(KeyCode key) const

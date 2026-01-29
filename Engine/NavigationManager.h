@@ -1,5 +1,4 @@
 #pragma once
-#include "Singleton.h"
 
 struct NavPoly
 {
@@ -40,20 +39,24 @@ public:
 
 	void ClearNavMesh();
 
-	// 삼각형 추가
-	void AddPolygon(const std::vector<DirectX::XMVECTOR>& vertices, const std::array<int, 3>& indices);
 	// 인접 정보 구축
 	void BuildAdjacency();
 
+	#ifdef _DEBUG
+	// 삼각형 추가
+	void AddPolygon(const std::vector<DirectX::XMVECTOR>& vertices, const std::array<int, 3>& indices);
+
 	// 네비메시 렌더링
 	void RenderNavMesh();
+
+	// 링크 배치 처리
+	void HandlePlaceLink();
+	#endif
 
 	// 가장 가까운 폴리곤 찾기
 	int FindNearestPoly(const DirectX::XMVECTOR& point) const;
 	// 경로 찾기
 	std::vector<DirectX::XMVECTOR> FindPath(const DirectX::XMVECTOR& start, const DirectX::XMVECTOR& end) const;
-
-	void HandlePlaceLink();
 
 private:
 	bool PointInTriangle(const DirectX::XMVECTOR& point, const std::array<int, 3>& indexs) const;
