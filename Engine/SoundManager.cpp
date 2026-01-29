@@ -425,12 +425,25 @@ void SoundManager::CreateNodeData(const std::string& filename)
 	root["rangeHz"] = { minHz, maxHz };
 	root["segments"] = nlohmann::json::array();
 
-	for (auto& s : filtered)
+	if (filename.find("deadeye") != std::string::npos)
 	{
-		root["segments"].push_back({
-			{ "start", s.start - m_RhythmOffSet },
-			{ "end",   s.end - m_RhythmOffSet }
-			});
+		for (auto& s : filtered)
+		{
+			root["segments"].push_back({
+				{ "start", s.start },
+				{ "end",   s.end }
+				});
+		}
+	}
+	else
+	{
+		for (auto& s : filtered)
+		{
+			root["segments"].push_back({
+				{ "start", s.start - m_RhythmOffSet },
+				{ "end",   s.end - m_RhythmOffSet }
+				});
+		}
 	}
 
 	std::string outPath = "../Asset/BeatMapData/" + filename + "_nodes.json";
@@ -526,10 +539,10 @@ void SoundManager::Sub_BGM_Shot(const std::string filename, float delay)
 	auto it = BGM_List.find(filename);
 	if (it == BGM_List.end()) { m_CurrentTrackName = "Invalid"; return; }
 
-	m_CoreSystem->playSound(it->second, m_BGMGroup, false, &m_BGMChannel2);
+	m_CoreSystem->playSound(it->second, m_BGMGroup, true , &m_BGMChannel2);
 
 	unsigned long long nowDSP;
-	m_BGMChannel2->getDSPClock(&nowDSP, nullptr);
+	m_MainGroup->getDSPClock(&nowDSP, nullptr);
 
 	int sampleRate;
 	m_CoreSystem->getSoftwareFormat(&sampleRate, nullptr, nullptr);
@@ -538,6 +551,8 @@ void SoundManager::Sub_BGM_Shot(const std::string filename, float delay)
 		static_cast<unsigned long long>(delay * sampleRate);
 
 	m_BGMChannel2->setDelay(nowDSP + delaySamples, 0, false);
+
+	m_BGMChannel2->setPaused(false);
 }
 
 void SoundManager::SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename)

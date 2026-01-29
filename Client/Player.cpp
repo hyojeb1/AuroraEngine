@@ -35,7 +35,7 @@ void Player::Initialize()
 
 	m_bulletImgs = resourceManager.GetTextureAndOffset("bullet.png");
 
-	m_DeadEyeCount = 6;
+	m_DeadEyeCount = 4;
 	m_bulletCnt = 6;
 
 	m_bulletUIpos = { 0.82f,0.9f };
@@ -164,7 +164,7 @@ void Player::PlayerDeadEyeStart()
 		if (m_deadEyeTargets.size() > 6) m_deadEyeTargets.resize(6);
 
 		SoundManager::GetInstance().ChangeLowpass();
-		SoundManager::GetInstance().Sub_BGM_Shot("deadeye_test_3enemy_beat", 0.1f);
+		SoundManager::GetInstance().Sub_BGM_Shot("deadeye_test_3enemy_guide", 0.1f); //★
 		m_currentNodeIndex = SoundManager::GetInstance().GetRhythmTimerIndex();
 	}
 }
