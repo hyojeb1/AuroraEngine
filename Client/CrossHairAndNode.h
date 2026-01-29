@@ -35,11 +35,17 @@ private:
 	float m_NodeStartSize;
 	float m_NodeEndSize;
 
+	float m_prevCrossHairSize;
+	float m_prevNodeStartSize;
+	float m_prevNodeEndSize;
+
 	float m_NodeStart;
 	float m_NodeEnd;
 
 	float m_linePos;
 	float m_lineScl;
+
+
 
 	std::unordered_map<std::string, std::vector<std::pair<float, float>>>* m_NodeDataPtr = nullptr;
 

@@ -2,10 +2,14 @@
 #include "stdafx.h"
 #include "TestScene.h"
 
-#include "TestCameraObject.h"
-#include "CamRotObject.h"
+#include "InputManager.h"
+#include "SceneManager.h"
 #include "TimeManager.h"
 #include "SoundManager.h"
+
+#include "TestCameraObject.h"
+#include "CamRotObject.h"
+
 #include "Enemy.h"
 
 REGISTER_TYPE(TestScene)
@@ -31,6 +35,11 @@ void TestScene::Update()
 		float z = static_cast<float>(rand() % 21 - 10);
 
 		CreateRootGameObject<Enemy>()->SetPosition(XMVectorSet(x, 0.0f, z, 1.0f));
+	}
+
+	if (InputManager::GetInstance().GetKeyDown(KeyCode::Num0))
+	{
+		SceneManager::GetInstance().ChangeScene("EndingScene");
 	}
 }
 

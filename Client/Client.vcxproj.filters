@@ -35,6 +35,9 @@
     <ClCompile Include="CrossHairAndNode.cpp">
       <Filter>Component</Filter>
     </ClCompile>
+    <ClCompile Include="EndingScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -71,6 +74,9 @@
     <ClInclude Include="CrossHairAndNode.h">
       <Filter>Component</Filter>
     </ClInclude>
+    <ClInclude Include="EndingScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Scene">
@@ -100,6 +106,9 @@
       <Filter>Scene\JSON</Filter>
     </None>
     <None Include="..\Asset\Scene\TitleScene.json">
+      <Filter>Scene\JSON</Filter>
+    </None>
+    <None Include="..\Asset\Scene\EndingScene.json">
       <Filter>Scene\JSON</Filter>
     </None>
   </ItemGroup>

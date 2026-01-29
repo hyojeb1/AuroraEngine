@@ -10,10 +10,28 @@ void TitleScene::Initialize()
 {
 	GetRootGameObject("MainCam")->GetComponent<class CameraComponent>()->SetAsMainCamera();
 
+	float buttonX = 0.85f;
+
 	Button* startButton = CreateButton();
-	startButton->SetTextureAndOffset("Crosshair.png");
-	startButton->SetUIPosition({ 0.75f, 0.5f });
+	startButton->SetTextureAndOffset("IDLE.png", "HOVERD.png", "PRESSED.png", "CLICKED.png");
+	startButton->SetUIPosition({ buttonX, 0.3f });
 	startButton->SetOnClick([]() { SceneManager::GetInstance().ChangeScene("TestScene"); });
+	startButton->SetScale(0.3f);
+
+	Button* optionButton = CreateButton();
+	optionButton->SetTextureAndOffset("IDLE.png", "HOVERD.png", "PRESSED.png", "CLICKED.png");
+	optionButton->SetUIPosition({ buttonX, 0.5f });
+	optionButton->SetScale(0.3f);
+
+	Button* creditbutton = CreateButton();
+	creditbutton->SetTextureAndOffset("IDLE.png", "HOVERD.png", "PRESSED.png", "CLICKED.png");
+	creditbutton->SetUIPosition({ buttonX, 0.7f });
+	creditbutton->SetScale(0.3f);
+
+	Button* exitbutton = CreateButton();
+	exitbutton->SetTextureAndOffset("IDLE.png", "HOVERD.png", "PRESSED.png", "CLICKED.png");
+	exitbutton->SetUIPosition({ buttonX, 0.9f });
+	exitbutton->SetScale(0.3f);
 }
 
 void TitleScene::Update()

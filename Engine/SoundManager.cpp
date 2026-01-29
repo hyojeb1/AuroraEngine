@@ -140,6 +140,13 @@ void SoundManager::ConvertBGMSource()
 				FMOD_2D |
 				FMOD_ACCURATETIME, nullptr, &temp);
 
+			FMOD_SOUND_FORMAT format;
+			temp->getFormat(nullptr, &format, nullptr, nullptr);
+			if (format != FMOD_SOUND_FORMAT_PCM16)
+			{
+				continue;
+			}
+
 			BGM_List.emplace(fileName, temp);
 		}
 		
@@ -523,7 +530,11 @@ bool SoundManager::CheckRhythm(float correction)
 void SoundManager::Main_BGM_Shot(const std::string filename)
 {
 	auto it = BGM_List.find(filename);
-	if (it == BGM_List.end()) { m_CurrentTrackName = "Invalid"; return; }
+	if (it == BGM_List.end())
+	{
+		std::cerr << "Cannot play: invalid track name." << std::endl;
+		CheckResult(-1, "invalid track name");
+	}
 
 	m_CurrentTrackName = it->first;
 	m_NodeData.clear();
@@ -537,7 +548,11 @@ void SoundManager::Main_BGM_Shot(const std::string filename)
 void SoundManager::Sub_BGM_Shot(const std::string filename, float delay)
 {
 	auto it = BGM_List.find(filename);
-	if (it == BGM_List.end()) { m_CurrentTrackName = "Invalid"; return; }
+	if (it == BGM_List.end())
+	{
+		std::cerr << "Cannot play: invalid track name." << std::endl;
+		CheckResult(-1, "invalid track name");
+	}
 
 	m_CoreSystem->playSound(it->second, m_BGMGroup, true , &m_BGMChannel2);
 

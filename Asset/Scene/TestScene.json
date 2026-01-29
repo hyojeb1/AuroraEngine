@@ -41,11 +41,6 @@
                 "rasterState": 1,
                 "type": "ModelComponent",
                 "vsShaderName": "VSModel.hlsl"
-              },
-              {
-                "type": "CrossHairAndNode",
-                "NodeStart": 0.25,
-                "NodeEnd":  0.5
               }
             ],
             "name": "GameObjectBase_1",
@@ -155,7 +150,13 @@
                     "type": "CamRotObject"
                 }
             ],
-            "components": [],
+          "components": [
+            {
+              "type": "CrossHairAndNode",
+              "NodeStart": 0.25,
+              "NodeEnd": 0.5
+            }
+          ],
             "name": "Player",
             "position": [
                 0.0,

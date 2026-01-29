@@ -7,6 +7,7 @@
 #include "SoundManager.h"
 #include "CrossHairAndNode.h"
 #include "InputManager.h"
+#include "Player.h"
 
 REGISTER_TYPE(CrossHairAndNode)
 
@@ -20,15 +21,17 @@ void CrossHairAndNode::Initialize()
 
 	m_NodeDataPtr = SoundManager::GetInstance().GetNodeDataPtr();
 
-	m_CrossHairSize = 0.04f;
-	m_NodeStartSize = 0.04f;
-	m_NodeEndSize = 0.04f;
+	m_CrossHairSize = m_prevCrossHairSize = 0.04f;
+	m_NodeStartSize = m_prevNodeStartSize = 0.04f;
+	m_NodeEndSize = m_prevNodeEndSize = 0.04f;
 
 	m_NodeStart = 0.25f;
 	m_NodeEnd = 0.5f;
 
 	m_linePos = 0.45f;
 	m_lineScl = 0.04f;
+
+
 }
 
 void CrossHairAndNode::Update()
@@ -48,9 +51,13 @@ void CrossHairAndNode::Render()
 {
 	Renderer& renderer = Renderer::GetInstance();
 
-	RenderCrossHair(renderer);
+	if (!dynamic_cast<Player*>(GetOwner())->GetActiveDeadEye())
+	{
+		RenderCrossHair(renderer);
 
-	if (!m_UINode.empty()) RenderUINode(renderer);
+		if (!m_UINode.empty()) 
+			RenderUINode(renderer);
+	}
 }
 
 void CrossHairAndNode::RenderImGui()
@@ -91,7 +98,6 @@ void CrossHairAndNode::RenderUINode(Renderer& renderer)
 				float temp = time / SoundManager::GetInstance().GetRhythmOffset();
 
 				float pos = std::clamp(std::lerp(m_NodeEnd, m_NodeStart, temp), 0.0f, m_NodeEnd);
-
 				float scale = std::clamp(std::lerp(m_NodeStartSize, m_NodeEndSize, temp), 0.0f, 1.0f);
 
 				Renderer::GetInstance().RenderImageUIPosition(m_NodeAndOffset.first, { pos, 0.5f }, m_NodeAndOffset.second, scale);
