@@ -186,8 +186,12 @@ void Player::PlayerDeadEyeStart()
 
 void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 {
+	if (m_deadEyeTargets.empty()) { PlayerDeadEyeEnd(); return; }
+
 	m_deadEyeDuration += deltaTime;
 	SceneBase::SetGrayScaleIntensity((m_deadEyeDuration / m_deadEyeTotalDuration) * 16.0f);
+
+	m_currenteadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(m_deadEyeTargets.back().second->GetWorldPosition());
 
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
@@ -260,7 +264,7 @@ void Player::RenderDeadEyeTargetsUI(Renderer& renderer)
 		[&]()
 		{
 			const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
-			Renderer::GetInstance().RenderImageScreenPosition(m_deadEyeTextureAndOffset.first, mainCamera.WorldToScreenPosition(m_deadEyeTargets.back().second->GetWorldPosition()), m_deadEyeTextureAndOffset.second, 0.5f);
+			Renderer::GetInstance().RenderImageScreenPosition(m_deadEyeTextureAndOffset.first, m_currenteadEyePos, m_deadEyeTextureAndOffset.second, 0.5f);
 		}
 	);
 }
