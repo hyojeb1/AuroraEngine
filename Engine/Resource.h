@@ -730,6 +730,7 @@ struct LUTData
 	enum 
 	{
 		IDENTITY,
+		SEPIA,
 
 		COUNT
 	};

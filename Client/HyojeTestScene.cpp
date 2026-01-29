@@ -6,6 +6,7 @@
 #include "CamRotObject.h"
 #include "TimeManager.h"
 
+
 using namespace std;
 using namespace DirectX;
 
@@ -13,7 +14,9 @@ REGISTER_TYPE(HyojeTestScene)
 
 void HyojeTestScene::Initialize()
 {
+	
 }
+
 
 void HyojeTestScene::Update()
 {

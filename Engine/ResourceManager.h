@@ -100,7 +100,7 @@ public:
 	DirectX::SpriteFont* GetSpriteFont(const std::wstring& fontName);
 
 	com_ptr<ID3D11ShaderResourceView> GetLUT(const int id) { return m_luts[id].srv; };
-
+	void LoadLUTTexture();
 private:
 	ResourceManager() = default;
 
@@ -148,6 +148,6 @@ private:
 	std::string FindTextureFromCache(const std::string& rawPath);
 	com_ptr<ID3D11ShaderResourceView> LoadTextureHybrid(const aiMaterial* material, const std::string& model_name,  aiTextureType aiType, const std::string& suffix, TextureType engine_type);
 
-	void LoadLUTTexture();
+	
 };
 ///eof ResourceManager.h

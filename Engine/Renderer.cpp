@@ -42,7 +42,7 @@ void Renderer::BeginFrame()
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::LUT),	1, resourceManager.GetLUT(LUTData::IDENTITY).GetAddressOf());
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::LUT),	1, resourceManager.GetLUT(LUTData::SEPIA).GetAddressOf());
 
 			// 백 버퍼로 씬 렌더링
 			RenderSceneToBackBuffer();
@@ -126,11 +126,14 @@ void Renderer::EndFrame()
 	// 2D UI 렌더링
 	RenderXTKSpriteBatch();
 
+	com_ptr<ID3D11ShaderResourceView> ssrrvv = nullptr;
+	ssrrvv = ResourceManager::GetInstance().GetLUT(1);
+
 	#ifdef _DEBUG
 	ImGui::Begin("SRV");
 	ImGui::Image
 	(
-		(ImTextureID)m_directionalLightShadowMapSRV.Get(),
+		(ImTextureID)ssrrvv.Get(),
 		ImVec2(500.0f, 500.0f)
 	);
 	ImGui::End();

@@ -52,7 +52,6 @@ void ResourceManager::Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11Dev
 	CacheAllTexture();
 	
 	
-	LoadLUTTexture();
 }
 
 void ResourceManager::SetDepthStencilState(DepthStencilState state)
@@ -276,11 +275,43 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 		case TextureType::Emissive:
 			return GetTexture("Fallback_Emissive.png", TextureType::Emissive);
 		case TextureType::LUT:
-			return GetTexture("LUT/Identity.png", TextureType::LUT);
+			return GetTexture("Fallback_Emissive.png", TextureType::LUT);
 		default:
 			return nullptr;
 		}
 	}
+
+	//if (type == TextureType::LUT)
+	//{
+	//	com_ptr<ID3D11Texture2D> LUTTexture = nullptr;
+	//	hr = CreateWICTextureFromMemoryEx
+	//	(
+	//		m_device.Get(),
+	//		m_deviceContext.Get(),
+	//		cacheIt->second.data(),
+	//		cacheIt->second.size(),
+	//		0,
+	//		D3D11_USAGE_DEFAULT,
+	//		D3D11_BIND_SHADER_RESOURCE,
+	//		0,
+	//		0,
+	//		WIC_LOADER_IGNORE_SRGB,
+	//		reinterpret_cast<ID3D11Resource**>(LUTTexture.GetAddressOf()),
+	//		nullptr
+	//	);
+	//	CheckResult(hr, "LUT 텍스처 생성 실패.");
+
+	//	const D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc =
+	//	{
+	//		.Format = DXGI_FORMAT_R8G8B8A8_UNORM,
+	//		.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY,
+	//		.Texture2DArray = {.MostDetailedMip = 0, .MipLevels = static_cast<UINT>(-1), .FirstArraySlice = 0, .ArraySize = 16 }
+	//	};
+	//	hr = m_device->CreateShaderResourceView(LUTTexture.Get(), &srvDesc, m_textures[fileName].GetAddressOf());
+	//	CheckResult(hr, "LUT 텍스처 생성 실패.");
+
+	//	return m_textures[fileName];
+	//}
 
 	bool isSRGB = (type == TextureType::BaseColor || type == TextureType::Emissive);
 
@@ -978,6 +1009,7 @@ com_ptr<ID3DBlob> ResourceManager::CompileShader(const string& shaderName, const
 
 void ResourceManager::LoadLUTTexture()
 {
-	m_luts[0].srv = GetTexture("LUT\\0_IDENTITY.png", TextureType::LUT);
+	m_luts[0].srv =  GetTexture("LUT\\0_IDENTITY.png", TextureType::LUT);
+	m_luts[1].srv =  GetTexture("LUT\\1_SEPIA.png", TextureType::LUT);
 }
 
