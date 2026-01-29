@@ -9,7 +9,9 @@ class Player : public GameObjectBase
 
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_deadEyeTextureAndOffset = {};
 	std::vector<std::pair<float, class Enemy*>> m_deadEyeTargets = {};
-	DirectX::XMFLOAT2 m_currenteadEyePos = {};
+	DirectX::XMFLOAT2 m_prevDeadEyePos = {};
+	DirectX::XMFLOAT2 m_nextDeadEyePos = {};
+	float m_deadEyeMoveTimer = 0.0f;
 
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_enemyHitTextureAndOffset = {};
 	const float m_enemyHitDisplayTime = 0.2f;
