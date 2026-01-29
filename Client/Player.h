@@ -10,6 +10,10 @@ class Player : public GameObjectBase
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_deadEyeTextureAndOffset = {};
 	std::vector<std::pair<float, class Enemy*>> m_deadEyeTargets = {};
 
+	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_enemyHitTextureAndOffset = {};
+	const float m_enemyHitDisplayTime = 0.2f;
+	float m_enemyHitTimer = 0.0f;
+
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_bulletImgs = {};
 
 	float m_moveSpeed = 5.0f;
@@ -58,6 +62,7 @@ private:
 
 	void RenderLineBuffers(class Renderer& renderer);
 	void RenderDeadEyeTargetsUI(class Renderer& renderer);
+	void RenderEnemyHitUI(class Renderer& renderer);
 	void RenderUINode(class Renderer& renderer);
 	void RenderBullets(class Renderer& renderer);
 };

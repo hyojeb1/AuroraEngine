@@ -32,6 +32,7 @@ void Player::Initialize()
 	m_gunFSM = m_gunObject->CreateComponent<FSMComponentGun>();
 
 	m_deadEyeTextureAndOffset = resourceManager.GetTextureAndOffset("Crosshair.png");
+	m_enemyHitTextureAndOffset = resourceManager.GetTextureAndOffset("CrosshairHit.png");
 
 	m_bulletImgs = resourceManager.GetTextureAndOffset("bullet.png");
 
@@ -39,7 +40,7 @@ void Player::Initialize()
 	m_bulletCnt = 6;
 
 	m_bulletUIpos = { 0.82f,0.9f };
-	m_bulletInterval = 0.03;
+	m_bulletInterval = 0.03f;
 }
 
 void Player::Update()
@@ -56,6 +57,7 @@ void Player::Update()
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
 	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();
+	if (m_enemyHitTimer > 0.0f) m_enemyHitTimer -= deltaTime;
 
 	if (input.GetKey(KeyCode::LeftBracket))	{ m_bulletUIpos.first += 0.1f * deltaTime; }
 	if (input.GetKey(KeyCode::RightBracket)) { m_bulletUIpos.second += 0.1f * deltaTime; }
@@ -68,6 +70,7 @@ void Player::Render()
 
 	if (!m_lineBuffers.empty()) RenderLineBuffers(renderer);
 	if (!m_deadEyeTargets.empty()) RenderDeadEyeTargetsUI(renderer);
+	if (m_enemyHitTimer > 0.0f) RenderEnemyHitUI(renderer);
 	if (m_bulletCnt <= m_MaxBullet && m_bulletCnt != 0) RenderBullets(renderer);
 }
 
@@ -114,6 +117,8 @@ void Player::PlayerShoot()
 			GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
 			gem->SetPosition(hitPosition);
 			gem->SetIgnoreParentTransform(true);
+
+			m_enemyHitTimer = m_enemyHitDisplayTime;
 		}
 
 		LineBuffer lineBuffer = {};
@@ -261,6 +266,18 @@ void Player::RenderDeadEyeTargetsUI(Renderer& renderer)
 			{
 				Renderer::GetInstance().RenderImageScreenPosition(m_deadEyeTextureAndOffset.first, mainCamera.WorldToScreenPosition(enemy->GetWorldPosition()), m_deadEyeTextureAndOffset.second, 0.5f);
 			}
+		}
+	);
+}
+
+void Player::RenderEnemyHitUI(Renderer& renderer)
+{
+	renderer.UI_RENDER_FUNCTIONS().emplace_back
+	(
+		[&]()
+		{
+			const DXGI_SWAP_CHAIN_DESC1& swapChainDesc = Renderer::GetInstance().GetSwapChainDesc();
+			Renderer::GetInstance().RenderImageUIPosition(m_enemyHitTextureAndOffset.first, { 0.5f, 0.5f }, m_enemyHitTextureAndOffset.second, 0.5f);
 		}
 	);
 }
