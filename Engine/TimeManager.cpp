@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "TimeManager.h"
-#include "SoundManager.h"
 
 void TimeManager::Initialize()
 {

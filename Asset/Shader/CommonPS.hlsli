@@ -62,6 +62,8 @@ Texture2D ORMTexture : register(t4);
 Texture2D normalTexture : register(t5);
 Texture2D emissionTexture : register(t6);
 
+Texture2D lutTexture : register(t7);
+
 // --------------------------------------------------------
 // Input Structures (VS 출력과 매칭되어야 함)
 // --------------------------------------------------------

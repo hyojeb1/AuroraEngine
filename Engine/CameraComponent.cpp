@@ -3,7 +3,10 @@
 
 #include "GameObjectBase.h"
 #include "Renderer.h"
+
+#ifdef _DEBUG
 #include "ResourceManager.h"
+#endif
 
 REGISTER_TYPE(CameraComponent)
 
@@ -13,7 +16,7 @@ using namespace DirectX;
 CameraComponent* CameraComponent::s_mainCamera = nullptr;
 
 const BoundingFrustum CameraComponent::GetBoundingFrustum() const
-{
+{	
 	BoundingFrustum frustum = {};
 	m_boundingFrustum.Transform(frustum, m_owner->GetWorldMatrix());
 

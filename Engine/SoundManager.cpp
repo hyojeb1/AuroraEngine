@@ -66,7 +66,7 @@ void SoundManager::Initialize()
 			std::cout << n.first << std::endl;
 		}
 
-		SoundManager::GetInstance().Main_BGM_Shot("Sample2");
+		SoundManager::GetInstance().Main_BGM_Shot("DOB Music_test2_Beat");
 		SoundManager::GetInstance().LoadNodeData();
 
 		m_CoreSystem->createDSPByType(FMOD_DSP_TYPE_LOWPASS, &m_lowpass);
@@ -114,43 +114,6 @@ void SoundManager::Finalize()
 		m_CoreSystem->close();
 		m_CoreSystem->release();
 	}
-}
-
-
-void SoundManager::SetVolume_Main(float volume)
-{
-	if (volume < 0) { volume = 0; }
-	else if (volume > 1.0f) { volume = 1.0f; }
-	m_Volume_Main = volume;
-
-	m_MainGroup->setVolume(m_Volume_Main);
-}
-
-void SoundManager::SetVolume_BGM(float volume)
-{
-	if (volume < 0) { volume = 0; }
-	else if (volume > 1.0f) { volume = 1.0f; }
-	m_Volume_BGM = m_Volume_Main * volume;
-
-	m_BGMGroup->setVolume(m_Volume_BGM);
-}
-
-void SoundManager::SetVolume_SFX(float volume)
-{
-	if (volume < 0) { volume = 0; }
-	else if (volume > 1.0f) { volume = 1.0f; }
-	m_Volume_SFX = m_Volume_Main * volume;
-
-	m_SFXGroup->setVolume(m_Volume_SFX);
-}
-
-void SoundManager::SetVolume_UI(float volume)
-{
-	if (volume < 0) { volume = 0; }
-	else if (volume > 1.0f) { volume = 1.0f; }
-	m_Volume_UI = m_Volume_Main * volume;
-
-	m_UIGroup->setVolume(m_Volume_UI);
 }
 
 void SoundManager::ConvertBGMSource()
@@ -478,31 +441,36 @@ void SoundManager::CreateNodeData(const std::string& filename)
 
 void SoundManager::LoadNodeData()
 {
-	if (strcmp(m_CurrentTrackName.c_str(), "Invaild") == 0)
+	/*if (strcmp(m_CurrentTrackName.c_str(), "Invaild") == 0)
 	{
 		std::cerr << "Invaild Node Data" << std::endl;
 		return;
-	}
+	}*/
 
-	std::string path = "../Asset/BeatMapData/" + m_CurrentTrackName + "_nodes.json";
-	std::ifstream in(path);
-	nlohmann::json j;
-	in >> j;
-
-	for (auto& seg : j["segments"])
+	for (auto& m : BGM_List)
 	{
-		m_NodeData.push_back({ seg["start"], seg["end"] });
+		std::string songName = m.first;
+
+		std::string path = "../Asset/BeatMapData/" + songName + "_nodes.json";
+		std::ifstream in(path);
+		nlohmann::json j;
+		in >> j;
+
+		for (auto& seg : j["segments"])
+		{
+			m_NodeData[songName].push_back({ seg["start"], seg["end"] });
+		}
 	}
 }
 
 void SoundManager::UpdateNodeIndex() //raw time
 {
-	if (m_NodeData.empty())
+	if (m_NodeData[m_CurrentTrackName].empty())
 	{
 		return;
 	}
-	if (m_rhythmTimerIndex + 1 < m_NodeData.size() &&
-		m_NodeData[m_rhythmTimerIndex].second + m_RhythmOffSet < GetCurrentPlaybackTime())
+	if (m_rhythmTimerIndex + 1 < m_NodeData[m_CurrentTrackName].size() &&
+		m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].second + m_RhythmOffSet < GetCurrentPlaybackTime())
 	{
 		m_rhythmTimerIndex++;
 	}
@@ -514,8 +482,8 @@ void SoundManager::UpdateUINodeIndex()
 	{
 		return;
 	}
-	if (m_rhythmUIIndex + 1 < m_NodeData.size() &&
-		m_NodeData[m_rhythmUIIndex].first < GetCurrentPlaybackTime())
+	if (m_rhythmUIIndex + 1 < m_NodeData[m_CurrentTrackName].size() &&
+		m_NodeData[m_CurrentTrackName][m_rhythmUIIndex].first < GetCurrentPlaybackTime())
 	{
 		m_rhythmUIIndex++;
 		m_OnNodeChanged = true;
@@ -526,7 +494,7 @@ bool SoundManager::CheckRhythm(float correction)
 {
 	const float time = GetCurrentPlaybackTime();
 
-	if (m_NodeData[m_rhythmTimerIndex].first - correction + m_RhythmOffSet <= time && m_NodeData[m_rhythmTimerIndex].second + correction + m_RhythmOffSet >= time)
+	if (m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].first - correction + m_RhythmOffSet <= time && m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].second + correction + m_RhythmOffSet >= time)
 	{
 		std::cout << "Success! : " << std::endl;
 		return true;
@@ -550,17 +518,26 @@ void SoundManager::Main_BGM_Shot(const std::string filename)
 
 	m_CoreSystem->playSound(it->second, m_BGMGroup, false, &m_BGMChannel1);
 
-	unsigned long long nowDSP = 0;
-	m_BGMChannel1->getDSPClock(&nowDSP, nullptr);
-	m_MainBGM_StartTime = nowDSP;
+	m_BGMChannel1->getPosition(&m_MainBGM_StartTime, FMOD_TIMEUNIT_MS);
 }
 
-void SoundManager::Sub_BGM_Shot(const std::string filename)
+void SoundManager::Sub_BGM_Shot(const std::string filename, float delay)
 {
 	auto it = BGM_List.find(filename);
 	if (it == BGM_List.end()) { m_CurrentTrackName = "Invalid"; return; }
 
 	m_CoreSystem->playSound(it->second, m_BGMGroup, false, &m_BGMChannel2);
+
+	unsigned long long nowDSP;
+	m_BGMChannel2->getDSPClock(&nowDSP, nullptr);
+
+	int sampleRate;
+	m_CoreSystem->getSoftwareFormat(&sampleRate, nullptr, nullptr);
+
+	unsigned long long delaySamples =
+		static_cast<unsigned long long>(delay * sampleRate);
+
+	m_BGMChannel2->setDelay(nowDSP + delaySamples, 0, false);
 }
 
 void SoundManager::SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename)
@@ -645,20 +622,20 @@ float SoundManager::GetCurrentPlaybackTime()
 	if (!m_BGMChannel1)
 		return 0.0f;
 
-	unsigned long long nowDSP;
-	m_BGMChannel1->getDSPClock(&nowDSP, nullptr);
+	unsigned int nowSongTime;
+	m_BGMChannel1->getPosition(&nowSongTime, FMOD_TIMEUNIT_MS);
 
-	if (nowDSP < m_MainBGM_StartTime)
-		return 0.0f;
+	/*if (nowSongTime < m_MainBGM_StartTime)
+		return 0.0f;*/
 
-	int dspSampleRate = 0;
-	m_CoreSystem->getSoftwareFormat(&dspSampleRate, nullptr, nullptr);
+	//int dspSampleRate = 0;
+	//m_CoreSystem->getSoftwareFormat(&dspSampleRate, nullptr, nullptr);
 
-	double songTime =
+	/*double songTime =
 		(double)(nowDSP - m_MainBGM_StartTime)
-		/ (double)dspSampleRate;
+		/ (double)dspSampleRate;*/
 
-	return static_cast<float>(songTime);
+	return static_cast<float>(nowSongTime) / 1000.0f;
 }
 
 FMOD_VECTOR SoundManager::ToFMOD(DirectX::XMVECTOR vector)
@@ -720,4 +697,40 @@ void SoundManager::UpdateListener(ListenerComponent* listener)
 	FMOD_VECTOR up{ 0,1,0 };
 
 	m_CoreSystem->set3DListenerAttributes(0, &pos, &vel, &fwd, &up);
+}
+
+void SoundManager::SetVolume_Main(float volume)
+{
+	if (volume < 0) { volume = 0; }
+	else if (volume > 1.0f) { volume = 1.0f; }
+	m_Volume_Main = volume;
+
+	m_MainGroup->setVolume(m_Volume_Main);
+}
+
+void SoundManager::SetVolume_BGM(float volume)
+{
+	if (volume < 0) { volume = 0; }
+	else if (volume > 1.0f) { volume = 1.0f; }
+	m_Volume_BGM = m_Volume_Main * volume;
+
+	m_BGMGroup->setVolume(m_Volume_BGM);
+}
+
+void SoundManager::SetVolume_SFX(float volume)
+{
+	if (volume < 0) { volume = 0; }
+	else if (volume > 1.0f) { volume = 1.0f; }
+	m_Volume_SFX = m_Volume_Main * volume;
+
+	m_SFXGroup->setVolume(m_Volume_SFX);
+}
+
+void SoundManager::SetVolume_UI(float volume)
+{
+	if (volume < 0) { volume = 0; }
+	else if (volume > 1.0f) { volume = 1.0f; }
+	m_Volume_UI = m_Volume_Main * volume;
+
+	m_UIGroup->setVolume(m_Volume_UI);
 }

@@ -1,10 +1,9 @@
 #include "stdafx.h"
 #include "SceneManager.h"
-#include "InputManager.h"
 
+#include "SceneBase.h"
 #include "Renderer.h"
 #include "TimeManager.h"
-#include "SoundManager.h"
 
 using namespace std;
 
@@ -18,8 +17,6 @@ void SceneManager::Initialize()
 
 void SceneManager::Run()
 {
-	InputManager& inputManager = InputManager::GetInstance();
-
 	if (m_nextScene)
 	{
 		if (m_currentScene) m_currentScene->BaseFinalize();
@@ -28,7 +25,6 @@ void SceneManager::Run()
 	}
 
 	TimeManager::GetInstance().UpdateTime();
-	SoundManager::GetInstance().Update();
 
 	m_accumulator += TimeManager::GetInstance().GetDeltaTime();
 
@@ -52,5 +48,20 @@ void SceneManager::Run()
 	m_currentScene->BaseRender();
 
 	m_renderer.EndFrame();
-	inputManager.EndFrame();
+}
+
+void SceneManager::Finalize()
+{
+	if (m_currentScene) m_currentScene->BaseFinalize();
+}
+
+void SceneManager::ChangeScene(const string& sceneTypeName)
+{
+	m_nextScene = TypeRegistry::GetInstance().CreateScene(sceneTypeName);
+	m_accumulator = 0;
+}
+
+SceneBase* SceneManager::GetCurrentScene()
+{
+	return dynamic_cast<SceneBase*>(m_currentScene.get());
 }

@@ -1,6 +1,5 @@
 {
     "environmentMapFileName": "Skybox.dds",
-    "gamma": 1.0,
     "lightColor": [
         1.0,
         1.0,
@@ -48,9 +47,9 @@
             ],
             "name": "GROUND",
             "position": [
-                -0.005315438378602266,
-                -0.007059858180582523,
-                -0.013088136911392212,
+                0.0,
+                0.0,
+                0.0,
                 0.0
             ],
             "rotation": [
@@ -154,7 +153,7 @@
                     "position": [
                         -0.43488216400146484,
                         -4.581340789794922,
-                        -0.6247329711914063,
+                        -0.6247329711914062,
                         0.0
                     ],
                     "rotation": [
@@ -374,7 +373,7 @@
                             },
                             "modelFileName": "HyojeTestScene/Cylinder.014.fbx",
                             "psShaderName": "PSModel.hlsl",
-                            "rasterState": 0,
+                            "rasterState": 1,
                             "type": "ModelComponent",
                             "vsShaderName": "VSModel.hlsl"
                         }
@@ -450,7 +449,7 @@
                             },
                             "modelFileName": "HyojeTestScene/Cube.425.fbx",
                             "psShaderName": "PSModel.hlsl",
-                            "rasterState": 0,
+                            "rasterState": 1,
                             "type": "ModelComponent",
                             "vsShaderName": "VSModel.hlsl"
                         }
@@ -501,7 +500,7 @@
                             },
                             "modelFileName": "HyojeTestScene/Cube.434.fbx",
                             "psShaderName": "PSModel.hlsl",
-                            "rasterState": 0,
+                            "rasterState": 1,
                             "type": "ModelComponent",
                             "vsShaderName": "VSModel.hlsl"
                         }
@@ -1143,22 +1142,22 @@
                     ],
                     "name": "Cube.005",
                     "position": [
-                        0.03652048110961914,
-                        -7.548280239105225,
+                        0.036521196365356445,
+                        -7.550715923309326,
                         0.7437858581542969,
-                        0.9999998807907104
+                        0.0
                     ],
                     "rotation": [
-                        0.4999999701976776,
-                        0.4999999403953552,
-                        0.4999999403953552,
-                        0.49999991059303284
+                        -0.4999999403953552,
+                        0.49999985098838806,
+                        0.5000000596046448,
+                        0.5000001192092896
                     ],
                     "scale": [
-                        0.05221729725599289,
-                        0.1197623759508133,
-                        0.10313553363084793,
-                        0.0
+                        0.052221640944480896,
+                        0.1197700947523117,
+                        0.10314779728651047,
+                        1.0
                     ],
                     "type": "GameObjectBase"
                 },
@@ -1339,7 +1338,7 @@
                             },
                             "modelFileName": "HyojeTestScene/Cube.015.fbx",
                             "psShaderName": "PSModel.hlsl",
-                            "rasterState": 0,
+                            "rasterState": 1,
                             "type": "ModelComponent",
                             "vsShaderName": "VSModel.hlsl"
                         }
@@ -1390,7 +1389,7 @@
                             },
                             "modelFileName": "HyojeTestScene/Cube.034.fbx",
                             "psShaderName": "PSModel.hlsl",
-                            "rasterState": 0,
+                            "rasterState": 1,
                             "type": "ModelComponent",
                             "vsShaderName": "VSModel.hlsl"
                         }
@@ -1399,7 +1398,7 @@
                     "position": [
                         -0.011932373046875,
                         -7.09305477142334,
-                        0.018999099731445313,
+                        0.018999099731445312,
                         0.0
                     ],
                     "rotation": [
@@ -1466,7 +1465,7 @@
                             },
                             "modelFileName": "HyojeTestScene/Cube.004.fbx",
                             "psShaderName": "PSModel.hlsl",
-                            "rasterState": 0,
+                            "rasterState": 1,
                             "type": "ModelComponent",
                             "vsShaderName": "VSModel.hlsl"
                         }
@@ -1826,7 +1825,7 @@
             "components": [],
             "name": "MOUNTAIN2",
             "position": [
-                89.60635375976563,
+                89.60635375976562,
                 26.78390121459961,
                 -87.83080291748047,
                 0.0
@@ -1841,6 +1840,30 @@
                 9.319449424743652,
                 9.319449424743652,
                 9.319449424743652,
+                1.0
+            ],
+            "type": "GameObjectBase"
+        },
+        {
+            "childGameObjects": [],
+            "components": [],
+            "name": "Sun",
+            "position": [
+                -22.964988708496094,
+                13.55946159362793,
+                15.027914047241211,
+                0.0
+            ],
+            "rotation": [
+                -0.36249685287475586,
+                -0.06515426933765411,
+                0.16446733474731445,
+                0.9150417447090149
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
                 1.0
             ],
             "type": "GameObjectBase"

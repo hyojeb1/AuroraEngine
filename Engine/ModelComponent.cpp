@@ -1,4 +1,3 @@
-/// ModelComponent.cpp의 시작
 #include "stdafx.h"
 #include "ModelComponent.h"
 
@@ -46,6 +45,8 @@ void ModelComponent::Initialize()
 	CreateShaders();
 
 	m_model = resourceManager.LoadModel(m_modelFileName);
+	m_worldNormalConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal);
+	m_materialFactorConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor);
 
 	s_modelComponents.emplace_back(this);
 }
@@ -75,7 +76,7 @@ void ModelComponent::Render()
 			resourceManager.SetRasterState(m_rasterState);
 
 			// 상수 버퍼 업데이트
-			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal).Get(), 0, nullptr, m_worldNormalData, 0, 0);
+			m_deviceContext->UpdateSubresource(m_worldNormalConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
 
 			m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
 			m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
@@ -98,7 +99,7 @@ void ModelComponent::Render()
 				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 				// 재질 팩터 설정
-				m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor).Get(), 0, nullptr, &m_materialFactorData, 0, 0);
+				m_deviceContext->UpdateSubresource(m_materialFactorConstantBuffer.Get(), 0, nullptr, &m_materialFactorData, 0, 0);
 
 				m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
 			}
@@ -117,7 +118,7 @@ void ModelComponent::Render()
 			resourceManager.SetRasterState(m_rasterState);
 
 			// 상수 버퍼 업데이트
-			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal).Get(), 0, nullptr, m_worldNormalData, 0, 0);
+			m_deviceContext->UpdateSubresource(m_worldNormalConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
 
 			m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
 			m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
@@ -379,4 +380,3 @@ void ModelComponent::CreateShaders()
 	m_boundingBoxPixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
 #endif
 }
-/// ModelComponent.cpp의 끝

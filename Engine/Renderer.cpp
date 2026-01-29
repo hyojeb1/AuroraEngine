@@ -2,22 +2,16 @@
 #include "Renderer.h"
 
 #include "ResourceManager.h"
-#include "SceneManager.h"
-#include "WindowManager.h"
-#include "TimeManager.h"
 
 using namespace std;
 using namespace DirectX;
 
-void Renderer::Initialize()
+void Renderer::Initialize(HWND hWnd)
 {
 	CreateDeviceAndContext();
-	CreateSwapChain();
+	CreateSwapChain(hWnd);
 	CreateBackBufferResources();
 	CreateShadowMapRenderTargets();
-
-	// 씬 매니저 초기화
-	SceneManager::GetInstance().Initialize();
 }
 
 void Renderer::BeginFrame()
@@ -43,12 +37,13 @@ void Renderer::BeginFrame()
 			// 씬 렌더 타겟 MSAA 해제 및 결과 텍스처 복사
 			ResolveSceneTexture();
 
+			// 래스터 상태 변경
+			ResourceManager::GetInstance().SetRasterState(RasterState::BackBuffer);
+
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-			// 래스터 상태 변경
-			resourceManager.SetRasterState(RasterState::BackBuffer);
-			// 후처리용 상수 버퍼 업데이트
-			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(PSConstBuffers::PostProcessing).Get(), 0, nullptr, &m_postProcessingBuffer, 0, 0);
+			//m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::LUT), 1, resourceManager.GetLUT(LUTData::SEPIA).GetAddressOf());
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::LUT), 1, resourceManager.GetLUT(LUTData::IDENTITY).GetAddressOf());
 
 			// 백 버퍼로 씬 렌더링
 			RenderSceneToBackBuffer();
@@ -130,11 +125,14 @@ void Renderer::EndFrame()
 	// 2D UI 렌더링
 	RenderXTKSpriteBatch();
 
+	com_ptr<ID3D11ShaderResourceView> ssrrvv = nullptr;
+	ssrrvv = ResourceManager::GetInstance().GetLUT(1);
+
 	#ifdef _DEBUG
 	ImGui::Begin("SRV");
 	ImGui::Image
 	(
-		(ImTextureID)m_directionalLightShadowMapSRV.Get(),
+		(ImTextureID)ssrrvv.Get(),
 		ImVec2(500.0f, 500.0f)
 	);
 	ImGui::End();
@@ -154,15 +152,12 @@ void Renderer::Finalize()
 {
 	// ImGui DirectX11 종료
 	ImGui_ImplDX11_Shutdown();
-
-	// RenderResourceManager 종료는 따로 필요 없음
-
-	SceneManager::GetInstance().Finalize();
 }
 
 HRESULT Renderer::Resize(UINT width, UINT height)
 {
 	if (width <= 0 || height <= 0) return E_INVALIDARG;
+	if (m_device == nullptr || m_deviceContext == nullptr || m_swapChain == nullptr) return E_FAIL;
 
 	HRESULT hr = S_OK;
 
@@ -253,7 +248,7 @@ void Renderer::CreateDeviceAndContext()
 	m_spriteBatch = ResourceManager::GetInstance().GetSpriteBatch();
 }
 
-void Renderer::CreateSwapChain()
+void Renderer::CreateSwapChain(HWND hWnd)
 {
 	HRESULT hr = S_OK;
 
@@ -272,7 +267,7 @@ void Renderer::CreateSwapChain()
 	hr = dxgiFactory->CreateSwapChainForHwnd
 	(
 		dxgiDevice.Get(),
-		WindowManager::GetInstance().GetHWnd(),
+		hWnd,
 		&m_swapChainDesc,
 		nullptr,
 		nullptr,

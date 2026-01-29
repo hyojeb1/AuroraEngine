@@ -1,9 +1,5 @@
-///ResourceManager.cpp의 시작
 #include "stdafx.h"
 #include "ResourceManager.h"
-
-#include "NavigationManager.h"
-
 using namespace std;
 using namespace DirectX;
 
@@ -54,8 +50,8 @@ void ResourceManager::Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11Dev
 	SetAllSamplerStates();
 
 	CacheAllTexture();
-
-	NavigationManager::GetInstance().Initialize();
+	
+	
 }
 
 void ResourceManager::SetDepthStencilState(DepthStencilState state)
@@ -278,10 +274,46 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 			return GetTexture("Fallback_Normal.png", TextureType::Normal);
 		case TextureType::Emissive:
 			return GetTexture("Fallback_Emissive.png", TextureType::Emissive);
+		case TextureType::LUT:
+			return GetTexture("Fallback_Emissive.png", TextureType::LUT);
 		default:
 			return nullptr;
 		}
 	}
+
+	//if (type == TextureType::LUT)
+	//{
+	//	com_ptr<ID3D11Texture2D> LUTTexture = nullptr;
+	//	hr = CreateWICTextureFromMemoryEx
+	//	(
+	//		m_device.Get(),
+	//		m_deviceContext.Get(),
+	//		cacheIt->second.data(),
+	//		cacheIt->second.size(),
+	//		0,
+	//		D3D11_USAGE_DEFAULT,
+	//		D3D11_BIND_SHADER_RESOURCE,
+	//		0,
+	//		0,
+	//		WIC_LOADER_IGNORE_SRGB,
+	//		reinterpret_cast<ID3D11Resource**>(LUTTexture.GetAddressOf()),
+	//		nullptr
+	//	);
+	//	CheckResult(hr, "LUT 텍스처 생성 실패.");
+
+	//	const D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc =
+	//	{
+	//		.Format = DXGI_FORMAT_R8G8B8A8_UNORM,
+	//		.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY,
+	//		.Texture2DArray = {.MostDetailedMip = 0, .MipLevels = static_cast<UINT>(-1), .FirstArraySlice = 0, .ArraySize = 16 }
+	//	};
+	//	hr = m_device->CreateShaderResourceView(LUTTexture.Get(), &srvDesc, m_textures[fileName].GetAddressOf());
+	//	CheckResult(hr, "LUT 텍스처 생성 실패.");
+
+	//	return m_textures[fileName];
+	//}
+
+	bool isSRGB = (type == TextureType::BaseColor || type == TextureType::Emissive);
 
 	// 파일 확장자 확인
 	const string extension = fileName.substr(fileName.find_last_of('.') + 1);
@@ -299,7 +331,7 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 			D3D11_BIND_SHADER_RESOURCE,
 			0,
 			0, // dds 는 mipmap 자동 생성 못함
-			type == TextureType::BaseColor || type == TextureType::Emissive ? DDS_LOADER_FORCE_SRGB : DDS_LOADER_IGNORE_SRGB,
+			isSRGB ? DDS_LOADER_FORCE_SRGB : DDS_LOADER_IGNORE_SRGB,
 			nullptr,
 			m_textures[fileName].GetAddressOf()
 		);
@@ -319,7 +351,7 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 			D3D11_BIND_SHADER_RESOURCE,
 			0,
 			D3D11_RESOURCE_MISC_GENERATE_MIPS, // mipmap 자동 생성
-			type == TextureType::BaseColor || type == TextureType::Emissive ? WIC_LOADER_FORCE_SRGB : WIC_LOADER_IGNORE_SRGB,
+			isSRGB ? WIC_LOADER_FORCE_SRGB : WIC_LOADER_IGNORE_SRGB,
 			nullptr,
 			m_textures[fileName].GetAddressOf()
 		);
@@ -413,7 +445,7 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 	model.materialTexture.baseColorTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_DIFFUSE, "_BaseColor.png", TextureType::BaseColor);
 	model.materialTexture.normalTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_NORMALS, "_Normal.png", TextureType::Normal);
 	model.materialTexture.emissionTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_EMISSIVE, "_Emissive.png", TextureType::Emissive);
-	model.materialTexture.ORMTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_UNKNOWN, "_OcclusionRoughnessMetallic.png", TextureType::ORM);
+	model.materialTexture.ORMTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_METALNESS, "_OcclusionRoughnessMetallic.png", TextureType::ORM);
 
 	// 3. 본 정보가 있다면 스켈레톤 구축
 	if (SceneHasBones(scene))
@@ -443,23 +475,27 @@ SpriteFont* ResourceManager::GetSpriteFont(const wstring& fontName)
 	return m_spriteFonts[fontName].get();
 }
 
+/// <summary>
+/// "SceneName/ImageName.png" 형태의 키 만들려고 만든 private 함수
+/// </summary>
+/// <param name="rawPath"></param>
+/// <returns></returns>
 string ResourceManager::FindTextureFromCache(const string& rawPath)
 {
 	if (rawPath.empty()) return "";
 
-	// 1. 경로 정규화 (역슬래시를 슬래시로)
+	// 1. 경로에서 파일명만 추출 (상위 디렉토리 제거)
+	// 결과: "Wall_BaseColor.png"
 	filesystem::path p(rawPath);
-	string filename = p.filename().string(); // "Wall_BaseColor.png"만 추출
+	string filename = p.filename().string();
 
 	// 2. 캐시 맵에서 파일명이 일치하는지 검색
-	// (주의: 같은 이름의 파일이 다른 폴더에 있을 경우 오탐지 가능성이 있으나,
-	//  현재 구조상 Scene 이름별로 폴더가 나뉘므로 비교적 안전함)
 	for (const auto& pair : m_textureCaches)
 	{
 		filesystem::path cachePath(pair.first);
 		if (cachePath.filename().string() == filename)
 		{
-			return pair.first; // "SceneName/ImageName.png" 형태의 키 반환
+			return pair.first; 
 		}
 	}
 
@@ -969,4 +1005,11 @@ com_ptr<ID3DBlob> ResourceManager::CompileShader(const string& shaderName, const
 
 	return shaderCode;
 }
-///ResourceManager.cpp의 끝
+
+
+void ResourceManager::LoadLUTTexture()
+{
+	m_luts[0].srv =  GetTexture("LUT\\0_IDENTITY.png", TextureType::LUT);
+	m_luts[1].srv =  GetTexture("LUT\\1_SEPIA.png", TextureType::LUT);
+}
+

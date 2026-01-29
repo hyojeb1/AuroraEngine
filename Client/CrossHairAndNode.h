@@ -41,7 +41,7 @@ private:
 	float m_linePos;
 	float m_lineScl;
 
-	std::vector<std::pair<float, float>>* m_NodeDataPtr = nullptr;
+	std::unordered_map<std::string, std::vector<std::pair<float, float>>>* m_NodeDataPtr = nullptr;
 
 
 };
