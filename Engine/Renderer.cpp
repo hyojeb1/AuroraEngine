@@ -3,16 +3,15 @@
 
 #include "ResourceManager.h"
 #include "SceneManager.h"
-#include "WindowManager.h"
 #include "TimeManager.h"
 
 using namespace std;
 using namespace DirectX;
 
-void Renderer::Initialize()
+void Renderer::Initialize(HWND hWnd)
 {
 	CreateDeviceAndContext();
-	CreateSwapChain();
+	CreateSwapChain(hWnd);
 	CreateBackBufferResources();
 	CreateShadowMapRenderTargets();
 
@@ -253,7 +252,7 @@ void Renderer::CreateDeviceAndContext()
 	m_spriteBatch = ResourceManager::GetInstance().GetSpriteBatch();
 }
 
-void Renderer::CreateSwapChain()
+void Renderer::CreateSwapChain(HWND hWnd)
 {
 	HRESULT hr = S_OK;
 
@@ -272,7 +271,7 @@ void Renderer::CreateSwapChain()
 	hr = dxgiFactory->CreateSwapChainForHwnd
 	(
 		dxgiDevice.Get(),
-		WindowManager::GetInstance().GetHWnd(),
+		hWnd,
 		&m_swapChainDesc,
 		nullptr,
 		nullptr,

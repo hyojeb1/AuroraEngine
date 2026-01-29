@@ -103,7 +103,7 @@ void WindowManager::Initialize(const wchar_t* windowTitle, int width, int height
 	ImGui_ImplWin32_Init(m_hWnd);
 
 	// 렌더러 초기화
-	Renderer::GetInstance().Initialize();
+	Renderer::GetInstance().Initialize(m_hWnd);
 
 	// 인풋매니저 초기화
 	InputManager::GetInstance().Initialize();
