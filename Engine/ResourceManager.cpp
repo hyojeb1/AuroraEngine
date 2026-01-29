@@ -270,8 +270,8 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 		switch (type)
 		{
 		case TextureType::BaseColor:
-			//return GetTexture("Fallback_BaseColor.png", TextureType::BaseColor);
-			return GetTexture("Fallback_BaseColor_Gray.png", TextureType::BaseColor);
+			return GetTexture("Fallback_BaseColor.png", TextureType::BaseColor);
+			//return GetTexture("Fallback_BaseColor_Gray.png", TextureType::BaseColor);
 		case TextureType::ORM:
 			return GetTexture("Fallback_OcclusionRoughnessMetallic.png", TextureType::ORM);
 		case TextureType::Normal:
