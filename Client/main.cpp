@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
 #include "WindowManager.h"
-#include "InputManager.h"
 #include "SceneManager.h"
 #include "NavigationManager.h"
 #include "RNG.h"
@@ -32,9 +31,14 @@ int main()
 
 	RNG::GetInstance().Initialize();
 
-	SoundManager::GetInstance().Initialize();
+	//SoundManager::GetInstance().Initialize();
+	SoundManager& soundManager = SoundManager::GetInstance();
 
-	while (windowManager.ProcessMessages()) sceneManager.Run();
+	while (windowManager.ProcessMessages())
+	{
+		soundManager.Update();
+		sceneManager.Run();
+	}
 
 	windowManager.Finalize();
 

@@ -106,20 +106,19 @@ void WindowManager::Initialize(const wchar_t* windowTitle, int width, int height
 	Renderer::GetInstance().Initialize(m_hWnd);
 
 	// 인풋매니저 초기화
-	InputManager::GetInstance().Initialize();
+	InputManager::GetInstance().Initialize(m_hWnd);
 
 	ShowWindow(m_hWnd, SW_SHOW);
 }
 
 bool WindowManager::ProcessMessages()
 {
+	InputManager::GetInstance().ClearInput();
+
 	MSG msg = {};
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 	{
-		if (msg.message == WM_QUIT)
-		{
-			return false;
-		}
+		if (msg.message == WM_QUIT) return false;
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
@@ -135,8 +134,6 @@ void WindowManager::Finalize()
 	// 렌더러 종료
 	Renderer::GetInstance().Finalize();
 	
-	// 인풋매니저 종료 // 따로 필요 없음
-
 	// ImGui Win32 종료
 	ImGui_ImplWin32_Shutdown();
 

@@ -2,7 +2,6 @@
 #include "Renderer.h"
 
 #include "ResourceManager.h"
-#include "TimeManager.h"
 
 using namespace std;
 using namespace DirectX;
