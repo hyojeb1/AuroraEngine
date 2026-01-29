@@ -24,7 +24,7 @@ int main()
 	windowManager.Initialize(L"Aurora");
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
-	sceneManager.ChangeScene("HyojeTestScene");
+	sceneManager.ChangeScene("TitleScene");
 
 	SoundManager& soundManager = SoundManager::GetInstance();
 	soundManager.Initialize();

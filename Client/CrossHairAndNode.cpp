@@ -16,11 +16,14 @@ void CrossHairAndNode::Initialize()
 
 	m_crosshairTextureAndOffset = resourceManager.GetTextureAndOffset("Cross_Hair_Middle.png");
 	m_RhythmLineTextureAndOffset = resourceManager.GetTextureAndOffset("Line.png");
-	m_NodeAndOffset = resourceManager.GetTextureAndOffset("cross_hair_parts.png");
+	m_NodeAndOffset = resourceManager.GetTextureAndOffset("Line.png");
 
 	m_NodeDataPtr = SoundManager::GetInstance().GetNodeDataPtr();
 
 	m_CrossHairSize = 0.04f;
+	m_NodeStartSize = 0.04f;
+	m_NodeEndSize = 0.04f;
+
 	m_NodeStart = 0.25f;
 	m_NodeEnd = 0.5f;
 
@@ -53,6 +56,8 @@ void CrossHairAndNode::Render()
 void CrossHairAndNode::RenderImGui()
 {
 	ImGui::DragFloat("Middle Size", &m_CrossHairSize, 0.004f, 0.004f, 0.04f);
+	ImGui::DragFloat("Start Size", &m_NodeStartSize, 0.004f, 0.004f, 1);
+	ImGui::DragFloat("End Size", &m_NodeEndSize, 0.004f, 0.004f, 1);
 	ImGui::DragFloat("Node start", &m_NodeStart, 0.001f, 0.1f, 0.5f);
 	ImGui::DragFloat("Node End", &m_NodeEnd, 0.001f, 0.1f, 0.5f);
 	ImGui::DragFloat("Interval", &m_linePos, 0.001f, 0.1f, 0.5f);
@@ -87,7 +92,7 @@ void CrossHairAndNode::RenderUINode(Renderer& renderer)
 
 				float pos = std::clamp(std::lerp(m_NodeEnd, m_NodeStart, temp), 0.0f, m_NodeEnd);
 
-				float scale = std::clamp(std::lerp(m_CrossHairSize, 0.1f, temp), 0.0f, m_CrossHairSize);
+				float scale = std::clamp(std::lerp(m_NodeStartSize, m_NodeEndSize, temp), 0.0f, 1.0f);
 
 				Renderer::GetInstance().RenderImageUIPosition(m_NodeAndOffset.first, { pos, 0.5f }, m_NodeAndOffset.second, scale);
 				Renderer::GetInstance().RenderImageUIPosition(m_NodeAndOffset.first, { 1.0f - pos, 0.5f }, m_NodeAndOffset.second, -scale);

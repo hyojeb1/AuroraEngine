@@ -71,12 +71,12 @@ void ParticleComponent::RenderImGui()
 	// 1. 파티클 설정 섹션
 	if (ImGui::CollapsingHeader("Particle Settings", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		ImGui::DragInt("Particle Amount", &m_particleAmount, 1, 1, 1000);
+		ImGui::DragInt("Particle Amount", &m_particleAmount, 1, 1, 1000000);
 
 		ImGui::DragFloat("Image Scale", &uv_buffer_data_.imageScale, 0.01f, 0.1f, 10.0f);
-		ImGui::DragFloat("Spread Radius", &uv_buffer_data_.spreadRadius, 0.1f, 0.0f, 100.0f);
-		ImGui::DragFloat("Spread Distance", &uv_buffer_data_.spreadDistance, 0.1f, 0.0f, 100.0f);
-		ImGui::DragFloat("Particle Total Time", &m_particleTotalTime, 0.01f, 0.1f, 10.0f);
+		ImGui::DragFloat("Spread Radius", &uv_buffer_data_.spreadRadius, 0.1f, 0.0f, 10.0f);
+		ImGui::DragFloat("Spread Distance", &uv_buffer_data_.spreadDistance, 0.1f, 0.0f, 1000.0f);
+		ImGui::DragFloat("Particle Total Time", &m_particleTotalTime, 0.01f, 0.1f, 100.0f);
 
 		ImGui::Separator();
 	}

@@ -7,22 +7,50 @@ static const float TWO_PI = 6.28318530718f;
 static const float INV_PI = 0.31830988618f;
 static const float EPSILON = 1e-6f;
 
-static const float GAMMA = 2.2f;
-static const float INV_GAMMA = 1.0f / GAMMA;
+// 난수 생성 상수
+static const float INV_16777216 = 1.0f / 16777216.0f;
 
 // 유틸리티 함수
 
-// 0~1 범위의 유사 난수 생성
-float rand(float seed)
+// PCG 해시 함수 // 고품질 난수 생성
+uint PCG(uint seed)
 {
-    return frac(sin(seed * 12.9898 + 78.233) * 43758.5453);
+    uint state = seed * 747796405u + 2891336453u;
+    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    
+    return (word >> 22u) ^ word;
+}
+
+// LowBias32 해시 함수 // 저품질 난수 생성, 빠름
+uint LowBias32(uint seed)
+{
+    seed ^= seed >> 16;
+    seed *= 0x7feb352du;
+    seed ^= seed >> 15;
+    seed *= 0x846ca68bu;
+    seed ^= seed >> 16;
+    
+    return seed;
+}
+
+// 유사 난수 생성 (0.0 ~ 1.0)
+float Rand(uint u)
+{
+    return float(u & 0x00FFFFFFu) * INV_16777216;
 }
 
 // 3D 벡터 유사 난수 생성
-float3 rand3(float seed, float spread = 0.0f)
+float3 Rand3(float seed, float spread = 0.0f)
 {
-    if (spread <= 0.5f) return normalize(float3(rand(rand(seed)), rand(rand(rand(seed))), rand(rand(rand(rand(seed))))) - 0.5f);
-    return normalize(pow(float3(rand(rand(seed)), rand(rand(rand(seed))), rand(rand(rand(rand(seed))))), rcp(spread)));
+    uint s = asuint(seed * 12345.678f + 0.5f);
+    uint h1 = LowBias32(s);
+    uint h2 = LowBias32(h1);
+    uint h3 = LowBias32(h2);
+
+    float3 r = float3(Rand(h1), Rand(h2), Rand(h3));
+
+    if (spread <= 0.5f) return normalize(r - 0.5f);
+    return normalize(pow(r, rcp(spread)));
 }
 
 // 노말 맵핑 
