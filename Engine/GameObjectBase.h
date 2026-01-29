@@ -1,4 +1,3 @@
-/// GameObjectBase.h의 시작
 #pragma once
 #include "Resource.h"
 #include "ComponentBase.h"

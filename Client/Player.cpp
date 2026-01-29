@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Player.h"
 
+#include "Renderer.h"
 #include "SoundManager.h"
 #include "TimeManager.h"
 #include "InputManager.h"

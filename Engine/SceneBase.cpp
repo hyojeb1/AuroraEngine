@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "SceneBase.h"
 
+#include "Renderer.h"
 #include "CameraComponent.h"
 #include "ResourceManager.h"
 #include "TimeManager.h"

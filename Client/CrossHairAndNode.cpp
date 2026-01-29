@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+#include "Renderer.h"
 #include "GameObjectBase.h"
 #include "ResourceManager.h"
 #include "TimeManager.h"
