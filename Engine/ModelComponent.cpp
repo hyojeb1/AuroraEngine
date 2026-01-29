@@ -245,6 +245,58 @@ void ModelComponent::RenderImGui()
 	ImGui::Checkbox("Render Bounding Box", &m_renderBoundingBox);
 	ImGui::Checkbox("Render SubMesh Bounding Boxes", &m_renderSubMeshBoundingBoxes);
 	#endif
+
+
+	// 텍스처 미리보기 섹션
+	ImGui::Separator();
+	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Material Textures");
+
+	if (m_model)
+	{
+		auto ShowTextureSlot = [](const char* name, ID3D11ShaderResourceView* srv)
+			{
+				ImGui::PushID(name);
+				ImGui::Text("%s", name);
+
+				if (srv)
+				{
+					ImGui::Image((ImTextureID)srv, ImVec2(64, 64), ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 0.5f));
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::BeginTooltip();
+						ImGui::Text("%s Preview", name);
+						ImGui::Image((ImTextureID)srv, ImVec2(256, 256));
+						ImGui::EndTooltip();
+					}
+				}
+				else
+				{
+					ImGui::Button("(Empty)", ImVec2(64, 64));
+				}
+				ImGui::PopID();
+			};
+
+		// 한 줄에 2개씩 보여주기 위해 Columns 사용 
+		ImGui::Columns(2, "TextureColumns", false);
+
+		ShowTextureSlot("Base Color", m_model->materialTexture.baseColorTextureSRV.Get());
+		ImGui::NextColumn();
+
+		ShowTextureSlot("Normal", m_model->materialTexture.normalTextureSRV.Get());
+		ImGui::NextColumn();
+
+		ShowTextureSlot("ORM (Occl/Rough/Met)", m_model->materialTexture.ORMTextureSRV.Get());
+		ImGui::NextColumn();
+
+		ShowTextureSlot("Emission", m_model->materialTexture.emissionTextureSRV.Get());
+
+		ImGui::Columns(1);
+	}
+	else
+	{
+		ImGui::TextDisabled("Model is not loaded.");
+	}
+
 }
 
 void ModelComponent::Finalize()
