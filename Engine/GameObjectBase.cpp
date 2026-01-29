@@ -1,9 +1,5 @@
-/// GameObjectBase.cpp의 시작
 #include "stdafx.h"
 #include "GameObjectBase.h"
-
-#include "Renderer.h"
-#include "ResourceManager.h"
 
 using namespace std;
 using namespace DirectX;
@@ -515,4 +511,3 @@ const XMMATRIX& GameObjectBase::UpdateWorldMatrix()
 
 	return m_worldMatrix;
 }
-/// GameObjectBase.cpp의 끝

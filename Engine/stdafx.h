@@ -1,11 +1,7 @@
 #pragma once
-#ifndef WIN32_LEAN_AND_MEAN		
-#define WIN32_LEAN_AND_MEAN
-#endif
 
-#ifndef NOMINMAX
+#define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#endif
 
 // STL 헤더
 #include <array>
@@ -127,5 +123,4 @@ constexpr void CheckResult(HRESULT hr, const char* msg)
 }
 
 // 사용자 정의 헤더
-#include "Resource.h"
-#include "Animator.h"
+#include "Singleton.h"

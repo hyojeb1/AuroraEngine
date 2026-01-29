@@ -1,4 +1,3 @@
-/// ModelComponent.cpp의 시작
 #include "stdafx.h"
 #include "ModelComponent.h"
 
@@ -379,4 +378,3 @@ void ModelComponent::CreateShaders()
 	m_boundingBoxPixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
 #endif
 }
-/// ModelComponent.cpp의 끝

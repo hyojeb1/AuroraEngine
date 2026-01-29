@@ -1,4 +1,3 @@
-/// SkinnedModelComponent.cpp의 시작
 #include "stdafx.h"
 #include "SkinnedModelComponent.h"
 
@@ -7,6 +6,8 @@
 #include "TimeManager.h"
 #include "GameObjectBase.h"
 #include "CameraComponent.h"
+
+#include "Animator.h"
 
 using namespace std;
 using namespace DirectX;
@@ -232,4 +233,3 @@ void SkinnedModelComponent::CreateShaders()
 {
 	ModelComponent::CreateShaders();
 }
-/// SkinnedModelComponent.cpp의 끝

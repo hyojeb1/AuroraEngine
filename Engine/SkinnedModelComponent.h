@@ -1,15 +1,12 @@
-/// SkinnedModelComponent.h의 시작
 #pragma once
 #include "ModelComponent.h"
-
-class Animator;
 
 class SkinnedModelComponent : public ModelComponent
 {
 private:
-	std::shared_ptr<Animator> animator_ = nullptr;
+	std::shared_ptr<class Animator> animator_ = nullptr;
 	
-	BoneBuffer m_boneBufferData = {};
+	struct BoneBuffer m_boneBufferData = {};
 	com_ptr<ID3D11Buffer> m_boneConstantBuffer = nullptr; 
 
 public:
@@ -37,4 +34,3 @@ private:
 
 	void CreateShaders() override;
 };
-/// SkinnedModelComponent.h의 끝

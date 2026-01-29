@@ -1,4 +1,3 @@
-/// ParticleComponent.cpp의 시작
 #include "stdafx.h"
 #include "ParticleComponent.h"
 

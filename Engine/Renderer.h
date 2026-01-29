@@ -1,5 +1,8 @@
 #pragma once
-#include "Singleton.h"
+#include "Resource.h"
+
+// 렌더 패스 정의
+using RenderPass = std::array<std::pair<RenderTarget, std::array<std::vector<std::pair<float, std::function<void()>>>, static_cast<size_t>(BlendState::Count)>>, static_cast<size_t>(RenderStage::Count)>;
 
 class Renderer : public Singleton<Renderer>
 {
@@ -34,7 +37,7 @@ class Renderer : public Singleton<Renderer>
 	com_ptr<IDXGISwapChain1> m_swapChain = nullptr; // 스왑 체인
 	
 	DirectX::XMVECTOR m_renderSortPoint = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // 랜저 정렬 기준점
-	std::array<std::pair<RenderTarget, std::array<std::vector<std::pair<float, std::function<void()>>>, static_cast<size_t>(BlendState::Count)>>, static_cast<size_t>(RenderStage::Count)> m_renderPass = {};
+	RenderPass m_renderPass = {};
 	
 	DirectX::SpriteBatch* m_spriteBatch = nullptr; // 스프라이트 배치 // UI 렌더링용
 	std::vector<std::function<void()>> m_UIRenderFunctions = {}; // ImGui 렌더링 함수 목록
@@ -57,8 +60,6 @@ class Renderer : public Singleton<Renderer>
 	// 그림자 맵 렌더 타겟 관련 리소스
 	com_ptr<ID3D11ShaderResourceView> m_directionalLightShadowMapSRV = nullptr; // 방향성 광원 그림자 맵 셰이더 리소스 뷰
 
-	PostProcessingBuffer m_postProcessingBuffer = {}; // 후처리용 상수 버퍼
-
 public:
 	Renderer() = default;
 	~Renderer() = default;
@@ -68,7 +69,7 @@ public:
 	Renderer& operator=(Renderer&&) = delete;
 
 	// 렌더러 초기화 // WindowManager에서 윈도우 생성 후 호출
-	void Initialize();
+	void Initialize(HWND hwnd);
 
 	// 프레임 시작
 	void BeginFrame();
@@ -79,13 +80,6 @@ public:
 
 	constexpr RenderTarget& RENDER_TARGET(RenderStage stage) { return m_renderPass[static_cast<size_t>(stage)].first; }
 	constexpr std::vector<std::pair<float, std::function<void()>>>& RENDER_FUNCTION(RenderStage renderStage, BlendState blendState) { return m_renderPass[static_cast<size_t>(renderStage)].second[static_cast<size_t>(blendState)]; }
-	
-	const PostProcessingBuffer& GetPostProcessingBuffer() const { return m_postProcessingBuffer; }
-	void SetPostProcessingBuffer(const PostProcessingBuffer& buffer) { m_postProcessingBuffer = buffer; }
-	void SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag flag, bool enable) { if (enable) m_postProcessingBuffer.flags |= static_cast<UINT>(flag); else m_postProcessingBuffer.flags &= ~static_cast<UINT>(flag); }
-	void SetGamma(float gamma) { m_postProcessingBuffer.gamma = gamma; }
-	void SetGrayScaleIntensity(float intensity) { m_postProcessingBuffer.grayScaleIntensity = intensity; }
-	void SetMotionBlurIntensity(float intensity) { m_postProcessingBuffer.motionBlurIntensity = intensity; }
 
 	// UI 렌더링 함수
 	constexpr std::vector<std::function<void()>>& UI_RENDER_FUNCTIONS() { return m_UIRenderFunctions; }
@@ -128,7 +122,7 @@ private:
 	// 디바이스 및 디바이스 컨텍스트 생성
 	void CreateDeviceAndContext();
 	// 스왑 체인 생성
-	void CreateSwapChain();
+	void CreateSwapChain(HWND hwnd);
 	// 백 버퍼 렌더 타겟 생성
 	void CreateBackBufferRenderTarget();
 	// 백 버퍼 셰이더 및 상수 버퍼 생성

@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "TypeRegistry.h"
 
 #include "SceneBase.h"
 #include "GameObjectBase.h"
