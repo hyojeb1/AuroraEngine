@@ -35,6 +35,8 @@ void Enemy::Die()
 	if (m_collider) m_collider->SetAlive(false);
 
 	if (m_fsm) m_fsm->ChangeState(FSMComponentEnemy::EDead);
+
+	CreatePrefabChildGameObject("Gem.json");
 }
 
 void Enemy::Update()
