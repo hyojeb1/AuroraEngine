@@ -1,9 +1,8 @@
 #include "stdafx.h"
 
 #include "WindowManager.h"
-#include "SceneManager.h"
-#include "Renderer.h"
 #include "InputManager.h"
+#include "SceneManager.h"
 #include "NavigationManager.h"
 #include "RNG.h"
 #include "SoundManager.h"
@@ -27,16 +26,19 @@ int main()
 
 	NavigationManager::GetInstance().Initialize();
 
-	RNG::GetInstance().Initialize();
-
 	SceneManager& sceneManager = SceneManager::GetInstance();
+	sceneManager.Initialize();
 	sceneManager.ChangeScene("TitleScene");
+
+	RNG::GetInstance().Initialize();
 
 	SoundManager::GetInstance().Initialize();
 
 	while (windowManager.ProcessMessages()) sceneManager.Run();
 
 	windowManager.Finalize();
+
+	sceneManager.Finalize();
 
 	ImGui::DestroyContext();
 }

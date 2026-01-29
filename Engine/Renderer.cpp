@@ -2,7 +2,6 @@
 #include "Renderer.h"
 
 #include "ResourceManager.h"
-#include "SceneManager.h"
 #include "TimeManager.h"
 
 using namespace std;
@@ -14,9 +13,6 @@ void Renderer::Initialize(HWND hWnd)
 	CreateSwapChain(hWnd);
 	CreateBackBufferResources();
 	CreateShadowMapRenderTargets();
-
-	// 씬 매니저 초기화
-	SceneManager::GetInstance().Initialize();
 }
 
 void Renderer::BeginFrame()
@@ -153,10 +149,6 @@ void Renderer::Finalize()
 {
 	// ImGui DirectX11 종료
 	ImGui_ImplDX11_Shutdown();
-
-	// RenderResourceManager 종료는 따로 필요 없음
-
-	SceneManager::GetInstance().Finalize();
 }
 
 HRESULT Renderer::Resize(UINT width, UINT height)
