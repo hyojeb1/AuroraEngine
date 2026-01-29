@@ -147,6 +147,7 @@ void Player::PlayerDeadEyeStart()
 
 	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 	vector<GameObjectBase*> hits = ColliderComponent::CheckCollision(mainCamera.GetBoundingFrustum());
+	if (hits.empty()) return;
 
 	bool hasEnemy = false;
 
@@ -181,17 +182,30 @@ void Player::PlayerDeadEyeStart()
 		m_DeadEyeCount = m_deadEyeTargets.size();
 		m_deadEyeTotalDuration = static_cast<float>(m_DeadEyeCount) * 0.5f;
 		m_deadEyeDuration = 0.0f;
+
+		m_prevDeadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(m_deadEyeTargets.back().second->GetWorldPosition());
+		m_nextDeadEyePos = m_prevDeadEyePos;
 	}
 }
 
 void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 {
+	if (m_deadEyeTargets.empty()) { PlayerDeadEyeEnd(); return; }
+
 	m_deadEyeDuration += deltaTime;
+	m_deadEyeMoveTimer += deltaTime * 250.0f;
 	SceneBase::SetGrayScaleIntensity((m_deadEyeDuration / m_deadEyeTotalDuration) * 16.0f);
 
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
+		m_prevDeadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(m_deadEyeTargets.back().second->GetWorldPosition());
 		m_deadEyeTargets.back().second->Die();
+		if (m_deadEyeTargets.size() > 1)
+		{
+			m_nextDeadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(m_deadEyeTargets[m_deadEyeTargets.size() - 2].second->GetWorldPosition());
+			m_deadEyeMoveTimer = 0.0f;
+		}
+		else m_nextDeadEyePos = m_prevDeadEyePos;
 
 		GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
 		gem->SetPosition(m_deadEyeTargets.back().second->GetWorldPosition());
@@ -259,8 +273,15 @@ void Player::RenderDeadEyeTargetsUI(Renderer& renderer)
 	(
 		[&]()
 		{
-			const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
-			Renderer::GetInstance().RenderImageScreenPosition(m_deadEyeTextureAndOffset.first, mainCamera.WorldToScreenPosition(m_deadEyeTargets.back().second->GetWorldPosition()), m_deadEyeTextureAndOffset.second, 0.5f);
+			Renderer::GetInstance().RenderImageScreenPosition
+			(
+				m_deadEyeTextureAndOffset.first,
+				{
+					m_prevDeadEyePos.x + (m_nextDeadEyePos.x - m_prevDeadEyePos.x) * min(m_deadEyeMoveTimer, 1.0f),
+					m_prevDeadEyePos.y + (m_nextDeadEyePos.y - m_prevDeadEyePos.y) * min(m_deadEyeMoveTimer, 1.0f)
+				},
+				m_deadEyeTextureAndOffset.second, 0.5f
+			);
 		}
 	);
 }
