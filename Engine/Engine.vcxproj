@@ -168,7 +168,6 @@
     <ClInclude Include="FlipbookParticleComponent.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="ListenerComponent.h" />
-    <ClInclude Include="LUT.h" />
     <ClInclude Include="ModelComponent.h" />
     <ClInclude Include="ParticleComponent.h" />
     <ClInclude Include="NavigationManager.h" />
@@ -198,7 +197,6 @@
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="FlipbookParticleComponent.cpp" />
     <ClCompile Include="ListenerComponent.cpp" />
-    <ClCompile Include="LUT.cpp" />
     <ClCompile Include="ModelComponent.cpp" />
     <ClCompile Include="NavigationManager.cpp" />
     <ClCompile Include="ParticleComponent.cpp" />

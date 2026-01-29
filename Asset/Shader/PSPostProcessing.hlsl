@@ -1,5 +1,7 @@
 #include "CommonPS.hlsli"
 
+
+
 float4 main(PS_INPUT_POS_UV input) : SV_TARGET
 {
     float4 color = sceneTexture.Sample(SamplerLinearClamp, float3(input.UV, 0.0f));
@@ -18,6 +20,9 @@ float4 main(PS_INPUT_POS_UV input) : SV_TARGET
         float gray = dot(color.rgb, float3(0.299f, 0.587f, 0.114f));
         color.rgb = lerp(color.rgb, float3(gray, gray, gray), saturate(GrayScaleIntensity));
     }
-        
+    
+    float4 color1 = lutTexture.Sample(SamplerLinearClamp, float3(input.UV, 0.0f));
+    return color1;
+    
     return color;
 }

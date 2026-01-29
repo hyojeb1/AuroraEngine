@@ -51,8 +51,8 @@ void ResourceManager::Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11Dev
 
 	CacheAllTexture();
 	
-
-
+	
+	LoadLUTTexture();
 }
 
 void ResourceManager::SetDepthStencilState(DepthStencilState state)
@@ -275,10 +275,14 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 			return GetTexture("Fallback_Normal.png", TextureType::Normal);
 		case TextureType::Emissive:
 			return GetTexture("Fallback_Emissive.png", TextureType::Emissive);
+		case TextureType::LUT:
+			return GetTexture("LUT/Identity.png", TextureType::LUT);
 		default:
 			return nullptr;
 		}
 	}
+
+	bool isSRGB = (type == TextureType::BaseColor || type == TextureType::Emissive);
 
 	// 파일 확장자 확인
 	const string extension = fileName.substr(fileName.find_last_of('.') + 1);
@@ -296,7 +300,7 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 			D3D11_BIND_SHADER_RESOURCE,
 			0,
 			0, // dds 는 mipmap 자동 생성 못함
-			type == TextureType::BaseColor || type == TextureType::Emissive ? DDS_LOADER_FORCE_SRGB : DDS_LOADER_IGNORE_SRGB,
+			isSRGB ? DDS_LOADER_FORCE_SRGB : DDS_LOADER_IGNORE_SRGB,
 			nullptr,
 			m_textures[fileName].GetAddressOf()
 		);
@@ -316,7 +320,7 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 			D3D11_BIND_SHADER_RESOURCE,
 			0,
 			D3D11_RESOURCE_MISC_GENERATE_MIPS, // mipmap 자동 생성
-			type == TextureType::BaseColor || type == TextureType::Emissive ? WIC_LOADER_FORCE_SRGB : WIC_LOADER_IGNORE_SRGB,
+			isSRGB ? WIC_LOADER_FORCE_SRGB : WIC_LOADER_IGNORE_SRGB,
 			nullptr,
 			m_textures[fileName].GetAddressOf()
 		);
@@ -970,3 +974,10 @@ com_ptr<ID3DBlob> ResourceManager::CompileShader(const string& shaderName, const
 
 	return shaderCode;
 }
+
+
+void ResourceManager::LoadLUTTexture()
+{
+	m_luts[0].srv = GetTexture("LUT\\0_IDENTITY.png", TextureType::LUT);
+}
+

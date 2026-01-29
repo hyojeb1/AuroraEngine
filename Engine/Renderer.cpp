@@ -40,6 +40,10 @@ void Renderer::BeginFrame()
 			// 래스터 상태 변경
 			ResourceManager::GetInstance().SetRasterState(RasterState::BackBuffer);
 
+			ResourceManager& resourceManager = ResourceManager::GetInstance();
+
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::LUT),	1, resourceManager.GetLUT(LUTData::IDENTITY).GetAddressOf());
+
 			// 백 버퍼로 씬 렌더링
 			RenderSceneToBackBuffer();
 		}
