@@ -15,7 +15,7 @@ class GameObjectBase : public Base
 {
 protected:
 	UINT m_id = 0; // 고유 ID
-	std::string m_name = ""; // 이름
+	std::string m_name; // 이름
 
 	// 변환 관련 멤버 변수
 	DirectX::XMMATRIX m_worldMatrix = DirectX::XMMatrixIdentity(); // 월드 행렬
@@ -23,6 +23,7 @@ protected:
 	DirectX::XMMATRIX m_rotationMatrix = DirectX::XMMatrixIdentity(); // 회전 행렬
 	DirectX::XMMATRIX m_scaleMatrix = DirectX::XMMatrixIdentity(); // 스케일 행렬
 	DirectX::XMMATRIX m_inverseScaleSquareMatrix = DirectX::XMMatrixIdentity(); // 스케일 역행렬 제곱 (법선 행렬 계산용)
+	bool m_isIgnoreParentTransform = false; // 부모 변환 무시 여부
 
 	WorldNormalBuffer m_worldData = {}; // 월드 및 WVP 행렬 상수 버퍼 데이터
 
@@ -58,6 +59,8 @@ public:
 	static void SetSelectedObject(GameObjectBase* selected) { s_selectedObject = selected; }
 
 	// 변환 관련 함수
+	// 부모 변환 무시 설정
+	void SetIgnoreParentTransform(bool isIgnore) { m_isIgnoreParentTransform = isIgnore; SetDirty(); }
 	// 위치 지정
 	void SetPosition(const DirectX::XMVECTOR& position) { m_position = position; SetDirty(); }
 	const DirectX::XMVECTOR GetPosition() { return m_position; }
@@ -108,6 +111,8 @@ public:
 	template<typename T> requires std::derived_from<T, GameObjectBase>
 	T* CreateChildGameObject(); // 자식 게임 오브젝트 생성 // 포인터 반환
 
+	GameObjectBase* CreatePrefabChildGameObject(const std::string& prefabFileName); // 프리팹 자식 게임 오브젝트 생성 // 게임 오브젝트 베이스 포인터 반환
+
 	GameObjectBase* GetChildGameObject(const std::string& name); // 이름으로 자식 게임 오브젝트 검색 // 없으면 nullptr 반환
 	GameObjectBase* GetGameObjectRecursive(const std::string& name); // 이름으로 재귀적으로 게임 오브젝트 검색 // 없으면 nullptr 반환
 
@@ -129,6 +134,8 @@ private:
 	nlohmann::json BaseSerialize() override;
 	// 게임 오브젝트 역직렬화
 	void BaseDeserialize(const nlohmann::json& jsonData) override;
+
+	void SaveAsPrefab(); // 프리팹 저장
 
 	// 제거 대기 중인 컴포넌트 및 자식 게임 오브젝트 제거
 	void RemovePending() override;

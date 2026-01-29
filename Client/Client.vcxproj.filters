@@ -37,6 +37,9 @@
     </ClCompile>
     <ClCompile Include="EndingScene.cpp">
       <Filter>Scene</Filter>
+  </ClCompile>
+    <ClCompile Include="GemParticle.cpp">
+      <Filter>GameObject</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -76,6 +79,9 @@
     </ClInclude>
     <ClInclude Include="EndingScene.h">
       <Filter>Scene</Filter>
+  </ClInclude>
+    <ClInclude Include="GemParticle.h">
+      <Filter>GameObject</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

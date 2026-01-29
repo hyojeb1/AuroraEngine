@@ -1,4 +1,3 @@
-/// TestScene.cppì˜ ì‹œì‘
 #include "stdafx.h"
 #include "TestScene.h"
 
@@ -11,6 +10,7 @@
 #include "CamRotObject.h"
 
 #include "Enemy.h"
+#include "RNG.h"
 
 REGISTER_TYPE(TestScene)
 
@@ -31,10 +31,9 @@ void TestScene::Update()
 	{
 		time = 0.0f;
 
-		float x = static_cast<float>(rand() % 21 - 10);
-		float z = static_cast<float>(rand() % 21 - 10);
+		constexpr float SPREAD = 10.0f;
 
-		CreateRootGameObject<Enemy>()->SetPosition(XMVectorSet(x, 0.0f, z, 1.0f));
+		CreatePrefabRootGameObject("Enemy.json")->SetPosition(XMVectorSet(RNG::GetInstance().Range(-SPREAD, SPREAD), 0.0f, RNG::GetInstance().Range(-SPREAD, SPREAD), 1.0f));
 	}
 
 	if (InputManager::GetInstance().GetKeyDown(KeyCode::Num0))
@@ -43,4 +42,4 @@ void TestScene::Update()
 	}
 }
 
-/// TestScene.cppì˜ ë
+/// TestScene.cpp?˜ ?

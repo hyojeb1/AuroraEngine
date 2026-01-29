@@ -40,6 +40,11 @@ void Renderer::BeginFrame()
 			// 래스터 상태 변경
 			ResourceManager::GetInstance().SetRasterState(RasterState::BackBuffer);
 
+			ResourceManager& resourceManager = ResourceManager::GetInstance();
+
+			//m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::LUT), 1, resourceManager.GetLUT(LUTData::SEPIA).GetAddressOf());
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::LUT), 1, resourceManager.GetLUT(LUTData::IDENTITY).GetAddressOf());
+
 			// 백 버퍼로 씬 렌더링
 			RenderSceneToBackBuffer();
 		}
@@ -120,11 +125,14 @@ void Renderer::EndFrame()
 	// 2D UI 렌더링
 	RenderXTKSpriteBatch();
 
+	com_ptr<ID3D11ShaderResourceView> ssrrvv = nullptr;
+	ssrrvv = ResourceManager::GetInstance().GetLUT(1);
+
 	#ifdef _DEBUG
 	ImGui::Begin("SRV");
 	ImGui::Image
 	(
-		(ImTextureID)m_directionalLightShadowMapSRV.Get(),
+		(ImTextureID)ssrrvv.Get(),
 		ImVec2(500.0f, 500.0f)
 	);
 	ImGui::End();
@@ -149,6 +157,7 @@ void Renderer::Finalize()
 HRESULT Renderer::Resize(UINT width, UINT height)
 {
 	if (width <= 0 || height <= 0) return E_INVALIDARG;
+	if (m_device == nullptr || m_deviceContext == nullptr || m_swapChain == nullptr) return E_FAIL;
 
 	HRESULT hr = S_OK;
 

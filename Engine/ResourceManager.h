@@ -1,11 +1,6 @@
+///bof ResourceManager.h
 #pragma once
 #include "Resource.h"
-
-///
-///ResourceManager.h
-/// 그래픽 자원을 관리하는 매니저 클래스임
-/// .fbx로 한정함
-///
 
 class ResourceManager : public Singleton<ResourceManager>
 {
@@ -42,6 +37,7 @@ class ResourceManager : public Singleton<ResourceManager>
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch = nullptr; // 스프라이트 배치
 	std::unordered_map<std::wstring, std::unique_ptr<DirectX::SpriteFont>> m_spriteFonts = {}; // 스프라이트 폰트 맵 // 키: 폰트 파일 이름
 
+	std::array<LUTData, LUTData::COUNT> m_luts;
 public:
 	~ResourceManager() = default;
 	ResourceManager(const ResourceManager&) = delete;
@@ -91,7 +87,8 @@ public:
 		BaseColor,
 		ORM,
 		Normal,
-		Emissive
+		Emissive,
+		LUT
 	};
 	// 텍스처 파일로부터 텍스처 로드
 	com_ptr<ID3D11ShaderResourceView> GetTexture(const std::string& fileName, TextureType type = TextureType::BaseColor);
@@ -102,7 +99,8 @@ public:
 	DirectX::SpriteBatch* GetSpriteBatch() { return m_spriteBatch.get(); }
 	DirectX::SpriteFont* GetSpriteFont(const std::wstring& fontName);
 
-
+	com_ptr<ID3D11ShaderResourceView> GetLUT(const int id) { return m_luts[id].srv; };
+	void LoadLUTTexture();
 private:
 	ResourceManager() = default;
 
@@ -149,5 +147,7 @@ private:
 
 	std::string FindTextureFromCache(const std::string& rawPath);
 	com_ptr<ID3D11ShaderResourceView> LoadTextureHybrid(const aiMaterial* material, const std::string& model_name,  aiTextureType aiType, const std::string& suffix, TextureType engine_type);
+
+	
 };
-///ResourceManager.h의 끝
+///eof ResourceManager.h

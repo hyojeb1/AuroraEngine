@@ -5,7 +5,8 @@ class FlipbookParticleComponent : public ParticleComponent
 {
 	int m_rows = 1;
 	int m_columns = 1;
-	int m_totalFrames = 1;
+	int m_startFrame = 0;
+	int m_endFrame = 1;
 	float m_framesPerSecond = 8.0f;
 	bool m_loop = true;
 	bool m_playing = true;

@@ -3,6 +3,7 @@
 
 #include "Renderer.h"
 #include "InputManager.h"
+#include "ResourceManager.h"
 
 using namespace std;
 
@@ -108,6 +109,8 @@ void WindowManager::Initialize(const wchar_t* windowTitle, int width, int height
 	InputManager::GetInstance().Initialize(m_hWnd);
 
 	ShowWindow(m_hWnd, SW_SHOW);
+
+	ResourceManager::GetInstance().LoadLUTTexture();
 }
 
 bool WindowManager::ProcessMessages()
