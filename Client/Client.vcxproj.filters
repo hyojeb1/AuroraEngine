@@ -35,6 +35,9 @@
     <ClCompile Include="CrossHairAndNode.cpp">
       <Filter>Component</Filter>
     </ClCompile>
+    <ClCompile Include="GemParticle.cpp">
+      <Filter>GameObject</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -70,6 +73,9 @@
     </ClInclude>
     <ClInclude Include="CrossHairAndNode.h">
       <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="GemParticle.h">
+      <Filter>GameObject</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

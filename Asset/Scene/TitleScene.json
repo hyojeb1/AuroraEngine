@@ -53,41 +53,42 @@
                     "billboardType": 1,
                     "blendState": 1,
                     "flipbookAutoPlay": true,
-                    "flipbookColumns": 8,
-                    "flipbookCurrentFrame": 5,
+                    "flipbookColumns": 40,
+                    "flipbookCurrentFrame": 32,
                     "flipbookDestroyOnFinish": false,
+                    "flipbookEndFrame": 120,
                     "flipbookFPS": 8.0,
                     "flipbookLoop": true,
-                    "flipbookPlaybackSpeed": 4.0,
+                    "flipbookPlaybackSpeed": 0.10000000149011612,
                     "flipbookPlaying": true,
                     "flipbookRandomStart": false,
-                    "flipbookRows": 8,
-                    "flipbookTotalFrames": 64,
-                    "imageScale": 0.7599999904632568,
-                    "particleAmount": 1000,
-                    "particleTotalTime": 1.0,
+                    "flipbookRows": 24,
+                    "flipbookStartFrame": 0,
+                    "imageScale": 0.3499999940395355,
+                    "particleAmount": 22,
+                    "particleTotalTime": 0.36000001430511475,
                     "psShaderName": "PSParticle.hlsl",
                     "rasterState": 2,
-                    "spreadDistance": 5.5,
+                    "spreadDistance": 0.8999999761581421,
                     "spreadRadius": 0.0,
-                    "textureFileName": "runner_atlas.png",
+                    "textureFileName": "Gem.png",
                     "type": "FlipbookParticleComponent",
                     "uvOffset": [
-                        0.625,
+                        0.800000011920929,
                         0.0
                     ],
                     "uvScale": [
-                        0.125,
-                        0.125
+                        0.02500000037252903,
+                        0.0416666679084301
                     ],
                     "vsShaderName": "VSParticle.hlsl"
                 }
             ],
-            "name": "GameObjectBase_2",
+            "name": "Gem",
             "position": [
                 0.0,
                 0.0,
-                4.300000190734863,
+                0.0,
                 0.0
             ],
             "rotation": [

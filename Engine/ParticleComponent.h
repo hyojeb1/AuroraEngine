@@ -23,9 +23,14 @@ protected:
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
 	const WorldNormalBuffer* m_worldNormalData = nullptr; // 월드, 월드 역행렬 상수 버퍼 데이터
 
+	com_ptr<ID3D11Buffer> m_worldNormalBuffer = nullptr; // 월드, 월드 역행렬 상수 버퍼
+
 	int m_particleAmount = 1;
 	ParticleBuffer uv_buffer_data_ = {};
+	float m_elapsedTime = 0.0f;
 	float m_particleTotalTime = 1.0f;
+
+	com_ptr<ID3D11Buffer> m_particleBuffer = nullptr; // 파티클 상수 버퍼
 
 	std::string m_vsShaderName = "VSParticle.hlsl"; // 기본 Particle 정점 셰이더
 	std::string m_psShaderName = "PSParticle.hlsl"; // 기본 Particle 픽셀 셰이더

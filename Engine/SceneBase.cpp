@@ -27,6 +27,28 @@ GameObjectBase* SceneBase::CreateRootGameObject(const string& typeName)
 	return gameObjectPtr;
 }
 
+GameObjectBase* SceneBase::CreatePrefabRootGameObject(const string& prefabFileName)
+{
+	const filesystem::path prefabDirectory = "../Asset/Prefab/";
+	const filesystem::path prefabFilePath = prefabDirectory / prefabFileName;
+
+	ifstream prefabFile(prefabFilePath);
+	nlohmann::json prefabJson;
+	prefabFile >> prefabJson;
+	prefabFile.close();
+	string typeName = prefabJson["type"].get<string>();
+
+	unique_ptr<GameObjectBase> gameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
+	GameObjectBase* gameObjectPtr = gameObject.get();
+
+	static_cast<Base*>(gameObjectPtr)->BaseDeserialize(prefabJson);
+	static_cast<Base*>(gameObjectPtr)->BaseInitialize();
+
+	m_gameObjects.push_back(move(gameObject));
+
+	return gameObjectPtr;
+}
+
 GameObjectBase* SceneBase::GetRootGameObject(const string& name)
 {
 	for (unique_ptr<Base>& gameObject : m_gameObjects)
@@ -146,8 +168,6 @@ void SceneBase::BaseUpdate()
 	// 게임 오브젝트 업데이트
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseUpdate();
 
-	erase_if(m_buttons, [](const unique_ptr<Button>& button) { return button->GetDead(); });
-
 	InputManager& inputManager = InputManager::GetInstance();
 
 	const POINT& mousePosition = inputManager.GetMousePosition();
@@ -165,9 +185,9 @@ void SceneBase::BaseUpdate()
 
 		const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
 
-		ofstream file(sceneFilePath);
-		file << BaseSerialize().dump(4);
-		file.close();
+		ofstream sceneFile(sceneFilePath);
+		sceneFile << BaseSerialize().dump(4);
+		sceneFile.close();
 
 		cout << "씬: " << m_type << " 저장 완료!" << endl;
 	}
@@ -331,7 +351,24 @@ void SceneBase::BaseRenderImGui()
 				ImGui::CloseCurrentPopup();
 			}
 		}
-
+		ImGui::EndPopup();
+	}
+	if (ImGui::Button("Add Prefab")) ImGui::OpenPopup("Select Prefab");
+	if (ImGui::BeginPopup("Select Prefab"))
+	{
+		const filesystem::path prefabDirectory = "../Asset/Prefab/";
+		for (const auto& entry : filesystem::directory_iterator(prefabDirectory))
+		{
+			if (entry.path().extension() == ".json")
+			{
+				const string prefabFileName = entry.path().stem().string();
+				if (ImGui::Selectable(prefabFileName.c_str()))
+				{
+					CreatePrefabRootGameObject(prefabFileName + ".json");
+					ImGui::CloseCurrentPopup();
+				}
+			}
+		}
 		ImGui::EndPopup();
 	}
 

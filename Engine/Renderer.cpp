@@ -158,6 +158,7 @@ void Renderer::Finalize()
 HRESULT Renderer::Resize(UINT width, UINT height)
 {
 	if (width <= 0 || height <= 0) return E_INVALIDARG;
+	if (m_device == nullptr || m_deviceContext == nullptr || m_swapChain == nullptr) return E_FAIL;
 
 	HRESULT hr = S_OK;
 
