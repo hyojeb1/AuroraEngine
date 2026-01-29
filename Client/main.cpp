@@ -2,7 +2,11 @@
 
 #include "WindowManager.h"
 #include "SceneManager.h"
-#include <SoundManager.h>
+#include "Renderer.h"
+#include "InputManager.h"
+#include "NavigationManager.h"
+#include "RNG.h"
+#include "SoundManager.h"
 
 #include "TestScene.h"
 #include "HyojeTestScene.h"
@@ -12,22 +16,23 @@ using namespace std;
 
 int main()
 {
-	cout << "==================================" << endl;
-	cout << "Welcome to Aurora Engine" << endl;
-	cout << "==================================" << endl;
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
 
+	// 윈도우 매니저 초기화 // 렌더러, 인풋 매니저도 내부에서 초기화됨
 	WindowManager& windowManager = WindowManager::GetInstance();
 	windowManager.Initialize(L"Aurora");
+
+	NavigationManager::GetInstance().Initialize();
+
+	RNG::GetInstance().Initialize();
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
 	sceneManager.ChangeScene("TitleScene");
 
-	SoundManager& soundManager = SoundManager::GetInstance();
-	soundManager.Initialize();
+	SoundManager::GetInstance().Initialize();
 
 	while (windowManager.ProcessMessages()) sceneManager.Run();
 
