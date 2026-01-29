@@ -366,7 +366,7 @@ void SceneBase::BaseRenderImGui()
 				const string prefabFileName = entry.path().stem().string();
 				if (ImGui::Selectable(prefabFileName.c_str()))
 				{
-					CreatePrefabRootGameObject(prefabFileName);
+					CreatePrefabRootGameObject(prefabFileName + ".json");
 					ImGui::CloseCurrentPopup();
 				}
 			}
