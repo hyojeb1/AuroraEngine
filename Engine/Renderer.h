@@ -146,7 +146,7 @@ private:
 	// 렌더 타겟 클리어
 	void ClearRenderTarget(RenderTarget& target);
 	// 씬 렌더 타겟 MSAA 다운샘플링 // MSAA 미적용시 그냥 복사
-	void ResolveSceneMSAA();
+	void ResolveSceneTexture();
 	// 백 버퍼 랜더링
 	void RenderSceneToBackBuffer();
 	// XTK 스프라이트 배치 렌더링
