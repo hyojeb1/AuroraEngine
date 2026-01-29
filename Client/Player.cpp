@@ -182,6 +182,10 @@ void Player::PlayerDeadEye(float deltaTime)
 
 			enemy->Die();
 
+			GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
+			gem->SetPosition(enemy->GetWorldPosition());
+			gem->SetIgnoreParentTransform(true);
+
 			LineBuffer lineBuffer = {};
 			if (m_gunObject) XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
 			lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
