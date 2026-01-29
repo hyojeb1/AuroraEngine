@@ -1,10 +1,4 @@
 #pragma once
-//asd
-struct RenderTarget
-{
-	std::vector<std::pair<com_ptr<ID3D11Texture2D>, com_ptr<ID3D11RenderTargetView>>> renderTargets = {}; // 렌더 타겟 텍스처들과 뷰들
-	std::pair<com_ptr<ID3D11Texture2D>, com_ptr<ID3D11DepthStencilView>> depthStencil = {}; // 깊이-스텐실 텍스처와 뷰
-};
 
 constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 8192; // 방향성 광원 그림자 맵 크기
 constexpr std::array<D3D11_DEPTH_STENCIL_DESC, static_cast<size_t>(DepthStencilState::Count)> DEPTH_STENCIL_DESC_TEMPLATES =

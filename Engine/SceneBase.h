@@ -52,6 +52,9 @@ class SceneBase : public Base
 	com_ptr<ID3D11Buffer> m_globalLightConstantBuffer = nullptr; // 환경광, 방향광 상수 버퍼
 	com_ptr<ID3D11PixelShader> m_shadowMapPixelShader = nullptr; // 그림자 맵 생성용 픽셀 셰이더
 
+	static PostProcessingBuffer m_postProcessingData; // 후처리용 상수 버퍼 데이터
+	com_ptr<ID3D11Buffer> m_postProcessingConstantBuffer = nullptr; // 후처리용 상수 버퍼
+
 	bool m_showFPS = true; // FPS 표시 여부
 	DirectX::SpriteFont* m_spriteFont = nullptr; // FPS 표시용 스프라이트 폰트
 
@@ -62,6 +65,14 @@ public:
 	SceneBase& operator=(const SceneBase&) = delete; // 복사 대입 금지
 	SceneBase(SceneBase&&) = delete; // 이동 금지
 	SceneBase& operator=(SceneBase&&) = delete; // 이동 대입 금지
+
+	// 후처리 버퍼 관련 함수 // 정적 멤버이므로 씬 인스턴스와 무관하게 사용 가능
+	static const PostProcessingBuffer& GetPostProcessingBuffer() { return m_postProcessingData; }
+	static void SetPostProcessingBuffer(const PostProcessingBuffer& buffer) { m_postProcessingData = buffer; }
+	static void SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag flag, bool enable) { if (enable) m_postProcessingData.flags |= static_cast<UINT>(flag); else m_postProcessingData.flags &= ~static_cast<UINT>(flag); }
+	static void SetGamma(float gamma) { m_postProcessingData.gamma = gamma; }
+	static void SetGrayScaleIntensity(float intensity) { m_postProcessingData.grayScaleIntensity = intensity; }
+	static void SetMotionBlurIntensity(float intensity) { m_postProcessingData.motionBlurIntensity = intensity; }
 
 	// 루트 게임 오브젝트 생성 // 게임 오브젝트 베이스 포인터 반환
 	GameObjectBase* CreateRootGameObject(const std::string& typeName);
