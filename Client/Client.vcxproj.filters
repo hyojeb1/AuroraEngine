@@ -35,6 +35,9 @@
     <ClCompile Include="CrossHairAndNode.cpp">
       <Filter>Component</Filter>
     </ClCompile>
+    <ClCompile Include="EnemyParticleComponent.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -69,6 +72,9 @@
       <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="CrossHairAndNode.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyParticleComponent.h">
       <Filter>Component</Filter>
     </ClInclude>
   </ItemGroup>

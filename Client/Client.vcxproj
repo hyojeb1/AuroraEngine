@@ -185,6 +185,7 @@
     <ClCompile Include="CamRotObject.cpp" />
     <ClCompile Include="CrossHairAndNode.cpp" />
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="EnemyParticleComponent.cpp" />
     <ClCompile Include="FSMComponentEnemy.cpp" />
     <ClCompile Include="FSMComponentGun.cpp" />
     <ClCompile Include="main.cpp">
@@ -209,6 +210,7 @@
     <ClInclude Include="CamRotObject.h" />
     <ClInclude Include="CrossHairAndNode.h" />
     <ClInclude Include="Enemy.h" />
+    <ClInclude Include="EnemyParticleComponent.h" />
     <ClInclude Include="FSMComponentEnemy.h" />
     <ClInclude Include="FSMComponentGun.h" />
     <ClInclude Include="HyojeTestScene.h" />

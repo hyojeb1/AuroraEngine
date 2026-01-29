@@ -69,7 +69,8 @@ void FlipbookParticleComponent::RenderImGui()
 		bool changed = false;
 		changed |= ImGui::DragInt("Rows", &m_rows, 1, 1, 128);
 		changed |= ImGui::DragInt("Columns", &m_columns, 1, 1, 128);
-		changed |= ImGui::DragInt("Total Frames", &m_totalFrames, 1, 1, 4096);
+		changed |= ImGui::DragInt("Start Frame", &m_startFrame, 1, 0, 4095);
+		changed |= ImGui::DragInt("End Frame", &m_endFrame, 1, 1, 4096);
 		changed |= ImGui::DragFloat("FPS", &m_framesPerSecond, 0.1f, 0.0f, 120.0f);
 		changed |= ImGui::DragFloat("Playback Speed", &playback_speed_, 0.1f, 0.1f, 4.0f);
 		ImGui::Checkbox("Loop", &m_loop);
@@ -144,7 +145,8 @@ nlohmann::json FlipbookParticleComponent::Serialize()
 
 	jsonData["flipbookRows"] = m_rows;
 	jsonData["flipbookColumns"] = m_columns;
-	jsonData["flipbookTotalFrames"] = m_totalFrames;
+	jsonData["flipbookStartFrame"] = m_startFrame;
+	jsonData["flipbookEndFrame"] = m_endFrame;
 	jsonData["flipbookFPS"] = m_framesPerSecond;
 	jsonData["flipbookLoop"] = m_loop;
 	jsonData["flipbookPlaying"] = m_playing;
@@ -163,7 +165,8 @@ void FlipbookParticleComponent::Deserialize(const nlohmann::json& jsonData)
 
 	if (jsonData.contains("flipbookRows")) m_rows = jsonData["flipbookRows"].get<int>();
 	if (jsonData.contains("flipbookColumns")) m_columns = jsonData["flipbookColumns"].get<int>();
-	if (jsonData.contains("flipbookTotalFrames")) m_totalFrames = jsonData["flipbookTotalFrames"].get<int>();
+	if (jsonData.contains("flipbookStartFrame")) m_startFrame = jsonData["flipbookStartFrame"].get<int>();
+	if (jsonData.contains("flipbookEndFrame")) m_endFrame = jsonData["flipbookEndFrame"].get<int>();
 	if (jsonData.contains("flipbookFPS")) m_framesPerSecond = jsonData["flipbookFPS"].get<float>();
 	if (jsonData.contains("flipbookLoop")) m_loop = jsonData["flipbookLoop"].get<bool>();
 	if (jsonData.contains("flipbookPlaying")) m_playing = jsonData["flipbookPlaying"].get<bool>();
@@ -182,16 +185,29 @@ int FlipbookParticleComponent::GetMaxFrames() const
 {
 	if (m_rows <= 0 || m_columns <= 0) return 0;
 	const int gridFrames = m_rows * m_columns;
-	if (m_totalFrames <= 0) return gridFrames;
 
-	return min(m_totalFrames, gridFrames);
+	int start = m_startFrame;
+	if (start < 0) start = 0;
+	if (start >= gridFrames) return 0;
+
+	const int available = gridFrames - start;
+	if (m_endFrame <= 0) return available;
+
+	return min(m_endFrame, available);
 }
 
 void FlipbookParticleComponent::ClampFrame()
 {
 	if (m_rows <= 0) m_rows = 1;
 	if (m_columns <= 0) m_columns = 1;
-	if (m_totalFrames <= 0) m_totalFrames = 1;
+
+	const int gridFrames = m_rows * m_columns;
+
+	if (m_startFrame < 0) m_startFrame = 0;
+	if (m_startFrame >= gridFrames) m_startFrame = max(0, gridFrames - 1);
+
+	if (m_endFrame <= 0) m_endFrame = gridFrames - m_startFrame;
+	if (m_endFrame <= 0) m_endFrame = 1;
 
 	const int maxFrames = GetMaxFrames();
 	if (maxFrames <= 0)
@@ -211,8 +227,10 @@ void FlipbookParticleComponent::ApplyFrameToUV()
 	const int columns = max(1, m_columns);
 	const int frameIndex = max(0, min(m_currentFrame, maxFrames - 1));
 
-	const int columnIndex = frameIndex % columns;
-	const int rowIndex = frameIndex / columns;
+	const int absoluteIndex = m_startFrame + frameIndex;
+
+	const int columnIndex = absoluteIndex % columns;
+	const int rowIndex = absoluteIndex / columns;
 
 	uv_buffer_data_.uvScale.x = 1.0f / static_cast<float>(columns);
 	uv_buffer_data_.uvScale.y = 1.0f / static_cast<float>(max(1, m_rows));

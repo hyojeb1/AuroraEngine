@@ -70,7 +70,7 @@ void Player::Render()
 
 void Player::Finalize()
 {
-	TimeManager::GetInstance().SetTimeScale(1.0f); // ?���? ?���? ?��?��?��?�� 종료?��?�� ?��?�� 방�??
+	TimeManager::GetInstance().SetTimeScale(1.0f);
 }
 
 void Player::PlayerMove(float deltaTime, InputManager& input)
