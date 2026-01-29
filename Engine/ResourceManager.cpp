@@ -3,6 +3,7 @@
 #include "ResourceManager.h"
 
 #include "NavigationManager.h"
+#include "LUT.h"
 
 using namespace std;
 using namespace DirectX;
@@ -56,6 +57,8 @@ void ResourceManager::Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11Dev
 	CacheAllTexture();
 
 	NavigationManager::GetInstance().Initialize();
+	LUT& lut =  LUT::GetInstance();
+
 }
 
 void ResourceManager::SetDepthStencilState(DepthStencilState state)
@@ -413,7 +416,7 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 	model.materialTexture.baseColorTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_DIFFUSE, "_BaseColor.png", TextureType::BaseColor);
 	model.materialTexture.normalTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_NORMALS, "_Normal.png", TextureType::Normal);
 	model.materialTexture.emissionTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_EMISSIVE, "_Emissive.png", TextureType::Emissive);
-	model.materialTexture.ORMTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_UNKNOWN, "_OcclusionRoughnessMetallic.png", TextureType::ORM);
+	model.materialTexture.ORMTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_METALNESS, "_OcclusionRoughnessMetallic.png", TextureType::ORM);
 
 	// 3. 본 정보가 있다면 스켈레톤 구축
 	if (SceneHasBones(scene))
@@ -443,23 +446,27 @@ SpriteFont* ResourceManager::GetSpriteFont(const wstring& fontName)
 	return m_spriteFonts[fontName].get();
 }
 
+/// <summary>
+/// "SceneName/ImageName.png" 형태의 키 만들려고 만든 private 함수
+/// </summary>
+/// <param name="rawPath"></param>
+/// <returns></returns>
 string ResourceManager::FindTextureFromCache(const string& rawPath)
 {
 	if (rawPath.empty()) return "";
 
-	// 1. 경로 정규화 (역슬래시를 슬래시로)
+	// 1. 경로에서 파일명만 추출 (상위 디렉토리 제거)
+	// 결과: "Wall_BaseColor.png"
 	filesystem::path p(rawPath);
-	string filename = p.filename().string(); // "Wall_BaseColor.png"만 추출
+	string filename = p.filename().string();
 
 	// 2. 캐시 맵에서 파일명이 일치하는지 검색
-	// (주의: 같은 이름의 파일이 다른 폴더에 있을 경우 오탐지 가능성이 있으나,
-	//  현재 구조상 Scene 이름별로 폴더가 나뉘므로 비교적 안전함)
 	for (const auto& pair : m_textureCaches)
 	{
 		filesystem::path cachePath(pair.first);
 		if (cachePath.filename().string() == filename)
 		{
-			return pair.first; // "SceneName/ImageName.png" 형태의 키 반환
+			return pair.first; 
 		}
 	}
 

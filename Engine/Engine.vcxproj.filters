@@ -111,6 +111,9 @@
     <ClCompile Include="RNG.cpp">
       <Filter>Manager</Filter>
     </ClCompile>
+    <ClCompile Include="LUT.cpp">
+      <Filter>Manager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -196,6 +199,9 @@
       <Filter>Base\Component</Filter>
     </ClInclude>
     <ClInclude Include="RNG.h">
+      <Filter>Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="LUT.h">
       <Filter>Manager</Filter>
     </ClInclude>
   </ItemGroup>

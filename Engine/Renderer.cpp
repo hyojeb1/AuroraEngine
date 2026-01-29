@@ -18,6 +18,8 @@ void Renderer::Initialize()
 
 	// 씬 매니저 초기화
 	SceneManager::GetInstance().Initialize();
+
+
 }
 
 void Renderer::BeginFrame()
@@ -54,6 +56,8 @@ void Renderer::BeginFrame()
 			RenderSceneToBackBuffer();
 		}
 	);
+
+
 }
 
 void Renderer::RenderTextScreenPosition(const wchar_t* text, XMFLOAT2 position, float depth, const XMVECTOR& color, float scale, const wstring& fontName)
