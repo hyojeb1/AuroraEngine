@@ -5,6 +5,7 @@
 #include "ModelComponent.h"
 
 #ifdef _DEBUG
+#include "Renderer.h"
 #include "ResourceManager.h"
 #endif
 
