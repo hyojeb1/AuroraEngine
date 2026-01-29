@@ -42,7 +42,7 @@ void Renderer::BeginFrame()
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::LUT),	1, resourceManager.GetLUT(LUTData::SEPIA).GetAddressOf());
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::LUT),	1, resourceManager.GetLUT(m_selectedLUTIndex).GetAddressOf());
 
 			// 백 버퍼로 씬 렌더링
 			RenderSceneToBackBuffer();
@@ -126,22 +126,46 @@ void Renderer::EndFrame()
 	// 2D UI 렌더링
 	RenderXTKSpriteBatch();
 
-	com_ptr<ID3D11ShaderResourceView> ssrrvv = nullptr;
-	ssrrvv = ResourceManager::GetInstance().GetLUT(1);
 
 	#ifdef _DEBUG
+
+
+
 	ImGui::Begin("SRV");
 	ImGui::Image
 	(
-		(ImTextureID)ssrrvv.Get(),
+		(ImTextureID)m_directionalLightShadowMapSRV.Get(),
 		ImVec2(500.0f, 500.0f)
 	);
+
 	ImGui::End();
+
+
+	ImGui::Begin("LUT Settings");
+	const char* lutItems[] = { 
+	#define X(name) #name,
+	LUT_LIST
+	#undef X
+	};
+
+	ImGui::Combo("Select LUT", &m_selectedLUTIndex, lutItems, LUTData::COUNT);
+
+	com_ptr<ID3D11ShaderResourceView> ssrrvv = nullptr;
+	ssrrvv = ResourceManager::GetInstance().GetLUT(m_selectedLUTIndex);
+	ImGui::Image
+	(
+		(ImTextureID)ssrrvv.Get(),
+		ImVec2(512, 32)
+	);
+	ImGui::End();
+
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 	ImGui::UpdatePlatformWindows();
 	ImGui::RenderPlatformWindowsDefault();
 	EndImGuiFrame();
+
+
 	#endif
 
 	// 스왑 체인 프레젠트

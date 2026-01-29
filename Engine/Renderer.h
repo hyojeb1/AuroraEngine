@@ -60,6 +60,8 @@ class Renderer : public Singleton<Renderer>
 	// 그림자 맵 렌더 타겟 관련 리소스
 	com_ptr<ID3D11ShaderResourceView> m_directionalLightShadowMapSRV = nullptr; // 방향성 광원 그림자 맵 셰이더 리소스 뷰
 
+
+	int m_selectedLUTIndex = 0;
 public:
 	Renderer() = default;
 	~Renderer() = default;
