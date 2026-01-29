@@ -7,7 +7,10 @@ class Player : public GameObjectBase
 	com_ptr<ID3D11PixelShader> m_linePixelShader = nullptr;
 	std::deque<std::pair<LineBuffer, float>> m_lineBuffers = {};
 
+	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_deadEyeTextureAndOffset = {};
 	std::vector<std::pair<float, class Enemy*>> m_deadEyeTargets = {};
+
+	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_bulletImgs = {};
 
 	float m_moveSpeed = 5.0f;
 	float m_xSensitivity = 0.1f;
@@ -24,6 +27,10 @@ class Player : public GameObjectBase
 	PostProcessingBuffer m_postProcessingBuffer = {};
 
 	size_t m_currentNodeIndex = -1;
+	size_t m_DeadEyeCount = 0;
+
+	int m_MaxBullet = 6;
+	int m_bulletCnt = 0;
 
 public:
 	Player() = default;
@@ -41,6 +48,7 @@ private:
 
 	void PlayerMove(float deltaTime, class InputManager& input);
 	void PlayerShoot();
+	void PlayerReload();
 	void PlayerDeadEyeStart();
 	void PlayerDeadEye(float deltaTime);
 	void PlayerDeadEyeEnd();
@@ -48,4 +56,5 @@ private:
 	void RenderLineBuffers(class Renderer& renderer);
 	void RenderDeadEyeTargetsUI(class Renderer& renderer);
 	void RenderUINode(class Renderer& renderer);
+	void RenderBullets(class Renderer& renderer);
 };

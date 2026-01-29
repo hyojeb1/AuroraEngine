@@ -32,6 +32,8 @@ private:
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_NodeAndOffset = {};
 
 	float m_CrossHairSize;
+	float m_NodeStartSize;
+	float m_NodeEndSize;
 
 	float m_NodeStart;
 	float m_NodeEnd;
