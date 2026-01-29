@@ -53,7 +53,7 @@ void Player::Update()
 	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f)) { PlayerShoot(); };
 	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f)) PlayerDeadEyeStart();
 	if (input.GetKeyDown(KeyCode::R) && sm.CheckRhythm(0.1f)) { PlayerReload(); };
-	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime);
+	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime, input);
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
 	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();
@@ -98,7 +98,7 @@ void Player::PlayerMove(float deltaTime, InputManager& input)
 
 void Player::PlayerShoot()
 {
-	if (!m_gunObject) return;
+	if (!m_gunObject || m_isDeadEyeActive) return;
 
 	--m_bulletCnt;
 
@@ -116,7 +116,6 @@ void Player::PlayerShoot()
 			enemy->Die();
 			GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
 			gem->SetPosition(hitPosition);
-			gem->SetIgnoreParentTransform(true);
 
 			m_enemyHitTimer = m_enemyHitDisplayTime;
 		}
@@ -163,7 +162,6 @@ void Player::PlayerDeadEyeStart()
 	if (hasEnemy)
 	{
 		m_isDeadEyeActive = true;
-		m_deadEyeTime = m_deadEyeDuration;
 
 		TimeManager::GetInstance().SetTimeScale(0.1f);
 		m_cameraYSensitivity = m_cameraObject->GetSensitivity();
@@ -172,42 +170,43 @@ void Player::PlayerDeadEyeStart()
 
 		SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, true);
 
-		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [](const auto& a, const auto& b) { return get<0>(a) < get<0>(b); });
+		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
 		if (m_deadEyeTargets.size() > 6) m_deadEyeTargets.resize(6);
+		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [&](const auto& a, const auto& b) { return mainCamera.WorldToScreenPosition(a.second->GetWorldPosition()).x > mainCamera.WorldToScreenPosition(b.second->GetWorldPosition()).x; });
 
 		SoundManager::GetInstance().ChangeLowpass();
 		SoundManager::GetInstance().Sub_BGM_Shot("deadeye_test_3enemy_beat", 0.1f);
+
 		m_currentNodeIndex = SoundManager::GetInstance().GetRhythmTimerIndex();
+		m_DeadEyeCount = m_deadEyeTargets.size();
+		m_deadEyeTotalDuration = static_cast<float>(m_DeadEyeCount) * 0.5f;
+		m_deadEyeDuration = 0.0f;
 	}
 }
 
-void Player::PlayerDeadEye(float deltaTime)
+void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 {
-	SceneBase::SetGrayScaleIntensity((1.0f - (m_deadEyeTime / m_deadEyeDuration)) * 2.0f);
-	m_deadEyeTime -= deltaTime;
+	m_deadEyeDuration += deltaTime;
+	SceneBase::SetGrayScaleIntensity((m_deadEyeDuration / m_deadEyeTotalDuration) * 16.0f);
 
-	if (SoundManager::GetInstance().GetRhythmTimerIndex() >= m_currentNodeIndex + m_DeadEyeCount)
+	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
-		for (const auto& [timing, enemy] : m_deadEyeTargets)
-		{
-			if (timing > 999990.1f) continue;
+		m_deadEyeTargets.back().second->Die();
 
-			enemy->Die();
+		GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
+		gem->SetPosition(m_deadEyeTargets.back().second->GetWorldPosition());
 
-			GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
-			gem->SetPosition(enemy->GetWorldPosition());
-			gem->SetIgnoreParentTransform(true);
+		LineBuffer lineBuffer = {};
+		if (m_gunObject) XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
+		lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+		XMStoreFloat4(&lineBuffer.linePoints[1], m_deadEyeTargets.back().second->GetWorldPosition());
+		lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
 
-			LineBuffer lineBuffer = {};
-			if (m_gunObject) XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
-			lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-			XMStoreFloat4(&lineBuffer.linePoints[1], enemy->GetWorldPosition());
-			lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+		m_deadEyeTargets.pop_back();
+	}
 
-			m_lineBuffers.emplace_back(lineBuffer, 0.5f);
-		}
-		PlayerDeadEyeEnd();
-	}	
+	if (SoundManager::GetInstance().GetRhythmTimerIndex() >= m_currentNodeIndex + m_DeadEyeCount) PlayerDeadEyeEnd();
 }
 
 void Player::PlayerDeadEyeEnd()
@@ -261,11 +260,7 @@ void Player::RenderDeadEyeTargetsUI(Renderer& renderer)
 		[&]()
 		{
 			const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
-
-			for (const auto& [timing, enemy] : m_deadEyeTargets)
-			{
-				Renderer::GetInstance().RenderImageScreenPosition(m_deadEyeTextureAndOffset.first, mainCamera.WorldToScreenPosition(enemy->GetWorldPosition()), m_deadEyeTextureAndOffset.second, 0.5f);
-			}
+			Renderer::GetInstance().RenderImageScreenPosition(m_deadEyeTextureAndOffset.first, mainCamera.WorldToScreenPosition(m_deadEyeTargets.back().second->GetWorldPosition()), m_deadEyeTextureAndOffset.second, 0.5f);
 		}
 	);
 }

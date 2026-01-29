@@ -25,8 +25,8 @@ class Player : public GameObjectBase
 	class FSMComponentGun* m_gunFSM = nullptr;
 
 	bool m_isDeadEyeActive = false;
-	const float m_deadEyeDuration = 0.25f;
-	float m_deadEyeTime = 0.0f;
+	float m_deadEyeTotalDuration = 0.0f;
+	float m_deadEyeDuration = 0.0f;
 
 	PostProcessingBuffer m_postProcessingBuffer = {};
 
@@ -57,7 +57,7 @@ private:
 	void PlayerShoot();
 	void PlayerReload();
 	void PlayerDeadEyeStart();
-	void PlayerDeadEye(float deltaTime);
+	void PlayerDeadEye(float deltaTime, class InputManager& input);
 	void PlayerDeadEyeEnd();
 
 	void RenderLineBuffers(class Renderer& renderer);
