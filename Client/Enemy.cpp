@@ -45,10 +45,7 @@ void Enemy::Update()
 	{
 		m_deathTimer += TimeManager::GetInstance().GetDeltaTime();
 
-		if (m_deathTimer >= m_deathDuration)
-		{
-			SetAlive(false);
-		}
+		if (m_deathTimer >= m_deathDuration) SetAlive(false);
 	}
 	LookAt(m_player->GetPosition());
 	MoveDirection(TimeManager::GetInstance().GetDeltaTime() * 2.0f, Direction::Forward);
