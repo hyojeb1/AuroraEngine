@@ -1,13 +1,7 @@
 #pragma once
-#include "ResourceEnum.h"
+#include "Resource.h"
 
-struct RenderTarget
-{
-	std::vector<std::pair<com_ptr<ID3D11Texture2D>, com_ptr<ID3D11RenderTargetView>>> renderTargets = {}; // 렌더 타겟 텍스처들과 뷰들
-	std::pair<com_ptr<ID3D11Texture2D>, com_ptr<ID3D11DepthStencilView>> depthStencil = {}; // 깊이-스텐실 텍스처와 뷰
-};
-
-// 렌더 패스 타입 정의
+// 렌더 패스 정의
 using RenderPass = std::array<std::pair<RenderTarget, std::array<std::vector<std::pair<float, std::function<void()>>>, static_cast<size_t>(BlendState::Count)>>, static_cast<size_t>(RenderStage::Count)>;
 
 class Renderer : public Singleton<Renderer>

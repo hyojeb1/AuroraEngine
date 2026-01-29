@@ -171,7 +171,6 @@
     <ClInclude Include="ModelComponent.h" />
     <ClInclude Include="ParticleComponent.h" />
     <ClInclude Include="NavigationManager.h" />
-    <ClInclude Include="ResourceEnum.h" />
     <ClInclude Include="RNG.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="ResourceManager.h" />

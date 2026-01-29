@@ -198,9 +198,6 @@
     <ClInclude Include="RNG.h">
       <Filter>Manager</Filter>
     </ClInclude>
-    <ClInclude Include="ResourceEnum.h">
-      <Filter>Resource</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Asset\Shader\PSPostProcessing.hlsl">
