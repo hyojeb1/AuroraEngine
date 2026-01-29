@@ -130,6 +130,7 @@ constexpr void CheckResult(HRESULT hr, const char* msg)
 #include "Resource.h"
 #include "Animator.h"
 
+#include "Singleton.h"
 #include "TypeRegistry.h"
 #include "RNG.h"
 #include "Base.h"

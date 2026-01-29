@@ -1,10 +1,9 @@
+#pragma once
 ///
 ///ResourceManager.h
 /// 그래픽 자원을 관리하는 매니저 클래스임
 /// .fbx로 한정함
 ///
-#pragma once
-#include "Singleton.h"
 
 class ResourceManager : public Singleton<ResourceManager>
 {

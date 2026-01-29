@@ -1,5 +1,4 @@
 #pragma once
-#include "Singleton.h"
 #include "KeyCode.h"
 
 class InputManager : public Singleton<InputManager>
