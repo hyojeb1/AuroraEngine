@@ -36,10 +36,10 @@ public:
 	void UpdateUINodeIndex();
 	bool CheckRhythm(float correction);
 
-	std::vector<std::pair<float, float>>* GetNodeDataPtr() { return &m_NodeData; }
+	std::unordered_map<std::string, std::vector<std::pair<float, float>>>* GetNodeDataPtr() { return &m_NodeData; }
 
 	void Main_BGM_Shot(const std::string filename);
-	void Sub_BGM_Shot(const std::string filename);
+	void Sub_BGM_Shot(const std::string filename, float delay);
 	void SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename);
 	void UI_Shot(const std::string filename);
 
@@ -82,7 +82,8 @@ private:
 	FMOD::Channel* m_BGMChannel1 = nullptr;
 	FMOD::Channel* m_BGMChannel2 = nullptr;
 
-	std::vector<std::pair<float, float>> m_NodeData;
+	std::unordered_map<std::string, std::vector<std::pair<float, float>>> m_NodeData;
+	std::unordered_map<std::string, std::vector<std::pair<float, float>>> m_SubNodeData;
 
 	FMOD::ChannelGroup* m_MainGroup = nullptr;
 	FMOD::ChannelGroup* m_BGMGroup = nullptr;
@@ -108,7 +109,7 @@ private:
 	bool m_IsLowpass = false;
 	float m_lowpassCutOff = 22000.0f;
 
-	unsigned long long m_MainBGM_StartTime = 0;
+	unsigned int m_MainBGM_StartTime = 0;
 
 	float m_RhythmOffSet = 1.28f;
 
