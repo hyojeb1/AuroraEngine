@@ -1,6 +1,5 @@
 /// GameObjectBase.h의 시작
 #pragma once
-#include "Base.h"
 #include "ComponentBase.h"
 
 enum class Direction // 방향 열거형

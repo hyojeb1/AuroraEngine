@@ -1,5 +1,4 @@
 #pragma once
-#include "Base.h"
 
 class ComponentBase : public Base
 {

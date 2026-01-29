@@ -129,4 +129,7 @@ constexpr void CheckResult(HRESULT hr, const char* msg)
 // 사용자 정의 헤더
 #include "Resource.h"
 #include "Animator.h"
+
 #include "TypeRegistry.h"
+#include "RNG.h"
+#include "Base.h"

@@ -1,7 +1,5 @@
-/// ModelComponent.h의 시작
 #pragma once
 #include "ComponentBase.h"
-//#include "Resource.h"
 
 class ModelComponent : public ComponentBase
 {
@@ -83,4 +81,3 @@ protected:
 	// 셰이더 생성
 	virtual void CreateShaders();
 };
-/// ModelComponent.h의 끝

@@ -1,4 +1,3 @@
-/// SkinnedModelComponent.h의 시작
 #pragma once
 #include "ModelComponent.h"
 
@@ -37,4 +36,3 @@ private:
 
 	void CreateShaders() override;
 };
-/// SkinnedModelComponent.h의 끝

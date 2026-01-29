@@ -3,7 +3,10 @@
 
 #include "GameObjectBase.h"
 #include "Renderer.h"
+
+#ifdef _DEBUG
 #include "ResourceManager.h"
+#endif
 
 REGISTER_TYPE(CameraComponent)
 

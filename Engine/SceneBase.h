@@ -1,6 +1,6 @@
 #pragma once
-#include "Base.h"
 #include "GameObjectBase.h"
+
 #ifdef _DEBUG
 #include "DebugCamera.h"
 #endif

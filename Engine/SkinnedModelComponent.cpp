@@ -1,4 +1,3 @@
-/// SkinnedModelComponent.cpp의 시작
 #include "stdafx.h"
 #include "SkinnedModelComponent.h"
 
@@ -232,4 +231,3 @@ void SkinnedModelComponent::CreateShaders()
 {
 	ModelComponent::CreateShaders();
 }
-/// SkinnedModelComponent.cpp의 끝

@@ -31,8 +31,8 @@ int main()
 
 	RNG::GetInstance().Initialize();
 
-	//SoundManager::GetInstance().Initialize();
 	SoundManager& soundManager = SoundManager::GetInstance();
+	soundManager.Initialize();
 
 	while (windowManager.ProcessMessages())
 	{
