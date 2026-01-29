@@ -27,6 +27,28 @@ GameObjectBase* SceneBase::CreateRootGameObject(const string& typeName)
 	return gameObjectPtr;
 }
 
+GameObjectBase* SceneBase::CreatePrefabRootGameObject(const string& prefabFileName)
+{
+	const filesystem::path prefabDirectory = "../Asset/Prefab/";
+	const filesystem::path prefabFilePath = prefabDirectory / prefabFileName;
+
+	ifstream prefabFile(prefabFilePath);
+	nlohmann::json prefabJson;
+	prefabFile >> prefabJson;
+	prefabFile.close();
+	string typeName = prefabJson["type"].get<string>();
+
+	unique_ptr<GameObjectBase> gameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
+	GameObjectBase* gameObjectPtr = gameObject.get();
+
+	static_cast<Base*>(gameObjectPtr)->BaseDeserialize(prefabJson);
+	static_cast<Base*>(gameObjectPtr)->BaseInitialize();
+
+	m_gameObjects.push_back(move(gameObject));
+
+	return gameObjectPtr;
+}
+
 GameObjectBase* SceneBase::GetRootGameObject(const string& name)
 {
 	for (unique_ptr<Base>& gameObject : m_gameObjects)
@@ -331,7 +353,24 @@ void SceneBase::BaseRenderImGui()
 				ImGui::CloseCurrentPopup();
 			}
 		}
-
+		ImGui::EndPopup();
+	}
+	if (ImGui::Button("Add Prefab")) ImGui::OpenPopup("Select Prefab");
+	if (ImGui::BeginPopup("Select Prefab"))
+	{
+		const filesystem::path prefabDirectory = "../Asset/Prefab/";
+		for (const auto& entry : filesystem::directory_iterator(prefabDirectory))
+		{
+			if (entry.path().extension() == ".json")
+			{
+				const string prefabFileName = entry.path().stem().string();
+				if (ImGui::Selectable(prefabFileName.c_str()))
+				{
+					CreatePrefabRootGameObject(prefabFileName);
+					ImGui::CloseCurrentPopup();
+				}
+			}
+		}
 		ImGui::EndPopup();
 	}
 

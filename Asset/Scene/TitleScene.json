@@ -54,7 +54,7 @@
                     "blendState": 1,
                     "flipbookAutoPlay": true,
                     "flipbookColumns": 40,
-                    "flipbookCurrentFrame": 0,
+                    "flipbookCurrentFrame": 6,
                     "flipbookDestroyOnFinish": false,
                     "flipbookEndFrame": 120,
                     "flipbookFPS": 8.0,
@@ -74,7 +74,7 @@
                     "textureFileName": "Gem.png",
                     "type": "FlipbookParticleComponent",
                     "uvOffset": [
-                        0.0,
+                        0.15000000596046448,
                         0.0
                     ],
                     "uvScale": [
@@ -84,7 +84,7 @@
                     "vsShaderName": "VSParticle.hlsl"
                 }
             ],
-            "name": "GameObjectBase_2",
+            "name": "Gem",
             "position": [
                 0.0,
                 0.0,

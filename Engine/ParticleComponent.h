@@ -25,6 +25,7 @@ protected:
 
 	int m_particleAmount = 1;
 	ParticleBuffer uv_buffer_data_ = {};
+	float m_elapsedTime = 0.0f;
 	float m_particleTotalTime = 1.0f;
 
 	std::string m_vsShaderName = "VSParticle.hlsl"; // 기본 Particle 정점 셰이더

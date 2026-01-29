@@ -136,8 +136,27 @@ GameObjectBase* GameObjectBase::CreateChildGameObject(const string& typeName)
 	return childGameObjectPtr;
 }
 
-GameObjectBase* GameObjectBase::CreatePrefabChildGameObject(const std::string& prefabFileName)
+GameObjectBase* GameObjectBase::CreatePrefabChildGameObject(const string& prefabFileName)
 {
+	const filesystem::path prefabDirectory = "../Asset/Prefab/";
+	const filesystem::path prefabFilePath = prefabDirectory / prefabFileName;
+
+	ifstream prefabFile(prefabFilePath);
+	nlohmann::json prefabJson;
+	prefabFile >> prefabJson;
+	prefabFile.close();
+	string typeName = prefabJson["type"].get<string>();
+
+	unique_ptr<GameObjectBase> childGameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
+	GameObjectBase* childGameObjectPtr = childGameObject.get();
+
+	childGameObject->m_parent = this;
+	childGameObject->BaseDeserialize(prefabJson);
+	childGameObject->BaseInitialize();
+
+	m_childrens.push_back(move(childGameObject));
+
+	return childGameObjectPtr;
 }
 
 GameObjectBase* GameObjectBase::GetChildGameObject(const string& name)
@@ -294,7 +313,6 @@ void GameObjectBase::BaseRenderImGui()
 					ImGui::CloseCurrentPopup();
 				}
 			}
-
 			ImGui::EndPopup();
 		}
 		ImGui::SameLine();
@@ -311,21 +329,7 @@ void GameObjectBase::BaseRenderImGui()
 					string prefabName = entry.path().stem().string();
 					if (ImGui::Selectable(prefabName.c_str()))
 					{
-						const filesystem::path prefabFilePath = prefabDirectory / entry.path().filename();
-						ifstream prefabFile(prefabFilePath);
-
-						nlohmann::json prefabJson;
-						prefabFile >> prefabJson;
-						prefabFile.close();
-						string typeName = prefabJson["type"].get<string>();
-
-						unique_ptr<GameObjectBase> childGameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
-						childGameObject->m_parent = this;
-						childGameObject->BaseDeserialize(prefabJson);
-						childGameObject->BaseInitialize();
-
-						m_childrens.push_back(move(childGameObject));
-
+						CreatePrefabChildGameObject(prefabName + ".json");
 						ImGui::CloseCurrentPopup();
 					}
 				}
