@@ -2,7 +2,6 @@
 #include "NavigationManager.h"
 
 #ifdef _DEBUG
-#include "Renderer.h"
 #include "ResourceManager.h"
 #include "InputManager.h"
 #include "CameraComponent.h"

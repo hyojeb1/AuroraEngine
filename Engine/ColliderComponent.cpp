@@ -6,7 +6,6 @@
 
 #ifdef _DEBUG
 #include "ResourceManager.h"
-#include "Renderer.h"
 #endif
 
 using namespace std;

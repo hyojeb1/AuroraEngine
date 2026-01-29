@@ -2,7 +2,6 @@
 #include "SceneManager.h"
 
 #include "SceneBase.h"
-#include "Renderer.h"
 #include "TimeManager.h"
 
 using namespace std;

@@ -6,7 +6,6 @@
 #include "InputManager.h"
 #include "ColliderComponent.h"
 #include "CameraComponent.h"
-#include "Renderer.h"
 #include "ResourceManager.h"
 #include "CamRotObject.h"
 #include "ModelComponent.h"

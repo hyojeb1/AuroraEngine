@@ -2,7 +2,6 @@
 #include "CameraComponent.h"
 
 #include "GameObjectBase.h"
-#include "Renderer.h"
 
 #ifdef _DEBUG
 #include "ResourceManager.h"

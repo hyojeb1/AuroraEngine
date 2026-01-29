@@ -3,7 +3,6 @@
 #include "SceneBase.h"
 
 #include "CameraComponent.h"
-#include "Renderer.h"
 #include "ResourceManager.h"
 #include "TimeManager.h"
 #include "NavigationManager.h"

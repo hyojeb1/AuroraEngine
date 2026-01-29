@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include "WindowManager.h"
 
-#include "Renderer.h"
 #include "InputManager.h"
 
 using namespace std;

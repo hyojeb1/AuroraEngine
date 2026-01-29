@@ -1,6 +1,4 @@
-/// BOF Animator.h
 #pragma once
-#include "Resource.h"
 
 struct TransformData
 {
@@ -13,7 +11,7 @@ struct TransformData
 class Animator 
 {
 private:
-	AnimationClip* current_clip_	= nullptr;
+	struct AnimationClip* current_clip_	= nullptr;
 	float	current_time_									= 0.0f;		
 	bool	is_loop_										= true; 
 
@@ -25,7 +23,7 @@ private:
 	bool	is_blending_									= false;
 
 	std::vector<DirectX::XMFLOAT4X4>	final_bone_matrices_	= {};
-	const Model*				model_context_			= nullptr;	
+	const struct Model*				model_context_			= nullptr;
 
 public:
 	explicit Animator(const Model* model);
@@ -39,7 +37,7 @@ public:
 
 private:
 	AnimationClip* FindClipByName(const std::string& clip_name) const;
-	void CalculateBoneTransform(const std::shared_ptr<SkeletonNode>& node, const DirectX::XMMATRIX& parent_transform);
+	void CalculateBoneTransform(const std::shared_ptr<struct SkeletonNode>& node, const DirectX::XMMATRIX& parent_transform);
 
 	static TransformData SampleTransform(const AnimationClip* clip, const std::shared_ptr<SkeletonNode> node, float time_position);
 	static TransformData BlendTransform(const TransformData& from, const TransformData& to, float blend_factor);
@@ -47,6 +45,3 @@ private:
 	static DirectX::XMMATRIX ComposeTransform(const TransformData& transform);
 
 };
-
-
-///EOF Animator.h

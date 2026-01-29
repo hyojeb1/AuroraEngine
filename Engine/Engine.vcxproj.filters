@@ -108,6 +108,9 @@
     <ClCompile Include="RNG.cpp">
       <Filter>Manager</Filter>
     </ClCompile>
+    <ClCompile Include="Resource.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -194,6 +197,9 @@
     </ClInclude>
     <ClInclude Include="RNG.h">
       <Filter>Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceEnum.h">
+      <Filter>Resource</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

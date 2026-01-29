@@ -1,5 +1,5 @@
 #pragma once
-
+//asd
 struct RenderTarget
 {
 	std::vector<std::pair<com_ptr<ID3D11Texture2D>, com_ptr<ID3D11RenderTargetView>>> renderTargets = {}; // 렌더 타겟 텍스처들과 뷰들
@@ -7,22 +7,6 @@ struct RenderTarget
 };
 
 constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 8192; // 방향성 광원 그림자 맵 크기
-enum class RenderStage
-{
-	DirectionalLightShadow,
-	Scene,
-	BackBuffer,
-
-	Count
-};
-
-enum class DepthStencilState
-{
-	Default,
-	Skybox,
-
-	Count
-};
 constexpr std::array<D3D11_DEPTH_STENCIL_DESC, static_cast<size_t>(DepthStencilState::Count)> DEPTH_STENCIL_DESC_TEMPLATES =
 {
 	// Default
@@ -52,14 +36,6 @@ constexpr std::array<D3D11_DEPTH_STENCIL_DESC, static_cast<size_t>(DepthStencilS
 	}
 };
 
-enum class BlendState
-{
-	Opaque,
-	AlphaToCoverage,
-	AlphaBlend,
-
-	Count
-};
 constexpr std::array<D3D11_BLEND_DESC, static_cast<size_t>(BlendState::Count)> BLEND_DESC_TEMPLATES =
 {
 	// Opaque
@@ -126,15 +102,6 @@ constexpr std::array<D3D11_BLEND_DESC, static_cast<size_t>(BlendState::Count)> B
 	}
 };
 
-enum class RasterState
-{
-	BackBuffer, // 백 버퍼 전용 래스터 상태 // AA 없음
-	Solid,
-	SolidCullNone,
-	Wireframe,
-
-	Count
-};
 constexpr std::array<D3D11_RASTERIZER_DESC, static_cast<size_t>(RasterState::Count)> RASTERIZER_DESC_TEMPLATES =
 {
 	// BackBuffer
@@ -198,14 +165,6 @@ constexpr std::array<D3D11_RASTERIZER_DESC, static_cast<size_t>(RasterState::Cou
 	}
 };
 
-enum class SamplerState
-{
-	BackBuffer, // 백 버퍼 전용 샘플러 상태
-	Default,
-	ShadowMap,
-
-	Count
-};
 constexpr std::array<D3D11_SAMPLER_DESC, static_cast<size_t>(SamplerState::Count)> SAMPLER_DESC_TEMPLATES =
 {
 	// BackBuffer
@@ -254,22 +213,6 @@ constexpr std::array<D3D11_SAMPLER_DESC, static_cast<size_t>(SamplerState::Count
 	}
 };
 
-enum class InputElement
-{
-	Position,
-	UV,
-
-	Normal,
-	Bitangent,
-	Tangent,
-
-	Blendindex,
-	Blendweight,
-
-
-
-	Count
-};
 constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement::Count)> INPUT_ELEMENT_DESC_TEMPLATES =
 {
 	// Position
@@ -357,21 +300,6 @@ constexpr std::array<D3D11_INPUT_ELEMENT_DESC, static_cast<size_t>(InputElement:
 	}
 };
 
-enum class VSConstBuffers
-{
-	ViewProjection, // ViewProjectionBuffer
-	SkyboxViewProjection, // SkyboxViewProjectionBuffer
-
-	WorldNormal, // WorldBuffer
-
-	Time, // TimeBuffer
-	Bone,
-
-	Line,
-	Particle,
-
-	Count
-};
 struct ViewProjectionBuffer // 뷰-투영 상수 버퍼 구조체 
 {
 	DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixIdentity(); // 뷰 행렬 // 전치 안함
@@ -502,15 +430,6 @@ constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(VSConstBuffers::Coun
 	}
 };
 
-enum class PSConstBuffers
-{
-	PostProcessing, // PostProcessingBuffer
-	CameraPosition, // CameraPositionBuffer
-	GlobalLight, // GlobalLightBuffer
-	MaterialFactor, // MaterialFactorBuffer
-
-	Count
-};
 struct PostProcessingBuffer
 {
 	enum class PostProcessingFlag
@@ -594,20 +513,6 @@ constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(PSConstBuffers::Coun
 		.MiscFlags = 0,
 		.StructureByteStride = 0
 	}
-};
-
-enum class TextureSlots
-{
-	BackBuffer,
-	Environment,
-	DirectionalLightShadow,
-
-	BaseColor,
-	ORM,
-	Normal,
-	Emission,
-
-	Count
 };
 
 struct Vertex
@@ -695,14 +600,6 @@ struct Mesh
 
 	com_ptr<ID3D11Buffer> vertexBuffer = nullptr;
 	com_ptr<ID3D11Buffer> indexBuffer = nullptr;
-};
-
-enum class ModelType
-{
-	Static,
-	Skinned,
-	//Rigid,//마인크래프트
-	Count
 };
 
 struct Model

@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include "GameObjectBase.h"
 
-#include "Renderer.h"
 #include "ResourceManager.h"
 
 using namespace std;

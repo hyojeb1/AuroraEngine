@@ -1,4 +1,5 @@
 #pragma once
+#include "Resource.h"
 
 class Renderer : public Singleton<Renderer>
 {
