@@ -21,6 +21,10 @@ void ParticleComponent::Initialize()
 
 	CreateShaders();
 	CreateBuffers();
+
+	m_worldNormalBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal);
+	m_particleBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Particle);
+
 	particle_texture_srv_ = resourceManager.GetTexture(texture_file_name_);
 }
 
@@ -46,8 +50,8 @@ void ParticleComponent::Render()
 			resourceManager.SetRasterState(m_rasterState);
 
 			// 상수 버퍼 업데이트
-			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal).Get(), 0, nullptr, m_worldNormalData, 0, 0);
-			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Particle).Get(),0, nullptr, &uv_buffer_data_, 0, 0);
+			m_deviceContext->UpdateSubresource(m_worldNormalBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
+			m_deviceContext->UpdateSubresource(m_particleBuffer.Get(),0, nullptr, &uv_buffer_data_, 0, 0);
 
 			constexpr UINT stride = sizeof(VertexPosUV);
 			constexpr UINT offset = 0;

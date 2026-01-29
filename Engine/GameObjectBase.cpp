@@ -556,7 +556,7 @@ const XMMATRIX& GameObjectBase::UpdateWorldMatrix()
 		XMVECTOR invScaleSquared = XMVectorReciprocal(scaleSquared);
 		m_inverseScaleSquareMatrix = XMMatrixScalingFromVector(invScaleSquared);
 
-		if (m_parent)
+		if (m_parent && !m_isIgnoreParentTransform)
 		{
 			m_worldMatrix *= m_parent->UpdateWorldMatrix();
 			m_inverseScaleSquareMatrix *= m_parent->m_inverseScaleSquareMatrix;

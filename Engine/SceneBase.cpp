@@ -168,8 +168,6 @@ void SceneBase::BaseUpdate()
 	// 게임 오브젝트 업데이트
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseUpdate();
 
-	erase_if(m_buttons, [](const unique_ptr<Button>& button) { return button->GetDead(); });
-
 	InputManager& inputManager = InputManager::GetInstance();
 
 	const POINT& mousePosition = inputManager.GetMousePosition();

@@ -61,11 +61,7 @@ void Player::Render()
 
 	if (!m_lineBuffers.empty()) RenderLineBuffers(renderer);
 	if (!m_deadEyeTargets.empty()) RenderDeadEyeTargetsUI(renderer);
-	if (m_bulletCnt <= m_MaxBullet && m_bulletCnt != 0)
-	{
-		RenderBullets(renderer);
-	}
-	
+	if (m_bulletCnt <= m_MaxBullet && m_bulletCnt != 0) RenderBullets(renderer);
 }
 
 void Player::Finalize()
@@ -101,15 +97,22 @@ void Player::PlayerShoot()
 	const XMVECTOR& direction = mainCamera.GetForwardVector();
 	float distance = 0.0f;
 	GameObjectBase* hit = ColliderComponent::CheckCollision(origin, direction, distance);
+	const XMVECTOR& hitPosition = XMVectorAdd(origin, XMVectorScale(direction, distance));
 	if (hit)
 	{
 		if (m_gunFSM) m_gunFSM->Fire();
-		if (Enemy* enemy = dynamic_cast<Enemy*>(hit)) enemy->Die();
+		if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
+		{
+			enemy->Die();
+			GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
+			gem->SetPosition(hitPosition);
+			gem->SetIgnoreParentTransform(true);
+		}
 
 		LineBuffer lineBuffer = {};
 		XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
 		lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		XMStoreFloat4(&lineBuffer.linePoints[1], XMVectorAdd(origin, XMVectorScale(direction, distance)));
+		XMStoreFloat4(&lineBuffer.linePoints[1], hitPosition);
 		lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 
 		m_lineBuffers.emplace_back(lineBuffer, 0.5f);

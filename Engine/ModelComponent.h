@@ -10,6 +10,7 @@ protected:
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
 
 	const WorldNormalBuffer* m_worldNormalData = nullptr; // 월드, 월드 역행렬 상수 버퍼 데이터
+	com_ptr<ID3D11Buffer> m_worldNormalConstantBuffer = nullptr; // 월드, 월드 역행렬 상수 버퍼
 
 	std::string m_vsShaderName = "VSModel.hlsl"; // 기본 모델 정점 셰이더
 	std::string m_psShaderName = "PSModel.hlsl"; // 기본 모델 픽셀 셰이더
@@ -32,6 +33,7 @@ protected:
 	DirectX::BoundingBox m_boundingBox = {}; // 변환된 경계 상자
 
 	MaterialFactorBuffer m_materialFactorData = {}; // 재질 상수 버퍼 데이터
+	com_ptr<ID3D11Buffer> m_materialFactorConstantBuffer = nullptr; // 재질 상수 버퍼
 
 	BlendState m_blendState = BlendState::Opaque; // 기본 블렌드 상태
 	RasterState m_rasterState = RasterState::Solid; // 기본 래스터 상태

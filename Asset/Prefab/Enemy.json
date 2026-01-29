@@ -1,0 +1,75 @@
+{
+    "childGameObjects": [],
+    "components": [
+        {
+            "blendState": 0,
+            "materialFactorData": {
+                "ambientOcclusionFactor": 1.0,
+                "baseColorFactor": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "emissionFactor": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "metallicFactor": 1.0,
+                "normalScale": 1.0,
+                "roughnessFactor": 1.0
+            },
+            "modelFileName": "test5.fbx",
+            "psShaderName": "PSModel.hlsl",
+            "rasterState": 1,
+            "type": "SkinnedModelComponent",
+            "vsShaderName": "VSModelSkinAnim.hlsl"
+        },
+        {
+            "boundingBoxes": [
+                {
+                    "center": [
+                        0.0,
+                        1.399999976158142,
+                        0.0
+                    ],
+                    "extents": [
+                        0.800000011920929,
+                        1.2000000476837158,
+                        0.800000011920929
+                    ]
+                }
+            ],
+            "boundingFrustums": [],
+            "boundingOrientedBoxes": [],
+            "type": "ColliderComponent"
+        },
+        {
+            "current_state": "Idle",
+            "start_state": "Idle",
+            "type": "FSMComponentEnemy"
+        }
+    ],
+    "name": "Enemy",
+    "position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+    ],
+    "scale": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "type": "Enemy"
+}

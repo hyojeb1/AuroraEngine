@@ -88,7 +88,7 @@ void SkinnedModelComponent::Render()
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 			resourceManager.SetRasterState(m_rasterState);
 
-			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal).Get(), 0, nullptr, m_worldNormalData, 0, 0);
+			m_deviceContext->UpdateSubresource(m_worldNormalConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
 			m_deviceContext->UpdateSubresource(m_boneConstantBuffer.Get(), 0, nullptr, &m_boneBufferData, 0, 0);
 
 			m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
@@ -110,7 +110,7 @@ void SkinnedModelComponent::Render()
 				m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
 				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-				m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor).Get(), 0, nullptr, &m_materialFactorData, 0, 0);
+				m_deviceContext->UpdateSubresource(m_materialFactorConstantBuffer.Get(), 0, nullptr, &m_materialFactorData, 0, 0);
 
 				m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
 			}

@@ -145,7 +145,6 @@ class Button
 {
 	bool m_isActive = true;
 	bool m_isHoverd = false;
-	bool m_isDead = false;
 
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_textureAndOffset = {};
 	DirectX::XMFLOAT2 m_UIPosition = {};
@@ -159,7 +158,6 @@ class Button
 
 public:
 	void SetActive(bool isActive) { m_isActive = isActive; }
-	void SetDead(bool isDead) { m_isDead = isDead; }
 	void SetTextureAndOffset(const std::string& fileName);
 	void SetUIPosition(const DirectX::XMFLOAT2& position) { m_UIPosition = position; UpdateRect(); }
 	void SetScale(float scale) { m_scale = scale; UpdateRect(); }
@@ -169,7 +167,6 @@ public:
 
 	void RenderButton(class Renderer& renderer);
 	void CheckInput(const POINT& mousePosition, bool isMouseClicked);
-	bool GetDead() const { return m_isDead; }
 
 private:
 	void UpdateRect();

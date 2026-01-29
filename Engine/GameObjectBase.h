@@ -23,6 +23,7 @@ protected:
 	DirectX::XMMATRIX m_rotationMatrix = DirectX::XMMatrixIdentity(); // 회전 행렬
 	DirectX::XMMATRIX m_scaleMatrix = DirectX::XMMatrixIdentity(); // 스케일 행렬
 	DirectX::XMMATRIX m_inverseScaleSquareMatrix = DirectX::XMMatrixIdentity(); // 스케일 역행렬 제곱 (법선 행렬 계산용)
+	bool m_isIgnoreParentTransform = false; // 부모 변환 무시 여부
 
 	WorldNormalBuffer m_worldData = {}; // 월드 및 WVP 행렬 상수 버퍼 데이터
 
@@ -58,6 +59,8 @@ public:
 	static void SetSelectedObject(GameObjectBase* selected) { s_selectedObject = selected; }
 
 	// 변환 관련 함수
+	// 부모 변환 무시 설정
+	void SetIgnoreParentTransform(bool isIgnore) { m_isIgnoreParentTransform = isIgnore; SetDirty(); }
 	// 위치 지정
 	void SetPosition(const DirectX::XMVECTOR& position) { m_position = position; SetDirty(); }
 	const DirectX::XMVECTOR GetPosition() { return m_position; }
