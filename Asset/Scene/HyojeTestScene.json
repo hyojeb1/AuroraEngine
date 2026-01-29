@@ -1,6 +1,5 @@
 {
     "environmentMapFileName": "Skybox.dds",
-    "gamma": 1.0,
     "lightColor": [
         1.0,
         1.0,
@@ -154,7 +153,7 @@
                     "position": [
                         -0.43488216400146484,
                         -4.581340789794922,
-                        -0.6247329711914063,
+                        -0.6247329711914062,
                         0.0
                     ],
                     "rotation": [
@@ -1339,7 +1338,7 @@
                             },
                             "modelFileName": "HyojeTestScene/Cube.015.fbx",
                             "psShaderName": "PSModel.hlsl",
-                            "rasterState": 0,
+                            "rasterState": 1,
                             "type": "ModelComponent",
                             "vsShaderName": "VSModel.hlsl"
                         }
@@ -1399,7 +1398,7 @@
                     "position": [
                         -0.011932373046875,
                         -7.09305477142334,
-                        0.018999099731445313,
+                        0.018999099731445312,
                         0.0
                     ],
                     "rotation": [
@@ -1826,7 +1825,7 @@
             "components": [],
             "name": "MOUNTAIN2",
             "position": [
-                89.60635375976563,
+                89.60635375976562,
                 26.78390121459961,
                 -87.83080291748047,
                 0.0

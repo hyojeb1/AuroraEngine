@@ -86,9 +86,6 @@ def process_texture_and_relink(node, processed_images):
         except Exception as e:
             print(f"   [Error] Texture {raw_name}: {e}")
 
-    # 3. [중요] FBX가 이 경로를 참조하도록 블렌더 내부 경로 강제 변경
-    #    (나중에 원복하고 싶다면 원본 경로를 어딘가 저장해둬야 하지만, 
-    #     베이킹 스크립트라면 그냥 바꿔도 무방)
     img.filepath = dst_path
 
 # ==============================================================================
