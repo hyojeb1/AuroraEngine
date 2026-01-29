@@ -25,10 +25,6 @@ void SceneManager::Run()
 	}
 
 	TimeManager::GetInstance().UpdateTime();
-<<<<<<< HEAD
-	SoundManager::GetInstance().Update();
-=======
->>>>>>> origin/JuneDev260129
 
 	m_accumulator += TimeManager::GetInstance().GetDeltaTime();
 
