@@ -1,14 +1,9 @@
-/// ParticleComponent.h의 시작
-///
-/// DEBUG 바운딩 박스
-/// Release 중점
-/// 
 #pragma once
 #include "ComponentBase.h"
 
 enum class BillboardType
 {
-	None = 0,		// 빌보드 안 함 (일반 메쉬처럼 월드 회전 적용)
+	None,		// 빌보드 안 함 (일반 메쉬처럼 월드 회전 적용)
 	Spherical,		// 구형 빌보드 (항상 카메라 정면 응시)
 	Cylindrical		// 원통형 빌보드 (Y축은 고정, 나무/풀 등에 적합)
 };
@@ -17,7 +12,8 @@ enum class BillboardType
 class ParticleComponent : public ComponentBase
 {
 protected:
-	struct VertexPosUV{
+	struct VertexPosUV
+	{
 		DirectX::XMFLOAT4 position = {};
 		DirectX::XMFLOAT2 UV = {};
 	};
@@ -26,7 +22,10 @@ protected:
 
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
 	const WorldNormalBuffer* m_worldNormalData = nullptr; // 월드, 월드 역행렬 상수 버퍼 데이터
+
+	int m_particleAmount = 1;
 	ParticleBuffer uv_buffer_data_ = {};
+	float m_particleTotalTime = 1.0f;
 
 	std::string m_vsShaderName = "VSParticle.hlsl"; // 기본 Particle 정점 셰이더
 	std::string m_psShaderName = "PSParticle.hlsl"; // 기본 Particle 픽셀 셰이더
@@ -41,35 +40,22 @@ protected:
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_vertexShaderAndInputLayout = {}; // 정점 셰이더 및 입력 레이아웃
 	com_ptr<ID3D11PixelShader> m_pixelShader = nullptr; // 픽셀 셰이더
 
-
-	std::array<VertexPosUV, 4> quad_ = {
-	VertexPosUV{ {-0.5f,  0.5f, 0, 1},  {0.0f,  0.0f} },
-	VertexPosUV{ { 0.5f,  0.5f, 0, 1},  {1.0f,  0.0f} },
-	VertexPosUV{ {-0.5f, -0.5f, 0, 1},  {0.0f,  1.0f} },
-	VertexPosUV{ { 0.5f, -0.5f, 0, 1},  {1.0f,  1.0f} }
+	std::array<VertexPosUV, 4> quad_ =
+	{
+		VertexPosUV{ {-0.5f,  0.5f, 0, 1},  {0.0f,  0.0f} },
+		VertexPosUV{ { 0.5f,  0.5f, 0, 1},  {1.0f,  0.0f} },
+		VertexPosUV{ {-0.5f, -0.5f, 0, 1},  {0.0f,  1.0f} },
+		VertexPosUV{ { 0.5f, -0.5f, 0, 1},  {1.0f,  1.0f} }
 	};
-
 
 	com_ptr<ID3D11ShaderResourceView> particle_texture_srv_ = nullptr;
 
-	MaterialFactorBuffer m_materialFactorData = {}; // 재질 상수 버퍼 데이터
 	BlendState m_blendState = BlendState::AlphaBlend; // 기본 블렌드 상태
 	RasterState m_rasterState = RasterState::SolidCullNone; // 기본 래스터 상태
 
 	std::string texture_file_name_ = "Crosshair.png";
-	DirectX::XMFLOAT2 uv_offset_ = { 0.0f, 0.0f };
-	DirectX::XMFLOAT2 uv_scale_ = { 1.0f, 1.0f };
 
 	BillboardType billboard_type_ = BillboardType::Spherical;
-
-
-#ifdef _DEBUG
-	DirectX::BoundingBox m_boundingBox;
-	DirectX::BoundingBox m_localBoundingBox;
-	bool m_renderBoundingBox = true;
-	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_boundingBoxVertexShaderAndInputLayout = {}; // 경계 상자 정점 셰이더 및 입력 레이아웃
-	com_ptr<ID3D11PixelShader> m_boundingBoxPixelShader = nullptr; // 경계 상자 픽셀 셰이더
-#endif
 
 public:
 	ParticleComponent() = default;
@@ -85,14 +71,14 @@ public:
 	void SetPixelShaderName(const std::string& psShaderName) { m_psShaderName = psShaderName; }
 
 	void SetBlendState(BlendState blendState) { m_blendState = blendState; }
-	void SetAlpha(const float& alpha) { m_materialFactorData.baseColorFactor.w = alpha; }
 
 	bool NeedsFixedUpdate() const override { return false; }
-	bool NeedsUpdate() const override { return false; }
+	bool NeedsUpdate() const override { return true; }
 	bool NeedsRender() const override { return true; }
 
 protected:
 	void Initialize() override;
+	void Update() override;
 	void Render() override;
 	void RenderImGui() override;
 

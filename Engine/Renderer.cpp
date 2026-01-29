@@ -41,7 +41,7 @@ void Renderer::BeginFrame()
 		[&]()
 		{
 			// 씬 렌더 타겟 MSAA 해제 및 결과 텍스처 복사
-			ResolveSceneMSAA();
+			ResolveSceneTexture();
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 
@@ -511,7 +511,7 @@ void Renderer::ClearRenderTarget(RenderTarget& target)
 	if (target.depthStencil.second) m_deviceContext->ClearDepthStencilView(target.depthStencil.second.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 
-void Renderer::ResolveSceneMSAA()
+void Renderer::ResolveSceneTexture()
 {
 	for (UINT slice = 0; slice < static_cast<UINT>(RENDER_TARGET(RenderStage::Scene).renderTargets.size()); ++slice)
 	{

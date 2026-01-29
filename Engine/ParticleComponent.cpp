@@ -23,57 +23,36 @@ void ParticleComponent::Initialize()
 	CreateShaders();
 	CreateBuffers();
 	particle_texture_srv_ = resourceManager.GetTexture(texture_file_name_);
-#ifdef _DEBUG
-	m_localBoundingBox.Center = XMFLOAT3(0.f, 0.f, 0.f);
-	m_localBoundingBox.Extents = XMFLOAT3(0.5f, 0.5f, 0.01f);
-#endif
+}
+
+void ParticleComponent::Update()
+{
+	static float elapsedTime = 0.0f;
+	elapsedTime += TimeManager::GetInstance().GetDeltaTime();
+	uv_buffer_data_.eclipsedTime = fmodf(elapsedTime, m_particleTotalTime); // 0~1 사이 값으로 유지
 }
 
 void ParticleComponent::Render()
 {
 	Renderer& renderer = Renderer::GetInstance();
-	const CameraComponent& mainCamera = CameraComponent::GetMainCamera(); // 릴리즈고...
-#ifdef _DEBUG
-	m_localBoundingBox.Transform(m_boundingBox, m_owner->GetWorldMatrix());
-	XMVECTOR boxCenter = XMLoadFloat3(&m_boundingBox.Center);
-	XMVECTOR boxExtents = XMLoadFloat3(&m_boundingBox.Extents);
-#else
+	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 	const XMVECTOR& owner_pos = m_owner->GetPosition();
-#endif
-
-	const XMVECTOR& sortPoint = renderer.GetRenderSortPoint();
 
 	// 일반 렌더링
 	renderer.RENDER_FUNCTION(RenderStage::Scene, m_blendState).emplace_back
 	(
-
-		//// 카메라로부터의 거리
-#ifdef _DEBUG
-		XMVectorGetX(XMVector3LengthSq(sortPoint - XMVectorClamp(sortPoint, boxCenter - boxExtents, boxCenter + boxExtents))),
-#else
-		XMVectorGetX(XMVector3LengthSq(sortPoint - owner_pos)),
-#endif
+		XMVectorGetX(XMVector3LengthSq(renderer.GetRenderSortPoint() - m_owner->GetPosition())),
 		[&]()
 		{
-			// 프러스텀 컬링
-#ifdef _DEBUG
-			if (m_boundingBox.Intersects(mainCamera.GetBoundingFrustum()) == false) return;
-#else
-			if (mainCamera.GetBoundingFrustum().Contains(owner_pos) == DirectX::DISJOINT) return;
-#endif
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 			resourceManager.SetRasterState(m_rasterState);
 
 			// 상수 버퍼 업데이트
 			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal).Get(), 0, nullptr, m_worldNormalData, 0, 0);
-
-			uv_buffer_data_.uvOffset = uv_offset_;
-			uv_buffer_data_.uvScale = uv_scale_;
-
 			m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Particle).Get(),0, nullptr, &uv_buffer_data_, 0, 0);
 
-			UINT stride = sizeof(VertexPosUV);
-			UINT offset = 0;
+			constexpr UINT stride = sizeof(VertexPosUV);
+			constexpr UINT offset = 0;
 			m_deviceContext->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &stride, &offset);
 
 			m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -82,67 +61,34 @@ void ParticleComponent::Render()
 			m_deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::BaseColor), 1, particle_texture_srv_.GetAddressOf());
 
-			m_deviceContext->Draw(4, 0);
+			m_deviceContext->DrawInstanced(4, m_particleAmount, 0, 0);
 		}
 	);
-
-// 디버그 - 경계 상자 렌더링
-#ifdef _DEBUG
-	renderer.RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
-	(
-		numeric_limits<float>::max(), // 제일 나중에 그림
-		[&]()
-		{
-			if (!m_renderBoundingBox) return; // 렌더링 옵션 체크
-
-			// 프러스텀 컬링 (월드 기준)
-			if (m_boundingBox.Intersects(mainCamera.GetBoundingFrustum()) == false) return;
-
-			ResourceManager& resourceManager = ResourceManager::GetInstance();
-
-			m_deviceContext->IASetInputLayout(m_boundingBoxVertexShaderAndInputLayout.second.Get());
-			m_deviceContext->VSSetShader(m_boundingBoxVertexShaderAndInputLayout.first.Get(), nullptr, 0);
-			m_deviceContext->PSSetShader(m_boundingBoxPixelShader.Get(), nullptr, 0);
-
-			resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-
-			array<XMFLOAT3, 8> boxVertices = {};
-			m_boundingBox.GetCorners(boxVertices.data());
-
-			LineBuffer lineBufferData = {};
-
-			for (const auto& [startIndex, endIndex] : BOX_LINE_INDICES)
-			{
-				lineBufferData.linePoints[0] = XMFLOAT4{ boxVertices[startIndex].x, boxVertices[startIndex].y, boxVertices[startIndex].z, 1.0f };
-				lineBufferData.linePoints[1] = XMFLOAT4{ boxVertices[endIndex].x, boxVertices[endIndex].y, boxVertices[endIndex].z, 1.0f };
-				lineBufferData.lineColors[0] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f }; // 파티클은 초록색으로 표시해봄
-				lineBufferData.lineColors[1] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f };
-
-				m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
-				m_deviceContext->Draw(2, 0);
-			}
-		}
-	);
-#endif
 }
 
 void ParticleComponent::RenderImGui()
 {
-	// 1. 텍스처 설정 섹션
+	// 1. 파티클 설정 섹션
+	if (ImGui::CollapsingHeader("Particle Settings", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::DragInt("Particle Amount", &m_particleAmount, 1, 1, 1000000);
+
+		ImGui::DragFloat("Image Scale", &uv_buffer_data_.imageScale, 0.01f, 0.1f, 10.0f);
+		ImGui::DragFloat("Spread Radius", &uv_buffer_data_.spreadRadius, 0.1f, 0.0f, 10.0f);
+		ImGui::DragFloat("Spread Distance", &uv_buffer_data_.spreadDistance, 0.1f, 0.0f, 1000.0f);
+		ImGui::DragFloat("Particle Total Time", &m_particleTotalTime, 0.01f, 0.1f, 100.0f);
+
+		ImGui::Separator();
+	}
+
+	// 2. 텍스처 설정 섹션
 	if (ImGui::CollapsingHeader("Texture Settings", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		static char textureBuffer[256] = "";
 		if (textureBuffer[0] == '\0') strcpy_s(textureBuffer, texture_file_name_.c_str());
 
-		if (ImGui::InputText("Texture File", textureBuffer, sizeof(textureBuffer)))
-		{
-			texture_file_name_ = textureBuffer;
-		}
-
-		if (ImGui::Button("Reload Texture"))
-		{
-			particle_texture_srv_ = ResourceManager::GetInstance().GetTexture(texture_file_name_);
-		}
+		if (ImGui::InputText("Texture File", textureBuffer, sizeof(textureBuffer))) texture_file_name_ = textureBuffer;
+		if (ImGui::Button("Reload Texture")) particle_texture_srv_ = ResourceManager::GetInstance().GetTexture(texture_file_name_);
 
 		if (particle_texture_srv_)
 		{
@@ -153,12 +99,11 @@ void ParticleComponent::RenderImGui()
 		ImGui::Separator();
 
 		bool uvChanged = false; 
-		uvChanged |= ImGui::DragFloat2("UV Offset", &uv_offset_.x, 0.01f);
-		uvChanged |= ImGui::DragFloat2("UV Scale", &uv_scale_.x, 0.01f);		
-
+		uvChanged |= ImGui::DragFloat2("UV Offset", &uv_buffer_data_.uvOffset.x, 0.01f);
+		uvChanged |= ImGui::DragFloat2("UV Scale", &uv_buffer_data_.uvScale.x, 0.01f);
 	}
 
-	// 2. 렌더링 옵션 섹션
+	// 3. 렌더링 옵션 섹션
 	if (ImGui::CollapsingHeader("Rendering Options", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		const char* billboardItems[] = { "None", "Spherical", "Cylindrical" };
@@ -186,26 +131,6 @@ void ParticleComponent::RenderImGui()
 		}
 
 	}
-
-	// 3. 재질(Material) 및 셰이더 섹션
-	if (ImGui::CollapsingHeader("Material & Shader"))
-	{
-		ImGui::ColorEdit4("Base Color (RGBA)", &m_materialFactorData.baseColorFactor.x);
-
-		ImGui::Separator();
-
-		static char psBuffer[256] = "";
-		if (psBuffer[0] == '\0') strcpy_s(psBuffer, m_psShaderName.c_str());
-
-		ImGui::Text("VS Name: %s", m_vsShaderName.c_str());
-		ImGui::InputText("PS Name", psBuffer, sizeof(psBuffer));
-
-		if (ImGui::Button("Reload Shaders"))
-		{
-			m_psShaderName = psBuffer;
-			CreateShaders();
-		}
-	}
 }
 
 nlohmann::json ParticleComponent::Serialize()
@@ -216,18 +141,20 @@ nlohmann::json ParticleComponent::Serialize()
 	jsonData["psShaderName"] = m_psShaderName;
 
 	jsonData["textureFileName"] = texture_file_name_;
-	jsonData["uvOffset"] = { uv_offset_.x, uv_offset_.y };
-	jsonData["uvScale"] = { uv_scale_.x, uv_scale_.y };
+
+	jsonData["particleAmount"] = m_particleAmount;
+
+	jsonData["uvOffset"] = { uv_buffer_data_.uvOffset.x, uv_buffer_data_.uvOffset.y };
+	jsonData["uvScale"] = { uv_buffer_data_.uvScale.x, uv_buffer_data_.uvScale.y };
+	jsonData["imageScale"] = uv_buffer_data_.imageScale;
+	jsonData["spreadRadius"] = uv_buffer_data_.spreadRadius;
+	jsonData["spreadDistance"] = uv_buffer_data_.spreadDistance;
+
+	jsonData["particleTotalTime"] = m_particleTotalTime;
+
 	jsonData["billboardType"] = static_cast<int>(billboard_type_);
 	jsonData["blendState"] = static_cast<int>(m_blendState);
-	jsonData["rasterState"] = static_cast<int>(m_rasterState); 
-
-	jsonData["baseColor"] = {
-		m_materialFactorData.baseColorFactor.x,
-		m_materialFactorData.baseColorFactor.y,
-		m_materialFactorData.baseColorFactor.z,
-		m_materialFactorData.baseColorFactor.w
-	};
+	jsonData["rasterState"] = static_cast<int>(m_rasterState);
 
 	return jsonData;
 }
@@ -243,30 +170,30 @@ void ParticleComponent::Deserialize(const nlohmann::json& jsonData)
 		particle_texture_srv_ = ResourceManager::GetInstance().GetTexture(texture_file_name_);
 	}
 
+	if (jsonData.contains("particleAmount")) m_particleAmount = jsonData["particleAmount"].get<int>();
+
 	if (jsonData.contains("uvOffset"))
 	{
-		auto uv = jsonData["uvOffset"];
-		uv_offset_ = { uv[0], uv[1] };
+		uv_buffer_data_.uvOffset.x = jsonData["uvOffset"][0].get<float>();
+		uv_buffer_data_.uvOffset.y = jsonData["uvOffset"][1].get<float>();
 	}
 	if (jsonData.contains("uvScale"))
 	{
-		auto uv = jsonData["uvScale"];
-		uv_scale_ = { uv[0], uv[1] };
+		uv_buffer_data_.uvScale.x = jsonData["uvScale"][0].get<float>();
+		uv_buffer_data_.uvScale.y = jsonData["uvScale"][1].get<float>();
 	}
+	if (jsonData.contains("imageScale")) uv_buffer_data_.imageScale = jsonData["imageScale"].get<float>();
+	if (jsonData.contains("spreadRadius")) uv_buffer_data_.spreadRadius = jsonData["spreadRadius"].get<float>();
+	if (jsonData.contains("spreadDistance")) uv_buffer_data_.spreadDistance = jsonData["spreadDistance"].get<float>();
+	if (jsonData.contains("particleTotalTime")) m_particleTotalTime = jsonData["particleTotalTime"].get<float>();
 
 	if (jsonData.contains("billboardType"))
 	{
 		billboard_type_ = static_cast<BillboardType>(jsonData["billboardType"].get<int>());
+		m_vsShaderName = GetBillboardVSName(billboard_type_);
 	}
-	m_vsShaderName = GetBillboardVSName(billboard_type_);
 	if (jsonData.contains("blendState")) m_blendState = static_cast<BlendState>(jsonData["blendState"].get<int>());
 	if (jsonData.contains("rasterState")) m_rasterState = static_cast<RasterState>(jsonData["rasterState"].get<int>());
-
-	if (jsonData.contains("baseColor"))
-	{
-		auto color = jsonData["baseColor"];
-		m_materialFactorData.baseColorFactor = { color[0], color[1], color[2], color[3] };
-	}
 }
 
 void ParticleComponent::CreateShaders()
@@ -275,15 +202,11 @@ void ParticleComponent::CreateShaders()
 	m_vsShaderName = GetBillboardVSName(billboard_type_);
 	m_vertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout(m_vsShaderName, m_inputElements);
 	m_pixelShader = resourceManager.GetPixelShader(m_psShaderName);
-
-#ifdef _DEBUG
-	m_boundingBoxVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
-	m_boundingBoxPixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
-#endif
-
 }
 void ParticleComponent::CreateBuffers()
 {
+	HRESULT hr = S_OK;
+
 	com_ptr<ID3D11Device> device;
 	m_deviceContext->GetDevice(device.GetAddressOf());
 
@@ -298,7 +221,7 @@ void ParticleComponent::CreateBuffers()
 	D3D11_SUBRESOURCE_DATA vbInitData = {};
 	vbInitData.pSysMem = quad_.data();
 
-	HRESULT hr = device->CreateBuffer(&vbDesc, &vbInitData, m_vertexBuffer.GetAddressOf());
+	hr = device->CreateBuffer(&vbDesc, &vbInitData, m_vertexBuffer.GetAddressOf());
 	assert(SUCCEEDED(hr));
 }
 

@@ -4,6 +4,7 @@
 
 #include "Renderer.h"
 #include "InputManager.h"
+#include "RNG.h"
 
 using namespace std;
 
@@ -105,6 +106,8 @@ void WindowManager::Initialize(const wchar_t* windowTitle, int width, int height
 	Renderer::GetInstance().Initialize();
 	// 인풋매니저 초기화
 	InputManager::GetInstance().Initialize();
+	// RNG 초기화
+	RNG::GetInstance().Initialize();
 
 	ShowWindow(m_hWnd, SW_SHOW);
 }

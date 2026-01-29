@@ -26,44 +26,45 @@ void Player::Initialize()
 	m_lineVertexBufferAndShader = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_linePixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
 
-	m_crosshairTextureAndOffset = resourceManager.GetTextureAndOffset("cross_hair_middle.png");
-	m_NodeAndOffset				= resourceManager.GetTextureAndOffset("cross_hair_parts.png");
-
 	m_cameraObject = dynamic_cast<CamRotObject*>(GetChildGameObject("CamRotObject_2"));
 	m_gunObject = m_cameraObject->GetChildGameObject("Gun");
 	m_gunFSM = m_gunObject->CreateComponent<FSMComponentGun>();
 
-	m_NodeDataPtr = SoundManager::GetInstance().GetNodeDataPtr();
+	m_deadEyeTextureAndOffset = resourceManager.GetTextureAndOffset("Crosshair.png");
+
+	m_bulletImgs = resourceManager.GetTextureAndOffset("bullet.png");
+
+	m_DeadEyeCount = 3;
+	m_bulletCnt = 6;
 }
 
 void Player::Update()
 {
-	PlayNode();
-
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	InputManager& input = InputManager::GetInstance();
 	auto& sm = SoundManager::GetInstance();
 
 	PlayerMove(deltaTime, input);
-
-	if (input.GetKeyDown(KeyCode::MouseLeft) && sm.CheckRhythm(0.1f)) { PlayerShoot(); };
-	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight)) PlayerDeadEyeStart();
+	if (input.GetKeyDown(KeyCode::R)) { PlayerReload(); };
+	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f)) { PlayerShoot(); };
+	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f)) PlayerDeadEyeStart();
 	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime);
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
 	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();
-	for_each(m_UINode.begin(), m_UINode.end(), [&](auto& time) { time -= TimeManager::GetInstance().GetNSDeltaTime(); });
-	if (!m_UINode.empty() && m_UINode.front() < 0.0f) m_UINode.pop_front();
 }
 
 void Player::Render()
 {
 	Renderer& renderer = Renderer::GetInstance();
 
-	RenderCrosshairUI(renderer);
 	if (!m_lineBuffers.empty()) RenderLineBuffers(renderer);
 	if (!m_deadEyeTargets.empty()) RenderDeadEyeTargetsUI(renderer);
-	if (!m_UINode.empty()) RenderUINode(renderer);
+	if (m_bulletCnt <= m_MaxBullet && m_bulletCnt != 0)
+	{
+		RenderBullets(renderer);
+	}
+	
 }
 
 void Player::Finalize()
@@ -92,6 +93,8 @@ void Player::PlayerShoot()
 {
 	if (!m_gunObject) return;
 
+	--m_bulletCnt;
+
 	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 	const XMVECTOR& origin = mainCamera.GetPosition();
 	const XMVECTOR& direction = mainCamera.GetForwardVector();
@@ -110,6 +113,15 @@ void Player::PlayerShoot()
 
 		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
 	}
+}
+
+void Player::PlayerReload()
+{
+	if (m_bulletCnt == m_MaxBullet) return;
+
+	//Reload Anime + rhythm check
+
+	m_bulletCnt = m_MaxBullet;
 }
 
 void Player::PlayerDeadEyeStart()
@@ -137,9 +149,9 @@ void Player::PlayerDeadEyeStart()
 		m_isDeadEyeActive = true;
 		m_deadEyeTime = m_deadEyeDuration;
 
-		TimeManager::GetInstance().SetTimeScale(0.1f); // ?��?�� ?��?�� ????�� ?��?��?�� ?�� ?���? ?��리게
+		TimeManager::GetInstance().SetTimeScale(0.1f);
 		m_cameraYSensitivity = m_cameraObject->GetSensitivity();
-		m_cameraObject->SetSensitivity(0.01f); // ?��?�� ?��?�� ????�� ?��?��?�� ?�� 카메?�� 감도 감소
+		m_cameraObject->SetSensitivity(0.01f);
 		m_xSensitivity = m_cameraObject->GetSensitivity();
 
 		Renderer::GetInstance().SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, true);
@@ -148,8 +160,9 @@ void Player::PlayerDeadEyeStart()
 		if (m_deadEyeTargets.size() > 6) m_deadEyeTargets.resize(6);
 
 		SoundManager::GetInstance().ChangeLowpass();
+
+		m_currentNodeIndex = SoundManager::GetInstance().GetRhythmTimerIndex();
 	}
-	
 }
 
 void Player::PlayerDeadEye(float deltaTime)
@@ -157,11 +170,11 @@ void Player::PlayerDeadEye(float deltaTime)
 	Renderer::GetInstance().SetGrayScaleIntensity((1.0f - (m_deadEyeTime / m_deadEyeDuration)) * 2.0f);
 	m_deadEyeTime -= deltaTime;
 
-	if (m_deadEyeTime <= 0.0f) // ?��?�� ?��?�� ????�� 종료
+	if (SoundManager::GetInstance().GetRhythmTimerIndex() >= m_currentNodeIndex + m_DeadEyeCount)
 	{
 		for (const auto& [timing, enemy] : m_deadEyeTargets)
 		{
-			if (timing > 999990.1f) continue; // 0.1�? ?��?�� ????��밍이 ?��맞으�? 무시
+			if (timing > 999990.1f) continue;
 
 			enemy->Die();
 
@@ -184,8 +197,8 @@ void Player::PlayerDeadEyeEnd()
 
 	m_isDeadEyeActive = false;
 
-	TimeManager::GetInstance().SetTimeScale(1.0f); // ?���? ?��?��?��
-	m_cameraObject->SetSensitivity(m_cameraYSensitivity); // 카메?�� 감도 ?��?��???�?
+	TimeManager::GetInstance().SetTimeScale(1.0f);
+	m_cameraObject->SetSensitivity(m_cameraYSensitivity);
 	m_xSensitivity = m_cameraObject->GetSensitivity();
 
 	m_deadEyeTargets.clear();
@@ -195,22 +208,6 @@ void Player::PlayerDeadEyeEnd()
 	renderer.SetGrayScaleIntensity(0.0f);
 
 	SoundManager::GetInstance().ChangeLowpass();
-}
-
-void Player::PlayNode()
-{
-	auto& sm = SoundManager::GetInstance();
-
-	if (!sm.ConsumeNodeChanged())
-		return;
-
-	m_UINode.push_back(sm.GetRhythmOffset());
-}
-
-constexpr float CrossHairSize = 0.3f;
-void Player::RenderCrosshairUI(Renderer& renderer)
-{
-	renderer.UI_RENDER_FUNCTIONS().emplace_back([&]() { Renderer::GetInstance().RenderImageUIPosition(m_crosshairTextureAndOffset.first, { 0.5f, 0.5f }, m_crosshairTextureAndOffset.second, CrossHairSize); });
 }
 
 void Player::RenderLineBuffers(Renderer& renderer)
@@ -249,29 +246,19 @@ void Player::RenderDeadEyeTargetsUI(Renderer& renderer)
 
 			for (const auto& [timing, enemy] : m_deadEyeTargets)
 			{
-				Renderer::GetInstance().RenderImageScreenPosition(m_crosshairTextureAndOffset.first, mainCamera.WorldToScreenPosition(enemy->GetWorldPosition()), m_crosshairTextureAndOffset.second, 0.5f);
+				Renderer::GetInstance().RenderImageScreenPosition(m_deadEyeTextureAndOffset.first, mainCamera.WorldToScreenPosition(enemy->GetWorldPosition()), m_deadEyeTextureAndOffset.second, 0.5f);
 			}
 		}
 	);
 }
 
-void Player::RenderUINode(Renderer& renderer)
+void Player::RenderBullets(class Renderer& renderer)
 {
-	renderer.UI_RENDER_FUNCTIONS().emplace_back
-	(
-		[&]()
-		{
-			for (const auto& time : m_UINode)
-			{
-				float temp = time / SoundManager::GetInstance().GetRhythmOffset();
-
-				float pos = clamp(lerp(0.5f, 0.25f, temp),0.0f,0.5f);
-
-				float scale = clamp(lerp(CrossHairSize, 0.1f, temp), 0.0f, CrossHairSize);
-
-				Renderer::GetInstance().RenderImageUIPosition(m_NodeAndOffset.first, { pos, 0.5f }, m_NodeAndOffset.second, scale);
-				Renderer::GetInstance().RenderImageUIPosition(m_NodeAndOffset.first, { 1.0f - pos, 0.5f }, m_NodeAndOffset.second, -scale);
-			}
-		}
-	);
+	float pos = 0.5f;
+	for (int i = 0; i < m_bulletCnt; i++)
+	{
+		pos = ((0.7f) + static_cast<float>(i) * 0.02f);
+		renderer.UI_RENDER_FUNCTIONS().emplace_back([pos, this]() { Renderer::GetInstance().RenderImageUIPosition(m_bulletImgs.first, { pos, 0.8f }, m_bulletImgs.second, 0.1f); });
+		
+	}
 }

@@ -245,6 +245,58 @@ void ModelComponent::RenderImGui()
 	ImGui::Checkbox("Render Bounding Box", &m_renderBoundingBox);
 	ImGui::Checkbox("Render SubMesh Bounding Boxes", &m_renderSubMeshBoundingBoxes);
 	#endif
+
+
+	// 텍스처 미리보기 섹션
+	ImGui::Separator();
+	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Material Textures");
+
+	if (m_model)
+	{
+		auto ShowTextureSlot = [](const char* name, ID3D11ShaderResourceView* srv)
+			{
+				ImGui::PushID(name);
+				ImGui::Text("%s", name);
+
+				if (srv)
+				{
+					ImGui::Image((ImTextureID)srv, ImVec2(64, 64), ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 0.5f));
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::BeginTooltip();
+						ImGui::Text("%s Preview", name);
+						ImGui::Image((ImTextureID)srv, ImVec2(256, 256));
+						ImGui::EndTooltip();
+					}
+				}
+				else
+				{
+					ImGui::Button("(Empty)", ImVec2(64, 64));
+				}
+				ImGui::PopID();
+			};
+
+		// 한 줄에 2개씩 보여주기 위해 Columns 사용 
+		ImGui::Columns(2, "TextureColumns", false);
+
+		ShowTextureSlot("Base Color", m_model->materialTexture.baseColorTextureSRV.Get());
+		ImGui::NextColumn();
+
+		ShowTextureSlot("Normal", m_model->materialTexture.normalTextureSRV.Get());
+		ImGui::NextColumn();
+
+		ShowTextureSlot("ORM (Occl/Rough/Met)", m_model->materialTexture.ORMTextureSRV.Get());
+		ImGui::NextColumn();
+
+		ShowTextureSlot("Emission", m_model->materialTexture.emissionTextureSRV.Get());
+
+		ImGui::Columns(1);
+	}
+	else
+	{
+		ImGui::TextDisabled("Model is not loaded.");
+	}
+
 }
 
 void ModelComponent::Finalize()
@@ -280,35 +332,40 @@ nlohmann::json ModelComponent::Serialize()
 
 void ModelComponent::Deserialize(const nlohmann::json& jsonData)
 {
-	m_vsShaderName = jsonData["vsShaderName"].get<string>();
-	m_psShaderName = jsonData["psShaderName"].get<string>();
-	m_modelFileName = jsonData["modelFileName"].get<string>();
+	if (jsonData.contains("vsShaderName")) m_vsShaderName = jsonData["vsShaderName"].get<string>();
+	if (jsonData.contains("psShaderName")) m_psShaderName = jsonData["psShaderName"].get<string>();
+	if (jsonData.contains("modelFileName")) m_modelFileName = jsonData["modelFileName"].get<string>();
 
 	// 재질 팩터
-	m_materialFactorData.baseColorFactor = XMFLOAT4
-	(
-		jsonData["materialFactorData"]["baseColorFactor"][0].get<float>(),
-		jsonData["materialFactorData"]["baseColorFactor"][1].get<float>(),
-		jsonData["materialFactorData"]["baseColorFactor"][2].get<float>(),
-		jsonData["materialFactorData"]["baseColorFactor"][3].get<float>()
-	);
+	if (jsonData.contains("materialFactorData"))
+	{
+		m_materialFactorData.baseColorFactor = XMFLOAT4
+		(
+			jsonData["materialFactorData"]["baseColorFactor"][0].get<float>(),
+			jsonData["materialFactorData"]["baseColorFactor"][1].get<float>(),
+			jsonData["materialFactorData"]["baseColorFactor"][2].get<float>(),
+			jsonData["materialFactorData"]["baseColorFactor"][3].get<float>()
+		);
+	}
 
-	m_materialFactorData.ambientOcclusionFactor = jsonData["materialFactorData"]["ambientOcclusionFactor"].get<float>();
-	m_materialFactorData.roughnessFactor = jsonData["materialFactorData"]["roughnessFactor"].get<float>();
-	m_materialFactorData.metallicFactor = jsonData["materialFactorData"]["metallicFactor"].get<float>();
+	if (jsonData["materialFactorData"].contains("ambientOcclusionFactor")) m_materialFactorData.ambientOcclusionFactor = jsonData["materialFactorData"]["ambientOcclusionFactor"].get<float>();
+	if (jsonData["materialFactorData"].contains("roughnessFactor")) m_materialFactorData.roughnessFactor = jsonData["materialFactorData"]["roughnessFactor"].get<float>();
+	if (jsonData["materialFactorData"].contains("metallicFactor")) m_materialFactorData.metallicFactor = jsonData["materialFactorData"]["metallicFactor"].get<float>();
+	if (jsonData["materialFactorData"].contains("normalScale")) m_materialFactorData.normalScale = jsonData["materialFactorData"]["normalScale"].get<float>();
 
-	m_materialFactorData.normalScale = jsonData["materialFactorData"]["normalScale"].get<float>();
+	if (jsonData["materialFactorData"].contains("emissionFactor"))
+	{
+		m_materialFactorData.emissionFactor = XMFLOAT4
+		(
+			jsonData["materialFactorData"]["emissionFactor"][0].get<float>(),
+			jsonData["materialFactorData"]["emissionFactor"][1].get<float>(),
+			jsonData["materialFactorData"]["emissionFactor"][2].get<float>(),
+			jsonData["materialFactorData"]["emissionFactor"][3].get<float>()
+		);
+	}
 
-	m_materialFactorData.emissionFactor = XMFLOAT4
-	(
-		jsonData["materialFactorData"]["emissionFactor"][0].get<float>(),
-		jsonData["materialFactorData"]["emissionFactor"][1].get<float>(),
-		jsonData["materialFactorData"]["emissionFactor"][2].get<float>(),
-		jsonData["materialFactorData"]["emissionFactor"][3].get<float>()
-	);
-
-	m_blendState = static_cast<BlendState>(jsonData["blendState"].get<int>());
-	m_rasterState = static_cast<RasterState>(jsonData["rasterState"].get<int>());
+	if (jsonData.contains("blendState")) m_blendState = static_cast<BlendState>(jsonData["blendState"].get<int>());
+	if (jsonData.contains("rasterState")) m_rasterState = static_cast<RasterState>(jsonData["rasterState"].get<int>());
 }
 
 void ModelComponent::CreateShaders()

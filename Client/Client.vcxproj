@@ -183,6 +183,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CamRotObject.cpp" />
+    <ClCompile Include="CrossHairAndNode.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="FSMComponentEnemy.cpp" />
     <ClCompile Include="FSMComponentGun.cpp" />
@@ -196,6 +197,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CamRotObject.h" />
+    <ClInclude Include="CrossHairAndNode.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="FSMComponentEnemy.h" />
     <ClInclude Include="FSMComponentGun.h" />
@@ -211,6 +213,7 @@
     <None Include="..\Asset\Scene\HyojeTestScene.json" />
     <None Include="..\Asset\Scene\TaehyeonTestScene.json" />
     <None Include="..\Asset\Scene\TestScene.json" />
+    <None Include="..\Asset\Scene\TitleScene.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

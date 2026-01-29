@@ -270,8 +270,8 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 		switch (type)
 		{
 		case TextureType::BaseColor:
-			//return GetTexture("Fallback_BaseColor.png", TextureType::BaseColor);
-			return GetTexture("Fallback_BaseColor_Gray.png", TextureType::BaseColor);
+			return GetTexture("Fallback_BaseColor.png", TextureType::BaseColor);
+			//return GetTexture("Fallback_BaseColor_Gray.png", TextureType::BaseColor);
 		case TextureType::ORM:
 			return GetTexture("Fallback_OcclusionRoughnessMetallic.png", TextureType::ORM);
 		case TextureType::Normal:
@@ -403,12 +403,17 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 	// 1. 메쉬 및 노드 처리 (이 과정에서 본 정보가 있다면 Skeleton에 등록됨)
 	ProcessNode(scene->mRootNode, scene, model);
 
-	// 2. 모델 택스처 로드
+	// 2. 모델 텍스처 로드 (Assimp 재질 정보 기반)
 	const string fileNameWithoutExtension = filesystem::path(fileName).stem().string();
-	model.materialTexture.baseColorTextureSRV = GetTexture(fileNameWithoutExtension + "_BaseColor.png", TextureType::BaseColor);;
-	model.materialTexture.ORMTextureSRV = GetTexture(fileNameWithoutExtension + "_OcclusionRoughnessMetallic.png", TextureType::ORM);
-	model.materialTexture.normalTextureSRV = GetTexture(fileNameWithoutExtension + "_Normal.png", TextureType::Normal);
-	model.materialTexture.emissionTextureSRV = GetTexture(fileNameWithoutExtension + "_Emissive.png", TextureType::Emissive);
+
+	const aiMaterial* material = (scene->HasMaterials() && scene->HasMeshes())
+		? scene->mMaterials[scene->mMeshes[0]->mMaterialIndex]
+		: nullptr;
+
+	model.materialTexture.baseColorTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_DIFFUSE, "_BaseColor.png", TextureType::BaseColor);
+	model.materialTexture.normalTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_NORMALS, "_Normal.png", TextureType::Normal);
+	model.materialTexture.emissionTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_EMISSIVE, "_Emissive.png", TextureType::Emissive);
+	model.materialTexture.ORMTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_UNKNOWN, "_OcclusionRoughnessMetallic.png", TextureType::ORM);
 
 	// 3. 본 정보가 있다면 스켈레톤 구축
 	if (SceneHasBones(scene))
@@ -436,6 +441,73 @@ SpriteFont* ResourceManager::GetSpriteFont(const wstring& fontName)
 	m_spriteFonts[fontName] = make_unique<SpriteFont>(m_device.Get(), (L"../Asset/Font/" + fontName + L".spritefont").c_str());
 
 	return m_spriteFonts[fontName].get();
+}
+
+string ResourceManager::FindTextureFromCache(const string& rawPath)
+{
+	if (rawPath.empty()) return "";
+
+	// 1. 경로 정규화 (역슬래시를 슬래시로)
+	filesystem::path p(rawPath);
+	string filename = p.filename().string(); // "Wall_BaseColor.png"만 추출
+
+	// 2. 캐시 맵에서 파일명이 일치하는지 검색
+	// (주의: 같은 이름의 파일이 다른 폴더에 있을 경우 오탐지 가능성이 있으나,
+	//  현재 구조상 Scene 이름별로 폴더가 나뉘므로 비교적 안전함)
+	for (const auto& pair : m_textureCaches)
+	{
+		filesystem::path cachePath(pair.first);
+		if (cachePath.filename().string() == filename)
+		{
+			return pair.first; // "SceneName/ImageName.png" 형태의 키 반환
+		}
+	}
+
+	return "";
+}
+
+com_ptr<ID3D11ShaderResourceView> ResourceManager::LoadTextureHybrid(const aiMaterial* material, const std::string& model_name, aiTextureType aiType, const std::string& suffix, TextureType engine_type)
+{
+	// PRIORITY 1: Assimp 메타데이터 기반 로드
+	if (material)
+	{
+		aiString texPath;
+		// 1-1. 해당 슬롯에 텍스처 경로가 있는지 확인
+		if (material->GetTexture(aiType, 0, &texPath) == AI_SUCCESS)
+		{
+			// 경로가 있다면 캐시에서 검색
+			string cacheKey = FindTextureFromCache(texPath.C_Str());
+			if (!cacheKey.empty())
+			{
+				return GetTexture(cacheKey, engine_type);
+			}
+		}
+
+		// 1-2. ORM 텍스처 특별 처리 (FBX는 표준 슬롯이 없어 UNKNOWN에 들어가는 경우가 많음)
+		if (engine_type == TextureType::ORM)
+		{
+			if (material->GetTexture(aiTextureType_UNKNOWN, 0, &texPath) == AI_SUCCESS)
+			{
+				string cacheKey = FindTextureFromCache(texPath.C_Str());
+				if (!cacheKey.empty())
+				{
+					return GetTexture(cacheKey, engine_type);
+				}
+			}
+		}
+	}
+
+	// PRIORITY 2: 기존 이름 규칙 기반 로드 (model_name + Suffix)
+	string oldStyleName = model_name + suffix;
+
+	// 캐시에 해당 파일이 실제로 존재하는지 확인
+	if (m_textureCaches.find(oldStyleName) != m_textureCaches.end())
+	{
+		return GetTexture(oldStyleName, engine_type);
+	}
+
+	// PRIORITY 3: 모두 실패 -> GetTexture가 알아서 Fallback 반환
+	return GetTexture(oldStyleName, engine_type);
 }
 
 void ResourceManager::CreateDepthStencilStates()

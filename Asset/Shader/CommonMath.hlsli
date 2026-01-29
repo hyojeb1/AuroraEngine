@@ -7,10 +7,53 @@ static const float TWO_PI = 6.28318530718f;
 static const float INV_PI = 0.31830988618f;
 static const float EPSILON = 1e-6f;
 
-static const float GAMMA = 2.2f;
-static const float INV_GAMMA = 1.0f / GAMMA;
+// 난수 생성 상수
+static const float INV_16777216 = 1.0f / 16777216.0f;
 
-// 노말 맵핑 유틸리티
+// 유틸리티 함수
+
+// PCG 해시 함수 // 고품질 난수 생성
+uint PCG(uint seed)
+{
+    uint state = seed * 747796405u + 2891336453u;
+    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    
+    return (word >> 22u) ^ word;
+}
+
+// LowBias32 해시 함수 // 저품질 난수 생성, 빠름
+uint LowBias32(uint seed)
+{
+    seed ^= seed >> 16;
+    seed *= 0x7feb352du;
+    seed ^= seed >> 15;
+    seed *= 0x846ca68bu;
+    seed ^= seed >> 16;
+    
+    return seed;
+}
+
+// 유사 난수 생성 (0.0 ~ 1.0)
+float Rand(uint u)
+{
+    return float(u & 0x00FFFFFFu) * INV_16777216;
+}
+
+// 3D 벡터 유사 난수 생성
+float3 Rand3(float seed, float spread = 0.0f)
+{
+    uint s = asuint(seed * 12345.678f + 0.5f);
+    uint h1 = LowBias32(s);
+    uint h2 = LowBias32(h1);
+    uint h3 = LowBias32(h2);
+
+    float3 r = float3(Rand(h1), Rand(h2), Rand(h3));
+
+    if (spread <= 0.5f) return normalize(r - 0.5f);
+    return normalize(pow(r, rcp(spread)));
+}
+
+// 노말 맵핑 
 float3 UnpackNormal(float3 packedNormal, float3x3 TBN, float intensity = 1.0f)
 {
     float3 localNormal = packedNormal * 2.0f - 1.0f;

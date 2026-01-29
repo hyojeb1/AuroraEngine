@@ -62,6 +62,3 @@ Engine/VcpkgLocal.props
 
 #BeatMapData
 Asset/BeatMapData
-
-#Test Asset Pipeline
-Asset/Model/HyojeTestScene
