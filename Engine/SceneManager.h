@@ -1,6 +1,4 @@
 #pragma once
-#include "Singleton.h"
-#include "SceneBase.h"
 
 class SceneManager : public Singleton<SceneManager>
 {
@@ -20,11 +18,11 @@ public:
 
 	void Initialize();
 	void Run();
-	void Finalize() { if (m_currentScene) m_currentScene->BaseFinalize(); }
+	void Finalize();
 
-	void ChangeScene(const std::string& sceneTypeName) { m_nextScene = TypeRegistry::GetInstance().CreateScene(sceneTypeName); m_accumulator = 0; }
+	void ChangeScene(const std::string& sceneTypeName);
 
-	SceneBase* GetCurrentScene() { return dynamic_cast<SceneBase*>(m_currentScene.get()); }
+	class SceneBase* GetCurrentScene();
 
 private:
 	SceneManager() = default;

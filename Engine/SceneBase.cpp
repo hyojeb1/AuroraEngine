@@ -2,8 +2,8 @@
 #include "stdafx.h"
 #include "SceneBase.h"
 
-#include "CameraComponent.h"
 #include "Renderer.h"
+#include "CameraComponent.h"
 #include "ResourceManager.h"
 #include "TimeManager.h"
 #include "NavigationManager.h"
@@ -14,12 +14,36 @@
 using namespace std;
 using namespace DirectX;
 
+PostProcessingBuffer SceneBase::m_postProcessingData = {};
+
 GameObjectBase* SceneBase::CreateRootGameObject(const string& typeName)
 {
 	unique_ptr<GameObjectBase> gameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
 	GameObjectBase* gameObjectPtr = gameObject.get();
 
 	static_cast<Base*>(gameObjectPtr)->BaseInitialize();
+	m_gameObjects.push_back(move(gameObject));
+
+	return gameObjectPtr;
+}
+
+GameObjectBase* SceneBase::CreatePrefabRootGameObject(const string& prefabFileName)
+{
+	const filesystem::path prefabDirectory = "../Asset/Prefab/";
+	const filesystem::path prefabFilePath = prefabDirectory / prefabFileName;
+
+	ifstream prefabFile(prefabFilePath);
+	nlohmann::json prefabJson;
+	prefabFile >> prefabJson;
+	prefabFile.close();
+	string typeName = prefabJson["type"].get<string>();
+
+	unique_ptr<GameObjectBase> gameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
+	GameObjectBase* gameObjectPtr = gameObject.get();
+
+	static_cast<Base*>(gameObjectPtr)->BaseDeserialize(prefabJson);
+	static_cast<Base*>(gameObjectPtr)->BaseInitialize();
+
 	m_gameObjects.push_back(move(gameObject));
 
 	return gameObjectPtr;
@@ -144,8 +168,6 @@ void SceneBase::BaseUpdate()
 	// 게임 오브젝트 업데이트
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseUpdate();
 
-	erase_if(m_buttons, [](const unique_ptr<Button>& button) { return button->GetDead(); });
-
 	InputManager& inputManager = InputManager::GetInstance();
 
 	const POINT& mousePosition = inputManager.GetMousePosition();
@@ -163,9 +185,9 @@ void SceneBase::BaseUpdate()
 
 		const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
 
-		ofstream file(sceneFilePath);
-		file << BaseSerialize().dump(4);
-		file.close();
+		ofstream sceneFile(sceneFilePath);
+		sceneFile << BaseSerialize().dump(4);
+		sceneFile.close();
 
 		cout << "씬: " << m_type << " 저장 완료!" << endl;
 	}
@@ -300,7 +322,7 @@ void SceneBase::BaseRenderImGui()
 	ImGui::Checkbox("NavMesh Creating", &m_isNavMeshCreating);
 	#endif
 
-	if (ImGui::DragFloat("Gamma", &m_sceneGamma, 0.01f, 0.1f, 5.0f)) Renderer::GetInstance().SetGamma(m_sceneGamma);
+	ImGui::DragFloat("Gamma", &m_postProcessingData.gamma, 0.01f, 0.1f, 5.0f);
 
 	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);
 	ImGui::DragFloat("IBL Intensity", &m_globalLightData.lightColor.w, 0.001f, 0.0f, 1.0f);
@@ -329,7 +351,24 @@ void SceneBase::BaseRenderImGui()
 				ImGui::CloseCurrentPopup();
 			}
 		}
-
+		ImGui::EndPopup();
+	}
+	if (ImGui::Button("Add Prefab")) ImGui::OpenPopup("Select Prefab");
+	if (ImGui::BeginPopup("Select Prefab"))
+	{
+		const filesystem::path prefabDirectory = "../Asset/Prefab/";
+		for (const auto& entry : filesystem::directory_iterator(prefabDirectory))
+		{
+			if (entry.path().extension() == ".json")
+			{
+				const string prefabFileName = entry.path().stem().string();
+				if (ImGui::Selectable(prefabFileName.c_str()))
+				{
+					CreatePrefabRootGameObject(prefabFileName + ".json");
+					ImGui::CloseCurrentPopup();
+				}
+			}
+		}
 		ImGui::EndPopup();
 	}
 
@@ -454,9 +493,6 @@ nlohmann::json SceneBase::BaseSerialize()
 	nlohmann::json navMeshData = NavigationManager::GetInstance().Serialize();
 	if (!navMeshData.is_null() && navMeshData.is_object()) jsonData.merge_patch(navMeshData);
 
-	// 씬 감마 값
-	jsonData["gamma"] = m_sceneGamma;
-
 	// 파생 클래스의 직렬화 호출
 	nlohmann::json derivedData = Serialize();
 	if (!derivedData.is_null() && derivedData.is_object()) jsonData.merge_patch(derivedData);
@@ -496,9 +532,6 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 
 	// 환경 맵 파일 이름
 	if (jsonData.contains("environmentMapFileName")) m_environmentMapFileName = jsonData["environmentMapFileName"].get<string>();
-
-	// 씬 감마 값
-	if (jsonData.contains("gamma")) m_sceneGamma = jsonData["gamma"].get<float>();
 
 	// 네비게이션 메시 로드
 	NavigationManager::GetInstance().Deserialize(jsonData);
@@ -563,6 +596,8 @@ void SceneBase::GetResources()
 	m_cameraPositionConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::CameraPosition); // 카메라 위치 상수 버퍼 생성
 	m_globalLightConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::GlobalLight); // 방향광 상수 버퍼 생성
 
+	m_postProcessingConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::PostProcessing); // 후처리용 상수 버퍼 생성
+
 	m_spriteFont = resourceManager.GetSpriteFont(L"Gugi");
 }
 
@@ -594,6 +629,9 @@ void SceneBase::UpdateConstantBuffers()
 
 	// 환경광, 방향광 상수 버퍼 업데이트 및 셰이더에 설정
 	m_deviceContext->UpdateSubresource(m_globalLightConstantBuffer.Get(), 0, nullptr, &m_globalLightData, 0, 0);
+
+	// 후처리용 상수 버퍼 업데이트 및 셰이더에 설정
+	m_deviceContext->UpdateSubresource(m_postProcessingConstantBuffer.Get(), 0, nullptr, &m_postProcessingData, 0, 0);
 }
 
 void SceneBase::RenderSkybox()

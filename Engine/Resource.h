@@ -1,4 +1,3 @@
-/// Resource.h의 시작
 #pragma once
 
 struct RenderTarget
@@ -723,5 +722,3 @@ constexpr std::array<std::pair<size_t, size_t>, 12> BOX_LINE_INDICES =
 	std::pair<size_t, size_t>{ 4, 5 }, std::pair<size_t, size_t>{ 5, 6 }, std::pair<size_t, size_t>{ 6, 7 }, std::pair<size_t, size_t>{ 7, 4 },
 	std::pair<size_t, size_t>{ 0, 4 }, std::pair<size_t, size_t>{ 1, 5 }, std::pair<size_t, size_t>{ 2, 6 }, std::pair<size_t, size_t>{ 3, 7 }
 };
-
-/// Resource.h의 끝

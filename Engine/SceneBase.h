@@ -1,6 +1,6 @@
 #pragma once
-#include "Base.h"
 #include "GameObjectBase.h"
+
 #ifdef _DEBUG
 #include "DebugCamera.h"
 #endif
@@ -52,6 +52,9 @@ class SceneBase : public Base
 	com_ptr<ID3D11Buffer> m_globalLightConstantBuffer = nullptr; // 환경광, 방향광 상수 버퍼
 	com_ptr<ID3D11PixelShader> m_shadowMapPixelShader = nullptr; // 그림자 맵 생성용 픽셀 셰이더
 
+	static PostProcessingBuffer m_postProcessingData; // 후처리용 상수 버퍼 데이터
+	com_ptr<ID3D11Buffer> m_postProcessingConstantBuffer = nullptr; // 후처리용 상수 버퍼
+
 	bool m_showFPS = true; // FPS 표시 여부
 	DirectX::SpriteFont* m_spriteFont = nullptr; // FPS 표시용 스프라이트 폰트
 
@@ -63,11 +66,20 @@ public:
 	SceneBase(SceneBase&&) = delete; // 이동 금지
 	SceneBase& operator=(SceneBase&&) = delete; // 이동 대입 금지
 
+	// 후처리 버퍼 관련 함수 // 정적 멤버이므로 씬 인스턴스와 무관하게 사용 가능
+	static const PostProcessingBuffer& GetPostProcessingBuffer() { return m_postProcessingData; }
+	static void SetPostProcessingBuffer(const PostProcessingBuffer& buffer) { m_postProcessingData = buffer; }
+	static void SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag flag, bool enable) { if (enable) m_postProcessingData.flags |= static_cast<UINT>(flag); else m_postProcessingData.flags &= ~static_cast<UINT>(flag); }
+	static void SetGamma(float gamma) { m_postProcessingData.gamma = gamma; }
+	static void SetGrayScaleIntensity(float intensity) { m_postProcessingData.grayScaleIntensity = intensity; }
+	static void SetMotionBlurIntensity(float intensity) { m_postProcessingData.motionBlurIntensity = intensity; }
+
 	// 루트 게임 오브젝트 생성 // 게임 오브젝트 베이스 포인터 반환
 	GameObjectBase* CreateRootGameObject(const std::string& typeName);
-
 	template<typename T> requires std::derived_from<T, GameObjectBase>
 	T* CreateRootGameObject(); // 루트 게임 오브젝트 생성 // 포인터 반환
+
+	GameObjectBase* CreatePrefabRootGameObject(const std::string& prefabFileName); // 프리팹 파일로부터 루트 게임 오브젝트 생성 // 게임 오브젝트 베이스 포인터 반환
 
 	GameObjectBase* GetRootGameObject(const std::string& name); // 이름으로 루트 게임 오브젝트 검색 // 없으면 nullptr 반환
 	GameObjectBase* GetGameObjectRecursive(const std::string& name); // 이름으로 게임 오브젝트 재귀 검색 // 없으면 nullptr 반환
@@ -133,7 +145,6 @@ class Button
 {
 	bool m_isActive = true;
 	bool m_isHoverd = false;
-	bool m_isDead = false;
 
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_textureAndOffset = {};
 	DirectX::XMFLOAT2 m_UIPosition = {};
@@ -147,7 +158,6 @@ class Button
 
 public:
 	void SetActive(bool isActive) { m_isActive = isActive; }
-	void SetDead(bool isDead) { m_isDead = isDead; }
 	void SetTextureAndOffset(const std::string& fileName);
 	void SetUIPosition(const DirectX::XMFLOAT2& position) { m_UIPosition = position; UpdateRect(); }
 	void SetScale(float scale) { m_scale = scale; UpdateRect(); }
@@ -157,7 +167,6 @@ public:
 
 	void RenderButton(class Renderer& renderer);
 	void CheckInput(const POINT& mousePosition, bool isMouseClicked);
-	bool GetDead() const { return m_isDead; }
 
 private:
 	void UpdateRect();

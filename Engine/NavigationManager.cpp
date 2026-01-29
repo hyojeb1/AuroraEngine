@@ -1,19 +1,23 @@
 #include "stdafx.h"
 #include "NavigationManager.h"
 
+#ifdef _DEBUG
 #include "Renderer.h"
 #include "ResourceManager.h"
 #include "InputManager.h"
 #include "CameraComponent.h"
+#endif
 
 using namespace std;
 using namespace DirectX;
 
 void NavigationManager::Initialize()
 {
+	#ifdef _DEBUG
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_navMeshVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_navMeshPixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
+	#endif
 }
 
 void NavigationManager::Deserialize(const nlohmann::json& jsonData)
@@ -80,13 +84,6 @@ void NavigationManager::ClearNavMesh()
 	m_currentPath.clear();
 }
 
-void NavigationManager::AddPolygon(const vector<XMVECTOR>& vertices, const array<int, 3>& indices)
-{
-	m_vertices.insert(m_vertices.end(), vertices.begin(), vertices.end());
-
-	m_navPolys.emplace_back(NavPoly{ indices, { -1, -1, -1 }, XMVectorScale(XMVectorAdd(XMVectorAdd(m_vertices[indices[0]], m_vertices[indices[1]]), m_vertices[indices[2]]), 1.0f / 3.0f) });
-}
-
 void NavigationManager::BuildAdjacency()
 {
 	struct PairHash
@@ -115,6 +112,14 @@ void NavigationManager::BuildAdjacency()
 			}
 		}
 	}
+}
+
+#ifdef _DEBUG
+void NavigationManager::AddPolygon(const vector<XMVECTOR>& vertices, const array<int, 3>& indices)
+{
+	m_vertices.insert(m_vertices.end(), vertices.begin(), vertices.end());
+
+	m_navPolys.emplace_back(NavPoly{ indices, { -1, -1, -1 }, XMVectorScale(XMVectorAdd(XMVectorAdd(m_vertices[indices[0]], m_vertices[indices[1]]), m_vertices[indices[2]]), 1.0f / 3.0f) });
 }
 
 void NavigationManager::RenderNavMesh()
@@ -217,6 +222,97 @@ void NavigationManager::RenderNavMesh()
 		}
 	);
 }
+
+
+void NavigationManager::HandlePlaceLink()
+{
+	InputManager& input = InputManager::GetInstance();
+
+	const POINT& mouse = input.GetMousePosition();
+	const CameraComponent& camera = CameraComponent::GetMainCamera();
+	pair<XMVECTOR, XMVECTOR> ray = camera.RayCast(static_cast<float>(mouse.x), static_cast<float>(mouse.y));
+
+	m_previewPoint = XMPlaneIntersectLine(XMPlaneFromPointNormal(XMVectorZero(), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)), ray.first, ray.second);
+
+	int bestVertexIndex = -1;
+	if (m_previewLine.first >= 0 && m_previewLine.second >= 0)
+	{
+		float bestVertexDist = numeric_limits<float>::max();
+		for (int i = 0; i < static_cast<int>(m_vertices.size()); ++i)
+		{
+			if (i == m_previewLine.first || i == m_previewLine.second) continue;
+
+			float dist = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(m_vertices[i], m_previewPoint)));
+			if (dist < bestVertexDist)
+			{
+				bestVertexDist = dist;
+				bestVertexIndex = i;
+			}
+		}
+
+		if (bestVertexDist < 5.0f) m_previewPoint = m_vertices[bestVertexIndex];
+		else bestVertexIndex = -1;
+	}
+
+	if (input.GetKeyDown(KeyCode::E))
+	{
+		float bestLineDist = numeric_limits<float>::max();
+
+		for (const NavPoly& poly : m_navPolys)
+		{
+			for (int edgeIndex = 0; edgeIndex < 3; ++edgeIndex)
+			{
+				float dist = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(XMVectorScale(XMVectorAdd(m_vertices[poly.indices[edgeIndex]], m_vertices[poly.indices[(edgeIndex + 1) % 3]]), 0.5f), m_previewPoint)));
+
+				if (dist < bestLineDist)
+				{
+					bestLineDist = dist;
+					m_previewLine = { poly.indices[edgeIndex], poly.indices[(edgeIndex + 1) % 3] };
+				}
+			}
+		}
+	}
+
+	if (input.GetKeyDown(KeyCode::MouseLeft) && m_previewLine.first >= 0 && m_previewLine.second >= 0)
+	{
+		if (bestVertexIndex >= 0) AddPolygon({}, { m_previewLine.first, m_previewLine.second, bestVertexIndex });
+		else AddPolygon({ m_previewPoint }, { m_previewLine.first, m_previewLine.second, static_cast<int>(m_vertices.size()) });
+
+		BuildAdjacency();
+		m_previewLine = { -1, -1 };
+	}
+
+	if (input.GetKeyDown(KeyCode::Q))
+	{
+		if (!m_pathStartSet)
+		{
+			m_pathStartSet = true;
+			m_pathStartPoint = m_previewPoint;
+			m_currentPath.clear();
+		}
+		else if (m_currentPath.empty())
+		{
+			m_currentPath = FindPath(m_pathStartPoint, m_previewPoint);
+		}
+		else
+		{
+			m_pathStartSet = false;
+			m_currentPath.clear();
+		}
+	}
+
+	if (input.GetKeyDown(KeyCode::R))
+	{
+		ClearNavMesh();
+
+		const vector<XMVECTOR> VERTICES = { XMVECTOR{-5.0f, 0.0f, -5.0f, 1.0f}, XMVECTOR{5.0f, 0.0f, -5.0f, 1.0f}, XMVECTOR{0.0f, 0.0f, 5.0f, 1.0f} };
+		constexpr array<int, 3> INDICES = { 0, 1, 2 };
+		AddPolygon(VERTICES, INDICES);
+
+		BuildAdjacency();
+	}
+}
+#endif
 
 int NavigationManager::FindNearestPoly(const XMVECTOR& point) const
 {
@@ -375,93 +471,4 @@ bool NavigationManager::PointInTriangle(const XMVECTOR& point, const array<int, 
 	float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
 	return (u >= 0) && (v >= 0) && (u + v < 1);
-}
-
-void NavigationManager::HandlePlaceLink()
-{
-	InputManager& input = InputManager::GetInstance();
-
-	const POINT& mouse = input.GetMousePosition();
-	const CameraComponent& camera = CameraComponent::GetMainCamera();
-	pair<XMVECTOR, XMVECTOR> ray = camera.RayCast(static_cast<float>(mouse.x), static_cast<float>(mouse.y));
-
-	m_previewPoint = XMPlaneIntersectLine(XMPlaneFromPointNormal(XMVectorZero(), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)), ray.first, ray.second);
-
-	int bestVertexIndex = -1;
-	if (m_previewLine.first >= 0 && m_previewLine.second >= 0)
-	{
-		float bestVertexDist = numeric_limits<float>::max();
-		for (int i = 0; i < static_cast<int>(m_vertices.size()); ++i)
-		{
-			if (i == m_previewLine.first || i == m_previewLine.second) continue;
-
-			float dist = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(m_vertices[i], m_previewPoint)));
-			if (dist < bestVertexDist)
-			{
-				bestVertexDist = dist;
-				bestVertexIndex = i;
-			}
-		}
-
-		if (bestVertexDist < 5.0f) m_previewPoint = m_vertices[bestVertexIndex];
-		else bestVertexIndex = -1;
-	}
-
-	if (input.GetKeyDown(KeyCode::E))
-	{
-		float bestLineDist = numeric_limits<float>::max();
-
-		for (const NavPoly& poly : m_navPolys)
-		{
-			for (int edgeIndex = 0; edgeIndex < 3; ++edgeIndex)
-			{
-				float dist = XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(XMVectorScale(XMVectorAdd(m_vertices[poly.indices[edgeIndex]], m_vertices[poly.indices[(edgeIndex + 1) % 3]]), 0.5f), m_previewPoint)));
-
-				if (dist < bestLineDist)
-				{
-					bestLineDist = dist;
-					m_previewLine = { poly.indices[edgeIndex], poly.indices[(edgeIndex + 1) % 3] };
-				}
-			}
-		}
-	}
-
-	if (input.GetKeyDown(KeyCode::MouseLeft) && m_previewLine.first >= 0 && m_previewLine.second >= 0)
-	{
-		if (bestVertexIndex >= 0) AddPolygon({}, { m_previewLine.first, m_previewLine.second, bestVertexIndex });
-		else AddPolygon({ m_previewPoint }, { m_previewLine.first, m_previewLine.second, static_cast<int>(m_vertices.size()) });
-
-		BuildAdjacency();
-		m_previewLine = { -1, -1 };
-	}
-
-	if (input.GetKeyDown(KeyCode::Q))
-	{
-		if (!m_pathStartSet)
-		{
-			m_pathStartSet = true;
-			m_pathStartPoint = m_previewPoint;
-			m_currentPath.clear();
-		}
-		else if (m_currentPath.empty())
-		{
-			m_currentPath = FindPath(m_pathStartPoint, m_previewPoint);
-		}
-		else
-		{
-			m_pathStartSet = false;
-			m_currentPath.clear();
-		}
-	}
-
-	if (input.GetKeyDown(KeyCode::R))
-	{
-		ClearNavMesh();
-
-		const vector<XMVECTOR> VERTICES = { XMVECTOR{-5.0f, 0.0f, -5.0f, 1.0f}, XMVECTOR{5.0f, 0.0f, -5.0f, 1.0f}, XMVECTOR{0.0f, 0.0f, 5.0f, 1.0f} };
-		constexpr array<int, 3> INDICES = { 0, 1, 2 };
-		AddPolygon(VERTICES, INDICES);
-
-		BuildAdjacency();
-	}
 }

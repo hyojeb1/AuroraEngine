@@ -2,9 +2,12 @@
 #include "ColliderComponent.h"
 
 #include "GameObjectBase.h"
-#include "ResourceManager.h"
-#include "Renderer.h"
 #include "ModelComponent.h"
+
+#ifdef _DEBUG
+#include "Renderer.h"
+#include "ResourceManager.h"
+#endif
 
 using namespace std;
 using namespace DirectX;
@@ -118,9 +121,8 @@ vector<GameObjectBase*> ColliderComponent::CheckCollision(const BoundingFrustum&
 
 void ColliderComponent::Initialize()
 {
-	ResourceManager& resourceManager = ResourceManager::GetInstance();
-
 	#ifdef _DEBUG
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_boundingShapeVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_boundingShapePixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
 	#endif

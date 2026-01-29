@@ -1,64 +1,21 @@
-///
-/// BOF Animator.cpp
-///
 #include "stdafx.h"
 #include "Animator.h"
+
+#include "Resource.h"
 
 using namespace DirectX;
 using namespace std;
 
 namespace HELPER_IN_ANIMATOR_CPP
 {
-float WrapAnimationTime(float time, float duration)
-{
-	if (duration <= 0.0f) return 0.0f;
-	float wrapped = fmodf(time, duration);
-	return wrapped < 0.f ? wrapped + duration : wrapped;
-}
-
-VectorKeyframe GetVectorKeyframe(const std::vector<VectorKeyframe>& keys, float time_position, const XMFLOAT3& default_value)
-{
-	// 1. 예외 처리(데이터 없음)
-	if (keys.empty())
+	static float WrapAnimationTime(float time, float duration)
 	{
-		return { time_position, default_value };
+		if (duration <= 0.0f) return 0.0f;
+		float wrapped = fmodf(time, duration);
+		return wrapped < 0.f ? wrapped + duration : wrapped;
 	}
 
-	// 2. 프레임이 하나 OR 요청한 시간이 더 앞일 경우
-	// 첫 프레임 값을 리턴함
-	if (keys.size() == 1 || time_position <= keys.front().time_position)
-	{
-		return keys.front();
-	}
-
-	// 3. 구간 탐색 및 보간
-	for (size_t i = 0; i + 1 < keys.size(); ++i)
-	{
-		if (time_position < keys[i + 1].time_position)
-		{
-			const float segment_start	= keys[i].time_position;
-			const float segment_end		= keys[i + 1].time_position;
-
-			const float scale_factor	= (segment_end - segment_start) > 0.0f ? (time_position - segment_start)/ (segment_end - segment_start) : 0.f;
-
-			XMVECTOR from				= XMLoadFloat3(&keys[i].value);
-			XMVECTOR to					= XMLoadFloat3(&keys[i + 1].value);
-
-			XMVECTOR blended			= XMVectorLerp(from, to, scale_factor);
-
-			VectorKeyframe result		= {};
-			result.time_position		= time_position;
-			XMStoreFloat3(&result.value, blended);
-			return result;
-		}
-	}
-
-	// 4. 요청한 시간이 더 뒤일 경우
-	// 마지막 프레임 값을 리턴함
-	return keys.back();
-}
-
-QuaternionKeyframe GetQuaternionKeyframe(const std::vector<QuaternionKeyframe>& keys, float time_position, const XMFLOAT4& default_value)
+	static VectorKeyframe GetVectorKeyframe(const vector<VectorKeyframe>& keys, float time_position, const XMFLOAT3& default_value)
 	{
 		// 1. 예외 처리(데이터 없음)
 		if (keys.empty())
@@ -67,7 +24,51 @@ QuaternionKeyframe GetQuaternionKeyframe(const std::vector<QuaternionKeyframe>& 
 		}
 
 		// 2. 프레임이 하나 OR 요청한 시간이 더 앞일 경우
+		// // 첫 프레임 값을 리턴함
+		if (keys.size() == 1 || time_position <= keys.front().time_position)
+		{
+			return keys.front();
+		}
+
+		// 3. 구간 탐색 및 보간
+		for (size_t i = 0; i + 1 < keys.size(); ++i)
+		{
+			if (time_position < keys[i + 1].time_position)
+			{
+				const float segment_start	= keys[i].time_position;
+				const float segment_end		= keys[i + 1].time_position;
+
+				const float scale_factor	= (segment_end - segment_start) > 0.0f ? (time_position - segment_start)/ (segment_end - segment_start) : 0.f;
+
+				XMVECTOR from				= XMLoadFloat3(&keys[i].value);
+				XMVECTOR to					= XMLoadFloat3(&keys[i + 1].value);
+
+				XMVECTOR blended			= XMVectorLerp(from, to, scale_factor);
+
+				VectorKeyframe result		= {};
+				result.time_position		= time_position;
+				XMStoreFloat3(&result.value, blended);
+				return result;
+			}
+		}
+
+		// 4. 요청한 시간이 더 뒤일 경우
+		// // 마지막 프레임 값을 리턴함
+		return keys.back();
+	}
+
+	static QuaternionKeyframe GetQuaternionKeyframe(const std::vector<QuaternionKeyframe>& keys, float time_position, const XMFLOAT4& default_value)
+	{
+		// 1. 예외 처리(데이터 없음)
+
+		if (keys.empty())
+		{
+			return { time_position, default_value };
+		}
+
+		// 2. 프레임이 하나 OR 요청한 시간이 더 앞일 경우
 		// 첫 프레임 값을 리턴함
+
 		if (keys.size() == 1 || time_position <= keys.front().time_position)
 		{
 			return keys.front();

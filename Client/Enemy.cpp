@@ -14,13 +14,11 @@ REGISTER_TYPE(Enemy)
 
 using namespace DirectX;
 
-
 void Enemy::Initialize()
 {
-	m_model = CreateComponent<SkinnedModelComponent>();
-	m_fsm = CreateComponent<FSMComponentEnemy>();
-	m_collider = CreateComponent<ColliderComponent>();
-	m_collider->AddBoundingBox(BoundingBox({ 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }));
+	m_model = GetComponent<SkinnedModelComponent>();
+	m_fsm = GetComponent<FSMComponentEnemy>();
+	m_collider = GetComponent<ColliderComponent>();
 
 	m_player = static_cast<Player*>(SceneManager::GetInstance().GetCurrentScene()->GetGameObjectRecursive("Player"));
 }
@@ -34,10 +32,7 @@ void Enemy::Die()
 
 	if (m_collider) m_collider->SetAlive(false);
 
-	if (m_fsm)
-	{
-		m_fsm->ChangeState(FSMComponentEnemy::EDead);
-	}
+	if (m_fsm) m_fsm->ChangeState(FSMComponentEnemy::EDead);
 }
 
 void Enemy::Update()
@@ -46,10 +41,7 @@ void Enemy::Update()
 	{
 		m_deathTimer += TimeManager::GetInstance().GetDeltaTime();
 
-		if (m_deathTimer >= m_deathDuration)
-		{
-			SetAlive(false);
-		}
+		if (m_deathTimer >= m_deathDuration) SetAlive(false);
 	}
 	LookAt(m_player->GetPosition());
 	MoveDirection(TimeManager::GetInstance().GetDeltaTime() * 2.0f, Direction::Forward);

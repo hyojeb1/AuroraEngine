@@ -1,15 +1,16 @@
 #include "stdafx.h"
 #include "Player.h"
 
+#include "Renderer.h"
 #include "SoundManager.h"
 #include "TimeManager.h"
 #include "InputManager.h"
 #include "ColliderComponent.h"
 #include "CameraComponent.h"
-#include "Renderer.h"
 #include "ResourceManager.h"
 #include "CamRotObject.h"
 #include "ModelComponent.h"
+#include "SceneBase.h"
 #include "Enemy.h"
 
 #include "FSMComponentGun.h"
@@ -60,16 +61,12 @@ void Player::Render()
 
 	if (!m_lineBuffers.empty()) RenderLineBuffers(renderer);
 	if (!m_deadEyeTargets.empty()) RenderDeadEyeTargetsUI(renderer);
-	if (m_bulletCnt <= m_MaxBullet && m_bulletCnt != 0)
-	{
-		RenderBullets(renderer);
-	}
-	
+	if (m_bulletCnt <= m_MaxBullet && m_bulletCnt != 0) RenderBullets(renderer);
 }
 
 void Player::Finalize()
 {
-	TimeManager::GetInstance().SetTimeScale(1.0f); // ?���? ?���? ?��?��?��?�� 종료?��?�� ?��?�� 방�??
+	TimeManager::GetInstance().SetTimeScale(1.0f);
 }
 
 void Player::PlayerMove(float deltaTime, InputManager& input)
@@ -100,15 +97,22 @@ void Player::PlayerShoot()
 	const XMVECTOR& direction = mainCamera.GetForwardVector();
 	float distance = 0.0f;
 	GameObjectBase* hit = ColliderComponent::CheckCollision(origin, direction, distance);
+	const XMVECTOR& hitPosition = XMVectorAdd(origin, XMVectorScale(direction, distance));
 	if (hit)
 	{
 		if (m_gunFSM) m_gunFSM->Fire();
-		if (Enemy* enemy = dynamic_cast<Enemy*>(hit)) enemy->Die();
+		if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
+		{
+			enemy->Die();
+			GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
+			gem->SetPosition(hitPosition);
+			gem->SetIgnoreParentTransform(true);
+		}
 
 		LineBuffer lineBuffer = {};
 		XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
 		lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		XMStoreFloat4(&lineBuffer.linePoints[1], XMVectorAdd(origin, XMVectorScale(direction, distance)));
+		XMStoreFloat4(&lineBuffer.linePoints[1], hitPosition);
 		lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 
 		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
@@ -154,7 +158,7 @@ void Player::PlayerDeadEyeStart()
 		m_cameraObject->SetSensitivity(0.01f);
 		m_xSensitivity = m_cameraObject->GetSensitivity();
 
-		Renderer::GetInstance().SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, true);
+		SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, true);
 
 		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [](const auto& a, const auto& b) { return get<0>(a) < get<0>(b); });
 		if (m_deadEyeTargets.size() > 6) m_deadEyeTargets.resize(6);
@@ -167,7 +171,7 @@ void Player::PlayerDeadEyeStart()
 
 void Player::PlayerDeadEye(float deltaTime)
 {
-	Renderer::GetInstance().SetGrayScaleIntensity((1.0f - (m_deadEyeTime / m_deadEyeDuration)) * 2.0f);
+	SceneBase::SetGrayScaleIntensity((1.0f - (m_deadEyeTime / m_deadEyeDuration)) * 2.0f);
 	m_deadEyeTime -= deltaTime;
 
 	if (SoundManager::GetInstance().GetRhythmTimerIndex() >= m_currentNodeIndex + m_DeadEyeCount)
@@ -177,6 +181,10 @@ void Player::PlayerDeadEye(float deltaTime)
 			if (timing > 999990.1f) continue;
 
 			enemy->Die();
+
+			GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
+			gem->SetPosition(enemy->GetWorldPosition());
+			gem->SetIgnoreParentTransform(true);
 
 			LineBuffer lineBuffer = {};
 			if (m_gunObject) XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
@@ -203,9 +211,8 @@ void Player::PlayerDeadEyeEnd()
 
 	m_deadEyeTargets.clear();
 
-	Renderer& renderer = Renderer::GetInstance();
-	renderer.SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, false);
-	renderer.SetGrayScaleIntensity(0.0f);
+	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, false);
+	SceneBase::SetGrayScaleIntensity(0.0f);
 
 	SoundManager::GetInstance().ChangeLowpass();
 }
