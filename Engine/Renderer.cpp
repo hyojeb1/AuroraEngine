@@ -42,14 +42,13 @@ void Renderer::BeginFrame()
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::LUT),	1, resourceManager.GetLUT(LUTData::SEPIA).GetAddressOf());
+			//m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::LUT), 1, resourceManager.GetLUT(LUTData::SEPIA).GetAddressOf());
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::LUT), 1, resourceManager.GetLUT(LUTData::IDENTITY).GetAddressOf());
 
 			// 백 버퍼로 씬 렌더링
 			RenderSceneToBackBuffer();
 		}
 	);
-
-
 }
 
 void Renderer::RenderTextScreenPosition(const wchar_t* text, XMFLOAT2 position, float depth, const XMVECTOR& color, float scale, const wstring& fontName)

@@ -10,6 +10,10 @@ class Player : public GameObjectBase
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_deadEyeTextureAndOffset = {};
 	std::vector<std::pair<float, class Enemy*>> m_deadEyeTargets = {};
 
+	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_enemyHitTextureAndOffset = {};
+	const float m_enemyHitDisplayTime = 0.2f;
+	float m_enemyHitTimer = 0.0f;
+
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_bulletImgs = {};
 
 	float m_moveSpeed = 5.0f;
@@ -21,8 +25,8 @@ class Player : public GameObjectBase
 	class FSMComponentGun* m_gunFSM = nullptr;
 
 	bool m_isDeadEyeActive = false;
-	const float m_deadEyeDuration = 0.25f;
-	float m_deadEyeTime = 0.0f;
+	float m_deadEyeTotalDuration = 0.0f;
+	float m_deadEyeDuration = 0.0f;
 
 	PostProcessingBuffer m_postProcessingBuffer = {};
 
@@ -53,11 +57,12 @@ private:
 	void PlayerShoot();
 	void PlayerReload();
 	void PlayerDeadEyeStart();
-	void PlayerDeadEye(float deltaTime);
+	void PlayerDeadEye(float deltaTime, class InputManager& input);
 	void PlayerDeadEyeEnd();
 
 	void RenderLineBuffers(class Renderer& renderer);
 	void RenderDeadEyeTargetsUI(class Renderer& renderer);
+	void RenderEnemyHitUI(class Renderer& renderer);
 	void RenderUINode(class Renderer& renderer);
 	void RenderBullets(class Renderer& renderer);
 };

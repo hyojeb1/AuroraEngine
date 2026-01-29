@@ -5,6 +5,11 @@
 
 REGISTER_TYPE(GemParticle)
 
+void GemParticle::Initialize()
+{
+	SetIgnoreParentTransform(true);
+}
+
 void GemParticle::Update()
 {
 	m_lifeTime += TimeManager::GetInstance().GetDeltaTime();
