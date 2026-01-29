@@ -165,9 +165,9 @@ void SceneBase::BaseUpdate()
 
 		const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
 
-		ofstream file(sceneFilePath);
-		file << BaseSerialize().dump(4);
-		file.close();
+		ofstream sceneFile(sceneFilePath);
+		sceneFile << BaseSerialize().dump(4);
+		sceneFile.close();
 
 		cout << "씬: " << m_type << " 저장 완료!" << endl;
 	}

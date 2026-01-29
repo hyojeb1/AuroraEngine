@@ -136,6 +136,10 @@ GameObjectBase* GameObjectBase::CreateChildGameObject(const string& typeName)
 	return childGameObjectPtr;
 }
 
+GameObjectBase* GameObjectBase::CreatePrefabChildGameObject(const std::string& prefabFileName)
+{
+}
+
 GameObjectBase* GameObjectBase::GetChildGameObject(const string& name)
 {
 	for (auto& child : m_childrens) if (child->m_name == name) return child.get();
@@ -223,6 +227,9 @@ void GameObjectBase::BaseRenderImGui()
 	if (ImGui::Button("Remove")) SetAlive(false);
 	ImGui::SameLine();
 
+	if (ImGui::Button("Save As Prefab")) SaveAsPrefab();
+	ImGui::SameLine();
+
 	static array<char, 256> nameBuffer = {};
 	strcpy_s(nameBuffer.data(), nameBuffer.size(), m_name.c_str());
 	if (ImGui::InputText("", nameBuffer.data(), sizeof(nameBuffer))) m_name = nameBuffer.data();
@@ -288,6 +295,41 @@ void GameObjectBase::BaseRenderImGui()
 				}
 			}
 
+			ImGui::EndPopup();
+		}
+		ImGui::SameLine();
+
+		// prefab으로 자식 게임 오브젝트 생성
+		if (ImGui::Button("Add From Prefab")) ImGui::OpenPopup("Select Prefab");
+		if (ImGui::BeginPopup("Select Prefab"))
+		{
+			const filesystem::path prefabDirectory = "../Asset/Prefab/";
+			for (const auto& entry : filesystem::directory_iterator(prefabDirectory))
+			{
+				if (entry.path().extension() == ".json")
+				{
+					string prefabName = entry.path().stem().string();
+					if (ImGui::Selectable(prefabName.c_str()))
+					{
+						const filesystem::path prefabFilePath = prefabDirectory / entry.path().filename();
+						ifstream prefabFile(prefabFilePath);
+
+						nlohmann::json prefabJson;
+						prefabFile >> prefabJson;
+						prefabFile.close();
+						string typeName = prefabJson["type"].get<string>();
+
+						unique_ptr<GameObjectBase> childGameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
+						childGameObject->m_parent = this;
+						childGameObject->BaseDeserialize(prefabJson);
+						childGameObject->BaseInitialize();
+
+						m_childrens.push_back(move(childGameObject));
+
+						ImGui::CloseCurrentPopup();
+					}
+				}
+			}
 			ImGui::EndPopup();
 		}
 
@@ -415,6 +457,19 @@ void GameObjectBase::BaseDeserialize(const nlohmann::json& jsonData)
 	}
 
 	SetDirty();
+}
+
+void GameObjectBase::SaveAsPrefab()
+{
+	cout << "게임 오브젝트 '" << m_name << " 저장 중..." << endl;
+
+	const filesystem::path prefabFilePath = "../Asset/Prefab/" + m_name + ".json";
+
+	ofstream prefabFile(prefabFilePath);
+	prefabFile << BaseSerialize().dump(4);
+	prefabFile.close();
+
+	cout << "게임 오브젝트 '" << m_name << " 저장 완료!" << endl;
 }
 
 void GameObjectBase::RemovePending()
