@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ParticleComponent.h"
 
+#include "Renderer.h"
 #include "ResourceManager.h"
 #include "GameObjectBase.h"
 #include "CameraComponent.h"

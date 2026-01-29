@@ -1,5 +1,6 @@
 ///bof ResourceManager.h
 #pragma once
+#include "Resource.h"
 #include "LUT.h"
 
 class ResourceManager : public Singleton<ResourceManager>

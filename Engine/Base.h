@@ -1,5 +1,7 @@
 #pragma once
 
+#include "TypeRegistry.h"
+
 class IBase
 {
 public:

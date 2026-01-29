@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ModelComponent.h"
 
+#include "Renderer.h"
 #include "ResourceManager.h"
 #include "GameObjectBase.h"
 #include "CameraComponent.h"

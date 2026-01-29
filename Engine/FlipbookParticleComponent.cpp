@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "FlipbookParticleComponent.h"
 
+#include "RNG.h"
 #include "TimeManager.h"
 
 using namespace std;

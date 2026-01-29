@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Player.h"
 
+#include "Renderer.h"
 #include "SoundManager.h"
 #include "TimeManager.h"
 #include "InputManager.h"
@@ -34,8 +35,11 @@ void Player::Initialize()
 
 	m_bulletImgs = resourceManager.GetTextureAndOffset("bullet.png");
 
-	m_DeadEyeCount = 3;
+	m_DeadEyeCount = 6;
 	m_bulletCnt = 6;
+
+	m_bulletUIpos = { 0.82f,0.9f };
+	m_bulletInterval = 0.03;
 }
 
 void Player::Update()
@@ -45,13 +49,17 @@ void Player::Update()
 	auto& sm = SoundManager::GetInstance();
 
 	PlayerMove(deltaTime, input);
-	if (input.GetKeyDown(KeyCode::R)) { PlayerReload(); };
 	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f)) { PlayerShoot(); };
 	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f)) PlayerDeadEyeStart();
+	if (input.GetKeyDown(KeyCode::R) && sm.CheckRhythm(0.1f)) { PlayerReload(); };
 	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime);
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
 	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();
+
+	if (input.GetKey(KeyCode::LeftBracket))	{ m_bulletUIpos.first += 0.1f * deltaTime; }
+	if (input.GetKey(KeyCode::RightBracket)) { m_bulletUIpos.second += 0.1f * deltaTime; }
+	if (input.GetKey(KeyCode::Num0)) { m_bulletInterval += 0.01f * deltaTime; }
 }
 
 void Player::Render()
@@ -60,16 +68,12 @@ void Player::Render()
 
 	if (!m_lineBuffers.empty()) RenderLineBuffers(renderer);
 	if (!m_deadEyeTargets.empty()) RenderDeadEyeTargetsUI(renderer);
-	if (m_bulletCnt <= m_MaxBullet && m_bulletCnt != 0)
-	{
-		RenderBullets(renderer);
-	}
-	
+	if (m_bulletCnt <= m_MaxBullet && m_bulletCnt != 0)	{ RenderBullets(renderer); }	
 }
 
 void Player::Finalize()
 {
-	TimeManager::GetInstance().SetTimeScale(1.0f); // ?���? ?���? ?��?��?��?�� 종료?��?�� ?��?�� 방�??
+	TimeManager::GetInstance().SetTimeScale(1.0f);
 }
 
 void Player::PlayerMove(float deltaTime, InputManager& input)
@@ -160,7 +164,7 @@ void Player::PlayerDeadEyeStart()
 		if (m_deadEyeTargets.size() > 6) m_deadEyeTargets.resize(6);
 
 		SoundManager::GetInstance().ChangeLowpass();
-
+		SoundManager::GetInstance().Sub_BGM_Shot("deadeye_test_3enemy_beat", 0.1f);
 		m_currentNodeIndex = SoundManager::GetInstance().GetRhythmTimerIndex();
 	}
 }
@@ -187,8 +191,7 @@ void Player::PlayerDeadEye(float deltaTime)
 			m_lineBuffers.emplace_back(lineBuffer, 0.5f);
 		}
 		PlayerDeadEyeEnd();
-	}
-	
+	}	
 }
 
 void Player::PlayerDeadEyeEnd()
@@ -253,11 +256,10 @@ void Player::RenderDeadEyeTargetsUI(Renderer& renderer)
 
 void Player::RenderBullets(class Renderer& renderer)
 {
-	float pos = 0.5f;
+	float pos;
 	for (int i = 0; i < m_bulletCnt; i++)
 	{
-		pos = ((0.7f) + static_cast<float>(i) * 0.02f);
-		renderer.UI_RENDER_FUNCTIONS().emplace_back([pos, this]() { Renderer::GetInstance().RenderImageUIPosition(m_bulletImgs.first, { pos, 0.8f }, m_bulletImgs.second, 0.1f); });
-		
+		pos = m_bulletUIpos.first + (m_bulletInterval * i);
+		renderer.UI_RENDER_FUNCTIONS().emplace_back([&,pos]() { Renderer::GetInstance().RenderImageUIPosition(m_bulletImgs.first, { pos, m_bulletUIpos.second }, m_bulletImgs.second, 0.1f); });
 	}
 }

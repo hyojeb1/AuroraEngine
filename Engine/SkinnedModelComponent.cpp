@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "SkinnedModelComponent.h"
 
+#include "Renderer.h"
 #include "ResourceManager.h"
 #include "TimeManager.h"
 #include "GameObjectBase.h"

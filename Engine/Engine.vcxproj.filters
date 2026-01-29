@@ -201,9 +201,6 @@
     <ClInclude Include="RNG.h">
       <Filter>Manager</Filter>
     </ClInclude>
-    <ClInclude Include="ResourceEnum.h">
-      <Filter>Resource</Filter>
-    </ClInclude>
     <ClInclude Include="LUT.h">
       <Filter>Manager</Filter>
     </ClInclude>
