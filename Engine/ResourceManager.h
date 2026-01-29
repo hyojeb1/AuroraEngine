@@ -1,4 +1,6 @@
 #pragma once
+#include "Resource.h"
+
 ///
 ///ResourceManager.h
 /// 그래픽 자원을 관리하는 매니저 클래스임

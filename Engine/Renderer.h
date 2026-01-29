@@ -1,5 +1,5 @@
 #pragma once
-#include "Resource.h"
+#include "ResourceEnum.h"
 
 struct RenderTarget
 {
