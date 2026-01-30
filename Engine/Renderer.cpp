@@ -126,9 +126,6 @@ void Renderer::EndFrame()
 
 
 	#ifdef _DEBUG
-
-
-
 	ImGui::Begin("SRV");
 	ImGui::Image
 	(
@@ -177,10 +174,10 @@ void Renderer::Finalize()
 	ImGui_ImplDX11_Shutdown();
 }
 
-HRESULT Renderer::Resize(UINT width, UINT height)
+void Renderer::Resize(UINT width, UINT height)
 {
-	if (width <= 0 || height <= 0) return E_INVALIDARG;
-	if (m_device == nullptr || m_deviceContext == nullptr || m_swapChain == nullptr) return E_FAIL;
+	if (width <= 0 || height <= 0) return;
+	if (m_device == nullptr || m_deviceContext == nullptr || m_swapChain == nullptr) return;
 
 	HRESULT hr = S_OK;
 
@@ -205,6 +202,11 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 	m_swapChainDesc.Height = height;
 	m_aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 
+	
+	BOOL wasFullScreen = FALSE;
+	com_ptr<IDXGIOutput> fullscreenOutput = nullptr;
+	hr = m_swapChain->GetFullscreenState(&wasFullScreen, fullscreenOutput.GetAddressOf());
+
 	// 스왑 체인 크기 조정
 	hr = m_swapChain->ResizeBuffers
 	(
@@ -222,8 +224,23 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 
 	// 뷰포트 설정
 	SetViewport();
+}
 
-	return hr;
+void Renderer::SetFullscreen(bool enable)
+{
+	if (m_swapChain == nullptr) return;
+	HRESULT hr = S_OK;
+
+	if (enable)
+	{
+		hr = m_swapChain->SetFullscreenState(TRUE, nullptr);
+		CheckResult(hr, "전체 화면 모드 설정 실패.");
+	}
+	else
+	{
+		hr = m_swapChain->SetFullscreenState(FALSE, nullptr);
+		CheckResult(hr, "창 모드 설정 실패.");
+	}
 }
 
 void Renderer::SetViewport(FLOAT Width, FLOAT Height)
@@ -430,6 +447,11 @@ void Renderer::CreateSceneRenderTarget()
 	CheckResult(hr, "씬 깊이-스텐실 뷰 생성 실패.");
 
 	RENDER_TARGET(RenderStage::Scene).depthStencil = { depthStencilTexture, depthStencilView };
+
+	// 밉맵 지원 확인
+	UINT maxDim = max(static_cast<UINT>(1), max(m_swapChainDesc.Width, m_swapChainDesc.Height));
+	UINT maxPossibleMipLevels = static_cast<UINT>(floor(log2(static_cast<float>(maxDim))) + 1.0f);
+	m_sceneResultMipLevels = min(static_cast<UINT>(11), maxPossibleMipLevels);
 
 	const D3D11_TEXTURE2D_DESC sceneResultDesc =
 	{

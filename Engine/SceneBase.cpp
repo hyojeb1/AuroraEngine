@@ -176,7 +176,7 @@ void SceneBase::BaseUpdate()
 
 	#ifdef _DEBUG
 	// 네비게이션 메시 생성 모드일 때 링크 배치 처리
-	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink();
+	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink(m_navMeshCreationHeight);
 
 	// Ctrl + S 입력 시 씬 저장
 	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::S))
@@ -320,6 +320,7 @@ void SceneBase::BaseRenderImGui()
 	ImGui::Checkbox("Debug Coordinates", &m_isRenderDebugCoordinates);
 
 	ImGui::Checkbox("NavMesh Creating", &m_isNavMeshCreating);
+	ImGui::DragFloat("NavMesh Creation Height", &m_navMeshCreationHeight, 0.1f, 0.1f, 100.0f);
 	#endif
 
 	ImGui::Separator();

@@ -10,6 +10,7 @@ class SceneBase : public Base
 	#ifdef _DEBUG
 	std::unique_ptr<DebugCamera> m_debugCamera = nullptr; // 디버그 카메라 게임 오브젝트
 	bool m_isNavMeshCreating = false; // 네비게이션 메시 생성 중 여부
+	float m_navMeshCreationHeight = 0.0f; // 네비게이션 메시 생성 높이
 
 	std::deque<nlohmann::json> m_previousStateInversePatches = {}; // 이전 상태 역패치들
 	nlohmann::json m_lastSavedSnapshot = {}; // 마지막으로 저장된 스냅샷

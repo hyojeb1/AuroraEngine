@@ -49,7 +49,16 @@ LRESULT CALLBACK WindowManager::WindowProc(HWND hWnd, UINT message, WPARAM wPara
 		else ClipCursor(nullptr);
 		#endif
 
+
 		return 0;
+
+	case WM_SYSKEYDOWN:
+		if (wParam == VK_RETURN)
+		{
+			WindowManager::GetInstance().ToggleFullscreen();
+			return 0;
+		}
+		return DefWindowProc(hWnd, message, wParam, lParam);
 
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
@@ -153,4 +162,58 @@ RECT WindowManager::GetClientPosRect() const
 	ClientToScreen(m_hWnd, reinterpret_cast<POINT*>(&rect.left));
 
 	return rect;
+}
+
+void WindowManager::ToggleFullscreen()
+{
+	if (!m_hWnd) return;
+
+	bool targetFullscreen = !m_isFullscreen;
+	Renderer::GetInstance().SetFullscreen(targetFullscreen);
+
+	if (targetFullscreen)
+	{
+		GetWindowRect(m_hWnd, &m_windowedRect);
+
+		LONG style = GetWindowLong(m_hWnd, GWL_STYLE);
+		style &= ~WS_OVERLAPPEDWINDOW;
+		SetWindowLong(m_hWnd, GWL_STYLE, style);
+
+		HMONITOR hMon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
+		MONITORINFO mi = { sizeof(mi) };
+		GetMonitorInfo(hMon, &mi);
+
+		SetWindowPos
+		(
+			m_hWnd, HWND_TOP,
+			mi.rcMonitor.left, mi.rcMonitor.top,
+			mi.rcMonitor.right - mi.rcMonitor.left,
+			mi.rcMonitor.bottom - mi.rcMonitor.top,
+			SWP_NOOWNERZORDER | SWP_FRAMECHANGED
+		);
+
+		ShowWindow(m_hWnd, SW_MAXIMIZE);
+		m_isFullscreen = true;
+	}
+	else
+	{
+		LONG style = GetWindowLong(m_hWnd, GWL_STYLE);
+		style |= WS_OVERLAPPEDWINDOW;
+		SetWindowLong(m_hWnd, GWL_STYLE, style);
+
+		SetWindowPos
+		(m_hWnd, nullptr,
+			m_windowedRect.left, m_windowedRect.top,
+			m_windowedRect.right - m_windowedRect.left,
+			m_windowedRect.bottom - m_windowedRect.top,
+			SWP_NOOWNERZORDER | SWP_FRAMECHANGED
+		);
+
+		ShowWindow(m_hWnd, SW_NORMAL);
+		m_isFullscreen = false;
+	}
+
+	RECT clientRect;
+	GetClientRect(m_hWnd, &clientRect);
+	Renderer::GetInstance().Resize(static_cast<UINT>(clientRect.right - clientRect.left), static_cast<UINT>(clientRect.bottom - clientRect.top));
 }

@@ -395,7 +395,7 @@ struct TimeBuffer
 	float sinTime = 0.0f; // 시간의 사인 값
 	float cosTime = 0.0f; // 시간의 코사인 값
 };
-constexpr int MAX_BONES = 100;
+constexpr int MAX_BONES = 256;
 struct BoneBuffer
 {
 	std::array<DirectX::XMFLOAT4X4, MAX_BONES> boneMatrix = {};
