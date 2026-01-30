@@ -15,7 +15,7 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     // 노말 텍스처
     float4 normal = normalTexture.SampleLevel(SamplerLinearWrap, input.UV, distanceFromCamera);
     // 방출 텍스처
-    float3 emission = emissionTexture.SampleLevel(SamplerLinearWrap, input.UV, distanceFromCamera).rgb * EmissionFactor.rgb; // 나중에 w값 LOD로 쓸까?
+    float3 emission = emissionTexture.SampleLevel(SamplerLinearWrap, input.UV, distanceFromCamera).rgb * EmissionFactor.rgb;
     
     float3 V = normalize(cameraToPixel); // 뷰 벡터
     float3 L = -LightDirection.xyz; // 라이트 벡터

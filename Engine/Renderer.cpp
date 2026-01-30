@@ -127,9 +127,6 @@ void Renderer::EndFrame()
 
 
 	#ifdef _DEBUG
-
-
-
 	ImGui::Begin("SRV");
 	ImGui::Image
 	(
@@ -176,14 +173,16 @@ void Renderer::EndFrame()
 
 void Renderer::Finalize()
 {
+	#ifdef _DEBUG
 	// ImGui DirectX11 종료
 	ImGui_ImplDX11_Shutdown();
+	#endif
 }
 
-HRESULT Renderer::Resize(UINT width, UINT height)
+void Renderer::Resize(UINT width, UINT height)
 {
-	if (width <= 0 || height <= 0) return E_INVALIDARG;
-	if (m_device == nullptr || m_deviceContext == nullptr || m_swapChain == nullptr) return E_FAIL;
+	if (width <= 0 || height <= 0) return;
+	if (m_device == nullptr || m_deviceContext == nullptr || m_swapChain == nullptr) return;
 
 	HRESULT hr = S_OK;
 
@@ -225,8 +224,15 @@ HRESULT Renderer::Resize(UINT width, UINT height)
 
 	// 뷰포트 설정
 	SetViewport();
+}
 
-	return hr;
+void Renderer::SetFullscreen(bool enable)
+{
+	if (m_swapChain == nullptr) return;
+	HRESULT hr = S_OK;
+
+	hr = m_swapChain->SetFullscreenState(static_cast<BOOL>(enable), nullptr);
+	CheckResult(hr, "전체 화면 모드 전환 실패.");
 }
 
 void Renderer::SetViewport(FLOAT Width, FLOAT Height)
@@ -266,8 +272,10 @@ void Renderer::CreateDeviceAndContext()
 	);
 	CheckResult(hr, "디바이스 및 디바이스 컨텍스트 생성 실패.");
 
+	#ifdef _DEBUG
 	// ImGui DirectX11 초기화
 	ImGui_ImplDX11_Init(m_device.Get(), m_deviceContext.Get());
+	#endif
 
 	// RenderResourceManager 초기화
 	ResourceManager::GetInstance().Initialize(m_device, m_deviceContext);
@@ -434,6 +442,11 @@ void Renderer::CreateSceneRenderTarget()
 
 	RENDER_TARGET(RenderStage::Scene).depthStencil = { depthStencilTexture, depthStencilView };
 
+	// 밉맵 지원 확인
+	UINT maxDim = max(static_cast<UINT>(1), max(m_swapChainDesc.Width, m_swapChainDesc.Height));
+	UINT maxPossibleMipLevels = static_cast<UINT>(floor(log2(static_cast<float>(maxDim))) + 1.0f);
+	m_sceneResultMipLevels = min(static_cast<UINT>(11), maxPossibleMipLevels);
+
 	const D3D11_TEXTURE2D_DESC sceneResultDesc =
 	{
 		.Width = m_swapChainDesc.Width,
@@ -508,6 +521,7 @@ void Renderer::CreateShadowMapRenderTargets()
 	CheckResult(hr, "방향성 광원 그림자 맵 셰이더 리소스 뷰 생성 실패.");
 }
 
+#ifdef _DEBUG
 void Renderer::BeginImGuiFrame()
 {
 	ImGui_ImplDX11_NewFrame();
@@ -516,6 +530,7 @@ void Renderer::BeginImGuiFrame()
 	ImGuizmo::BeginFrame();
 	ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 }
+#endif
 
 void Renderer::UnbindShaderResources()
 {
@@ -672,8 +687,10 @@ void Renderer::RenderXTKSpriteBatch()
 	for (UINT i = 0; i < savedPSClsCount; ++i) if (savedPSCls[i]) savedPSCls[i]->Release();
 }
 
+#ifdef _DEBUG
 void Renderer::EndImGuiFrame()
 {
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
+#endif

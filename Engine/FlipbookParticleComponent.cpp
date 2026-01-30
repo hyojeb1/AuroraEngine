@@ -60,6 +60,7 @@ void FlipbookParticleComponent::Update()
 	ParticleComponent::Update();
 }
 
+#ifdef _DEBUG
 void FlipbookParticleComponent::RenderImGui()
 {
 	ParticleComponent::RenderImGui();
@@ -138,6 +139,7 @@ void FlipbookParticleComponent::RenderImGui()
 		else ImGui::Text("Texture preview: (none)");
 	}
 }
+#endif
 
 nlohmann::json FlipbookParticleComponent::Serialize()
 {

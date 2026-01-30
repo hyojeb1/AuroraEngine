@@ -179,6 +179,7 @@ void SkinnedModelComponent::Render()
 	#endif
 }
 
+#ifdef _DEBUG
 void SkinnedModelComponent::RenderImGui()
 {
 	ModelComponent::RenderImGui();
@@ -212,6 +213,7 @@ void SkinnedModelComponent::RenderImGui()
 		}
 	}
 }
+#endif
 
 void SkinnedModelComponent::Finalize()
 {

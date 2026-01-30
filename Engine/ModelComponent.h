@@ -76,7 +76,9 @@ public:
 protected:
 	void Initialize() override;
 	void Render() override;
+	#ifdef _DEBUG
 	void RenderImGui() override;
+	#endif
 	void Finalize() override;
 
 	nlohmann::json Serialize() override;

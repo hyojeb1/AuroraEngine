@@ -107,7 +107,10 @@ public:
 	com_ptr<ID3D11DeviceContext> GetDeviceContext() const { return m_deviceContext; }
 
 	// 화면 크기 조정
-	HRESULT Resize(UINT width, UINT height);
+	void Resize(UINT width, UINT height);
+	// 전체 화면 전환
+	void SetFullscreen(bool enable);
+
 	// 뷰포트 설정
 	void SetViewport(FLOAT Width, FLOAT Height);
 	// 뷰포트 설정 (현재 스왑 체인 크기로)
@@ -148,6 +151,8 @@ private:
 	void RenderSceneToBackBuffer();
 	// XTK 스프라이트 배치 렌더링
 	void RenderXTKSpriteBatch();
+	#ifdef _DEBUG
 	// ImGui 프레임 종료
 	void EndImGuiFrame();
+	#endif
 };

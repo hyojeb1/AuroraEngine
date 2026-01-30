@@ -204,6 +204,7 @@ void ModelComponent::Render()
 	#endif
 }
 
+#ifdef _DEBUG
 void ModelComponent::RenderImGui()
 {
 	array<char, 256> modelFileNameBuffer = {};
@@ -228,11 +229,11 @@ void ModelComponent::RenderImGui()
 	// 재질 팩터
 	ImGui::ColorEdit4("BaseColor Factor", &m_materialFactorData.baseColorFactor.x);
 
-	ImGui::DragFloat("Ambient Occlusion Factor", &m_materialFactorData.ambientOcclusionFactor, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("Roughness Factor", &m_materialFactorData.roughnessFactor, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("Metallic Factor", &m_materialFactorData.metallicFactor, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat("Ambient Occlusion Factor", &m_materialFactorData.ambientOcclusionFactor, 0.01f, 0.0f, 10.0f);
+	ImGui::DragFloat("Roughness Factor", &m_materialFactorData.roughnessFactor, 0.01f, 0.0f, 10.0f);
+	ImGui::DragFloat("Metallic Factor", &m_materialFactorData.metallicFactor, 0.01f, 0.0f, 10.0f);
 
-	ImGui::DragFloat("Normal Scale", &m_materialFactorData.normalScale, 0.01f, 0.0f, 5.0f);
+	ImGui::DragFloat("Normal Scale", &m_materialFactorData.normalScale, 0.01f, 0.0f, 10.0f);
 
 	ImGui::ColorEdit3("Emission Factor", &m_materialFactorData.emissionFactor.x);
 	
@@ -253,11 +254,9 @@ void ModelComponent::RenderImGui()
 	int rasterStateInt = static_cast<int>(m_rasterState);
 	if (ImGui::Combo("Raster State", &rasterStateInt, "BackBuffer\0Solid\0Wireframe\0")) m_rasterState = static_cast<RasterState>(rasterStateInt);
 
-	#ifdef _DEBUG
 	ImGui::Separator();
 	ImGui::Checkbox("Render Bounding Box", &m_renderBoundingBox);
 	ImGui::Checkbox("Render SubMesh Bounding Boxes", &m_renderSubMeshBoundingBoxes);
-	#endif
 
 
 	// 텍스처 미리보기 섹션
@@ -328,6 +327,7 @@ void ModelComponent::RenderImGui()
 	}
 
 }
+#endif
 
 void ModelComponent::Finalize()
 {
