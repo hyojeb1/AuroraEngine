@@ -552,6 +552,14 @@ struct MaterialFactorBuffer
 	float normalScale = 1.0f; // 법선 맵 스케일
 
 	DirectX::XMFLOAT4 emissionFactor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 자가 발광 색상
+
+	float DissolveThreshold = 0.2f; // 디졸브 진행도 0% ~ 100%
+	float DissolveEdgeWidth = 1.0f; 
+	float DissolveEdgeIntensity = 1.0f;
+	float DissolvePadding = 1.0f;
+	DirectX::XMFLOAT4 DissolveEdgeColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 자가 발광 색상
+
+
 };
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(PSConstBuffers::Count)> PS_CONST_BUFFER_DESCS =
 {
@@ -612,6 +620,7 @@ enum class TextureSlots
 	Emission,
 
 	LUT,
+	Noise,
 
 	Count
 };
@@ -742,6 +751,23 @@ struct LUTData
 	{
 #define X(name) name,
 		LUT_LIST
+#undef X
+
+		COUNT
+	};
+	com_ptr<ID3D11ShaderResourceView> srv;
+};
+
+#define Noise_LIST \
+    X(CELL) \
+    X(JJEOJEOJEOK) 
+
+struct NoiseData
+{
+	enum 
+	{
+#define X(name) name,
+		Noise_LIST
 #undef X
 
 		COUNT

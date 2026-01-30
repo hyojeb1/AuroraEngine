@@ -275,7 +275,7 @@ com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& file
 		case TextureType::Emissive:
 			return GetTexture("Fallback_Emissive.png", TextureType::Emissive);
 		case TextureType::LUT:
-			return GetTexture("Fallback_Emissive.png", TextureType::LUT);
+			return GetTexture("LUT\\0_IDENTITY.png", TextureType::LUT);
 		default:
 			return nullptr;
 		}
@@ -982,5 +982,11 @@ void ResourceManager::LoadLUTTexture()
 	m_luts[2].srv =  GetTexture("LUT\\2_GREENISH.png", TextureType::LUT);
 	m_luts[3].srv =  GetTexture("LUT\\3_REDDISH.png", TextureType::LUT);
 	m_luts[4].srv =  GetTexture("LUT\\4_ORANGE.png", TextureType::LUT);
+}
+
+void ResourceManager::LoadNoiseTexture()
+{
+	m_noises[0].srv = GetTexture("noise\\00_CELL.png", TextureType::Normal);
+	m_noises[1].srv = GetTexture("noise\\01_JJEOJEOJEOK.png", TextureType::Normal);
 }
 

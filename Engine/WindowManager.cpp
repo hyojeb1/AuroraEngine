@@ -110,7 +110,9 @@ void WindowManager::Initialize(const wchar_t* windowTitle, int width, int height
 
 	ShowWindow(m_hWnd, SW_SHOW);
 
-	ResourceManager::GetInstance().LoadLUTTexture();
+	ResourceManager& rm = ResourceManager::GetInstance();
+	rm.LoadLUTTexture();
+	rm.LoadNoiseTexture();
 }
 
 bool WindowManager::ProcessMessages()

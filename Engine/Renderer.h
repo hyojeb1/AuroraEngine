@@ -62,6 +62,7 @@ class Renderer : public Singleton<Renderer>
 
 	// 씬이 갖고 있을수 있음 그래서 각 씬마다 다른 분위기를 낼 수 있다.
 	int m_selectedLUTIndex = 0;
+	
 public:
 	Renderer() = default;
 	~Renderer() = default;

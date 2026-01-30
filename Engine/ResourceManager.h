@@ -38,6 +38,7 @@ class ResourceManager : public Singleton<ResourceManager>
 	std::unordered_map<std::wstring, std::unique_ptr<DirectX::SpriteFont>> m_spriteFonts = {}; // 스프라이트 폰트 맵 // 키: 폰트 파일 이름
 
 	std::array<LUTData, LUTData::COUNT> m_luts;
+	std::array<NoiseData, NoiseData::COUNT> m_noises;
 public:
 	~ResourceManager() = default;
 	ResourceManager(const ResourceManager&) = delete;
@@ -101,6 +102,8 @@ public:
 
 	com_ptr<ID3D11ShaderResourceView> GetLUT(const int id) { return m_luts[id].srv; };
 	void LoadLUTTexture();
+	com_ptr<ID3D11ShaderResourceView> GetNoise(const int id) { return m_noises[id].srv; };
+	void LoadNoiseTexture();
 private:
 	ResourceManager() = default;
 

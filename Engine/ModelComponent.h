@@ -45,6 +45,7 @@ protected:
 	com_ptr<ID3D11PixelShader> m_boundingBoxPixelShader = nullptr; // 경계 상자 픽셀 셰이더
 	#endif
 
+	int m_selectedNoiseIndex = 0;
 
 public:
 	ModelComponent() = default;

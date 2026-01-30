@@ -87,6 +87,7 @@ void ModelComponent::Render()
 			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, m_model->materialTexture.ORMTextureSRV.GetAddressOf());
 			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, m_model->materialTexture.normalTextureSRV.GetAddressOf());
 			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Emission), 1, m_model->materialTexture.emissionTextureSRV.GetAddressOf());
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Noise), 1, resourceManager.GetNoise(m_selectedNoiseIndex).GetAddressOf());
 
 			for (const Mesh& mesh : m_model->meshes)
 			{
@@ -234,6 +235,17 @@ void ModelComponent::RenderImGui()
 	ImGui::DragFloat("Normal Scale", &m_materialFactorData.normalScale, 0.01f, 0.0f, 5.0f);
 
 	ImGui::ColorEdit3("Emission Factor", &m_materialFactorData.emissionFactor.x);
+	
+	
+	if (ImGui::CollapsingHeader("Dissolve Effect", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::DragFloat("Threshold", &m_materialFactorData.DissolveThreshold, 0.01f, 0.0f, 1.0f);
+		ImGui::DragFloat("Edge Width", &m_materialFactorData.DissolveEdgeWidth, 0.01f, 0.0f, 1.0f);
+		ImGui::DragFloat("Edge Intensity", &m_materialFactorData.DissolveEdgeIntensity, 0.1f, 0.0f, 100.0f);
+		ImGui::DragFloat("Padding", &m_materialFactorData.DissolvePadding, 0.01f, 0.0f, 1.0f); // 누락된 항목 추가
+		ImGui::ColorEdit4("Edge Color", &m_materialFactorData.DissolveEdgeColor.x, ImGuiColorEditFlags_HDR);
+	}
+
 
 	ImGui::Separator();
 	int blendStateInt = static_cast<int>(m_blendState);
@@ -292,6 +304,23 @@ void ModelComponent::RenderImGui()
 		ShowTextureSlot("Emission", m_model->materialTexture.emissionTextureSRV.Get());
 
 		ImGui::Columns(1);
+
+		const char* noiseItems[] = {
+		#define X(name) #name,
+		Noise_LIST
+		#undef X
+		};
+
+		ImGui::Combo("Select noise", &m_selectedNoiseIndex, noiseItems, NoiseData::COUNT);
+
+		com_ptr<ID3D11ShaderResourceView> ssrrvv1 = nullptr;
+		ssrrvv1 = ResourceManager::GetInstance().GetNoise(m_selectedNoiseIndex);
+		ImGui::Image
+		(
+			(ImTextureID)ssrrvv1.Get(),
+			ImVec2(64, 64)
+		);
+
 	}
 	else
 	{
@@ -325,8 +354,18 @@ nlohmann::json ModelComponent::Serialize()
 
 	jsonData["materialFactorData"]["emissionFactor"] = { m_materialFactorData.emissionFactor.x, m_materialFactorData.emissionFactor.y, m_materialFactorData.emissionFactor.z, m_materialFactorData.emissionFactor.w };
 
+
+	jsonData["materialFactorData"]["DissolveThreshold"] = m_materialFactorData.DissolveThreshold;
+	jsonData["materialFactorData"]["DissolveEdgeWidth"] = m_materialFactorData.DissolveEdgeWidth;
+	jsonData["materialFactorData"]["DissolveEdgeIntensity"] = m_materialFactorData.DissolveEdgeIntensity;
+	jsonData["materialFactorData"]["DissolvePadding"] = m_materialFactorData.DissolvePadding;
+	jsonData["materialFactorData"]["DissolveEdgeColor"] = { m_materialFactorData.DissolveEdgeColor.x, m_materialFactorData.DissolveEdgeColor.y, m_materialFactorData.DissolveEdgeColor.z, m_materialFactorData.DissolveEdgeColor.w };
+
 	jsonData["blendState"] = static_cast<int>(m_blendState);
 	jsonData["rasterState"] = static_cast<int>(m_rasterState);
+
+	//노이즈 뭐 쓸지
+	jsonData["NoiseIndex"] = m_selectedNoiseIndex;
 
 	return jsonData;
 }
@@ -365,8 +404,26 @@ void ModelComponent::Deserialize(const nlohmann::json& jsonData)
 		);
 	}
 
+	if (jsonData["materialFactorData"].contains("DissolveThreshold")) m_materialFactorData.DissolveThreshold = jsonData["materialFactorData"]["DissolveThreshold"].get<float>();
+	if (jsonData["materialFactorData"].contains("DissolveEdgeWidth")) m_materialFactorData.DissolveEdgeWidth = jsonData["materialFactorData"]["DissolveEdgeWidth"].get<float>();
+	if (jsonData["materialFactorData"].contains("DissolveEdgeIntensity")) m_materialFactorData.DissolveEdgeIntensity = jsonData["materialFactorData"]["DissolveEdgeIntensity"].get<float>();
+	if (jsonData["materialFactorData"].contains("DissolvePadding")) m_materialFactorData.DissolvePadding = jsonData["materialFactorData"]["DissolvePadding"].get<float>();
+
+	if (jsonData["materialFactorData"].contains("DissolveEdgeColor"))
+	{
+		m_materialFactorData.emissionFactor = XMFLOAT4
+		(
+			jsonData["materialFactorData"]["DissolveEdgeColor"][0].get<float>(),
+			jsonData["materialFactorData"]["DissolveEdgeColor"][1].get<float>(),
+			jsonData["materialFactorData"]["DissolveEdgeColor"][2].get<float>(),
+			jsonData["materialFactorData"]["DissolveEdgeColor"][3].get<float>()
+		);
+	}
+
 	if (jsonData.contains("blendState")) m_blendState = static_cast<BlendState>(jsonData["blendState"].get<int>());
 	if (jsonData.contains("rasterState")) m_rasterState = static_cast<RasterState>(jsonData["rasterState"].get<int>());
+
+	if (jsonData.contains("NoiseIndex")) m_selectedNoiseIndex = jsonData["NoiseIndex"].get<int>();
 }
 
 void ModelComponent::CreateShaders()
