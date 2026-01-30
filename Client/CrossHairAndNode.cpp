@@ -141,8 +141,7 @@ void CrossHairAndNode::GenerateNode()
 {
 	auto& sm = SoundManager::GetInstance();
 
-	if (!sm.ConsumeNodeChanged())
-		return;
-
-	m_UINode.push_back(sm.GetRhythmOffset());
+	/*if (!sm.ConsumeNodeChanged())
+		return;*/
+	SoundManager::GetInstance().AddNodeChangedListener([&]() { m_UINode.push_back(sm.GetRhythmOffset()); });
 }

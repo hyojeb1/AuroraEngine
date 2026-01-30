@@ -37,10 +37,13 @@ public:
 
 	std::unordered_map<std::string, std::vector<std::pair<float, float>>>* GetNodeDataPtr() { return &m_NodeData; }
 
-	void Main_BGM_Shot(const std::string filename);
+	void Main_BGM_Shot(const std::string filename, float delay);
 	void Sub_BGM_Shot(const std::string filename, float delay);
 	void SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename);
 	void UI_Shot(const std::string filename);
+
+	void Pause();
+	void Resume();
 
 	void FadeIn(FMOD::Channel* chan, float sec);
 	void FadeOut(FMOD::Channel* chan, float sec, bool stopAfter);
@@ -65,7 +68,11 @@ public:
 
 	FMOD_VECTOR ToFMOD(DirectX::XMVECTOR vector);
 
-	bool ConsumeNodeChanged();
+	void ConsumeNodeChanged();
+
+	void AddNodeChangedListener(std::function<void()> cb);
+	void AddNodeChangedListenerOnce(std::function<void()> cb);
+	void NotifyNodeChanged();
 
 	FMOD::Channel* GetBGMCh1() { return m_BGMChannel1; }
 	FMOD::Channel* GetBGMCh2() { return m_BGMChannel2; }
@@ -73,6 +80,9 @@ public:
 
 	void UpdateLowpass();
 	void ChangeLowpass() { m_IsLowpass = !m_IsLowpass; }
+
+	std::string GetCurrentTrackName() { return m_CurrentTrackName; }
+	bool CheckBGMEnd();
 
 private:
 
@@ -113,5 +123,8 @@ private:
 	float m_RhythmOffSet = 1.28f;
 
 	bool m_OnNodeChanged = false;
+
+	std::vector<std::function<void()>> m_NodeChangedListeners;
+	std::vector<std::function<void()>> m_NodeChangedListenerOnce;
 };
 

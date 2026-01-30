@@ -20,6 +20,8 @@ using namespace DirectX;
 void TestScene::Initialize()
 {
 	ShowCursor(FALSE);
+
+	SoundManager::GetInstance().Main_BGM_Shot("DOB Music_test2",1.0f);
 }
 
 void TestScene::Update()
@@ -40,6 +42,14 @@ void TestScene::Update()
 	{
 		SceneManager::GetInstance().ChangeScene("EndingScene");
 	}
+
+	if (SoundManager::GetInstance().CheckBGMEnd())
+	{
+		SoundManager::GetInstance().Main_BGM_Shot(SoundManager::GetInstance().GetCurrentTrackName(), 3.0f);
+	}
 }
 
-/// TestScene.cpp?ùò ?Åù
+void TestScene::Finalize()
+{
+	SoundManager::GetInstance().Stop_ChannelGroup();
+}

@@ -101,6 +101,7 @@ void Player::PlayerShoot()
 	if (!m_gunObject || m_isDeadEyeActive) return;
 
 	--m_bulletCnt;
+	SoundManager::GetInstance().SFX_Shot(GetPosition(), "cannon1");
 
 	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 	const XMVECTOR& origin = mainCamera.GetPosition();
@@ -137,6 +138,9 @@ void Player::PlayerReload()
 	//Reload Anime + rhythm check
 
 	m_bulletCnt = m_MaxBullet;
+
+	SoundManager::GetInstance().SFX_Shot(GetPosition(), "spin");
+	SoundManager::GetInstance().AddNodeChangedListenerOnce([&]() {SoundManager::GetInstance().SFX_Shot(GetPosition(), "cocking"); });
 }
 
 void Player::PlayerDeadEyeStart()
