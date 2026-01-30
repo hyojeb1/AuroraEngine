@@ -13,6 +13,7 @@ REGISTER_TYPE(TaehyeonTestScene)
 
 void TaehyeonTestScene::Initialize()
 {
+	ShowCursor(FALSE);
 }
 
 void TaehyeonTestScene::Update()

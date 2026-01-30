@@ -25,6 +25,7 @@ void EmitterComponent::Render()
 
 }
 
+#ifdef _DEBUG
 void EmitterComponent::RenderImGui()
 {
 	std::array<char, 256> sourceFileNameBuffer = {};
@@ -36,6 +37,7 @@ void EmitterComponent::RenderImGui()
 		SFX_Shot(m_sourceName);
 	}
 }
+#endif
 
 nlohmann::json EmitterComponent::Serialize()
 {

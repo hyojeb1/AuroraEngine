@@ -7,11 +7,15 @@
 
 using namespace std;
 
+#ifdef _DEBUG
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#endif
 
 LRESULT CALLBACK WindowManager::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	#ifdef _DEBUG
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam)) return true;
+	#endif
 
 	InputManager::GetInstance().HandleMessage(message, wParam, lParam);
 
@@ -49,7 +53,16 @@ LRESULT CALLBACK WindowManager::WindowProc(HWND hWnd, UINT message, WPARAM wPara
 		else ClipCursor(nullptr);
 		#endif
 
+
 		return 0;
+
+	case WM_SYSKEYDOWN:
+		if (wParam == VK_RETURN)
+		{
+			WindowManager::GetInstance().ToggleFullscreen();
+			return 0;
+		}
+		return DefWindowProc(hWnd, message, wParam, lParam);
 
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
@@ -99,8 +112,10 @@ void WindowManager::Initialize(const wchar_t* windowTitle, int width, int height
 		exit(EXIT_FAILURE);
 	}
 
+	#ifdef _DEBUG
 	// ImGui Win32 초기화
 	ImGui_ImplWin32_Init(m_hWnd);
+	#endif
 
 	// 렌더러 초기화
 	Renderer::GetInstance().Initialize(m_hWnd);
@@ -110,7 +125,9 @@ void WindowManager::Initialize(const wchar_t* windowTitle, int width, int height
 
 	ShowWindow(m_hWnd, SW_SHOW);
 
-	ResourceManager::GetInstance().LoadLUTTexture();
+	ResourceManager& rm = ResourceManager::GetInstance();
+	rm.LoadLUTTexture();
+	rm.LoadNoiseTexture();
 }
 
 bool WindowManager::ProcessMessages()
@@ -125,8 +142,10 @@ bool WindowManager::ProcessMessages()
 		DispatchMessage(&msg);
 	}
 
+	#ifdef _DEBUG
 	// ImGui Win32 새 프레임 시작
 	ImGui_ImplWin32_NewFrame();
+	#endif
 
 	return true;
 }
@@ -136,8 +155,10 @@ void WindowManager::Finalize()
 	// 렌더러 종료
 	Renderer::GetInstance().Finalize();
 	
+	#ifdef _DEBUG
 	// ImGui Win32 종료
 	ImGui_ImplWin32_Shutdown();
+	#endif
 
 	// 윈도우 파괴 및 클래스 등록 해제
 	DestroyWindow(m_hWnd);
@@ -153,4 +174,70 @@ RECT WindowManager::GetClientPosRect() const
 	ClientToScreen(m_hWnd, reinterpret_cast<POINT*>(&rect.left));
 
 	return rect;
+}
+
+void WindowManager::ToggleFullscreen()
+{
+	if (!m_hWnd) return;
+
+	bool targetFullscreen = !m_isFullscreen;
+	Renderer& renderer = Renderer::GetInstance();
+	renderer.SetFullscreen(targetFullscreen);
+
+	if (targetFullscreen)
+	{
+		GetWindowRect(m_hWnd, &m_windowedRect);
+
+		LONG style = GetWindowLong(m_hWnd, GWL_STYLE);
+		style &= ~WS_OVERLAPPEDWINDOW;
+		SetWindowLong(m_hWnd, GWL_STYLE, style);
+
+		HMONITOR hMon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
+		MONITORINFO mi = { sizeof(mi) };
+		GetMonitorInfo(hMon, &mi);
+
+		SetWindowPos
+		(
+			m_hWnd, HWND_TOP,
+			mi.rcMonitor.left, mi.rcMonitor.top,
+			mi.rcMonitor.right - mi.rcMonitor.left,
+			mi.rcMonitor.bottom - mi.rcMonitor.top,
+			SWP_NOOWNERZORDER | SWP_FRAMECHANGED
+		);
+
+		cout << "Fullscreen Mode: " << (mi.rcMonitor.right - mi.rcMonitor.left) << "x" << (mi.rcMonitor.bottom - mi.rcMonitor.top) << endl;
+
+		ShowWindow(m_hWnd, SW_MAXIMIZE);
+		m_isFullscreen = true;
+
+		renderer.Resize
+		(
+			static_cast<UINT>(mi.rcMonitor.right - mi.rcMonitor.left),
+			static_cast<UINT>(mi.rcMonitor.bottom - mi.rcMonitor.top)
+		);
+	}
+	else
+	{
+		LONG style = GetWindowLong(m_hWnd, GWL_STYLE);
+		style |= WS_OVERLAPPEDWINDOW;
+		SetWindowLong(m_hWnd, GWL_STYLE, style);
+
+		SetWindowPos
+		(
+			m_hWnd, nullptr,
+			m_windowedRect.left, m_windowedRect.top,
+			m_windowedRect.right - m_windowedRect.left,
+			m_windowedRect.bottom - m_windowedRect.top,
+			SWP_NOOWNERZORDER | SWP_FRAMECHANGED
+		);
+
+		ShowWindow(m_hWnd, SW_NORMAL);
+		m_isFullscreen = false;
+
+		renderer.Resize
+		(
+			static_cast<UINT>(m_windowedRect.right - m_windowedRect.left),
+			static_cast<UINT>(m_windowedRect.bottom - m_windowedRect.top)
+		);
+	}
 }

@@ -22,8 +22,8 @@
 #include <ws2tcpip.h>
 #include <windows.h>
 #include <mmsystem.h>
-#pragma comment(lib, "winmm.lib") // timeGetTime
 #include <wrl/client.h>
+#pragma comment(lib, "winmm.lib") // timeGetTime
 
 // DirectX 헤더
 #include <d3d11.h>
@@ -48,12 +48,14 @@
 #include <assimp/config.h>
 
 // ImGui 헤더
+#ifdef _DEBUG
 #include <imgui.h>
 #include <imgui_impl_win32.h>
 #include <imgui_impl_dx11.h>
 
 // ImGuizmo 헤더
 #include <ImGuizmo.h>
+#endif
 
 // JSON 헤더
 #include <nlohmann/json.hpp>

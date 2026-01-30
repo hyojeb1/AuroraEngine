@@ -5,6 +5,9 @@ class Enemy : public GameObjectBase
 {
 	class Player* m_player = nullptr;
 
+	float m_moveSpeedSquared = 4.0f;
+	std::deque<DirectX::XMVECTOR> m_path = {};
+
 public:
 	enum class AIState
 	{

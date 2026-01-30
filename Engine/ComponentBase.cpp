@@ -8,6 +8,7 @@ void ComponentBase::BaseInitialize()
 	Initialize();
 }
 
+#ifdef _DEBUG
 void ComponentBase::BaseRenderImGui()
 {
 	ImGui::PushID(this);
@@ -24,6 +25,7 @@ void ComponentBase::BaseRenderImGui()
 
 	ImGui::PopID();
 }
+#endif
 
 nlohmann::json ComponentBase::BaseSerialize()
 {

@@ -60,6 +60,7 @@ void CrossHairAndNode::Render()
 	}
 }
 
+#ifdef _DEBUG
 void CrossHairAndNode::RenderImGui()
 {
 	ImGui::DragFloat("Middle Size", &m_CrossHairSize, 0.004f, 0.004f, 0.04f);
@@ -70,6 +71,7 @@ void CrossHairAndNode::RenderImGui()
 	ImGui::DragFloat("Interval", &m_linePos, 0.001f, 0.1f, 0.5f);
 	ImGui::DragFloat("Line Scl", &m_lineScl, 0.001f, 0.004f, 0.5f);
 }
+#endif
 
 void CrossHairAndNode::Finalize()
 {

@@ -93,6 +93,7 @@ void FSMComponentEnemy::OnExitState(StateID state)
 
 }
 
+#ifdef _DEBUG
 void FSMComponentEnemy::RenderImGui()
 {
 	if (ImGui::TreeNode("FSM Component Gun"))
@@ -122,6 +123,7 @@ void FSMComponentEnemy::RenderImGui()
 		ImGui::TreePop();
 	}
 }
+#endif
 
 
 ///EOF FSMComponentEnemy.cpp

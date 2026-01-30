@@ -211,8 +211,8 @@ void NavigationManager::RenderNavMesh()
 					XMStoreFloat3(&p0, m_currentPath[i]);
 					XMStoreFloat3(&p1, m_currentPath[i + 1]);
 
-					lineBufferData.linePoints[0] = XMFLOAT4{ p0.x, p0.y, p0.z, 1.0f };
-					lineBufferData.linePoints[1] = XMFLOAT4{ p1.x, p1.y, p1.z, 1.0f };
+					lineBufferData.linePoints[0] = XMFLOAT4{ p0.x, p0.y + 1.0f, p0.z, 1.0f };
+					lineBufferData.linePoints[1] = XMFLOAT4{ p1.x, p1.y + 1.0f, p1.z, 1.0f };
 					lineBufferData.lineColors[0] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f };
 					lineBufferData.lineColors[1] = XMFLOAT4{ 0.0f, 1.0f, 0.0f, 1.0f };
 					deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
@@ -224,7 +224,7 @@ void NavigationManager::RenderNavMesh()
 }
 
 
-void NavigationManager::HandlePlaceLink()
+void NavigationManager::HandlePlaceLink(float height)
 {
 	InputManager& input = InputManager::GetInstance();
 
@@ -232,7 +232,19 @@ void NavigationManager::HandlePlaceLink()
 	const CameraComponent& camera = CameraComponent::GetMainCamera();
 	pair<XMVECTOR, XMVECTOR> ray = camera.RayCast(static_cast<float>(mouse.x), static_cast<float>(mouse.y));
 
-	m_previewPoint = XMPlaneIntersectLine(XMPlaneFromPointNormal(XMVectorZero(), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)), ray.first, ray.second);
+	m_previewPoint = XMPlaneIntersectLine(XMPlaneFromPointNormal(XMVectorSet(0.0f, height, 0.0f, 0.0f), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)), ray.first, ray.second);
+
+	if (input.GetKeyDown(KeyCode::R))
+	{
+		ClearNavMesh();
+
+		XMVECTOR pointA = XMVectorAdd(m_previewPoint, XMVectorSet(-1.0f, 0.0f, -1.0f, 0.0f));
+		XMVECTOR pointB = XMVectorAdd(m_previewPoint, XMVectorSet(1.0f, 0.0f, -1.0f, 0.0f));
+		XMVECTOR pointC = XMVectorAdd(m_previewPoint, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f));
+		AddPolygon({ pointA, pointB, pointC }, { 0, 1, 2 });
+
+		BuildAdjacency();
+	}
 
 	int bestVertexIndex = -1;
 	if (m_previewLine.first >= 0 && m_previewLine.second >= 0)
@@ -300,17 +312,6 @@ void NavigationManager::HandlePlaceLink()
 			m_currentPath.clear();
 		}
 	}
-
-	if (input.GetKeyDown(KeyCode::R))
-	{
-		ClearNavMesh();
-
-		const vector<XMVECTOR> VERTICES = { XMVECTOR{-5.0f, 0.0f, -5.0f, 1.0f}, XMVECTOR{5.0f, 0.0f, -5.0f, 1.0f}, XMVECTOR{0.0f, 0.0f, 5.0f, 1.0f} };
-		constexpr array<int, 3> INDICES = { 0, 1, 2 };
-		AddPolygon(VERTICES, INDICES);
-
-		BuildAdjacency();
-	}
 }
 #endif
 
@@ -330,16 +331,14 @@ int NavigationManager::FindNearestPoly(const XMVECTOR& point) const
 	return best;
 }
 
-vector<XMVECTOR> NavigationManager::FindPath(const XMVECTOR& start, const XMVECTOR& end) const
+deque<XMVECTOR> NavigationManager::FindPath(const XMVECTOR& start, const XMVECTOR& end) const
 {
-	vector<XMVECTOR> empty = {};
-
-	if (m_navPolys.empty()) return empty;
+	if (m_navPolys.empty()) return {};
 
 	int startPoly = FindNearestPoly(start);
 	int endPoly = FindNearestPoly(end);
 
-	if (startPoly < 0 || endPoly < 0) return empty;
+	if (startPoly < 0 || endPoly < 0) return {};
 	if (startPoly == endPoly) return { start, end };
 
 	// A*
@@ -392,7 +391,7 @@ vector<XMVECTOR> NavigationManager::FindPath(const XMVECTOR& start, const XMVECT
 			}
 		}
 	}
-	if (!found) return empty;
+	if (!found) return {};
 
 	vector<int> polyPath = {};
 	int currentPoly = endPoly;
@@ -431,27 +430,9 @@ vector<XMVECTOR> NavigationManager::FindPath(const XMVECTOR& start, const XMVECT
 		}
 	}
 
-	vector<XMVECTOR> result;
-	if (portals.empty())
-	{
-		result.push_back(start);
-		result.push_back(end);
-		return result;
-	}
+	if (portals.empty()) return { start, end };
 
-	result.reserve(portals.size() + 2);
-	result.push_back(start);
-
-	for (const auto& p : portals)
-	{
-		XMVECTOR mid = XMVectorScale(XMVectorAdd(p.first, p.second), 0.5f);
-		mid = XMVectorSetY(mid, 0.0f);
-		result.push_back(mid);
-	}
-
-	result.push_back(end);
-
-	return result;
+	return SSFA(start, end, portals);
 }
 
 bool NavigationManager::PointInTriangle(const XMVECTOR& point, const array<int, 3>& indexs) const
@@ -471,4 +452,19 @@ bool NavigationManager::PointInTriangle(const XMVECTOR& point, const array<int, 
 	float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
 	return (u >= 0) && (v >= 0) && (u + v < 1);
+}
+
+deque<XMVECTOR> NavigationManager::SSFA(const XMVECTOR& start, const XMVECTOR& end, const vector<pair<XMVECTOR, XMVECTOR>>& portals) const
+{
+	deque<XMVECTOR> result = {};
+
+	result.push_back(start);
+	for (const auto& p : portals)
+	{
+		XMVECTOR mid = XMVectorScale(XMVectorAdd(p.first, p.second), 0.5f);
+		result.push_back(mid);
+	}
+	result.push_back(end);
+
+	return result;
 }

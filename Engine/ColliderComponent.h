@@ -50,8 +50,8 @@ protected:
 	void Update() override;
 	#ifdef _DEBUG
 	void Render() override;
-	#endif
 	void RenderImGui() override;
+	#endif
 	void Finalize() override;
 
 	nlohmann::json Serialize() override;

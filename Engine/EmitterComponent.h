@@ -16,7 +16,9 @@ protected:
 	void Initialize() override;
 	void Update() override;
 	void Render() override;
+	#ifdef _DEBUG
 	void RenderImGui() override;
+	#endif
 
 	nlohmann::json Serialize() override;
 	void Deserialize(const nlohmann::json& jsonData) override;

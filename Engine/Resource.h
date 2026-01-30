@@ -6,7 +6,7 @@ struct RenderTarget
 	std::pair<com_ptr<ID3D11Texture2D>, com_ptr<ID3D11DepthStencilView>> depthStencil = {}; // 깊이-스텐실 텍스처와 뷰
 };
 
-constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 8192; // 방향성 광원 그림자 맵 크기
+constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 1 << 14; // 16384
 enum class RenderStage
 {
 	DirectionalLightShadow,
@@ -395,7 +395,7 @@ struct TimeBuffer
 	float sinTime = 0.0f; // 시간의 사인 값
 	float cosTime = 0.0f; // 시간의 코사인 값
 };
-constexpr int MAX_BONES = 100;
+constexpr int MAX_BONES = 256;
 struct BoneBuffer
 {
 	std::array<DirectX::XMFLOAT4X4, MAX_BONES> boneMatrix = {};
@@ -518,16 +518,17 @@ struct PostProcessingBuffer
 		None = 0,
 
 		Bloom = 1 << 0,
-		Grayscale = 1 << 1,
-		Vignetting = 1 << 2,
+		Gamma = 1 << 1,
+		Grayscale = 1 << 2,
+		Vignetting = 1 << 3,
 	};
 	UINT flags = static_cast<UINT>(PostProcessingFlag::None); // 후처리 플래그
 
 	float bloomIntensity = 1.0f; // 블룸 강도
-	float gamma = 1.0f; // 감마 보정 값
+	float gammaIntensity = 1.0f; // 감마 보정 값
 	float grayScaleIntensity = 0.0f; // 그레이스케일 강도
 
-	DirectX::XMFLOAT4 vignettingColor = { 0.0f, 0.0f, 0.0f, 1.0f }; // 비네팅 색상 // w는 강도
+	DirectX::XMFLOAT4 vignettingColor = { 0.0f, 0.0f, 0.0f, 0.0f }; // 비네팅 색상 // w는 강도
 };
 struct CameraPositionBuffer // 카메라 위치 상수 버퍼 구조체
 {
@@ -551,6 +552,14 @@ struct MaterialFactorBuffer
 	float normalScale = 1.0f; // 법선 맵 스케일
 
 	DirectX::XMFLOAT4 emissionFactor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 자가 발광 색상
+
+	float DissolveThreshold = 0.2f; // 디졸브 진행도 0% ~ 100%
+	float DissolveEdgeWidth = 1.0f; 
+	float DissolveEdgeIntensity = 1.0f;
+	float DissolvePadding = 1.0f;
+	DirectX::XMFLOAT4 DissolveEdgeColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 자가 발광 색상
+
+
 };
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(PSConstBuffers::Count)> PS_CONST_BUFFER_DESCS =
 {
@@ -611,6 +620,7 @@ enum class TextureSlots
 	Emission,
 
 	LUT,
+	Noise,
 
 	Count
 };
@@ -732,7 +742,8 @@ constexpr std::array<std::pair<size_t, size_t>, 12> BOX_LINE_INDICES =
     X(IDENTITY) \
     X(SEPIA) \
     X(GREENISH) \
-    X(REDDISH) 
+    X(REDDISH) \
+	X(ORANGE)
 
 struct LUTData
 {
@@ -740,6 +751,23 @@ struct LUTData
 	{
 #define X(name) name,
 		LUT_LIST
+#undef X
+
+		COUNT
+	};
+	com_ptr<ID3D11ShaderResourceView> srv;
+};
+
+#define Noise_LIST \
+    X(CELL) \
+    X(JJEOJEOJEOK) 
+
+struct NoiseData
+{
+	enum 
+	{
+#define X(name) name,
+		Noise_LIST
 #undef X
 
 		COUNT
