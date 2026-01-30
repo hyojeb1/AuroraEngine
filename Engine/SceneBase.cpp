@@ -216,7 +216,7 @@ void SceneBase::BaseRender()
 			renderer.SetViewport(static_cast<FLOAT>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE), static_cast<FLOAT>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE));
 
 			// 뷰-투영 상수 버퍼 방향광 기준으로 업데이트
-			const float cameraFarPlane = mainCamera.GetFarZ() * 0.1f;
+			const float cameraFarPlane = mainCamera.GetFarZ();
 
 			XMVECTOR lightPosition = (m_globalLightData.lightDirection * -cameraFarPlane) + mainCamera.GetPosition();
 			lightPosition = XMVectorSetW(lightPosition, 1.0f);

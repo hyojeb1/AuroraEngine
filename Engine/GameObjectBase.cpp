@@ -412,6 +412,7 @@ void GameObjectBase::BaseDeserialize(const nlohmann::json& jsonData)
 			jsonData["rotation"][2].get<float>(),
 			jsonData["rotation"][3].get<float>()
 		);
+		m_euler = ToDegrees(static_cast<XMVECTOR>(static_cast<SimpleMath::Quaternion>(m_quaternion).ToEuler()));
 	}
 	if (jsonData.contains("scale"))
 	{
