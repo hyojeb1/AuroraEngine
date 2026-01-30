@@ -150,6 +150,8 @@ private:
 	void RenderSceneToBackBuffer();
 	// XTK 스프라이트 배치 렌더링
 	void RenderXTKSpriteBatch();
+	#ifdef _DEBUG
 	// ImGui 프레임 종료
 	void EndImGuiFrame();
+	#endif
 };
