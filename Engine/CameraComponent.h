@@ -66,7 +66,9 @@ private:
 	// 위치, 뷰 행렬 갱신
 	void Update() override { UpdateViewMatrix(); UpdateProjectionMatrix(); }
 	void Render() override; // 카메라 프러스텀 렌더링
+	#ifdef _DEBUG
 	void RenderImGui() override;
+	#endif
 
 	void Finalize() override;
 

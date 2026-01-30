@@ -170,8 +170,10 @@ void Renderer::EndFrame()
 
 void Renderer::Finalize()
 {
+	#ifdef _DEBUG
 	// ImGui DirectX11 종료
 	ImGui_ImplDX11_Shutdown();
+	#endif
 }
 
 void Renderer::Resize(UINT width, UINT height)
@@ -202,11 +204,6 @@ void Renderer::Resize(UINT width, UINT height)
 	m_swapChainDesc.Height = height;
 	m_aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 
-	
-	BOOL wasFullScreen = FALSE;
-	com_ptr<IDXGIOutput> fullscreenOutput = nullptr;
-	hr = m_swapChain->GetFullscreenState(&wasFullScreen, fullscreenOutput.GetAddressOf());
-
 	// 스왑 체인 크기 조정
 	hr = m_swapChain->ResizeBuffers
 	(
@@ -231,16 +228,8 @@ void Renderer::SetFullscreen(bool enable)
 	if (m_swapChain == nullptr) return;
 	HRESULT hr = S_OK;
 
-	if (enable)
-	{
-		hr = m_swapChain->SetFullscreenState(TRUE, nullptr);
-		CheckResult(hr, "전체 화면 모드 설정 실패.");
-	}
-	else
-	{
-		hr = m_swapChain->SetFullscreenState(FALSE, nullptr);
-		CheckResult(hr, "창 모드 설정 실패.");
-	}
+	hr = m_swapChain->SetFullscreenState(static_cast<BOOL>(enable), nullptr);
+	CheckResult(hr, "전체 화면 모드 전환 실패.");
 }
 
 void Renderer::SetViewport(FLOAT Width, FLOAT Height)
@@ -280,8 +269,10 @@ void Renderer::CreateDeviceAndContext()
 	);
 	CheckResult(hr, "디바이스 및 디바이스 컨텍스트 생성 실패.");
 
+	#ifdef _DEBUG
 	// ImGui DirectX11 초기화
 	ImGui_ImplDX11_Init(m_device.Get(), m_deviceContext.Get());
+	#endif
 
 	// RenderResourceManager 초기화
 	ResourceManager::GetInstance().Initialize(m_device, m_deviceContext);
@@ -527,6 +518,7 @@ void Renderer::CreateShadowMapRenderTargets()
 	CheckResult(hr, "방향성 광원 그림자 맵 셰이더 리소스 뷰 생성 실패.");
 }
 
+#ifdef _DEBUG
 void Renderer::BeginImGuiFrame()
 {
 	ImGui_ImplDX11_NewFrame();
@@ -535,6 +527,7 @@ void Renderer::BeginImGuiFrame()
 	ImGuizmo::BeginFrame();
 	ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 }
+#endif
 
 void Renderer::UnbindShaderResources()
 {
@@ -691,8 +684,10 @@ void Renderer::RenderXTKSpriteBatch()
 	for (UINT i = 0; i < savedPSClsCount; ++i) if (savedPSCls[i]) savedPSCls[i]->Release();
 }
 
+#ifdef _DEBUG
 void Renderer::EndImGuiFrame()
 {
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
+#endif

@@ -32,7 +32,9 @@ protected:
 	void OnExitState(StateID state) override;
 
 	void Initialize() override;
+	#ifdef _DEBUG
 	void RenderImGui() override;
+	#endif
 
 private:
 	SkinnedModelComponent* model_ = nullptr;

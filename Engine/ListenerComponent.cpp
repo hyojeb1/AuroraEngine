@@ -20,9 +20,11 @@ void ListenerComponent::Render()
 
 }
 
+#ifdef _DEBUG
 void ListenerComponent::RenderImGui()
 {
 }
+#endif
 
 nlohmann::json ListenerComponent::Serialize()
 {

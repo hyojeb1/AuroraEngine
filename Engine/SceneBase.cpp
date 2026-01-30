@@ -306,22 +306,19 @@ void SceneBase::BaseRender()
 	#endif
 }
 
+#ifdef _DEBUG
 void SceneBase::BaseRenderImGui()
 {
-	#ifdef _DEBUG
 	ImGui::Begin("Debug Camera");
 	static_cast<Base*>(m_debugCamera.get())->BaseRenderImGui();
 	ImGui::End();
-	#endif
 
 	ImGui::Begin(m_type.c_str());
 
-	#ifdef _DEBUG
 	ImGui::Checkbox("Debug Coordinates", &m_isRenderDebugCoordinates);
 
 	ImGui::Checkbox("NavMesh Creating", &m_isNavMeshCreating);
 	ImGui::DragFloat("NavMesh Creation Height", &m_navMeshCreationHeight, 0.1f, 0.1f, 100.0f);
-	#endif
 
 	ImGui::Separator();
 	ImGui::Text("Post Processing");
@@ -389,7 +386,6 @@ void SceneBase::BaseRenderImGui()
 
 	ImGui::End();
 
-	#ifdef _DEBUG
 	GameObjectBase* selectedObject = GameObjectBase::GetSelectedObject();
 	if (selectedObject)
 	{
@@ -467,8 +463,8 @@ void SceneBase::BaseRenderImGui()
 
 		if (ImGuizmo::IsUsing()) selectedObject->ApplyWorldMatrix(worldMatrix);
 	}
-	#endif
 }
+#endif
 
 void SceneBase::BaseFinalize()
 {

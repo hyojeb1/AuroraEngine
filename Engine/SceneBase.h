@@ -102,8 +102,10 @@ private:
 	void BaseUpdate() override;
 	// 씬 렌더링 // 씬 매니저가 호출
 	void BaseRender() override;
+	#ifdef _DEBUG
 	// ImGui 렌더링
 	void BaseRenderImGui() override;
+	#endif
 	// 씬 종료 // 씬 매니저가 씬을 교체할 때 호출
 	void BaseFinalize() override;
 

@@ -11,5 +11,7 @@ public:
 
     void Initialize() override;
     void Update() override;
+	#ifdef _DEBUG
 	void RenderImGui() override;
+	#endif
 };

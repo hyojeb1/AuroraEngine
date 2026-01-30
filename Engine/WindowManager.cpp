@@ -7,11 +7,15 @@
 
 using namespace std;
 
+#ifdef _DEBUG
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#endif
 
 LRESULT CALLBACK WindowManager::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	#ifdef _DEBUG
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam)) return true;
+	#endif
 
 	InputManager::GetInstance().HandleMessage(message, wParam, lParam);
 
@@ -108,8 +112,10 @@ void WindowManager::Initialize(const wchar_t* windowTitle, int width, int height
 		exit(EXIT_FAILURE);
 	}
 
+	#ifdef _DEBUG
 	// ImGui Win32 초기화
 	ImGui_ImplWin32_Init(m_hWnd);
+	#endif
 
 	// 렌더러 초기화
 	Renderer::GetInstance().Initialize(m_hWnd);
@@ -134,8 +140,10 @@ bool WindowManager::ProcessMessages()
 		DispatchMessage(&msg);
 	}
 
+	#ifdef _DEBUG
 	// ImGui Win32 새 프레임 시작
 	ImGui_ImplWin32_NewFrame();
+	#endif
 
 	return true;
 }
@@ -145,8 +153,10 @@ void WindowManager::Finalize()
 	// 렌더러 종료
 	Renderer::GetInstance().Finalize();
 	
+	#ifdef _DEBUG
 	// ImGui Win32 종료
 	ImGui_ImplWin32_Shutdown();
+	#endif
 
 	// 윈도우 파괴 및 클래스 등록 해제
 	DestroyWindow(m_hWnd);
@@ -169,7 +179,8 @@ void WindowManager::ToggleFullscreen()
 	if (!m_hWnd) return;
 
 	bool targetFullscreen = !m_isFullscreen;
-	Renderer::GetInstance().SetFullscreen(targetFullscreen);
+	Renderer& renderer = Renderer::GetInstance();
+	renderer.SetFullscreen(targetFullscreen);
 
 	if (targetFullscreen)
 	{
@@ -192,8 +203,16 @@ void WindowManager::ToggleFullscreen()
 			SWP_NOOWNERZORDER | SWP_FRAMECHANGED
 		);
 
+		cout << "Fullscreen Mode: " << (mi.rcMonitor.right - mi.rcMonitor.left) << "x" << (mi.rcMonitor.bottom - mi.rcMonitor.top) << endl;
+
 		ShowWindow(m_hWnd, SW_MAXIMIZE);
 		m_isFullscreen = true;
+
+		renderer.Resize
+		(
+			static_cast<UINT>(mi.rcMonitor.right - mi.rcMonitor.left),
+			static_cast<UINT>(mi.rcMonitor.bottom - mi.rcMonitor.top)
+		);
 	}
 	else
 	{
@@ -212,9 +231,11 @@ void WindowManager::ToggleFullscreen()
 
 		ShowWindow(m_hWnd, SW_NORMAL);
 		m_isFullscreen = false;
-	}
 
-	RECT clientRect;
-	GetClientRect(m_hWnd, &clientRect);
-	Renderer::GetInstance().Resize(static_cast<UINT>(clientRect.right - clientRect.left), static_cast<UINT>(clientRect.bottom - clientRect.top));
+		renderer.Resize
+		(
+			static_cast<UINT>(m_windowedRect.right - m_windowedRect.left),
+			static_cast<UINT>(m_windowedRect.bottom - m_windowedRect.top)
+		);
+	}
 }

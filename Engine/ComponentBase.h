@@ -26,7 +26,9 @@ private:
 	void BaseFixedUpdate() override { FixedUpdate(); }
 	void BaseUpdate() override { Update(); }
 	void BaseRender() override { Render(); }
+	#ifdef _DEBUG
 	void BaseRenderImGui() override;
+	#endif
 	void BaseFinalize() override { Finalize(); }
 
 	// 컴포넌트 직렬화

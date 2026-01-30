@@ -68,6 +68,7 @@ void ParticleComponent::Render()
 	);
 }
 
+#ifdef _DEBUG
 void ParticleComponent::RenderImGui()
 {
 	// 1. 파티클 설정 섹션
@@ -134,6 +135,7 @@ void ParticleComponent::RenderImGui()
 
 	}
 }
+#endif
 
 nlohmann::json ParticleComponent::Serialize()
 {

@@ -239,6 +239,7 @@ void GameObjectBase::BaseRender()
 	for (auto& child : m_childrens) child->BaseRender();
 }
 
+#ifdef _DEBUG
 void GameObjectBase::BaseRenderImGui()
 {
 	ImGui::PushID(this);
@@ -342,6 +343,7 @@ void GameObjectBase::BaseRenderImGui()
 
 	ImGui::PopID();
 }
+#endif
 
 void GameObjectBase::BaseFinalize()
 {
