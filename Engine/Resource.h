@@ -733,7 +733,8 @@ constexpr std::array<std::pair<size_t, size_t>, 12> BOX_LINE_INDICES =
     X(IDENTITY) \
     X(SEPIA) \
     X(GREENISH) \
-    X(REDDISH) 
+    X(REDDISH) \
+	X(ORANGE)
 
 struct LUTData
 {

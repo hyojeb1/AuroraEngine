@@ -981,5 +981,6 @@ void ResourceManager::LoadLUTTexture()
 	m_luts[1].srv =  GetTexture("LUT\\1_SEPIA.png", TextureType::LUT);
 	m_luts[2].srv =  GetTexture("LUT\\2_GREENISH.png", TextureType::LUT);
 	m_luts[3].srv =  GetTexture("LUT\\3_REDDISH.png", TextureType::LUT);
+	m_luts[4].srv =  GetTexture("LUT\\4_ORANGE.png", TextureType::LUT);
 }
 
