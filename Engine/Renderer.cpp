@@ -231,11 +231,11 @@ void Renderer::SetFullscreen(bool enable)
 	if (m_swapChain == nullptr) return;
 	HRESULT hr = S_OK;
 
+	hr = m_swapChain->SetFullscreenState(static_cast<BOOL>(enable), nullptr);
+	CheckResult(hr, "전체 화면 모드 전환 실패.");
+
 	if (enable)
 	{
-		hr = m_swapChain->SetFullscreenState(static_cast<BOOL>(enable), nullptr);
-		CheckResult(hr, "전체 화면 모드 전환 실패.");
-
 		com_ptr<IDXGIDevice> dxgiDevice;
 		m_device.As(&dxgiDevice);
 
@@ -265,12 +265,7 @@ void Renderer::SetFullscreen(bool enable)
 			modes.data()
 		);
 
-		m_swapChain->ResizeTarget(&modes.back());
-	}
-	else
-	{
-		hr = m_swapChain->SetFullscreenState(static_cast<BOOL>(enable), nullptr);
-		CheckResult(hr, "전체 화면 모드 전환 실패.");
+		m_swapChain->ResizeTarget(&modes.back()); //max resolution
 	}
 
 	
