@@ -5,7 +5,7 @@
 PS_SCENE_OUTPUT main(PS_INPUT_STD input)
 {
     float3 cameraToPixel = CameraPosition.xyz - input.WorldPosition.xyz;
-    float distanceFromCamera = length(cameraToPixel) * 0.1f;
+    float distanceFromCamera = length(cameraToPixel) * 0.05f;
     
     // 텍스처 샘플링
     // 베이스 컬러 텍스처
