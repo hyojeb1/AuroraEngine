@@ -336,6 +336,26 @@ void SceneBase::BaseRenderImGui()
 	ImGui::CheckboxFlags("Vignetting", &m_postProcessingData.flags, static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Vignetting));
 	ImGui::ColorEdit4("Vignetting Color And Intensity", &m_postProcessingData.vignettingColor.x);
 
+
+	const char* lutItems[] = {
+	#define X(name) #name,
+	LUT_LIST
+	#undef X
+	};
+
+	int& lut_idx = Renderer::GetInstance().GetSelectedLUTIndex();
+
+	ImGui::Combo("Select LUT", &lut_idx, lutItems, LUTData::COUNT);
+
+	com_ptr<ID3D11ShaderResourceView> ssrrvv = nullptr;
+	ssrrvv = ResourceManager::GetInstance().GetLUT(lut_idx);
+	ImGui::Image
+	(
+		(ImTextureID)ssrrvv.Get(),
+		ImVec2(256, 16)
+	);
+
+
 	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);
 	ImGui::DragFloat("IBL Intensity", &m_globalLightData.lightColor.w, 0.001f, 0.0f, 1.0f);
 

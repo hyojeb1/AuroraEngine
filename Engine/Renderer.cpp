@@ -41,7 +41,6 @@ void Renderer::BeginFrame()
 			ResourceManager::GetInstance().SetRasterState(RasterState::BackBuffer);
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
-
 			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::LUT),	1, resourceManager.GetLUT(m_selectedLUTIndex).GetAddressOf());
 			
 
@@ -133,27 +132,6 @@ void Renderer::EndFrame()
 		(ImTextureID)m_directionalLightShadowMapSRV.Get(),
 		ImVec2(500.0f, 500.0f)
 	);
-
-	ImGui::End();
-
-
-	ImGui::Begin("LUT Settings");
-	const char* lutItems[] = { 
-	#define X(name) #name,
-	LUT_LIST
-	#undef X
-	};
-
-	ImGui::Combo("Select LUT", &m_selectedLUTIndex, lutItems, LUTData::COUNT);
-
-	com_ptr<ID3D11ShaderResourceView> ssrrvv = nullptr;
-	ssrrvv = ResourceManager::GetInstance().GetLUT(m_selectedLUTIndex);
-	ImGui::Image
-	(
-		(ImTextureID)ssrrvv.Get(),
-		ImVec2(256, 16)
-	);
-
 
 	ImGui::End();
 
