@@ -518,13 +518,14 @@ struct PostProcessingBuffer
 		None = 0,
 
 		Bloom = 1 << 0,
-		Grayscale = 1 << 1,
-		Vignetting = 1 << 2,
+		Gamma = 1 << 1,
+		Grayscale = 1 << 2,
+		Vignetting = 1 << 3,
 	};
 	UINT flags = static_cast<UINT>(PostProcessingFlag::None); // 후처리 플래그
 
 	float bloomIntensity = 1.0f; // 블룸 강도
-	float gamma = 1.0f; // 감마 보정 값
+	float gammaIntensity = 1.0f; // 감마 보정 값
 	float grayScaleIntensity = 0.0f; // 그레이스케일 강도
 
 	DirectX::XMFLOAT4 vignettingColor = { 0.0f, 0.0f, 0.0f, 1.0f }; // 비네팅 색상 // w는 강도
