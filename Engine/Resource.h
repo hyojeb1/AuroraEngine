@@ -725,12 +725,19 @@ constexpr std::array<std::pair<size_t, size_t>, 12> BOX_LINE_INDICES =
 	std::pair<size_t, size_t>{ 0, 4 }, std::pair<size_t, size_t>{ 1, 5 }, std::pair<size_t, size_t>{ 2, 6 }, std::pair<size_t, size_t>{ 3, 7 }
 };
 
+#define LUT_LIST \
+    X(IDENTITY) \
+    X(SEPIA) \
+    X(GREENISH) \
+    X(REDDISH) 
+
 struct LUTData
 {
 	enum 
 	{
-		IDENTITY,
-		SEPIA,
+#define X(name) name,
+		LUT_LIST
+#undef X
 
 		COUNT
 	};
