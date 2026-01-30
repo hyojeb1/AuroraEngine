@@ -7,10 +7,9 @@ static const float TWO_PI = 6.28318530718f;
 static const float INV_PI = 0.31830988618f;
 static const float EPSILON = 1e-6f;
 
-// 난수 생성 상수
-static const float INV_16777216 = 1.0f / 16777216.0f;
-
 // 유틸리티 함수
+
+// 유사 난수 생성 함수
 
 // PCG 해시 함수 // 고품질 난수 생성
 uint PCG(uint seed)
@@ -36,21 +35,24 @@ uint LowBias32(uint seed)
 // 유사 난수 생성 (0.0 ~ 1.0)
 float Rand(uint u)
 {
+    static const float INV_16777216 = 1.0f / 16777216.0f;
     return float(u & 0x00FFFFFFu) * INV_16777216;
 }
 
 // 3D 벡터 유사 난수 생성
 float3 Rand3(float seed, float spread = 0.0f)
 {
-    uint s = asuint(seed * 12345.678f + 0.5f);
-    uint h1 = LowBias32(s);
-    uint h2 = LowBias32(h1);
-    uint h3 = LowBias32(h2);
+    uint intSeed = asuint(seed * 12345.678f + 0.5f);
+    uint hashX = LowBias32(intSeed);
+    uint hashY = LowBias32(hashX);
+    uint hashZ = LowBias32(hashY);
 
-    float3 r = float3(Rand(h1), Rand(h2), Rand(h3));
+    float3 randomVec = float3(Rand(hashX), Rand(hashY), Rand(hashZ));
 
-    if (spread <= 0.5f) return normalize(r - 0.5f);
-    return normalize(pow(r, rcp(spread)));
+    if (spread <= 0.5f) randomVec = normalize(randomVec - 0.5f);
+    else randomVec = normalize(pow(randomVec, rcp(spread)));
+    
+    return randomVec;
 }
 
 // 노말 맵핑 

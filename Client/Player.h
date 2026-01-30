@@ -12,6 +12,7 @@ class Player : public GameObjectBase
 	DirectX::XMFLOAT2 m_prevDeadEyePos = {};
 	DirectX::XMFLOAT2 m_nextDeadEyePos = {};
 	float m_deadEyeMoveTimer = 0.0f;
+	const float m_deadEyeMoveSpeed = 200.0f;
 
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_enemyHitTextureAndOffset = {};
 	const float m_enemyHitDisplayTime = 0.2f;

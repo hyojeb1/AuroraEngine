@@ -10,9 +10,10 @@ cbuffer PostProcessParams : register(b0)
 {
     uint PostProcessingFlags;
     
+    float BloomIntensity;
     float Gamma;
     float GrayScaleIntensity;
-    float MotionBlurIntensity;
+    float4 VignettingColor; // w는 비네팅 강도
 };
 
 cbuffer CameraPosition : register(b1)

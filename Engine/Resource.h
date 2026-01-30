@@ -401,7 +401,7 @@ struct BoneBuffer
 	std::array<DirectX::XMFLOAT4X4, MAX_BONES> boneMatrix = {};
 	BoneBuffer()
 	{
-		DirectX::XMFLOAT4X4 identity;
+		DirectX::XMFLOAT4X4 identity = {};
 		DirectX::XMStoreFloat4x4(&identity, DirectX::XMMatrixIdentity());
 		std::fill(boneMatrix.begin(), boneMatrix.end(), identity);
 	}
@@ -517,14 +517,18 @@ struct PostProcessingBuffer
 	{
 		None = 0,
 
-		Grayscale = 1 << 0,
-		MotingBlur = 1 << 1,
+		Bloom = 1 << 0,
+		Gamma = 1 << 1,
+		Grayscale = 1 << 2,
+		Vignetting = 1 << 3,
 	};
 	UINT flags = static_cast<UINT>(PostProcessingFlag::None); // 후처리 플래그
 
-	float gamma = 1.0f; // 감마 보정 값
+	float bloomIntensity = 1.0f; // 블룸 강도
+	float gammaIntensity = 1.0f; // 감마 보정 값
 	float grayScaleIntensity = 0.0f; // 그레이스케일 강도
-	float motionBlurIntensity = 1.0f; // 모션 블러 강도
+
+	DirectX::XMFLOAT4 vignettingColor = { 0.0f, 0.0f, 0.0f, 1.0f }; // 비네팅 색상 // w는 강도
 };
 struct CameraPositionBuffer // 카메라 위치 상수 버퍼 구조체
 {
