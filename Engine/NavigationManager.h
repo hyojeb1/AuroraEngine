@@ -22,7 +22,7 @@ class NavigationManager : public Singleton<NavigationManager>
 
 	bool m_pathStartSet = false;
 	DirectX::XMVECTOR m_pathStartPoint = DirectX::XMVectorZero();
-	std::vector<DirectX::XMVECTOR> m_currentPath = {};
+	std::deque<DirectX::XMVECTOR> m_currentPath = {};
 
 public:
 	NavigationManager() = default;
@@ -50,14 +50,16 @@ public:
 	void RenderNavMesh();
 
 	// 링크 배치 처리
-	void HandlePlaceLink();
+	void HandlePlaceLink(float height);
 	#endif
 
 	// 가장 가까운 폴리곤 찾기
 	int FindNearestPoly(const DirectX::XMVECTOR& point) const;
 	// 경로 찾기
-	std::vector<DirectX::XMVECTOR> FindPath(const DirectX::XMVECTOR& start, const DirectX::XMVECTOR& end) const;
+	std::deque<DirectX::XMVECTOR> FindPath(const DirectX::XMVECTOR& start, const DirectX::XMVECTOR& end) const;
 
 private:
 	bool PointInTriangle(const DirectX::XMVECTOR& point, const std::array<int, 3>& indexs) const;
+	// Simple Stupid Funnel Algorithm
+	std::deque<DirectX::XMVECTOR> SSFA(const DirectX::XMVECTOR& start, const DirectX::XMVECTOR& end, const std::vector<std::pair<DirectX::XMVECTOR, DirectX::XMVECTOR>>& portals) const;
 };

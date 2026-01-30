@@ -176,7 +176,7 @@ void SceneBase::BaseUpdate()
 
 	#ifdef _DEBUG
 	// 네비게이션 메시 생성 모드일 때 링크 배치 처리
-	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink();
+	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink(m_navMeshCreationHeight);
 
 	// Ctrl + S 입력 시 씬 저장
 	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::S))
@@ -216,7 +216,7 @@ void SceneBase::BaseRender()
 			renderer.SetViewport(static_cast<FLOAT>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE), static_cast<FLOAT>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE));
 
 			// 뷰-투영 상수 버퍼 방향광 기준으로 업데이트
-			const float cameraFarPlane = mainCamera.GetFarZ() * 0.1f;
+			const float cameraFarPlane = mainCamera.GetFarZ();
 
 			XMVECTOR lightPosition = (m_globalLightData.lightDirection * -cameraFarPlane) + mainCamera.GetPosition();
 			lightPosition = XMVectorSetW(lightPosition, 1.0f);
@@ -306,21 +306,19 @@ void SceneBase::BaseRender()
 	#endif
 }
 
+#ifdef _DEBUG
 void SceneBase::BaseRenderImGui()
 {
-	#ifdef _DEBUG
 	ImGui::Begin("Debug Camera");
 	static_cast<Base*>(m_debugCamera.get())->BaseRenderImGui();
 	ImGui::End();
-	#endif
 
 	ImGui::Begin(m_type.c_str());
 
-	#ifdef _DEBUG
 	ImGui::Checkbox("Debug Coordinates", &m_isRenderDebugCoordinates);
 
 	ImGui::Checkbox("NavMesh Creating", &m_isNavMeshCreating);
-	#endif
+	ImGui::DragFloat("NavMesh Creation Height", &m_navMeshCreationHeight, 0.1f, 0.1f, 100.0f);
 
 	ImGui::Separator();
 	ImGui::Text("Post Processing");
@@ -388,7 +386,6 @@ void SceneBase::BaseRenderImGui()
 
 	ImGui::End();
 
-	#ifdef _DEBUG
 	GameObjectBase* selectedObject = GameObjectBase::GetSelectedObject();
 	if (selectedObject)
 	{
@@ -466,8 +463,8 @@ void SceneBase::BaseRenderImGui()
 
 		if (ImGuizmo::IsUsing()) selectedObject->ApplyWorldMatrix(worldMatrix);
 	}
-	#endif
 }
+#endif
 
 void SceneBase::BaseFinalize()
 {

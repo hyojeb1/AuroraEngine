@@ -6,7 +6,7 @@ struct RenderTarget
 	std::pair<com_ptr<ID3D11Texture2D>, com_ptr<ID3D11DepthStencilView>> depthStencil = {}; // 깊이-스텐실 텍스처와 뷰
 };
 
-constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 8192; // 방향성 광원 그림자 맵 크기
+constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 1 << 14; // 16384
 enum class RenderStage
 {
 	DirectionalLightShadow,
@@ -395,7 +395,7 @@ struct TimeBuffer
 	float sinTime = 0.0f; // 시간의 사인 값
 	float cosTime = 0.0f; // 시간의 코사인 값
 };
-constexpr int MAX_BONES = 100;
+constexpr int MAX_BONES = 256;
 struct BoneBuffer
 {
 	std::array<DirectX::XMFLOAT4X4, MAX_BONES> boneMatrix = {};
@@ -528,7 +528,7 @@ struct PostProcessingBuffer
 	float gammaIntensity = 1.0f; // 감마 보정 값
 	float grayScaleIntensity = 0.0f; // 그레이스케일 강도
 
-	DirectX::XMFLOAT4 vignettingColor = { 0.0f, 0.0f, 0.0f, 1.0f }; // 비네팅 색상 // w는 강도
+	DirectX::XMFLOAT4 vignettingColor = { 0.0f, 0.0f, 0.0f, 0.0f }; // 비네팅 색상 // w는 강도
 };
 struct CameraPositionBuffer // 카메라 위치 상수 버퍼 구조체
 {

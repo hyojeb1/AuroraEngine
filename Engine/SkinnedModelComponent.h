@@ -26,7 +26,9 @@ private:
 	void Initialize() override;
 	void Update() override;
 	void Render() override;
+	#ifdef _DEBUG
 	void RenderImGui() override;
+	#endif
 	void Finalize() override;
 
 	nlohmann::json Serialize() override;

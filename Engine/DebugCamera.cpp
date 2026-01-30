@@ -44,6 +44,7 @@ void DebugCamera::Update()
 	if (input.GetKey(KeyCode::Shift)) MovePosition(GetWorldDirectionVector(Direction::Down) * m_moveSpeed * deltaTime);
 }
 
+#ifdef _DEBUG
 void DebugCamera::RenderImGui()
 {
 	ImGui::Begin("Debug Camera Settings");
@@ -51,3 +52,4 @@ void DebugCamera::RenderImGui()
 	ImGui::SliderFloat("Move Speed", &m_moveSpeed, 1.0f, 100.0f);
 	ImGui::End();
 }
+#endif

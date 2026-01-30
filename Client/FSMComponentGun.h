@@ -29,7 +29,9 @@ protected:
 	void OnUpdateState(StateID state) override;
 	void OnExitState(StateID state) override;
 
+	#ifdef _DEBUG
 	void RenderImGui() override;
+	#endif
 
 private:
 
