@@ -507,16 +507,18 @@ void SoundManager::UpdateUINodeIndex()
 
 bool SoundManager::CheckRhythm(float correction)
 {
+	if (m_CurrentTrackName.empty() || m_CurrentTrackName == "") return false;
+
 	const float time = GetCurrentPlaybackTime();
 
 	if (m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].first - correction + m_RhythmOffSet <= time && m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].second + correction + m_RhythmOffSet >= time)
 	{
-		std::cout << "Success! : " << std::endl;
+		std::cout << "Success!" << std::endl;
 		return true;
 	}
 	else
 	{
-		std::cout << "Failed! : " << std::endl;
+		std::cout << "Failed!" << std::endl;
 
 		return false;
 	}

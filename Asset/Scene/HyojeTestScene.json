@@ -16,81 +16,118 @@
     "navVertices": [],
     "rootGameObjects": [
         {
-            "childGameObjects": [],
-            "components": [
+            "childGameObjects": [
                 {
-                    "NoiseIndex": 1,
-                    "blendState": 0,
-                    "materialFactorData": {
-                        "DissolveEdgeColor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "DissolveEdgeIntensity": 0.800000011920929,
-                        "DissolveEdgeWidth": 1.0,
-                        "DissolvePadding": 1.0,
-                        "DissolveThreshold": 0.17000000178813934,
-                        "ambientOcclusionFactor": 1.0,
-                        "baseColorFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "emissionFactor": [
-                            1.0,
-                            1.0,
-                            0.5588235259056091,
-                            1.0
-                        ],
-                        "metallicFactor": 1.0,
-                        "normalScale": 1.0,
-                        "roughnessFactor": 1.0
-                    },
-                    "modelFileName": "test5.fbx",
-                    "psShaderName": "PSModel_Noise.hlsl",
-                    "rasterState": 1,
-                    "type": "SkinnedModelComponent",
-                    "vsShaderName": "VSModelSkinAnim.hlsl"
-                },
-                {
-                    "boundingBoxes": [
+                    "childGameObjects": [
                         {
-                            "center": [
-                                0.0,
-                                1.399999976158142,
+                            "childGameObjects": [],
+                            "components": [
+                                {
+                                    "NoiseIndex": 0,
+                                    "blendState": 0,
+                                    "materialFactorData": {
+                                        "DissolveEdgeColor": [
+                                            1.0,
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                        ],
+                                        "DissolveEdgeIntensity": 1.0,
+                                        "DissolveEdgeWidth": 1.0,
+                                        "DissolvePadding": 1.0,
+                                        "DissolveThreshold": 0.20000000298023224,
+                                        "ambientOcclusionFactor": 1.0,
+                                        "baseColorFactor": [
+                                            1.0,
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                        ],
+                                        "emissionFactor": [
+                                            1.0,
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                        ],
+                                        "metallicFactor": 1.0,
+                                        "normalScale": 1.0,
+                                        "roughnessFactor": 1.0
+                                    },
+                                    "modelFileName": "box.fbx",
+                                    "psShaderName": "PSModel.hlsl",
+                                    "rasterState": 1,
+                                    "type": "ModelComponent",
+                                    "vsShaderName": "VSModel.hlsl"
+                                }
+                            ],
+                            "name": "Gun",
+                            "position": [
+                                0.44999998807907104,
+                                -0.4000000059604645,
+                                2.299999952316284,
                                 0.0
                             ],
-                            "extents": [
-                                0.800000011920929,
-                                1.2000000476837158,
-                                0.800000011920929
-                            ]
+                            "rotation": [
+                                0.0,
+                                0.0,
+                                0.0,
+                                1.0
+                            ],
+                            "scale": [
+                                0.10000000149011612,
+                                0.09000000357627869,
+                                0.38999998569488525,
+                                1.0
+                            ],
+                            "type": "GameObjectBase"
                         }
                     ],
-                    "boundingFrustums": [],
-                    "boundingOrientedBoxes": [],
-                    "type": "ColliderComponent"
-                },
-                {
-                    "current_state": "Idle",
-                    "start_state": "Idle",
-                    "type": "FSMComponentEnemy"
+                    "components": [
+                        {
+                            "farZ": 1000.0,
+                            "fovY": 0.7853981852531433,
+                            "nearZ": 0.10000000149011612,
+                            "type": "CameraComponent"
+                        }
+                    ],
+                    "name": "CamRotObject_2",
+                    "position": [
+                        0.0,
+                        1.7000000476837158,
+                        0.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "type": "CamRotObject"
                 }
             ],
-            "name": "Enemy",
+            "components": [
+                {
+                    "type": "CrossHairAndNode"
+                }
+            ],
+            "name": "Player",
             "position": [
                 0.0,
-                0.0,
+                1.0,
                 0.0,
                 0.0
             ],
             "rotation": [
-                -0.0,
                 0.0,
-                -0.0,
+                0.0,
+                0.0,
                 1.0
             ],
             "scale": [
@@ -99,7 +136,7 @@
                 1.0,
                 1.0
             ],
-            "type": "Enemy"
+            "type": "Player"
         }
     ]
 }

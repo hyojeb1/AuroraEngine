@@ -186,27 +186,24 @@ void WindowManager::ToggleFullscreen()
 
 	if (targetFullscreen)
 	{
-		GetWindowRect(m_hWnd, &m_windowedRect);
+		/*GetWindowRect(m_hWnd, &m_windowedRect);
 
 		LONG style = GetWindowLong(m_hWnd, GWL_STYLE);
 		style &= ~WS_OVERLAPPEDWINDOW;
-		SetWindowLong(m_hWnd, GWL_STYLE, style);
+		SetWindowLong(m_hWnd, GWL_STYLE, style);*/
 
 		HMONITOR hMon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
 		MONITORINFO mi = { sizeof(mi) };
 		GetMonitorInfo(hMon, &mi);
 
-		SetWindowPos
-		(
-			m_hWnd, HWND_TOP,
-			mi.rcMonitor.left, mi.rcMonitor.top,
-			mi.rcMonitor.right - mi.rcMonitor.left,
-			mi.rcMonitor.bottom - mi.rcMonitor.top,
-			SWP_NOOWNERZORDER | SWP_FRAMECHANGED
-		);
-
-		cout << "Fullscreen Mode: " << (mi.rcMonitor.right - mi.rcMonitor.left) << "x" << (mi.rcMonitor.bottom - mi.rcMonitor.top) << endl;
-
+// 		SetWindowPos
+// 		(
+// 			m_hWnd, HWND_TOP,
+// 			mi.rcMonitor.left, mi.rcMonitor.top,
+// 			mi.rcMonitor.right - mi.rcMonitor.left,
+// 			mi.rcMonitor.bottom - mi.rcMonitor.top,
+// 			SWP_NOOWNERZORDER | SWP_FRAMECHANGED
+// 		);
 		ShowWindow(m_hWnd, SW_MAXIMIZE);
 		m_isFullscreen = true;
 
@@ -218,7 +215,7 @@ void WindowManager::ToggleFullscreen()
 	}
 	else
 	{
-		LONG style = GetWindowLong(m_hWnd, GWL_STYLE);
+		/*LONG style = GetWindowLong(m_hWnd, GWL_STYLE);
 		style |= WS_OVERLAPPEDWINDOW;
 		SetWindowLong(m_hWnd, GWL_STYLE, style);
 
@@ -229,9 +226,9 @@ void WindowManager::ToggleFullscreen()
 			m_windowedRect.right - m_windowedRect.left,
 			m_windowedRect.bottom - m_windowedRect.top,
 			SWP_NOOWNERZORDER | SWP_FRAMECHANGED
-		);
+		);*/
 
-		ShowWindow(m_hWnd, SW_NORMAL);
+		//ShowWindow(m_hWnd, SW_NORMAL);
 		m_isFullscreen = false;
 
 		renderer.Resize
