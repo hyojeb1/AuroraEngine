@@ -202,7 +202,8 @@ void WindowManager::ToggleFullscreen()
 		SetWindowLong(m_hWnd, GWL_STYLE, style);
 
 		SetWindowPos
-		(m_hWnd, nullptr,
+		(
+			m_hWnd, nullptr,
 			m_windowedRect.left, m_windowedRect.top,
 			m_windowedRect.right - m_windowedRect.left,
 			m_windowedRect.bottom - m_windowedRect.top,
