@@ -23,8 +23,6 @@ class SceneBase : public Base
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_skyboxVertexShaderAndInputLayout = {}; // 스카이박스 정점 셰이더
 	com_ptr<ID3D11PixelShader> m_skyboxPixelShader = nullptr; // 스카이박스 픽셀 셰이더
 
-	float m_sceneGamma = 1.0f; // 씬 감마 값
-
 	#ifdef _DEBUG
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_debugCoordinateVertexShaderAndInputLayout = {}; // 디버그 좌표 정점 셰이더
 	com_ptr<ID3D11PixelShader> m_debugCoordinatePixelShader = nullptr; // 디버그 좌표 픽셀 셰이더
@@ -70,9 +68,11 @@ public:
 	static const PostProcessingBuffer& GetPostProcessingBuffer() { return m_postProcessingData; }
 	static void SetPostProcessingBuffer(const PostProcessingBuffer& buffer) { m_postProcessingData = buffer; }
 	static void SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag flag, bool enable) { if (enable) m_postProcessingData.flags |= static_cast<UINT>(flag); else m_postProcessingData.flags &= ~static_cast<UINT>(flag); }
+	static void SetBloomIntensity(float intensity) { m_postProcessingData.bloomIntensity = intensity; }
 	static void SetGamma(float gamma) { m_postProcessingData.gamma = gamma; }
 	static void SetGrayScaleIntensity(float intensity) { m_postProcessingData.grayScaleIntensity = intensity; }
-	static void SetMotionBlurIntensity(float intensity) { m_postProcessingData.motionBlurIntensity = intensity; }
+	static void SetVignettingColor(const DirectX::XMFLOAT3& color) { m_postProcessingData.vignettingColor.x = color.x; m_postProcessingData.vignettingColor.y = color.y; m_postProcessingData.vignettingColor.z = color.z; }
+	static void SetVignettingIntensity(float intensity) { m_postProcessingData.vignettingColor.w = intensity; }
 
 	// 루트 게임 오브젝트 생성 // 게임 오브젝트 베이스 포인터 반환
 	GameObjectBase* CreateRootGameObject(const std::string& typeName);
