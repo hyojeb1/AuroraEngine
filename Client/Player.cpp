@@ -197,7 +197,7 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 	if (m_deadEyeTargets.empty()) { PlayerDeadEyeEnd(); return; }
 
 	m_deadEyeDuration += deltaTime;
-	m_deadEyeMoveTimer += deltaTime * 250.0f;
+	m_deadEyeMoveTimer += deltaTime * m_deadEyeMoveSpeed;
 	SceneBase::SetGrayScaleIntensity((m_deadEyeDuration / m_deadEyeTotalDuration) * 16.0f);
 
 	if (input.GetKeyDown(KeyCode::MouseLeft))

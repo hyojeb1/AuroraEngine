@@ -323,7 +323,11 @@ void SceneBase::BaseRenderImGui()
 	ImGui::Checkbox("NavMesh Creating", &m_isNavMeshCreating);
 	#endif
 
+	ImGui::DragFloat("Bloom Intensity", &m_postProcessingData.bloomIntensity, 0.1f, 0.0f, 100.0f);
 	ImGui::DragFloat("Gamma", &m_postProcessingData.gamma, 0.01f, 0.1f, 5.0f);
+	ImGui::DragFloat("Grayscale Intensity", &m_postProcessingData.grayScaleIntensity, 0.01f, 0.0f, 1.0f);
+	ImGui::ColorEdit3("Vignetting Color", &m_postProcessingData.vignettingColor.x);
+	ImGui::DragFloat("Vignetting Intensity", &m_postProcessingData.vignettingColor.w, 0.001f, 0.0f, 1.0f);
 
 	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);
 	ImGui::DragFloat("IBL Intensity", &m_globalLightData.lightColor.w, 0.001f, 0.0f, 1.0f);
