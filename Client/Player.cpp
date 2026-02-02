@@ -49,7 +49,14 @@ void Player::Update()
 	InputManager& input = InputManager::GetInstance();
 	auto& sm = SoundManager::GetInstance();
 
-	PlayerMove(deltaTime, input);
+	if (input.GetKeyDown(KeyCode::Space) && !m_isDashing && sm.CheckRhythm(0.1f)) { TriggerDash(input);}
+	if (m_isDashing){ // 대쉬
+		m_dashTimer -= deltaTime;
+		MovePosition(m_dashDirection * m_kDashSpeed * deltaTime);
+		if (m_dashTimer <= 0.0f){ m_isDashing = false;}
+	}
+	else{ PlayerMove(deltaTime, input); } // 원래 이동
+
 	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f)) { PlayerShoot(); };
 	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f)) PlayerDeadEyeStart();
 	if (input.GetKeyDown(KeyCode::R) && sm.CheckRhythm(0.1f)) { PlayerReload(); };
@@ -328,6 +335,28 @@ void Player::RenderBullets(class Renderer& renderer)
 		pos = m_bulletUIpos.first + (m_bulletInterval * i);
 		renderer.UI_RENDER_FUNCTIONS().emplace_back([&,pos]() { Renderer::GetInstance().RenderImageUIPosition(m_bulletImgs.first, { pos, m_bulletUIpos.second }, m_bulletImgs.second, 0.1f); });
 	}
+}
+
+void Player::TriggerDash(InputManager& input)
+{
+	m_isDashing = true;
+	m_dashTimer = m_kDashDuration;
+	
+	float forwardInput = 0.0f;
+	float rightInput = 0.0f;
+	if (input.GetKey(KeyCode::W)) forwardInput += 1.f;
+	if (input.GetKey(KeyCode::S)) forwardInput -= 1.f;
+	if (input.GetKey(KeyCode::A))   rightInput -= 1.f;
+	if (input.GetKey(KeyCode::D))   rightInput += 1.f;
+
+	if (forwardInput == 0.0f && rightInput == 0.0f) {
+		GetWorldDirectionVector(Direction::Forward);
+	} else {
+		XMVECTOR dir = GetWorldDirectionVector(Direction::Forward) * forwardInput + GetWorldDirectionVector(Direction::Right) * rightInput;
+		m_dashDirection = XMVector3Normalize(dir);
+	}
+
+	// 사운드 여기다 넣아야 함
 }
 
 
