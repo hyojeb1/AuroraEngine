@@ -14,6 +14,7 @@
 
 REGISTER_TYPE(Enemy)
 
+using namespace std;
 using namespace DirectX;
 
 void Enemy::Initialize()
@@ -22,6 +23,8 @@ void Enemy::Initialize()
 	m_collider = GetComponent<ColliderComponent>();
 
 	m_player = static_cast<Player*>(SceneManager::GetInstance().GetCurrentScene()->GetGameObjectRecursive("Player"));
+	if (!m_player) cout << "Enemy 초기화 오류: Player 게임 오브젝트를 찾을 수 없습니다." << endl;
+
 	m_pathFindIntervalRandomOffset = RANDOM(0.0f, m_pathFindInterval);
 	m_pathFindTimer = -m_pathFindIntervalRandomOffset;
 }
@@ -52,12 +55,7 @@ void Enemy::Update()
 	}
 
 	m_pathFindTimer += deltaTime;
-	if (m_pathFindTimer >= m_pathFindInterval - m_pathFindIntervalRandomOffset)
-	{
-		m_path.clear();
-		m_pathFindTimer = -m_pathFindIntervalRandomOffset;
-	}
-
+	if (m_pathFindTimer >= m_pathFindInterval - m_pathFindIntervalRandomOffset) { m_path.clear(); m_pathFindTimer = -m_pathFindIntervalRandomOffset; }
 
 	MoveAlongPath();
 }
