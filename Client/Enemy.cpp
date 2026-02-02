@@ -21,6 +21,8 @@ void Enemy::Initialize()
 	m_collider = GetComponent<ColliderComponent>();
 
 	m_player = static_cast<Player*>(SceneManager::GetInstance().GetCurrentScene()->GetGameObjectRecursive("Player"));
+
+
 }
 
 void Enemy::Die()
