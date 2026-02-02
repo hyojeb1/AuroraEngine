@@ -49,7 +49,10 @@ void Player::Update()
 	InputManager& input = InputManager::GetInstance();
 	auto& sm = SoundManager::GetInstance();
 
-	PlayerMove(deltaTime, input);
+	if (input.GetKeyDown(KeyCode::Space) && !m_isDashing && sm.CheckRhythm(0.1f) < InputType::Miss) { PlayerTriggerDash(input); }
+	if (m_isDashing) { PlayerDash(deltaTime, input); }
+	else { PlayerMove(deltaTime, input); }
+
 	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f) < InputType::Miss) { PlayerShoot(); };
 	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerDeadEyeStart();
 	if (input.GetKeyDown(KeyCode::R))
