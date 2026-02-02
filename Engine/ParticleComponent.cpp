@@ -32,13 +32,12 @@ void ParticleComponent::Initialize()
 void ParticleComponent::Update()
 {
 	m_elapsedTime += TimeManager::GetInstance().GetDeltaTime();
-	if (m_killOwnerAfterFinish && m_elapsedTime > m_particleTotalTime)
-	{
-		#ifdef NDEBUG
-		//m_owner->SetAlive(false);
-		#endif
-	};
-	uv_buffer_data_.eclipsedTime = fmodf(m_elapsedTime / m_particleTotalTime, 1.0f); // 0~1 사이 값으로 유지
+	#ifdef NDEBUG
+	if (m_killOwnerAfterFinish && m_elapsedTime > m_particleTotalTime) m_owner->SetAlive(false);
+	#endif
+
+	if (m_particleConstTime >= 0.0f) uv_buffer_data_.eclipsedTime = m_particleConstTime;
+	else uv_buffer_data_.eclipsedTime = fmodf(m_elapsedTime / m_particleTotalTime, 1.0f); // 0~1 사이 값으로 유지
 }
 
 void ParticleComponent::Render()
@@ -87,6 +86,7 @@ void ParticleComponent::RenderImGui()
 		ImGui::DragFloat("Image Scale", &uv_buffer_data_.imageScale, 0.01f, 0.1f, 10.0f);
 		ImGui::DragFloat("Spread Radius", &uv_buffer_data_.spreadRadius, 0.1f, 0.0f, 10.0f);
 		ImGui::DragFloat("Spread Distance", &uv_buffer_data_.spreadDistance, 0.1f, 0.0f, 1000.0f);
+		ImGui::DragFloat("Particle Constant Time", &m_particleConstTime, 0.01f, -1.0f, 100.0f);
 		ImGui::DragFloat("Particle Total Time", &m_particleTotalTime, 0.01f, 0.1f, 100.0f);
 		ImGui::Checkbox("Kill Owner After Finish", &m_killOwnerAfterFinish);
 		ImGui::ColorEdit4("Particle Emission Color", &m_particleEmissionColor.x);
@@ -163,6 +163,7 @@ nlohmann::json ParticleComponent::Serialize()
 	jsonData["imageScale"] = uv_buffer_data_.imageScale;
 	jsonData["spreadRadius"] = uv_buffer_data_.spreadRadius;
 	jsonData["spreadDistance"] = uv_buffer_data_.spreadDistance;
+	jsonData["particleConstTime"] = m_particleConstTime;
 	jsonData["particleTotalTime"] = m_particleTotalTime;
 	jsonData["KillOwnerAfterFinish"] = m_killOwnerAfterFinish;
 	jsonData["particleEmissionColor"] = { m_particleEmissionColor.x, m_particleEmissionColor.y, m_particleEmissionColor.z, m_particleEmissionColor.w };
@@ -200,6 +201,7 @@ void ParticleComponent::Deserialize(const nlohmann::json& jsonData)
 	if (jsonData.contains("imageScale")) uv_buffer_data_.imageScale = jsonData["imageScale"].get<float>();
 	if (jsonData.contains("spreadRadius")) uv_buffer_data_.spreadRadius = jsonData["spreadRadius"].get<float>();
 	if (jsonData.contains("spreadDistance")) uv_buffer_data_.spreadDistance = jsonData["spreadDistance"].get<float>();
+	if (jsonData.contains("particleConstTime")) m_particleConstTime = jsonData["particleConstTime"].get<float>();
 	if (jsonData.contains("particleTotalTime")) m_particleTotalTime = jsonData["particleTotalTime"].get<float>();
 	if (jsonData.contains("KillOwnerAfterFinish")) m_killOwnerAfterFinish = jsonData["KillOwnerAfterFinish"].get<bool>();
 	if (jsonData.contains("particleEmissionColor"))

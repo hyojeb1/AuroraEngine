@@ -27,6 +27,7 @@ protected:
 
 	int m_particleAmount = 1;
 	ParticleBuffer uv_buffer_data_ = {};
+	float m_particleConstTime = -1.0f; // 파티클 상수 시간 // 양수면 그 시간에 고정, 음수면 경과 시간 사용
 	float m_elapsedTime = 0.0f;
 	float m_particleTotalTime = 1.0f;
 	bool m_killOwnerAfterFinish = false;

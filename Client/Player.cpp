@@ -100,44 +100,30 @@ void Player::PlayerShoot()
 {
 	if (!m_gunObject || m_isDeadEyeActive) return;
 
+	if (m_gunFSM) m_gunFSM->Fire();
 	--m_bulletCnt;
 
 	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
+
 	const XMVECTOR& origin = mainCamera.GetPosition();
 	const XMVECTOR& direction = mainCamera.GetForwardVector();
 	float distance = 0.0f;
 	GameObjectBase* hit = ColliderComponent::CheckCollision(origin, direction, distance);
 	const XMVECTOR& hitPosition = XMVectorAdd(origin, XMVectorScale(direction, distance));
-	if (hit)
+
+	GameObjectBase* smoke = CreatePrefabChildGameObject("Smoke.json");
+	const XMVECTOR& gunPos = m_gunObject->GetWorldPosition();
+	smoke->SetPosition(gunPos);
+	smoke->SetScale(XMVectorSet(1.0f, 1.0f, distance, 1.0f));
+	smoke->LookAt(hitPosition);
+
+	if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
 	{
-		if (m_gunFSM) m_gunFSM->Fire();
-		if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
-		{
-			enemy->Die();
-			GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
-			gem->SetPosition(hitPosition);
+		enemy->Die();
+		GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
+		gem->SetPosition(hitPosition);
 
-			m_enemyHitTimer = m_enemyHitDisplayTime;
-		}
-
-		LineBuffer lineBuffer = {};
-		XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
-		lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		XMStoreFloat4(&lineBuffer.linePoints[1], hitPosition);
-		lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-
-		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
-	}
-	else
-	{
-		if (m_gunFSM) m_gunFSM->Fire();
-
-		LineBuffer lineBuffer = {};
-		XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
-		lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		XMStoreFloat4(&lineBuffer.linePoints[1], XMVectorAdd(origin, XMVectorScale(direction, 1000.0f)));
-		lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
+		m_enemyHitTimer = m_enemyHitDisplayTime;
 	}
 }
 
