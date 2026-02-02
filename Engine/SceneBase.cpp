@@ -10,6 +10,7 @@
 #include "WindowManager.h"
 #include "ModelComponent.h"
 #include "InputManager.h"
+#include "SceneManager.h"
 
 
 using namespace std;
@@ -30,19 +31,17 @@ GameObjectBase* SceneBase::CreateRootGameObject(const string& typeName)
 
 GameObjectBase* SceneBase::CreatePrefabRootGameObject(const string& prefabFileName)
 {
-	const filesystem::path prefabDirectory = "../Asset/Prefab/";
-	const filesystem::path prefabFilePath = prefabDirectory / prefabFileName;
+	const nlohmann::json* prefabJsonPtr = SceneManager::GetInstance().GetPrefabData(prefabFileName);
+	if (!prefabJsonPtr)
+	{
+		cerr << "오류: 프리팹 '" << prefabFileName << "'을(를) 찾을 수 없습니다." << endl;
+		return nullptr;
+	}
 
-	ifstream prefabFile(prefabFilePath);
-	nlohmann::json prefabJson;
-	prefabFile >> prefabJson;
-	prefabFile.close();
-	string typeName = prefabJson["type"].get<string>();
-
-	unique_ptr<GameObjectBase> gameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
+	unique_ptr<GameObjectBase> gameObject = TypeRegistry::GetInstance().CreateGameObject((*prefabJsonPtr)["type"].get<string>());
 	GameObjectBase* gameObjectPtr = gameObject.get();
 
-	static_cast<Base*>(gameObjectPtr)->BaseDeserialize(prefabJson);
+	static_cast<Base*>(gameObjectPtr)->BaseDeserialize(*prefabJsonPtr);
 	static_cast<Base*>(gameObjectPtr)->BaseInitialize();
 
 	m_gameObjects.push_back(move(gameObject));
@@ -323,21 +322,60 @@ void SceneBase::BaseRenderImGui()
 	ImGui::DragFloat("NavMesh Creation Height", &m_navMeshCreationHeight, 0.1f, 0.1f, 100.0f);
 
 	ImGui::Separator();
-	ImGui::Text("Post Processing");
+	ImGui::Text("[Post Processing]");
+	
 	ImGui::Separator();
 
+	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Bloom");
 	ImGui::CheckboxFlags("Bloom", &m_postProcessingData.flags, static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Bloom));
 	ImGui::DragFloat("Bloom Intensity", &m_postProcessingData.bloomIntensity, 0.1f, 0.0f, 100.0f);
 
+	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Gamma");
 	ImGui::CheckboxFlags("Gamma", &m_postProcessingData.flags, static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Gamma));
 	ImGui::DragFloat("Gamma Intensity", &m_postProcessingData.gammaIntensity, 0.01f, 0.1f, 5.0f);
 
+	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Grayscale");
 	ImGui::CheckboxFlags("Grayscale", &m_postProcessingData.flags, static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Grayscale));
 	ImGui::DragFloat("Grayscale Intensity", &m_postProcessingData.grayScaleIntensity, 0.01f, 0.0f, 1.0f);
 
+	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Vignetting");
 	ImGui::CheckboxFlags("Vignetting", &m_postProcessingData.flags, static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Vignetting));
 	ImGui::ColorEdit4("Vignetting Color And Intensity", &m_postProcessingData.vignettingColor.x);
+	
+	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Radial Blur");
+	ImGui::CheckboxFlags("Radial Blur", &m_postProcessingData.flags, static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::RadialBlur));
+	ImGui::DragFloat2("Radial Blur Center", &m_postProcessingData.radialBlurParam.x, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat("Radial Blur Dist", &m_postProcessingData.radialBlurParam.z, 0.01f, 0.0f, 10.0f);
+	ImGui::DragFloat("Radial Blur Strength", &m_postProcessingData.radialBlurParam.w, 0.01f, 0.0f, 100.0f);
 
+	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "LUT");
+	const char* lutItems[] = {
+	#define X(name) #name,
+	LUT_LIST
+	#undef X
+	};
+	int& lut1idx = Renderer::GetInstance().GetSelectedLUTIndex();
+	ImGui::Combo("Select LUT", &lut1idx, lutItems, LUTData::COUNT);
+	com_ptr<ID3D11ShaderResourceView> lut_texture_1 = nullptr;
+	lut_texture_1 = ResourceManager::GetInstance().GetLUT(lut1idx);
+	ImGui::Image
+	(
+		(ImTextureID)lut_texture_1.Get(),
+		ImVec2(256, 16)
+	);
+	int& lut2idx = Renderer::GetInstance().GetSelectedLUT2Index();
+	ImGui::CheckboxFlags("LUT CROSSFADE", &m_postProcessingData.flags, static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::LUT_CROSSFADE));
+	ImGui::Combo("Select LUT2", &lut2idx, lutItems, LUTData::COUNT);
+	com_ptr<ID3D11ShaderResourceView> lut_texture_2 = nullptr;
+	lut_texture_2 = ResourceManager::GetInstance().GetLUT(lut2idx);
+	ImGui::Image
+	(
+		(ImTextureID)lut_texture_2.Get(),
+		ImVec2(256, 16)
+	);
+	ImGui::DragFloat("Lut Lerp Factor", &m_postProcessingData.lutLerpFactor, 0.01f, 0.0f, 1.0f);
+
+	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Light");
 	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);
 	ImGui::DragFloat("IBL Intensity", &m_globalLightData.lightColor.w, 0.001f, 0.0f, 1.0f);
 
@@ -499,6 +537,18 @@ nlohmann::json SceneBase::BaseSerialize()
 		m_globalLightData.lightDirection.m128_f32[3]
 	};
 
+	// 후처리 정보
+	jsonData["postProcessing"] =
+	{
+		{ "flags", m_postProcessingData.flags },
+		{ "bloomIntensity", m_postProcessingData.bloomIntensity },
+		{ "gammaIntensity", m_postProcessingData.gammaIntensity },
+		{ "grayScaleIntensity", m_postProcessingData.grayScaleIntensity },
+		{ "vignettingColor", { m_postProcessingData.vignettingColor.x, m_postProcessingData.vignettingColor.y, m_postProcessingData.vignettingColor.z, m_postProcessingData.vignettingColor.w } },
+		{ "radialBlurParam", { m_postProcessingData.radialBlurParam.x, m_postProcessingData.radialBlurParam.y, m_postProcessingData.radialBlurParam.z, m_postProcessingData.radialBlurParam.w } },
+		{ "lutLerpFactor", m_postProcessingData.lutLerpFactor}
+	};
+
 	// 환경 맵 파일 이름
 	jsonData["environmentMapFileName"] = m_environmentMapFileName;
 
@@ -541,6 +591,37 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 			jsonData["lightDirection"][2].get<float>(),
 			jsonData["lightDirection"][3].get<float>()
 		);
+	}
+
+	// 후처리 정보
+	if (jsonData.contains("postProcessing"))
+	{
+		const nlohmann::json& ppData = jsonData["postProcessing"];
+		if (ppData.contains("flags")) m_postProcessingData.flags = ppData["flags"].get<UINT>();
+		if (ppData.contains("bloomIntensity")) m_postProcessingData.bloomIntensity = ppData["bloomIntensity"].get<float>();
+		if (ppData.contains("gammaIntensity")) m_postProcessingData.gammaIntensity = ppData["gammaIntensity"].get<float>();
+		if (ppData.contains("grayScaleIntensity")) m_postProcessingData.grayScaleIntensity = ppData["grayScaleIntensity"].get<float>();
+		if (ppData.contains("vignettingColor"))
+		{
+			m_postProcessingData.vignettingColor = XMFLOAT4
+			(
+				ppData["vignettingColor"][0].get<float>(),
+				ppData["vignettingColor"][1].get<float>(),
+				ppData["vignettingColor"][2].get<float>(),
+				ppData["vignettingColor"][3].get<float>()
+			);
+		}
+		if (ppData.contains("radialBlurParam"))
+		{
+			m_postProcessingData.radialBlurParam = XMFLOAT4
+			(
+				ppData["radialBlurParam"][0].get<float>(),
+				ppData["radialBlurParam"][1].get<float>(),
+				ppData["radialBlurParam"][2].get<float>(),
+				ppData["radialBlurParam"][3].get<float>()
+			);
+		}
+		if (ppData.contains("lutLerpFactor")) m_postProcessingData.lutLerpFactor = ppData["lutLerpFactor"].get<float>();
 	}
 
 	// 환경 맵 파일 이름

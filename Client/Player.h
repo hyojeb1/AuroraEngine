@@ -43,6 +43,17 @@ class Player : public GameObjectBase
 	std::pair<float, float> m_bulletUIpos{ 0.0f,0.0f };
 	float m_bulletInterval = 0.0f;
 
+	bool m_isDashing = false;
+	float m_dashTimer = 0.0f;
+	DirectX::XMVECTOR m_dashDirection = {};
+	const float m_kDashSpeed = 30.0f;
+	const float m_kDashDuration = 0.15f; 
+
+	bool m_lutCrossfadeActive = false;
+	bool m_lutCrossfadeReverse = false;
+	float m_lutCrossfadeElapsed = 0.0f;
+	float m_lutCrossfadeDuration = 0.18f;
+
 public:
 	Player() = default;
 	~Player() = default;
@@ -59,6 +70,8 @@ private:
 	void Render() override;
 	void Finalize() override;
 
+	void PlayerTriggerDash(class InputManager& input);
+	void PlayerDash(float deltaTime, class InputManager& input);
 	void PlayerMove(float deltaTime, class InputManager& input);
 	void PlayerShoot();
 	void PlayerReload(int cnt);
@@ -71,4 +84,8 @@ private:
 	void RenderEnemyHitUI(class Renderer& renderer);
 	void RenderUINode(class Renderer& renderer);
 	void RenderBullets(class Renderer& renderer);
+
+
+	void UpdateLutCrossfade(float deltaTime);
+	void TriggerLUT();
 };

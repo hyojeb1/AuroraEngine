@@ -9,6 +9,8 @@ class SceneManager : public Singleton<SceneManager>
 
 	double m_accumulator = 0.0;
 
+	std::unordered_map<std::string, nlohmann::json> m_prefabCache = {}; // 프리팹 캐시 맵
+
 public:
 	~SceneManager() = default;
 	SceneManager(const SceneManager&) = delete;
@@ -24,6 +26,10 @@ public:
 
 	class SceneBase* GetCurrentScene();
 
+	const nlohmann::json* GetPrefabData(const std::string& prefabName);
+
 private:
 	SceneManager() = default;
+
+	void LoadAllPrefabs();
 };

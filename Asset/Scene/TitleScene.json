@@ -14,6 +14,24 @@
     ],
     "navPolyIndices": [],
     "navVertices": [],
+    "postProcessing": {
+        "bloomIntensity": 20.700000762939453,
+        "flags": 17,
+        "gammaIntensity": 1.0,
+        "grayScaleIntensity": 0.0,
+        "radialBlurParam": [
+            0.5,
+            0.5,
+            0.33000001311302185,
+            1.7000000476837158
+        ],
+        "vignettingColor": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ]
+    },
     "rootGameObjects": [
         {
             "childGameObjects": [],
@@ -50,41 +68,37 @@
             "childGameObjects": [],
             "components": [
                 {
+                    "KillOwnerAfterFinish": false,
                     "billboardType": 1,
                     "blendState": 1,
-                    "flipbookAutoPlay": true,
-                    "flipbookColumns": 40,
-                    "flipbookCurrentFrame": 32,
-                    "flipbookDestroyOnFinish": false,
-                    "flipbookEndFrame": 120,
-                    "flipbookFPS": 8.0,
-                    "flipbookLoop": true,
-                    "flipbookPlaybackSpeed": 0.10000000149011612,
-                    "flipbookPlaying": true,
-                    "flipbookRandomStart": false,
-                    "flipbookRows": 24,
-                    "flipbookStartFrame": 0,
-                    "imageScale": 0.3499999940395355,
-                    "particleAmount": 22,
+                    "imageScale": 0.10000000149011612,
+                    "particleAmount": 307,
+                    "particleConstTime": 2.4700000286102295,
+                    "particleEmissionColor": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                    ],
                     "particleTotalTime": 0.36000001430511475,
                     "psShaderName": "PSParticle.hlsl",
                     "rasterState": 2,
-                    "spreadDistance": 0.8999999761581421,
-                    "spreadRadius": 0.0,
-                    "textureFileName": "Gem.png",
-                    "type": "FlipbookParticleComponent",
+                    "spreadDistance": 14.5,
+                    "spreadRadius": 10.0,
+                    "textureFileName": "Smoke.png",
+                    "type": "ParticleComponent",
                     "uvOffset": [
-                        0.800000011920929,
+                        0.0,
                         0.0
                     ],
                     "uvScale": [
-                        0.02500000037252903,
-                        0.0416666679084301
+                        1.0,
+                        1.0
                     ],
                     "vsShaderName": "VSParticle.hlsl"
                 }
             ],
-            "name": "Gem",
+            "name": "Smoke",
             "position": [
                 0.0,
                 0.0,
@@ -92,18 +106,18 @@
                 0.0
             ],
             "rotation": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
+                0.021809693425893784,
+                -0.021809693425893784,
+                0.00047588918823748827,
+                0.9995240569114685
             ],
             "scale": [
-                1.0,
-                1.0,
+                0.05000000074505806,
+                0.05000000074505806,
                 1.0,
                 1.0
             ],
-            "type": "GameObjectBase"
+            "type": "GemParticle"
         }
     ]
 }

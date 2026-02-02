@@ -508,6 +508,7 @@ enum class PSConstBuffers
 	CameraPosition, // CameraPositionBuffer
 	GlobalLight, // GlobalLightBuffer
 	MaterialFactor, // MaterialFactorBuffer
+	ParticleColor, // ParticleColorBuffer
 
 	Count
 };
@@ -521,6 +522,8 @@ struct PostProcessingBuffer
 		Gamma = 1 << 1,
 		Grayscale = 1 << 2,
 		Vignetting = 1 << 3,
+		RadialBlur = 1 << 4,
+		LUT_CROSSFADE = 1 << 5,
 	};
 	UINT flags = static_cast<UINT>(PostProcessingFlag::None); // 후처리 플래그
 
@@ -529,6 +532,10 @@ struct PostProcessingBuffer
 	float grayScaleIntensity = 0.0f; // 그레이스케일 강도
 
 	DirectX::XMFLOAT4 vignettingColor = { 0.0f, 0.0f, 0.0f, 0.0f }; // 비네팅 색상 // w는 강도
+	DirectX::XMFLOAT4 radialBlurParam = { 0.5f, 0.5f, 0.33f, 1.7f }; //x,y = Center # z = Distance #  w = Strength
+	
+	float lutLerpFactor = 0;
+	DirectX::XMFLOAT3 PADDING = { 0,0,0 };
 };
 struct CameraPositionBuffer // 카메라 위치 상수 버퍼 구조체
 {
@@ -558,8 +565,11 @@ struct MaterialFactorBuffer
 	float DissolveEdgeIntensity = 1.0f;
 	float DissolvePadding = 1.0f;
 	DirectX::XMFLOAT4 DissolveEdgeColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 자가 발광 색상
-
-
+};
+struct ParticleColorBuffer
+{
+	DirectX::XMFLOAT4 baseColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+	DirectX::XMFLOAT4 emissionColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 };
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(PSConstBuffers::Count)> PS_CONST_BUFFER_DESCS =
 {
@@ -605,6 +615,17 @@ constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(PSConstBuffers::Coun
 		.CPUAccessFlags = 0,
 		.MiscFlags = 0,
 		.StructureByteStride = 0
+	},
+
+	// ParticleEmissionBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(ParticleColorBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
 	}
 };
 
@@ -620,6 +641,7 @@ enum class TextureSlots
 	Emission,
 
 	LUT,
+	LUT2,
 	Noise,
 
 	Count

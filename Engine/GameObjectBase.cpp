@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "GameObjectBase.h"
 
+#include "SceneManager.h"
+
 using namespace std;
 using namespace DirectX;
 
@@ -138,20 +140,18 @@ GameObjectBase* GameObjectBase::CreateChildGameObject(const string& typeName)
 
 GameObjectBase* GameObjectBase::CreatePrefabChildGameObject(const string& prefabFileName)
 {
-	const filesystem::path prefabDirectory = "../Asset/Prefab/";
-	const filesystem::path prefabFilePath = prefabDirectory / prefabFileName;
+	const nlohmann::json* prefabJsonPtr = SceneManager::GetInstance().GetPrefabData(prefabFileName);
+	if (!prefabJsonPtr)
+	{
+		cerr << "오류: 프리팹 '" << prefabFileName << "'을(를) 찾을 수 없습니다." << endl;
+		return nullptr;
+	}
 
-	ifstream prefabFile(prefabFilePath);
-	nlohmann::json prefabJson;
-	prefabFile >> prefabJson;
-	prefabFile.close();
-	string typeName = prefabJson["type"].get<string>();
-
-	unique_ptr<GameObjectBase> childGameObject = TypeRegistry::GetInstance().CreateGameObject(typeName);
+	unique_ptr<GameObjectBase> childGameObject = TypeRegistry::GetInstance().CreateGameObject((*prefabJsonPtr)["type"].get<string>());
 	GameObjectBase* childGameObjectPtr = childGameObject.get();
 
 	childGameObject->m_parent = this;
-	childGameObject->BaseDeserialize(prefabJson);
+	childGameObject->BaseDeserialize(*prefabJsonPtr);
 	childGameObject->BaseInitialize();
 
 	m_childrens.push_back(move(childGameObject));

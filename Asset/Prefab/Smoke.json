@@ -1,0 +1,86 @@
+{
+    "childGameObjects": [
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "RestartOnFinish": false,
+                    "billboardType": 1,
+                    "blendState": 1,
+                    "imageScale": 0.10000000149011612,
+                    "particleAmount": 500,
+                    "particleColor": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "particleConstTime": 1.0,
+                    "particleEmissionColor": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                    ],
+                    "particleTotalTime": 3.0,
+                    "psShaderName": "PSParticle.hlsl",
+                    "rasterState": 2,
+                    "spreadDistance": 1.5,
+                    "spreadRadius": 10.0,
+                    "textureFileName": "Smoke.png",
+                    "type": "ParticleComponent",
+                    "uvOffset": [
+                        0.0,
+                        0.0
+                    ],
+                    "uvScale": [
+                        1.0,
+                        1.0
+                    ],
+                    "vsShaderName": "VSParticle.hlsl"
+                }
+            ],
+            "name": "SmokeLine",
+            "position": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "rotation": [
+                0.00017267146904487163,
+                -0.0003383721923455596,
+                5.844395190024443e-08,
+                0.9999999403953552
+            ],
+            "scale": [
+                0.05000029131770134,
+                0.05000010505318642,
+                1.0,
+                0.0
+            ],
+            "type": "GameObjectBase"
+        }
+    ],
+    "components": [],
+    "name": "Smoke",
+    "position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+    ],
+    "scale": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "type": "ParticleObject"
+}

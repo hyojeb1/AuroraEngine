@@ -2,32 +2,46 @@
     "childGameObjects": [],
     "components": [
         {
+            "RestartOnFinish": false,
             "billboardType": 1,
             "blendState": 1,
             "flipbookAutoPlay": true,
             "flipbookColumns": 40,
-            "flipbookCurrentFrame": 40,
+            "flipbookCurrentFrame": 21,
             "flipbookDestroyOnFinish": false,
             "flipbookEndFrame": 120,
             "flipbookFPS": 8.0,
             "flipbookLoop": true,
-            "flipbookPlaybackSpeed": 0.10000000149011612,
+            "flipbookPlaybackSpeed": 4.0,
             "flipbookPlaying": true,
             "flipbookRandomStart": false,
             "flipbookRows": 24,
             "flipbookStartFrame": 0,
-            "imageScale": 0.23999999463558197,
-            "particleAmount": 22,
-            "particleTotalTime": 0.36000001430511475,
+            "imageScale": 0.23000000417232513,
+            "particleAmount": 72,
+            "particleColor": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "particleConstTime": -1.0,
+            "particleEmissionColor": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "particleTotalTime": 0.49000000953674316,
             "psShaderName": "PSParticle.hlsl",
             "rasterState": 2,
-            "spreadDistance": 0.8999999761581421,
+            "spreadDistance": 2.200000047683716,
             "spreadRadius": 0.0,
             "textureFileName": "Gem.png",
             "type": "FlipbookParticleComponent",
             "uvOffset": [
-                0.0,
-                0.0416666679084301
+                0.5250000357627869,
+                0.0
             ],
             "uvScale": [
                 0.02500000037252903,
@@ -55,5 +69,5 @@
         1.0,
         1.0
     ],
-    "type": "GemParticle"
+    "type": "ParticleObject"
 }

@@ -432,7 +432,7 @@ deque<XMVECTOR> NavigationManager::FindPath(const XMVECTOR& start, const XMVECTO
 
 	if (portals.empty()) return { start, end };
 
-	return SSFA(start, end, portals);
+	return StringPull(start, end, portals);
 }
 
 bool NavigationManager::PointInTriangle(const XMVECTOR& point, const array<int, 3>& indexs) const
@@ -454,17 +454,59 @@ bool NavigationManager::PointInTriangle(const XMVECTOR& point, const array<int, 
 	return (u >= 0) && (v >= 0) && (u + v < 1);
 }
 
-deque<XMVECTOR> NavigationManager::SSFA(const XMVECTOR& start, const XMVECTOR& end, const vector<pair<XMVECTOR, XMVECTOR>>& portals) const
+deque<XMVECTOR> NavigationManager::StringPull(const XMVECTOR& start, const XMVECTOR& end, const vector<pair<XMVECTOR, XMVECTOR>>& portals) const
 {
 	deque<XMVECTOR> result = {};
 
 	result.push_back(start);
-	for (const auto& p : portals)
+
+	XMVECTOR point = start;
+
+	for (const auto& portal : portals)
 	{
-		XMVECTOR mid = XMVectorScale(XMVectorAdd(p.first, p.second), 0.5f);
-		result.push_back(mid);
+		point = ClosestPointOnLineSegment(portal, { point, end });
+		result.push_back(point);
 	}
+
 	result.push_back(end);
 
 	return result;
+}
+
+XMVECTOR NavigationManager::ClosestPointOnLineSegment(const pair<XMVECTOR, XMVECTOR>& targetLine, const pair<XMVECTOR, XMVECTOR>& sourceLine) const
+{
+	XMVECTOR targetDir = XMVectorSubtract(targetLine.second, targetLine.first);
+	XMVECTOR sourceDir = XMVectorSubtract(sourceLine.second, sourceLine.first);
+	XMVECTOR r = XMVectorSubtract(targetLine.first, sourceLine.first);
+
+	float a = XMVectorGetX(XMVector3Dot(targetDir, targetDir));
+	float b = XMVectorGetX(XMVector3Dot(targetDir, sourceDir));
+	float c = XMVectorGetX(XMVector3Dot(sourceDir, sourceDir));
+	float d = XMVectorGetX(XMVector3Dot(targetDir, r));
+	float e = XMVectorGetX(XMVector3Dot(sourceDir, r));
+
+	float denom = a * c - b * b;
+
+	float s = 0.0f;
+	float t = 0.0f;
+
+	if (denom < numeric_limits<float>::epsilon()) t = (b > c ? d / b : e / c);
+	else { s = (b * e - c * d) / denom; t = (a * e - b * d) / denom; }
+
+	s = max(0.0f, min(1.0f, s));
+	t = max(0.0f, min(1.0f, t));
+
+	XMVECTOR closestPointOnTarget = XMVectorMultiplyAdd(targetDir, XMVectorReplicate(s), targetLine.first);
+	XMVECTOR closestPointOnSource = XMVectorMultiplyAdd(sourceDir, XMVectorReplicate(t), sourceLine.first);
+
+	XMVECTOR toSource = XMVectorSubtract(closestPointOnSource, targetLine.first);
+	XMVECTOR projection = XMVector3Dot(toSource, targetDir);
+	float targetLength = XMVectorGetX(XMVector3LengthSq(targetDir));
+
+	if (targetLength < numeric_limits<float>::epsilon()) return targetLine.first;
+
+	float projectionScale = XMVectorGetX(projection) / targetLength;
+	projectionScale = max(0.0f, min(1.0f, projectionScale));
+
+	return XMVectorMultiplyAdd(targetDir, XMVectorReplicate(projectionScale), targetLine.first);
 }

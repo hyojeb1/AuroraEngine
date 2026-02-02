@@ -12,36 +12,90 @@
         0.5213324427604675,
         1.0
     ],
+    "navPolyIndices": [
+        [
+            0,
+            1,
+            2
+        ]
+    ],
+    "navVertices": [
+        [
+            1.638338565826416,
+            0.0,
+            4.247105598449707
+        ],
+        [
+            3.638338565826416,
+            0.0,
+            4.247105598449707
+        ],
+        [
+            2.638338565826416,
+            0.0,
+            6.247105598449707
+        ]
+    ],
+    "postProcessing": {
+        "bloomIntensity": 64.0999984741211,
+        "flags": 33,
+        "gammaIntensity": 1.0,
+        "grayScaleIntensity": 0.0,
+        "lutLerpFactor": 1.0,
+        "radialBlurParam": [
+            0.5,
+            0.5,
+            0.33000001311302185,
+            1.7000000476837158
+        ],
+        "vignettingColor": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ]
+    },
     "rootGameObjects": [
         {
             "childGameObjects": [],
             "components": [
-              {
-                "blendState": 0,
-                "materialFactorData": {
-                  "ambientOcclusionFactor": 1.0,
-                  "baseColorFactor": [
-                    1.0,
-                    1.0,
-                    1.0,
-                    1.0
-                  ],
-                  "emissionFactor": [
-                    1.0,
-                    1.0,
-                    1.0,
-                    1.0
-                  ],
-                  "metallicFactor": 1.0,
-                  "normalScale": 5.0,
-                  "roughnessFactor": 1.0
-                },
-                "modelFileName": "Sand.fbx",
-                "psShaderName": "PSModel.hlsl",
-                "rasterState": 1,
-                "type": "ModelComponent",
-                "vsShaderName": "VSModel.hlsl"
-              }
+                {
+                    "NoiseIndex": 0,
+                    "blendState": 0,
+                    "materialFactorData": {
+                        "DissolveEdgeColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "DissolveEdgeIntensity": 1.0,
+                        "DissolveEdgeWidth": 1.0,
+                        "DissolvePadding": 1.0,
+                        "DissolveThreshold": 0.20000000298023224,
+                        "ambientOcclusionFactor": 1.0,
+                        "baseColorFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "emissionFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "metallicFactor": 1.0,
+                        "normalScale": 5.0,
+                        "roughnessFactor": 1.0
+                    },
+                    "modelFileName": "Sand.fbx",
+                    "psShaderName": "PSModel.hlsl",
+                    "rasterState": 1,
+                    "type": "ModelComponent",
+                    "vsShaderName": "VSModel.hlsl"
+                }
             ],
             "name": "GameObjectBase_1",
             "position": [
@@ -72,8 +126,19 @@
                             "childGameObjects": [],
                             "components": [
                                 {
+                                    "NoiseIndex": 0,
                                     "blendState": 0,
                                     "materialFactorData": {
+                                        "DissolveEdgeColor": [
+                                            1.0,
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                        ],
+                                        "DissolveEdgeIntensity": 1.0,
+                                        "DissolveEdgeWidth": 1.0,
+                                        "DissolvePadding": 1.0,
+                                        "DissolveThreshold": 0.20000000298023224,
                                         "ambientOcclusionFactor": 1.0,
                                         "baseColorFactor": [
                                             1.0,
@@ -121,12 +186,12 @@
                         }
                     ],
                     "components": [
-                      {
-                        "farZ": 1000.0,
-                        "fovY": 0.7853981852531433,
-                        "nearZ": 0.10000000149011612,
-                        "type": "CameraComponent"
-                      }
+                        {
+                            "farZ": 1000.0,
+                            "fovY": 0.7853981852531433,
+                            "nearZ": 0.10000000149011612,
+                            "type": "CameraComponent"
+                        }
                     ],
                     "name": "CamRotObject_2",
                     "position": [
@@ -150,13 +215,11 @@
                     "type": "CamRotObject"
                 }
             ],
-          "components": [
-            {
-              "type": "CrossHairAndNode",
-              "NodeStart": 0.25,
-              "NodeEnd": 0.5
-            }
-          ],
+            "components": [
+                {
+                    "type": "CrossHairAndNode"
+                }
+            ],
             "name": "Player",
             "position": [
                 0.0,
@@ -177,6 +240,141 @@
                 1.0
             ],
             "type": "Player"
+        },
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "boundingBoxes": [
+                        {
+                            "center": [
+                                0.0,
+                                1.399999976158142,
+                                0.0
+                            ],
+                            "extents": [
+                                0.800000011920929,
+                                1.2000000476837158,
+                                0.800000011920929
+                            ]
+                        }
+                    ],
+                    "boundingFrustums": [],
+                    "boundingOrientedBoxes": [],
+                    "type": "ColliderComponent"
+                },
+                {
+                    "current_state": "Idle",
+                    "start_state": "Idle",
+                    "type": "FSMComponentEnemy"
+                }
+            ],
+            "name": "Enemy",
+            "position": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "Enemy"
+        },
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "NoiseIndex": 1,
+                    "blendState": 0,
+                    "materialFactorData": {
+                        "DissolveEdgeColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "DissolveEdgeIntensity": 1.0,
+                        "DissolveEdgeWidth": 1.0,
+                        "DissolvePadding": 1.0,
+                        "DissolveThreshold": 0.20000000298023224,
+                        "ambientOcclusionFactor": 1.0,
+                        "baseColorFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "emissionFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "metallicFactor": 1.0,
+                        "normalScale": 1.0,
+                        "roughnessFactor": 1.0
+                    },
+                    "modelFileName": "test5.fbx",
+                    "psShaderName": "PSModel_Dissolve.hlsl",
+                    "rasterState": 1,
+                    "type": "SkinnedModelComponent",
+                    "vsShaderName": "VSModelSkinAnim.hlsl"
+                },
+                {
+                    "boundingBoxes": [
+                        {
+                            "center": [
+                                0.0,
+                                1.399999976158142,
+                                0.0
+                            ],
+                            "extents": [
+                                0.800000011920929,
+                                1.2000000476837158,
+                                0.800000011920929
+                            ]
+                        }
+                    ],
+                    "boundingFrustums": [],
+                    "boundingOrientedBoxes": [],
+                    "type": "ColliderComponent"
+                },
+                {
+                    "current_state": "Idle",
+                    "start_state": "Idle",
+                    "type": "FSMComponentEnemy"
+                }
+            ],
+            "name": "Enemy",
+            "position": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "Enemy"
         }
     ]
 }

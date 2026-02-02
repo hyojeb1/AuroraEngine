@@ -61,5 +61,6 @@ public:
 private:
 	bool PointInTriangle(const DirectX::XMVECTOR& point, const std::array<int, 3>& indexs) const;
 	// Simple Stupid Funnel Algorithm
-	std::deque<DirectX::XMVECTOR> SSFA(const DirectX::XMVECTOR& start, const DirectX::XMVECTOR& end, const std::vector<std::pair<DirectX::XMVECTOR, DirectX::XMVECTOR>>& portals) const;
+	std::deque<DirectX::XMVECTOR> StringPull(const DirectX::XMVECTOR& start, const DirectX::XMVECTOR& end, const std::vector<std::pair<DirectX::XMVECTOR, DirectX::XMVECTOR>>& portals) const;
+	DirectX::XMVECTOR ClosestPointOnLineSegment(const std::pair<DirectX::XMVECTOR, DirectX::XMVECTOR>& targetLine, const std::pair<DirectX::XMVECTOR, DirectX::XMVECTOR>& sourceLine) const;
 };

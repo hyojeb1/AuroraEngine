@@ -12,6 +12,7 @@
 #include "ModelComponent.h"
 #include "SceneBase.h"
 #include "Enemy.h"
+#include "ParticleObject.h"
 
 #include "FSMComponentGun.h"
 
@@ -19,7 +20,6 @@ REGISTER_TYPE(Player)
 
 using namespace std;
 using namespace DirectX;
-
 
 void Player::Initialize()
 {
@@ -49,6 +49,7 @@ void Player::Update()
 	InputManager& input = InputManager::GetInstance();
 	auto& sm = SoundManager::GetInstance();
 
+<<<<<<< HEAD
 	PlayerMove(deltaTime, input);
 	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f) < InputType::Miss) { PlayerShoot(); };
 	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerDeadEyeStart();
@@ -67,6 +68,15 @@ void Player::Update()
 			break;
 		}
 	}
+=======
+	if (input.GetKeyDown(KeyCode::Space) && !m_isDashing && sm.CheckRhythm(0.1f)) { PlayerTriggerDash(input);}
+	if (m_isDashing){ PlayerDash(deltaTime, input); }
+	else            { PlayerMove(deltaTime, input); } 
+
+	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f)) { PlayerShoot(); };
+	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f)) PlayerDeadEyeStart();
+	if (input.GetKeyDown(KeyCode::R) && sm.CheckRhythm(0.1f)) { PlayerReload(); };
+>>>>>>> origin/Hyoje260202
 	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime, input);
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
@@ -76,6 +86,8 @@ void Player::Update()
 	if (input.GetKey(KeyCode::LeftBracket))	{ m_bulletUIpos.first += 0.1f * deltaTime; }
 	if (input.GetKey(KeyCode::RightBracket)) { m_bulletUIpos.second += 0.1f * deltaTime; }
 	if (input.GetKey(KeyCode::Num0)) { m_bulletInterval += 0.01f * deltaTime; }
+
+	UpdateLutCrossfade(deltaTime);
 }
 
 void Player::Render()
@@ -105,54 +117,100 @@ void Player::PlayerMove(float deltaTime, InputManager& input)
 	if (input.GetKey(KeyCode::A)) rightInput -= m_moveSpeed;
 	if (input.GetKey(KeyCode::D)) rightInput += m_moveSpeed;
 
-	// ???각선 ?��?�� 보정
+	// 대각선 보정
 	if (forwardInput != 0.0f && rightInput != 0.0f) { forwardInput *= 0.7071f; rightInput *= 0.7071f; }
 	MovePosition(GetWorldDirectionVector(Direction::Forward) * forwardInput * deltaTime + GetWorldDirectionVector(Direction::Right) * rightInput * deltaTime);
+}
+
+
+void Player::PlayerTriggerDash(InputManager& input)
+{
+	m_isDashing = true;
+	m_dashTimer = m_kDashDuration;
+
+	float forwardInput = 0.0f;
+	float rightInput = 0.0f;
+	if (input.GetKey(KeyCode::W)) forwardInput += 1.f;
+	if (input.GetKey(KeyCode::S)) forwardInput -= 1.f;
+	if (input.GetKey(KeyCode::A))   rightInput -= 1.f;
+	if (input.GetKey(KeyCode::D))   rightInput += 1.f;
+
+	if (forwardInput == 0.0f && rightInput == 0.0f) {
+		m_dashDirection = GetWorldDirectionVector(Direction::Forward);
+	}
+	else {
+		XMVECTOR dir = GetWorldDirectionVector(Direction::Forward) * forwardInput + GetWorldDirectionVector(Direction::Right) * rightInput;
+		m_dashDirection = XMVector3Normalize(dir);
+	}
+
+	//need BackUp
+	XMFLOAT2 blurCenter = { 0.5f, 0.5f }; // (W/S)
+	if (rightInput < 0) {
+		if (forwardInput != 0.0f)	blurCenter = { 0.1465f, 0.5f }; // (WA, SA)
+		else						blurCenter = { 0.0f, 0.5f }; // (A)
+	} else if (rightInput > 0)  {
+		if (forwardInput != 0.0f)	blurCenter = { 0.8535f, 0.5f };// (WD, SD)
+		else						blurCenter = { 1.0f, 0.5f };// (D)
+	}
+	SceneBase::SetRadialBlurCenter(blurCenter);
+	SceneBase::SetRadialBlurDist(0.33f);
+	SceneBase::SetRadialBlurStrength(1.7f);
+	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::RadialBlur, true);
+
+	// 사운드 여기다 넣아야 함
+}
+
+void Player::PlayerDash(float deltaTime, InputManager& input)
+{
+	m_dashTimer -= deltaTime;
+	MovePosition(m_dashDirection * m_kDashSpeed * deltaTime);
+	if (m_dashTimer <= 0.0f) { m_isDashing = false; }
+
+	float t = 1.0f - (m_dashTimer / m_kDashDuration); // 0->1
+	float smooth = t * t * (3.0f - 2.0f * t);         // smoothstep
+	SceneBase::SetRadialBlurStrength(8.0f * (1.0f - smooth)); // 점점 약해짐
+
+	if (m_dashTimer <= 0.0f) {
+		m_isDashing = false;
+		SceneBase::SetRadialBlurStrength(0.0f);
+		SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::RadialBlur, false);
+	}
+
 }
 
 void Player::PlayerShoot()
 {
 	if (!m_gunObject || m_isDeadEyeActive) return;
 
+	if (m_gunFSM) m_gunFSM->Fire();
 	--m_bulletCnt;
 	SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Shoot);
 
 	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
+
 	const XMVECTOR& origin = mainCamera.GetPosition();
 	const XMVECTOR& direction = mainCamera.GetForwardVector();
 	float distance = 0.0f;
 	GameObjectBase* hit = ColliderComponent::CheckCollision(origin, direction, distance);
 	const XMVECTOR& hitPosition = XMVectorAdd(origin, XMVectorScale(direction, distance));
-	if (hit)
+
+	ParticleObject* smoke = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Smoke.json"));
+	const XMVECTOR& gunPos = m_gunObject->GetWorldPosition();
+	smoke->SetPosition(gunPos);
+	smoke->SetScale(XMVectorSet(1.0f, 1.0f, distance, 1.0f));
+	smoke->LookAt(hitPosition);
+	smoke->SetLifetime(5.0f);
+
+	if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
 	{
-		if (m_gunFSM) m_gunFSM->Fire();
-		if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
-		{
-			enemy->Die();
-			GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
-			gem->SetPosition(hitPosition);
+		enemy->Die();
+		ParticleObject* gem = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Gem.json"));
+		gem->SetPosition(hitPosition);
+		gem->SetLifetime(5.0f);
 
-			m_enemyHitTimer = m_enemyHitDisplayTime;
-		}
+		m_enemyHitTimer = m_enemyHitDisplayTime;
 
-		LineBuffer lineBuffer = {};
-		XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
-		lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		XMStoreFloat4(&lineBuffer.linePoints[1], hitPosition);
-		lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-
-		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
-	}
-	else
-	{
-		if (m_gunFSM) m_gunFSM->Fire();
-
-		LineBuffer lineBuffer = {};
-		XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
-		lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		XMStoreFloat4(&lineBuffer.linePoints[1], XMVectorAdd(origin, XMVectorScale(direction, 1000.0f)));
-		lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
+		TriggerLUT();
 	}
 }
 
@@ -194,8 +252,14 @@ void Player::PlayerDeadEyeStart()
 	{
 		if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
 		{
+			// 사이에 장애물이 있는지 확인
+			float distance = 0.0f;
+			const XMVECTOR& origin = mainCamera.GetPosition();
+			const XMVECTOR& targetPos = XMVectorAdd(enemy->GetWorldPosition(), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)); // 적 충심이 y = 0.0f여서 약간 올림
+			if (!dynamic_cast<Enemy*>(ColliderComponent::CheckCollision(origin, XMVectorSubtract(targetPos, origin), distance))) continue;
+
 			hasEnemy = true;
-			XMFLOAT2 distancePair = mainCamera.WorldToScreenPosition(enemy->GetWorldPosition());
+			XMFLOAT2 distancePair = mainCamera.WorldToScreenPosition(targetPos);
 			m_deadEyeTargets.emplace_back(powf(distancePair.x - halfWidth, 2) + powf(distancePair.y - halfHeight, 2), enemy);
 		}
 	}
@@ -236,7 +300,9 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
-		m_prevDeadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(m_deadEyeTargets.back().second->GetWorldPosition());
+		const XMVECTOR& targetPos = m_deadEyeTargets.back().second->GetWorldPosition();
+
+		m_prevDeadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(targetPos);
 		m_deadEyeTargets.back().second->Die();
 		if (m_deadEyeTargets.size() > 1)
 		{
@@ -245,15 +311,16 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 		}
 		else m_nextDeadEyePos = m_prevDeadEyePos;
 
-		GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
-		gem->SetPosition(m_deadEyeTargets.back().second->GetWorldPosition());
+		const XMVECTOR& gunPos = m_gunObject->GetWorldPosition();
+		ParticleObject* smoke = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Smoke.json"));
+		smoke->SetPosition(gunPos);
+		smoke->SetScale(XMVectorSet(1.0f, 1.0f, XMVectorGetX(XMVector3LengthEst(XMVectorSubtract(gunPos, targetPos))), 1.0f));
+		smoke->LookAt(targetPos);
+		smoke->SetLifetime(5.0f);
 
-		LineBuffer lineBuffer = {};
-		if (m_gunObject) XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
-		lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		XMStoreFloat4(&lineBuffer.linePoints[1], m_deadEyeTargets.back().second->GetWorldPosition());
-		lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
+		ParticleObject* gem = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Gem.json"));
+		gem->SetPosition(targetPos);
+		gem->SetLifetime(5.0f);
 
 		m_deadEyeTargets.pop_back();
 	}
@@ -277,6 +344,8 @@ void Player::PlayerDeadEyeEnd()
 	SceneBase::SetGrayScaleIntensity(0.0f);
 
 	SoundManager::GetInstance().ChangeLowpass();
+
+	//TriggerLUT(); // 맛이 없음
 }
 
 void Player::RenderLineBuffers(Renderer& renderer)
@@ -344,4 +413,46 @@ void Player::RenderBullets(class Renderer& renderer)
 		pos = m_bulletUIpos.first + (m_bulletInterval * i);
 		renderer.UI_RENDER_FUNCTIONS().emplace_back([&,pos]() { Renderer::GetInstance().RenderImageUIPosition(m_bulletImgs.first, { pos, m_bulletUIpos.second }, m_bulletImgs.second, 0.1f); });
 	}
+}
+
+void Player::UpdateLutCrossfade(float deltaTime)
+{
+	if (!m_lutCrossfadeActive) return;
+
+	m_lutCrossfadeElapsed += deltaTime;
+	float t = m_lutCrossfadeElapsed / m_lutCrossfadeDuration;
+	if (t > 1.0f) t = 1.0f;
+
+	// smoothstep (깔끔한 가속/감속)
+	float smooth = t * t * (3.0f - 2.0f * t);
+	float factor = m_lutCrossfadeReverse ? (1.0f - smooth) : smooth;
+
+	SceneBase::SetLutLerpFactor(factor);
+
+	if (t >= 1.0f)
+	{
+		if (!m_lutCrossfadeReverse)
+		{
+			// 역방향 시작
+			m_lutCrossfadeReverse = true;
+			m_lutCrossfadeElapsed = 0.0f;
+		}
+		else
+		{
+			// 종료: flag off + 원복
+			m_lutCrossfadeActive = false;
+			m_lutCrossfadeReverse = false;
+			SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::LUT_CROSSFADE, false);
+			SceneBase::SetLutLerpFactor(0.0f);
+		}
+	}
+}
+
+void Player::TriggerLUT()
+{
+	m_lutCrossfadeActive = true;
+	m_lutCrossfadeReverse = false;
+	m_lutCrossfadeElapsed = 0.0f;
+	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::LUT_CROSSFADE, true);
+	SceneBase::SetLutLerpFactor(0.0f);
 }

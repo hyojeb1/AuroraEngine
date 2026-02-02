@@ -24,6 +24,7 @@ void ParticleComponent::Initialize()
 
 	m_worldNormalBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal);
 	m_particleBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Particle);
+	m_particleColorBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::ParticleColor);
 
 	particle_texture_srv_ = resourceManager.GetTexture(texture_file_name_);
 }
@@ -31,7 +32,18 @@ void ParticleComponent::Initialize()
 void ParticleComponent::Update()
 {
 	m_elapsedTime += TimeManager::GetInstance().GetDeltaTime();
-	uv_buffer_data_.eclipsedTime = fmodf(m_elapsedTime / m_particleTotalTime, 1.0f); // 0~1 사이 값으로 유지
+	float progress = fmodf(m_elapsedTime / m_particleTotalTime, 1.0f);
+
+	if (!m_restartOnFinish)
+	{
+		#ifdef NDEBUG
+		if (m_elapsedTime >= m_particleTotalTime) SetAlive(false);
+		#endif
+		m_particleColor.baseColor.w = max(0.0f, 1.0f - powf(progress, 2.0f));
+	}
+
+	if (m_particleConstTime >= 0.0f) uv_buffer_data_.eclipsedTime = m_particleConstTime;
+	else uv_buffer_data_.eclipsedTime = progress; // 0~1 사이 값으로 유지
 }
 
 void ParticleComponent::Render()
@@ -52,6 +64,7 @@ void ParticleComponent::Render()
 			// 상수 버퍼 업데이트
 			m_deviceContext->UpdateSubresource(m_worldNormalBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
 			m_deviceContext->UpdateSubresource(m_particleBuffer.Get(),0, nullptr, &uv_buffer_data_, 0, 0);
+			m_deviceContext->UpdateSubresource(m_particleColorBuffer.Get(), 0, nullptr, &m_particleColor, 0, 0);
 
 			constexpr UINT stride = sizeof(VertexPosUV);
 			constexpr UINT offset = 0;
@@ -79,7 +92,11 @@ void ParticleComponent::RenderImGui()
 		ImGui::DragFloat("Image Scale", &uv_buffer_data_.imageScale, 0.01f, 0.1f, 10.0f);
 		ImGui::DragFloat("Spread Radius", &uv_buffer_data_.spreadRadius, 0.1f, 0.0f, 10.0f);
 		ImGui::DragFloat("Spread Distance", &uv_buffer_data_.spreadDistance, 0.1f, 0.0f, 1000.0f);
+		ImGui::DragFloat("Particle Constant Time", &m_particleConstTime, 0.01f, -1.0f, 100.0f);
 		ImGui::DragFloat("Particle Total Time", &m_particleTotalTime, 0.01f, 0.1f, 100.0f);
+		ImGui::Checkbox("Restart On Finish", &m_restartOnFinish);
+		ImGui::ColorEdit4("Particle Color", &m_particleColor.baseColor.x);
+		ImGui::ColorEdit4("Particle Emission Color", &m_particleColor.emissionColor.x);
 
 		ImGui::Separator();
 	}
@@ -153,8 +170,11 @@ nlohmann::json ParticleComponent::Serialize()
 	jsonData["imageScale"] = uv_buffer_data_.imageScale;
 	jsonData["spreadRadius"] = uv_buffer_data_.spreadRadius;
 	jsonData["spreadDistance"] = uv_buffer_data_.spreadDistance;
-
+	jsonData["particleConstTime"] = m_particleConstTime;
 	jsonData["particleTotalTime"] = m_particleTotalTime;
+	jsonData["RestartOnFinish"] = m_restartOnFinish;
+	jsonData["particleColor"] = { m_particleColor.baseColor.x, m_particleColor.baseColor.y, m_particleColor.baseColor.z, m_particleColor.baseColor.w };
+	jsonData["particleEmissionColor"] = { m_particleColor.emissionColor.x, m_particleColor.emissionColor.y, m_particleColor.emissionColor.z, m_particleColor.emissionColor.w };
 
 	jsonData["billboardType"] = static_cast<int>(billboard_type_);
 	jsonData["blendState"] = static_cast<int>(m_blendState);
@@ -189,7 +209,23 @@ void ParticleComponent::Deserialize(const nlohmann::json& jsonData)
 	if (jsonData.contains("imageScale")) uv_buffer_data_.imageScale = jsonData["imageScale"].get<float>();
 	if (jsonData.contains("spreadRadius")) uv_buffer_data_.spreadRadius = jsonData["spreadRadius"].get<float>();
 	if (jsonData.contains("spreadDistance")) uv_buffer_data_.spreadDistance = jsonData["spreadDistance"].get<float>();
+	if (jsonData.contains("particleConstTime")) m_particleConstTime = jsonData["particleConstTime"].get<float>();
 	if (jsonData.contains("particleTotalTime")) m_particleTotalTime = jsonData["particleTotalTime"].get<float>();
+	if (jsonData.contains("RestartOnFinish")) m_restartOnFinish = jsonData["RestartOnFinish"].get<bool>();
+	if (jsonData.contains("particleColor"))
+	{
+		m_particleColor.baseColor.x = jsonData["particleColor"][0].get<float>();
+		m_particleColor.baseColor.y = jsonData["particleColor"][1].get<float>();
+		m_particleColor.baseColor.z = jsonData["particleColor"][2].get<float>();
+		m_particleColor.baseColor.w = jsonData["particleColor"][3].get<float>();
+	}
+	if (jsonData.contains("particleEmissionColor"))
+	{
+		m_particleColor.emissionColor.x = jsonData["particleEmissionColor"][0].get<float>();
+		m_particleColor.emissionColor.y = jsonData["particleEmissionColor"][1].get<float>();
+		m_particleColor.emissionColor.z = jsonData["particleEmissionColor"][2].get<float>();
+		m_particleColor.emissionColor.w = jsonData["particleEmissionColor"][3].get<float>();
+	}
 
 	if (jsonData.contains("billboardType"))
 	{

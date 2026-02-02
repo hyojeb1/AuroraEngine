@@ -35,10 +35,10 @@ class Renderer : public Singleton<Renderer>
 	com_ptr<ID3D11Device> m_device = nullptr; // 디바이스
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
 	com_ptr<IDXGISwapChain1> m_swapChain = nullptr; // 스왑 체인
-	
+
 	DirectX::XMVECTOR m_renderSortPoint = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // 랜저 정렬 기준점
 	RenderPass m_renderPass = {};
-	
+
 	DirectX::SpriteBatch* m_spriteBatch = nullptr; // 스프라이트 배치 // UI 렌더링용
 	std::vector<std::function<void()>> m_UIRenderFunctions = {}; // ImGui 렌더링 함수 목록
 
@@ -62,7 +62,8 @@ class Renderer : public Singleton<Renderer>
 
 	// 씬이 갖고 있을수 있음 그래서 각 씬마다 다른 분위기를 낼 수 있다.
 	int m_selectedLUTIndex = 0;
-	
+	int m_selectedLUT2Index = 4;
+
 public:
 	Renderer() = default;
 	~Renderer() = default;
@@ -122,6 +123,9 @@ public:
 	void SetSwapChainDesc(const DXGI_SWAP_CHAIN_DESC1& desc) { m_swapChainDesc = desc; }
 	// 스왑 체인 설정 조회
 	const DXGI_SWAP_CHAIN_DESC1& GetSwapChainDesc() const { return m_swapChainDesc; }
+
+	int& GetSelectedLUTIndex() { return m_selectedLUTIndex; };
+	int& GetSelectedLUT2Index() { return m_selectedLUT2Index; };
 
 private:
 	// 초기화 함수

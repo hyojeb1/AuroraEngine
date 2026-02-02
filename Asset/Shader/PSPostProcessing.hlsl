@@ -35,13 +35,39 @@ float4 main(PS_INPUT_POS_UV input) : SV_TARGET
     static const uint PP_GAMMA = 1u << 1;
     static const uint PP_GRAYSCALE = 1u << 2;
     static const uint PP_VIGNETTING = 1u << 3;
+    static const uint PP_RADIALBLUR = 1u << 4;
+    static const uint PP_LUT_CROSSFADE = 1u << 5;
+    
     // 블룸 합성
     if (PostProcessingFlags & PP_BLOOM)
     {
         float4 tresholdColor;
-        [loop] for (int i = 0; i < 10; ++i) tresholdColor += sceneTexture.SampleLevel(SamplerLinearClamp, float3(input.UV, 1.0f), i); // 겁나 싼 짭우시안 블러
+        [loop] for (int i = 1; i < 11; ++i) tresholdColor += sceneTexture.SampleLevel(SamplerLinearClamp, float3(input.UV, 1.0f), i); // 겁나 싼 짭우시안 블러
         color += tresholdColor * 0.1f * BloomIntensity;
     }
+    
+    // 라디얼 블러
+    if (PostProcessingFlags & PP_RADIALBLUR)
+    {
+        float2 dir = RadialBlurCenter - input.UV;
+        float dist = length(dir);
+        float2 normDir = dir / (dist + 0.0001f);
+        
+        float samples[10] = { -0.08, -0.05, -0.03, -0.02, -0.01, 0.01, 0.02, 0.03, 0.05, 0.08 };
+
+        float4 sum = color;
+        [unroll]
+        for (int i = 0; i < 10; i++)
+        {
+            float2 sampleUV = input.UV + (normDir * samples[i] * RadialBlurDist);
+            sum += sceneTexture.Sample(SamplerLinearClamp, float3(sampleUV, 0.0f));
+        }
+        
+        sum /= 11.0f; 
+        float t = saturate(dist * RadialBlurStrength);
+        color = lerp(color, sum, t);
+    }
+    
     // 감마 보정
     if (PostProcessingFlags & PP_GAMMA) color.rgb = pow(saturate(color.rgb), Gamma);
     // 그레이스케일
@@ -55,8 +81,24 @@ float4 main(PS_INPUT_POS_UV input) : SV_TARGET
         color.rgb = lerp(lerp(VignettingColor.rgb, color.rgb * vignette, vignette), VignettingColor.rgb, VignettingColor.w);
     }
     
-    
-    color.rgb = GetLutColor(color.rgb, lutTexture, SamplerLinearClamp);
+    // LUT
+    if (PostProcessingFlags & PP_LUT_CROSSFADE)
+    {
+        [branch]
+        if (LutLerpFactor <= 0.0f){
+            color.rgb = GetLutColor(color.rgb, lutTexture, SamplerLinearClamp);
+        }else if (LutLerpFactor >= 1.0f){
+            color.rgb = GetLutColor(color.rgb, lut2Texture, SamplerLinearClamp);
+        }else{
+            float3 color1 = GetLutColor(color.rgb, lutTexture, SamplerLinearClamp);
+            float3 color2 = GetLutColor(color.rgb, lut2Texture, SamplerLinearClamp);
+            color.rgb = lerp(color1, color2, LutLerpFactor);
+        }
+    }
+    else
+    {
+        color.rgb = GetLutColor(color.rgb, lutTexture, SamplerLinearClamp);
+    }
     
     return color;
 }
