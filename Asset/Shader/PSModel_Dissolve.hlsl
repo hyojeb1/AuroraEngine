@@ -1,5 +1,5 @@
-///BOF PSModel_Noise.hlsl
-///ref PSModel, only diff from func noise()
+///BOF PSModel_Dissolve.hlsl
+///ref PSModel, only diff from CalcDissolveEdge()
 ///
 #include "CommonPS.hlsli"
 #include "CommonMath.hlsli"
