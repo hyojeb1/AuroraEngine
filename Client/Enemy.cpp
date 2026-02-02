@@ -10,6 +10,7 @@
 #include "SceneManager.h"
 #include "SceneBase.h"
 #include "NavigationManager.h"
+#include "RNG.h"
 
 REGISTER_TYPE(Enemy)
 
@@ -21,8 +22,8 @@ void Enemy::Initialize()
 	m_collider = GetComponent<ColliderComponent>();
 
 	m_player = static_cast<Player*>(SceneManager::GetInstance().GetCurrentScene()->GetGameObjectRecursive("Player"));
-
-
+	m_pathFindIntervalRandomOffset = RANDOM(0.0f, m_pathFindInterval);
+	m_pathFindTimer = -m_pathFindIntervalRandomOffset;
 }
 
 void Enemy::Die()
@@ -39,14 +40,24 @@ void Enemy::Die()
 
 void Enemy::Update()
 {
+	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
+
 	if (m_state == AIState::Dying)
 	{
-		m_deathTimer += TimeManager::GetInstance().GetDeltaTime();
+		m_deathTimer += deltaTime;
 
 		if (m_deathTimer >= m_deathDuration) SetAlive(false);
 
 		return;
 	}
+
+	m_pathFindTimer += deltaTime;
+	if (m_pathFindTimer >= m_pathFindInterval - m_pathFindIntervalRandomOffset)
+	{
+		m_path.clear();
+		m_pathFindTimer = -m_pathFindIntervalRandomOffset;
+	}
+
 
 	MoveAlongPath();
 }

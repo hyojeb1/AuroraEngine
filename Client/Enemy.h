@@ -7,6 +7,8 @@ class Enemy : public GameObjectBase
 
 	float m_moveSpeedSquared = 4.0f;
 	std::deque<DirectX::XMVECTOR> m_path = {};
+	const float m_pathFindInterval = 1.0f;
+	float m_pathFindTimer = 0.0f;
 	float m_pathFindIntervalRandomOffset = 0.0f;
 
 	class FSMComponentEnemy* m_fsm = nullptr;
