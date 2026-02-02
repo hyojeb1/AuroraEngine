@@ -43,6 +43,11 @@ class Player : public GameObjectBase
 	std::pair<float, float> m_bulletUIpos{ 0.0f,0.0f };
 	float m_bulletInterval = 0.0f;
 
+	bool m_lutCrossfadeActive = false;
+	bool m_lutCrossfadeReverse = false;
+	float m_lutCrossfadeElapsed = 0.0f;
+	float m_lutCrossfadeDuration = 0.18f;
+
 public:
 	Player() = default;
 	~Player() = default;
@@ -56,6 +61,7 @@ public:
 private:
 	void Initialize() override;
 	void Update() override;
+	void UpdateLutCrossfade(float deltaTime);
 	void Render() override;
 	void Finalize() override;
 

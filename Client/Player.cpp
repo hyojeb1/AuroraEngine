@@ -62,6 +62,41 @@ void Player::Update()
 	if (input.GetKey(KeyCode::LeftBracket))	{ m_bulletUIpos.first += 0.1f * deltaTime; }
 	if (input.GetKey(KeyCode::RightBracket)) { m_bulletUIpos.second += 0.1f * deltaTime; }
 	if (input.GetKey(KeyCode::Num0)) { m_bulletInterval += 0.01f * deltaTime; }
+
+	UpdateLutCrossfade(deltaTime);
+}
+
+void Player::UpdateLutCrossfade(float deltaTime)
+{
+	if (!m_lutCrossfadeActive) return;
+
+	m_lutCrossfadeElapsed += deltaTime;
+	float t = m_lutCrossfadeElapsed / m_lutCrossfadeDuration;
+	if (t > 1.0f) t = 1.0f;
+
+	// smoothstep (깔끔한 가속/감속)
+	float smooth = t * t * (3.0f - 2.0f * t);
+	float factor = m_lutCrossfadeReverse ? (1.0f - smooth) : smooth;
+
+	SceneBase::SetLutLerpFactor(factor);
+
+	if (t >= 1.0f)
+	{
+		if (!m_lutCrossfadeReverse)
+		{
+			// 역방향 시작
+			m_lutCrossfadeReverse = true;
+			m_lutCrossfadeElapsed = 0.0f;
+		}
+		else
+		{
+			// 종료: flag off + 원복
+			m_lutCrossfadeActive = false;
+			m_lutCrossfadeReverse = false;
+			SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::LUT_CROSSFADE, false);
+			SceneBase::SetLutLerpFactor(0.0f);
+		}
+	}
 }
 
 void Player::Render()
@@ -111,6 +146,12 @@ void Player::PlayerShoot()
 	const XMVECTOR& hitPosition = XMVectorAdd(origin, XMVectorScale(direction, distance));
 	if (hit)
 	{
+		m_lutCrossfadeActive = true;
+		m_lutCrossfadeReverse = false;
+		m_lutCrossfadeElapsed = 0.0f;
+		SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::LUT_CROSSFADE, true);
+		SceneBase::SetLutLerpFactor(0.0f);
+
 		if (m_gunFSM) m_gunFSM->Fire();
 		if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
 		{
@@ -128,6 +169,7 @@ void Player::PlayerShoot()
 		lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 
 		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
+
 	}
 	else
 	{
