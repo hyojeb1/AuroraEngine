@@ -49,7 +49,6 @@ void Player::Update()
 	InputManager& input = InputManager::GetInstance();
 	auto& sm = SoundManager::GetInstance();
 
-<<<<<<< HEAD
 	PlayerMove(deltaTime, input);
 	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f) < InputType::Miss) { PlayerShoot(); };
 	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerDeadEyeStart();
@@ -68,15 +67,7 @@ void Player::Update()
 			break;
 		}
 	}
-=======
-	if (input.GetKeyDown(KeyCode::Space) && !m_isDashing && sm.CheckRhythm(0.1f)) { PlayerTriggerDash(input);}
-	if (m_isDashing){ PlayerDash(deltaTime, input); }
-	else            { PlayerMove(deltaTime, input); } 
 
-	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f)) { PlayerShoot(); };
-	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f)) PlayerDeadEyeStart();
-	if (input.GetKeyDown(KeyCode::R) && sm.CheckRhythm(0.1f)) { PlayerReload(); };
->>>>>>> origin/Hyoje260202
 	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime, input);
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
