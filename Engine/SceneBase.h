@@ -166,7 +166,6 @@ class Button
 	}
 
 	bool m_isActive = true;
-	//bool m_isHoverd = false;
 
 	ButtonState m_ButtonState;
 
@@ -187,7 +186,7 @@ class Button
 public:
 	void SetActive(bool isActive) { m_isActive = isActive; }
 	void SetTextureAndOffset(const std::string& idle, const std::string& hoverd, const std::string& pressed); //overroad
-	void SetTextureAndOffset(const std::string& idle, const std::string& hoverd,const std::string& pressed, const std::string& clicked);
+	void SetTextureAndOffset(const std::string& idle, const std::string& hoverd, const std::string& pressed, const std::string& clicked);
 	void SetUIPosition(const DirectX::XMFLOAT2& position) { m_UIPosition = position; UpdateRect(); }
 	void SetScale(float scale) { m_scale = scale; UpdateRect(); }
 	void SetColor(const DirectX::XMVECTOR& color) { m_color = color; }

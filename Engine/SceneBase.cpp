@@ -11,6 +11,7 @@
 #include "ModelComponent.h"
 #include "InputManager.h"
 
+
 using namespace std;
 using namespace DirectX;
 
@@ -701,6 +702,7 @@ void SceneBase::RenderDebugCoordinates()
 }
 #endif
 
+
 void Button::SetTextureAndOffset(const std::string& idle, const std::string& hoverd, const std::string& pressed)
 {
 	m_textureIdle = m_textureClicked = ResourceManager::GetInstance().GetTextureAndOffset(idle);
@@ -709,7 +711,7 @@ void Button::SetTextureAndOffset(const std::string& idle, const std::string& hov
 	UpdateRect();
 }
 
-void Button::SetTextureAndOffset(const std::string& idle, const std::string& hoverd,const std::string& pressed,const std::string& clicked)
+void Button::SetTextureAndOffset(const std::string& idle, const std::string& hoverd, const std::string& pressed, const std::string& clicked)
 {
 	m_textureIdle = ResourceManager::GetInstance().GetTextureAndOffset(idle);
 	m_textureHoverd = ResourceManager::GetInstance().GetTextureAndOffset(hoverd);
@@ -737,7 +739,7 @@ void Button::RenderButton(Renderer& renderer)
 		renderer.UI_RENDER_FUNCTIONS().emplace_back([&]() { Renderer::GetInstance().RenderImageUIPosition(m_textureClicked.first, m_UIPosition, m_textureHoverd.second, m_scale, m_color, m_depth); });
 		break;
 	}
-	
+
 
 }
 

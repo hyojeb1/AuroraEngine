@@ -264,9 +264,8 @@ void Renderer::SetFullscreen(bool enable)
 			&modeCount,
 			modes.data()
 		);
-
-		m_swapChain->ResizeTarget(&modes.back()); //max resolution
-	}
+			m_swapChain->ResizeTarget(&modes.back()); //max resolution
+}
 
 	
 }
