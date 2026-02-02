@@ -68,6 +68,7 @@ public:
 
 	void SetBlendState(BlendState blendState) { m_blendState = blendState; }
 	void SetAlpha(const float& alpha) { m_materialFactorData.baseColorFactor.w = alpha; }
+	void SetDissolveThreshold(float threshold) { m_materialFactorData.DissolveThreshold = threshold; }
 
 	bool NeedsFixedUpdate() const override { return false; }
 	bool NeedsUpdate() const override { return false; }

@@ -78,10 +78,14 @@ void FSMComponentEnemy::OnUpdateState(StateID state)
 
 		if (death_timer_ >= kFadeStartTime)
 		{
-			float alpha = 1.0f - ((death_timer_ - kFadeStartTime) / kFadeDuration);
-			if (alpha < 0.0f) alpha = 0.0f;
+			float progress = (death_timer_ - kFadeStartTime) / kFadeDuration;
+			if (progress > 1.0f) progress = 1.0f;
 
-			if (model_) model_->SetAlpha(alpha);
+			if (model_)
+			{
+				model_->SetAlpha(1.0f - progress);
+				model_->SetDissolveThreshold(progress);
+			}
 		}
 	}
 	break;
