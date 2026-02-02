@@ -35,7 +35,7 @@
     <ClCompile Include="CrossHairAndNode.cpp">
       <Filter>Component</Filter>
     </ClCompile>
-    <ClCompile Include="GemParticle.cpp">
+    <ClCompile Include="ParticleObject.cpp">
       <Filter>GameObject</Filter>
     </ClCompile>
   </ItemGroup>
@@ -74,7 +74,7 @@
     <ClInclude Include="CrossHairAndNode.h">
       <Filter>Component</Filter>
     </ClInclude>
-    <ClInclude Include="GemParticle.h">
+    <ClInclude Include="ParticleObject.h">
       <Filter>GameObject</Filter>
     </ClInclude>
   </ItemGroup>

@@ -76,5 +76,5 @@
         1.0,
         1.0
     ],
-    "type": "GemParticle"
+    "type": "ParticleObject"
 }

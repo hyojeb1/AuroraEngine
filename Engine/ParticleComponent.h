@@ -31,10 +31,10 @@ protected:
 	float m_elapsedTime = 0.0f;
 	float m_particleTotalTime = 1.0f;
 	bool m_killOwnerAfterFinish = false;
-	DirectX::XMFLOAT4 m_particleEmissionColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+	ParticleColorBuffer m_particleColor = {};
 
 	com_ptr<ID3D11Buffer> m_particleBuffer = nullptr; // 파티클 상수 버퍼
-	com_ptr<ID3D11Buffer> m_particleEmissionBuffer = nullptr; // 파티클 에미션 상수 버퍼
+	com_ptr<ID3D11Buffer> m_particleColorBuffer = nullptr; // 파티클 에미션 상수 버퍼
 
 	std::string m_vsShaderName = "VSParticle.hlsl"; // 기본 Particle 정점 셰이더
 	std::string m_psShaderName = "PSParticle.hlsl"; // 기본 Particle 픽셀 셰이더
@@ -80,6 +80,9 @@ public:
 	void SetPixelShaderName(const std::string& psShaderName) { m_psShaderName = psShaderName; }
 
 	void SetBlendState(BlendState blendState) { m_blendState = blendState; }
+	
+	float GetParticleTotalTime() const { return m_particleTotalTime; }
+	void SetParticleAlpha(float alpha) { m_particleColor.baseColor.w = alpha; }
 
 	bool NeedsFixedUpdate() const override { return false; }
 	bool NeedsUpdate() const override { return true; }

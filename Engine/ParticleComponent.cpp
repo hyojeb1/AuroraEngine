@@ -24,7 +24,7 @@ void ParticleComponent::Initialize()
 
 	m_worldNormalBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal);
 	m_particleBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Particle);
-	m_particleEmissionBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::ParticleEmission);
+	m_particleColorBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::ParticleColor);
 
 	particle_texture_srv_ = resourceManager.GetTexture(texture_file_name_);
 }
@@ -58,7 +58,7 @@ void ParticleComponent::Render()
 			// 상수 버퍼 업데이트
 			m_deviceContext->UpdateSubresource(m_worldNormalBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
 			m_deviceContext->UpdateSubresource(m_particleBuffer.Get(),0, nullptr, &uv_buffer_data_, 0, 0);
-			m_deviceContext->UpdateSubresource(m_particleEmissionBuffer.Get(), 0, nullptr, &m_particleEmissionColor, 0, 0);
+			m_deviceContext->UpdateSubresource(m_particleColorBuffer.Get(), 0, nullptr, &m_particleColor, 0, 0);
 
 			constexpr UINT stride = sizeof(VertexPosUV);
 			constexpr UINT offset = 0;
@@ -89,7 +89,8 @@ void ParticleComponent::RenderImGui()
 		ImGui::DragFloat("Particle Constant Time", &m_particleConstTime, 0.01f, -1.0f, 100.0f);
 		ImGui::DragFloat("Particle Total Time", &m_particleTotalTime, 0.01f, 0.1f, 100.0f);
 		ImGui::Checkbox("Kill Owner After Finish", &m_killOwnerAfterFinish);
-		ImGui::ColorEdit4("Particle Emission Color", &m_particleEmissionColor.x);
+		ImGui::ColorEdit4("Particle Color", &m_particleColor.baseColor.x);
+		ImGui::ColorEdit4("Particle Emission Color", &m_particleColor.emissionColor.x);
 
 		ImGui::Separator();
 	}
@@ -166,7 +167,8 @@ nlohmann::json ParticleComponent::Serialize()
 	jsonData["particleConstTime"] = m_particleConstTime;
 	jsonData["particleTotalTime"] = m_particleTotalTime;
 	jsonData["KillOwnerAfterFinish"] = m_killOwnerAfterFinish;
-	jsonData["particleEmissionColor"] = { m_particleEmissionColor.x, m_particleEmissionColor.y, m_particleEmissionColor.z, m_particleEmissionColor.w };
+	jsonData["particleColor"] = { m_particleColor.baseColor.x, m_particleColor.baseColor.y, m_particleColor.baseColor.z, m_particleColor.baseColor.w };
+	jsonData["particleEmissionColor"] = { m_particleColor.emissionColor.x, m_particleColor.emissionColor.y, m_particleColor.emissionColor.z, m_particleColor.emissionColor.w };
 
 	jsonData["billboardType"] = static_cast<int>(billboard_type_);
 	jsonData["blendState"] = static_cast<int>(m_blendState);
@@ -204,12 +206,19 @@ void ParticleComponent::Deserialize(const nlohmann::json& jsonData)
 	if (jsonData.contains("particleConstTime")) m_particleConstTime = jsonData["particleConstTime"].get<float>();
 	if (jsonData.contains("particleTotalTime")) m_particleTotalTime = jsonData["particleTotalTime"].get<float>();
 	if (jsonData.contains("KillOwnerAfterFinish")) m_killOwnerAfterFinish = jsonData["KillOwnerAfterFinish"].get<bool>();
+	if (jsonData.contains("particleColor"))
+	{
+		m_particleColor.baseColor.x = jsonData["particleColor"][0].get<float>();
+		m_particleColor.baseColor.y = jsonData["particleColor"][1].get<float>();
+		m_particleColor.baseColor.z = jsonData["particleColor"][2].get<float>();
+		m_particleColor.baseColor.w = jsonData["particleColor"][3].get<float>();
+	}
 	if (jsonData.contains("particleEmissionColor"))
 	{
-		m_particleEmissionColor.x = jsonData["particleEmissionColor"][0].get<float>();
-		m_particleEmissionColor.y = jsonData["particleEmissionColor"][1].get<float>();
-		m_particleEmissionColor.z = jsonData["particleEmissionColor"][2].get<float>();
-		m_particleEmissionColor.w = jsonData["particleEmissionColor"][3].get<float>();
+		m_particleColor.emissionColor.x = jsonData["particleEmissionColor"][0].get<float>();
+		m_particleColor.emissionColor.y = jsonData["particleEmissionColor"][1].get<float>();
+		m_particleColor.emissionColor.z = jsonData["particleEmissionColor"][2].get<float>();
+		m_particleColor.emissionColor.w = jsonData["particleEmissionColor"][3].get<float>();
 	}
 
 	if (jsonData.contains("billboardType"))

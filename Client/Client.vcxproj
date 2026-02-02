@@ -187,7 +187,7 @@
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="FSMComponentEnemy.cpp" />
     <ClCompile Include="FSMComponentGun.cpp" />
-    <ClCompile Include="GemParticle.cpp" />
+    <ClCompile Include="ParticleObject.cpp" />
     <ClCompile Include="main.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -212,7 +212,7 @@
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="FSMComponentEnemy.h" />
     <ClInclude Include="FSMComponentGun.h" />
-    <ClInclude Include="GemParticle.h" />
+    <ClInclude Include="ParticleObject.h" />
     <ClInclude Include="HyojeTestScene.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="stdafx.h" />

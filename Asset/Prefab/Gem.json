@@ -7,7 +7,7 @@
             "blendState": 1,
             "flipbookAutoPlay": true,
             "flipbookColumns": 40,
-            "flipbookCurrentFrame": 73,
+            "flipbookCurrentFrame": 57,
             "flipbookDestroyOnFinish": false,
             "flipbookEndFrame": 120,
             "flipbookFPS": 8.0,
@@ -19,6 +19,13 @@
             "flipbookStartFrame": 0,
             "imageScale": 0.23000000417232513,
             "particleAmount": 72,
+            "particleColor": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "particleConstTime": -1.0,
             "particleEmissionColor": [
                 1.0,
                 1.0,
@@ -33,7 +40,7 @@
             "textureFileName": "Gem.png",
             "type": "FlipbookParticleComponent",
             "uvOffset": [
-                0.824999988079071,
+                0.42500001192092896,
                 0.0416666679084301
             ],
             "uvScale": [
@@ -62,5 +69,5 @@
         1.0,
         1.0
     ],
-    "type": "GemParticle"
+    "type": "ParticleObject"
 }
