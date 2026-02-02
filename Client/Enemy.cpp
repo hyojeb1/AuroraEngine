@@ -17,7 +17,6 @@ using namespace DirectX;
 
 void Enemy::Initialize()
 {
-	m_model = GetComponent<SkinnedModelComponent>();
 	m_fsm = GetComponent<FSMComponentEnemy>();
 	m_collider = GetComponent<ColliderComponent>();
 
@@ -43,8 +42,15 @@ void Enemy::Update()
 		m_deathTimer += TimeManager::GetInstance().GetDeltaTime();
 
 		if (m_deathTimer >= m_deathDuration) SetAlive(false);
+
+		return;
 	}
 
+	MoveAlongPath();
+}
+
+void Enemy::MoveAlongPath()
+{
 	// 플레이어까지 경로 계산
 	if (m_path.empty()) m_path = NavigationManager::GetInstance().FindPath(GetPosition(), m_player->GetPosition());
 
