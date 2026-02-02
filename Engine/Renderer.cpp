@@ -42,7 +42,7 @@ void Renderer::BeginFrame()
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::LUT),	1, resourceManager.GetLUT(m_selectedLUTIndex).GetAddressOf());
-			
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::LUT2),	1, resourceManager.GetLUT(m_selectedLUT2Index).GetAddressOf());			
 
 			// 백 버퍼로 씬 렌더링
 			RenderSceneToBackBuffer();

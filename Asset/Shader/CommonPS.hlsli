@@ -14,8 +14,9 @@ cbuffer PostProcessParams : register(b0)
     float Gamma;
     float GrayScaleIntensity;
     float4 VignettingColor; // w는 비네팅 강도
-    
     float4 RadialBlurParam;
+    float LutLerpFactor;
+    float3 Padding; // 추가하면 바꿔주세요
 };
 #define RadialBlurCenter float2(RadialBlurParam.x, RadialBlurParam.y)
 #define RadialBlurDist RadialBlurParam.z
@@ -81,7 +82,8 @@ Texture2D normalTexture : register(t5);
 Texture2D emissionTexture : register(t6);
 
 Texture2D lutTexture : register(t7);
-Texture2D noiseTexture : register(t8);
+Texture2D lut2Texture : register(t8);
+Texture2D noiseTexture : register(t9);
 
 // --------------------------------------------------------
 // Input Structures (VS 출력과 매칭되어야 함)

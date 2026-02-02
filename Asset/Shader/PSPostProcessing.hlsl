@@ -36,6 +36,7 @@ float4 main(PS_INPUT_POS_UV input) : SV_TARGET
     static const uint PP_GRAYSCALE = 1u << 2;
     static const uint PP_VIGNETTING = 1u << 3;
     static const uint PP_RADIALBLUR = 1u << 4;
+    static const uint PP_LUT_CROSSFADE = 1u << 5;
     
     // 블룸 합성
     if (PostProcessingFlags & PP_BLOOM)
@@ -80,8 +81,24 @@ float4 main(PS_INPUT_POS_UV input) : SV_TARGET
         color.rgb = lerp(lerp(VignettingColor.rgb, color.rgb * vignette, vignette), VignettingColor.rgb, VignettingColor.w);
     }
     
-    
-    color.rgb = GetLutColor(color.rgb, lutTexture, SamplerLinearClamp);
+    // LUT
+    if (PostProcessingFlags & PP_LUT_CROSSFADE)
+    {
+        [branch]
+        if (LutLerpFactor <= 0.0f){
+            color.rgb = GetLutColor(color.rgb, lutTexture, SamplerLinearClamp);
+        }else if (LutLerpFactor >= 1.0f){
+            color.rgb = GetLutColor(color.rgb, lut2Texture, SamplerLinearClamp);
+        }else{
+            float3 color1 = GetLutColor(color.rgb, lutTexture, SamplerLinearClamp);
+            float3 color2 = GetLutColor(color.rgb, lut2Texture, SamplerLinearClamp);
+            color.rgb = lerp(color1, color2, LutLerpFactor);
+        }
+    }
+    else
+    {
+        color.rgb = GetLutColor(color.rgb, lutTexture, SamplerLinearClamp);
+    }
     
     return color;
 }

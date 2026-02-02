@@ -523,6 +523,7 @@ struct PostProcessingBuffer
 		Grayscale = 1 << 2,
 		Vignetting = 1 << 3,
 		RadialBlur = 1 << 4,
+		LUT_CROSSFADE = 1 << 5,
 	};
 	UINT flags = static_cast<UINT>(PostProcessingFlag::None); // 후처리 플래그
 
@@ -531,8 +532,10 @@ struct PostProcessingBuffer
 	float grayScaleIntensity = 0.0f; // 그레이스케일 강도
 
 	DirectX::XMFLOAT4 vignettingColor = { 0.0f, 0.0f, 0.0f, 0.0f }; // 비네팅 색상 // w는 강도
-
 	DirectX::XMFLOAT4 radialBlurParam = { 0.5f, 0.5f, 0.33f, 1.7f }; //x,y = Center # z = Distance #  w = Strength
+	
+	float lutLerpFactor = 0;
+	DirectX::XMFLOAT3 PADDING = { 0,0,0 };
 };
 struct CameraPositionBuffer // 카메라 위치 상수 버퍼 구조체
 {
@@ -639,6 +642,7 @@ enum class TextureSlots
 	Emission,
 
 	LUT,
+	LUT2,
 	Noise,
 
 	Count

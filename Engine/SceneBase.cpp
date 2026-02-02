@@ -353,15 +353,26 @@ void SceneBase::BaseRenderImGui()
 	LUT_LIST
 	#undef X
 	};
-	int& lut_idx = Renderer::GetInstance().GetSelectedLUTIndex();
-	ImGui::Combo("Select LUT", &lut_idx, lutItems, LUTData::COUNT);
-	com_ptr<ID3D11ShaderResourceView> ssrrvv = nullptr;
-	ssrrvv = ResourceManager::GetInstance().GetLUT(lut_idx);
+	int& lut1idx = Renderer::GetInstance().GetSelectedLUTIndex();
+	ImGui::Combo("Select LUT", &lut1idx, lutItems, LUTData::COUNT);
+	com_ptr<ID3D11ShaderResourceView> lut_texture_1 = nullptr;
+	lut_texture_1 = ResourceManager::GetInstance().GetLUT(lut1idx);
 	ImGui::Image
 	(
-		(ImTextureID)ssrrvv.Get(),
+		(ImTextureID)lut_texture_1.Get(),
 		ImVec2(256, 16)
 	);
+	int& lut2idx = Renderer::GetInstance().GetSelectedLUT2Index();
+	ImGui::CheckboxFlags("LUT CROSSFADE", &m_postProcessingData.flags, static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::LUT_CROSSFADE));
+	ImGui::Combo("Select LUT2", &lut2idx, lutItems, LUTData::COUNT);
+	com_ptr<ID3D11ShaderResourceView> lut_texture_2 = nullptr;
+	lut_texture_2 = ResourceManager::GetInstance().GetLUT(lut2idx);
+	ImGui::Image
+	(
+		(ImTextureID)lut_texture_2.Get(),
+		ImVec2(256, 16)
+	);
+	ImGui::DragFloat("Lut Lerp Factor", &m_postProcessingData.lutLerpFactor, 0.01f, 0.0f, 1.0f);
 
 	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Light");
 	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);

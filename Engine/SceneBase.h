@@ -77,6 +77,7 @@ public:
 	static void SetRadialBlurCenter(const DirectX::XMFLOAT2& center) { m_postProcessingData.radialBlurParam.x = center.x; m_postProcessingData.radialBlurParam.y = center.y;}
 	static void SetRadialBlurDist(float dist) { m_postProcessingData.radialBlurParam.z = dist; }
 	static void SetRadialBlurStrength(float strength) { m_postProcessingData.radialBlurParam.w = strength; }
+	static void SetLutLerpFactor(float factor) { m_postProcessingData.lutLerpFactor = factor; }
 
 	// 루트 게임 오브젝트 생성 // 게임 오브젝트 베이스 포인터 반환
 	GameObjectBase* CreateRootGameObject(const std::string& typeName);
