@@ -49,13 +49,9 @@ void Player::Update()
 	InputManager& input = InputManager::GetInstance();
 	auto& sm = SoundManager::GetInstance();
 
-	if (input.GetKeyDown(KeyCode::Space) && !m_isDashing && sm.CheckRhythm(0.1f)) { TriggerDash(input);}
-	if (m_isDashing){ // 대쉬
-		m_dashTimer -= deltaTime;
-		MovePosition(m_dashDirection * m_kDashSpeed * deltaTime);
-		if (m_dashTimer <= 0.0f){ m_isDashing = false;}
-	}
-	else{ PlayerMove(deltaTime, input); } // 원래 이동
+	if (input.GetKeyDown(KeyCode::Space) && !m_isDashing && sm.CheckRhythm(0.1f)) { PlayerTriggerDash(input);}
+	if (m_isDashing){ PlayerDash(deltaTime, input); }
+	else            { PlayerMove(deltaTime, input); } 
 
 	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f)) { PlayerShoot(); };
 	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f)) PlayerDeadEyeStart();
@@ -103,6 +99,62 @@ void Player::PlayerMove(float deltaTime, InputManager& input)
 	// 대각선 보정
 	if (forwardInput != 0.0f && rightInput != 0.0f) { forwardInput *= 0.7071f; rightInput *= 0.7071f; }
 	MovePosition(GetWorldDirectionVector(Direction::Forward) * forwardInput * deltaTime + GetWorldDirectionVector(Direction::Right) * rightInput * deltaTime);
+}
+
+
+void Player::PlayerTriggerDash(InputManager& input)
+{
+	m_isDashing = true;
+	m_dashTimer = m_kDashDuration;
+
+	float forwardInput = 0.0f;
+	float rightInput = 0.0f;
+	if (input.GetKey(KeyCode::W)) forwardInput += 1.f;
+	if (input.GetKey(KeyCode::S)) forwardInput -= 1.f;
+	if (input.GetKey(KeyCode::A))   rightInput -= 1.f;
+	if (input.GetKey(KeyCode::D))   rightInput += 1.f;
+
+	if (forwardInput == 0.0f && rightInput == 0.0f) {
+		m_dashDirection = GetWorldDirectionVector(Direction::Forward);
+	}
+	else {
+		XMVECTOR dir = GetWorldDirectionVector(Direction::Forward) * forwardInput + GetWorldDirectionVector(Direction::Right) * rightInput;
+		m_dashDirection = XMVector3Normalize(dir);
+	}
+
+	//need BackUp
+	XMFLOAT2 blurCenter = { 0.5f, 0.5f }; // (W/S)
+	if (rightInput < 0) {// (A, WA, SA)
+		if (forwardInput != 0.0f)	blurCenter = { 0.1465f, 0.5f }; // (WA, SA)
+		else						blurCenter = { 0.0f, 0.5f }; // (A)
+	} else if (rightInput > 0)  {// (D, WD, SD)
+		if (forwardInput != 0.0f)	blurCenter = { 0.8535f, 0.5f };// (WD, SD)
+		else						blurCenter = { 1.0f, 0.5f };// (D)
+	}
+	SceneBase::SetRadialBlurCenter(blurCenter);
+	SceneBase::SetRadialBlurDist(0.33f);
+	SceneBase::SetRadialBlurStrength(1.7f);
+	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::RadialBlur, true);
+
+	// 사운드 여기다 넣아야 함
+}
+
+void Player::PlayerDash(float deltaTime, InputManager& input)
+{
+	m_dashTimer -= deltaTime;
+	MovePosition(m_dashDirection * m_kDashSpeed * deltaTime);
+	if (m_dashTimer <= 0.0f) { m_isDashing = false; }
+
+	float t = 1.0f - (m_dashTimer / m_kDashDuration); // 0->1
+	float smooth = t * t * (3.0f - 2.0f * t);         // smoothstep
+	SceneBase::SetRadialBlurStrength(8.0f * (1.0f - smooth)); // 점점 약해짐
+
+	if (m_dashTimer <= 0.0f) {
+		m_isDashing = false;
+		SceneBase::SetRadialBlurStrength(0.0f);
+		SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::RadialBlur, false);
+	}
+
 }
 
 void Player::PlayerShoot()
@@ -336,29 +388,6 @@ void Player::RenderBullets(class Renderer& renderer)
 		renderer.UI_RENDER_FUNCTIONS().emplace_back([&,pos]() { Renderer::GetInstance().RenderImageUIPosition(m_bulletImgs.first, { pos, m_bulletUIpos.second }, m_bulletImgs.second, 0.1f); });
 	}
 }
-
-void Player::TriggerDash(InputManager& input)
-{
-	m_isDashing = true;
-	m_dashTimer = m_kDashDuration;
-	
-	float forwardInput = 0.0f;
-	float rightInput = 0.0f;
-	if (input.GetKey(KeyCode::W)) forwardInput += 1.f;
-	if (input.GetKey(KeyCode::S)) forwardInput -= 1.f;
-	if (input.GetKey(KeyCode::A))   rightInput -= 1.f;
-	if (input.GetKey(KeyCode::D))   rightInput += 1.f;
-
-	if (forwardInput == 0.0f && rightInput == 0.0f) {
-		GetWorldDirectionVector(Direction::Forward);
-	} else {
-		XMVECTOR dir = GetWorldDirectionVector(Direction::Forward) * forwardInput + GetWorldDirectionVector(Direction::Right) * rightInput;
-		m_dashDirection = XMVector3Normalize(dir);
-	}
-
-	// 사운드 여기다 넣아야 함
-}
-
 
 void Player::UpdateLutCrossfade(float deltaTime)
 {

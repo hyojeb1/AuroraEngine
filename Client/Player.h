@@ -70,6 +70,8 @@ private:
 	void Render() override;
 	void Finalize() override;
 
+	void PlayerTriggerDash(class InputManager& input);
+	void PlayerDash(float deltaTime, class InputManager& input);
 	void PlayerMove(float deltaTime, class InputManager& input);
 	void PlayerShoot();
 	void PlayerReload();
@@ -83,7 +85,6 @@ private:
 	void RenderUINode(class Renderer& renderer);
 	void RenderBullets(class Renderer& renderer);
 
-	void TriggerDash(class InputManager& input);
 
 	void UpdateLutCrossfade(float deltaTime);
 	void TriggerLUT();
