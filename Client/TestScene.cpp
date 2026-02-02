@@ -1,10 +1,14 @@
 #include "stdafx.h"
 #include "TestScene.h"
 
-#include "TestCameraObject.h"
-#include "CamRotObject.h"
+#include "InputManager.h"
+#include "SceneManager.h"
 #include "TimeManager.h"
 #include "SoundManager.h"
+
+#include "TestCameraObject.h"
+#include "CamRotObject.h"
+
 #include "Enemy.h"
 #include "RNG.h"
 
@@ -16,6 +20,8 @@ using namespace DirectX;
 void TestScene::Initialize()
 {
 	ShowCursor(FALSE);
+
+	SoundManager::GetInstance().Main_BGM_Shot("DOB Music_test2",1.0f);
 }
 
 void TestScene::Update()
@@ -31,4 +37,19 @@ void TestScene::Update()
 
 		CreatePrefabRootGameObject("Enemy.json")->SetPosition(XMVectorSet(RNG::GetInstance().Range(-SPREAD, SPREAD), 0.0f, RNG::GetInstance().Range(-SPREAD, SPREAD), 1.0f));
 	}
+
+	if (InputManager::GetInstance().GetKeyDown(KeyCode::Num0))
+	{
+		SceneManager::GetInstance().ChangeScene("EndingScene");
+	}
+
+	if (SoundManager::GetInstance().CheckBGMEnd())
+	{
+		SoundManager::GetInstance().Main_BGM_Shot(SoundManager::GetInstance().GetCurrentTrackName(), 3.0f);
+	}
+}
+
+void TestScene::Finalize()
+{
+	SoundManager::GetInstance().Stop_ChannelGroup();
 }

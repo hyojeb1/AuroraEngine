@@ -111,6 +111,9 @@
     <ClCompile Include="Resource.cpp">
       <Filter>Resource</Filter>
     </ClCompile>
+    <ClCompile Include="UIBase.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -197,6 +200,9 @@
     </ClInclude>
     <ClInclude Include="RNG.h">
       <Filter>Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="UIBase.h">
+      <Filter>Base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -184,6 +184,7 @@
   <ItemGroup>
     <ClCompile Include="CamRotObject.cpp" />
     <ClCompile Include="CrossHairAndNode.cpp" />
+    <ClCompile Include="EndingScene.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="FSMComponentEnemy.cpp" />
     <ClCompile Include="FSMComponentGun.cpp" />
@@ -209,6 +210,7 @@
   <ItemGroup>
     <ClInclude Include="CamRotObject.h" />
     <ClInclude Include="CrossHairAndNode.h" />
+    <ClInclude Include="EndingScene.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="FSMComponentEnemy.h" />
     <ClInclude Include="FSMComponentGun.h" />
@@ -222,6 +224,7 @@
     <ClInclude Include="TitleScene.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Asset\Scene\EndingScene.json" />
     <None Include="..\Asset\Scene\HyojeTestScene.json" />
     <None Include="..\Asset\Scene\TaehyeonTestScene.json" />
     <None Include="..\Asset\Scene\TestScene.json" />

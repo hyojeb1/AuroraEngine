@@ -184,7 +184,7 @@ void Renderer::Resize(UINT width, UINT height)
 	m_swapChainDesc.Width = width;
 	m_swapChainDesc.Height = height;
 	m_aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-
+	 
 	// 스왑 체인 크기 조정
 	hr = m_swapChain->ResizeBuffers
 	(
@@ -211,6 +211,41 @@ void Renderer::SetFullscreen(bool enable)
 
 	hr = m_swapChain->SetFullscreenState(static_cast<BOOL>(enable), nullptr);
 	CheckResult(hr, "전체 화면 모드 전환 실패.");
+
+	if (enable)
+	{
+		com_ptr<IDXGIDevice> dxgiDevice;
+		m_device.As(&dxgiDevice);
+
+		com_ptr<IDXGIAdapter> adapter;
+		dxgiDevice->GetAdapter(&adapter);
+
+		com_ptr<IDXGIOutput> output;
+		adapter->EnumOutputs(0, &output);
+
+		DXGI_OUTPUT_DESC desc;
+		output->GetDesc(&desc);
+
+		UINT modeCount = 0;
+		output->GetDisplayModeList(
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			0,
+			&modeCount,
+			nullptr
+		);
+
+		std::vector<DXGI_MODE_DESC> modes(modeCount);
+
+		output->GetDisplayModeList(
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			0,
+			&modeCount,
+			modes.data()
+		);
+			m_swapChain->ResizeTarget(&modes.back()); //max resolution
+}
+
+	
 }
 
 void Renderer::SetViewport(FLOAT Width, FLOAT Height)

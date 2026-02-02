@@ -51,6 +51,8 @@ public:
 	Player(Player&&) = default;
 	Player& operator=(Player&&) = default;
 
+	bool GetActiveDeadEye() { return m_isDeadEyeActive; }
+
 private:
 	void Initialize() override;
 	void Update() override;

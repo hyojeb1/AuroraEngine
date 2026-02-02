@@ -35,6 +35,9 @@
     <ClCompile Include="CrossHairAndNode.cpp">
       <Filter>Component</Filter>
     </ClCompile>
+    <ClCompile Include="EndingScene.cpp">
+      <Filter>Scene</Filter>
+  </ClCompile>
     <ClCompile Include="GemParticle.cpp">
       <Filter>GameObject</Filter>
     </ClCompile>
@@ -74,6 +77,9 @@
     <ClInclude Include="CrossHairAndNode.h">
       <Filter>Component</Filter>
     </ClInclude>
+    <ClInclude Include="EndingScene.h">
+      <Filter>Scene</Filter>
+  </ClInclude>
     <ClInclude Include="GemParticle.h">
       <Filter>GameObject</Filter>
     </ClInclude>
@@ -106,6 +112,9 @@
       <Filter>Scene\JSON</Filter>
     </None>
     <None Include="..\Asset\Scene\TitleScene.json">
+      <Filter>Scene\JSON</Filter>
+    </None>
+    <None Include="..\Asset\Scene\EndingScene.json">
       <Filter>Scene\JSON</Filter>
     </None>
   </ItemGroup>
