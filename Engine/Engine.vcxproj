@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ExternalIncludePath>$(SolutionDir)ThirdParty\include;$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>$(SolutionDir)ThirdParty\include;$(SolutionDir);$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ExternalIncludePath>$(SolutionDir)ThirdParty\include;$(SolutionDir);$(ExternalIncludePath)</ExternalIncludePath>

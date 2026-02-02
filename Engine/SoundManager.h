@@ -11,6 +11,15 @@ struct SoundResourceUsage
 	float total = 0.f;
 };
 
+enum class InputType
+{
+	Early = 0,
+	Perfect = 1,
+	Late = 2,
+	Miss = 3,
+	Fatal = 4
+};
+
 class SoundManager : public Singleton<SoundManager>
 {
 public:
@@ -33,8 +42,9 @@ public:
 	void LoadNodeData();
 
 	void UpdateNodeIndex();
-	void UpdateUINodeIndex();
-	bool CheckRhythm(float correction);
+	void UpdateUINodeIndexAndGenerated();
+	InputType CheckRhythm(float correction);
+	void UpdateUINodeDestroyed();
 
 	std::unordered_map<std::string, std::vector<std::pair<float, float>>>* GetNodeDataPtr() { return &m_NodeData; }
 
@@ -43,7 +53,6 @@ public:
 	void SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename);
 	void UI_Shot(const std::string filename);
 
-	
 	void Pause();
 	void Resume();
 
@@ -70,11 +79,14 @@ public:
 
 	FMOD_VECTOR ToFMOD(DirectX::XMVECTOR vector);
 
-	void ConsumeNodeChanged();
+	void ConsumeNodeGenerated();
+	void ConsumeNodeDestroyed();
 
-	void AddNodeChangedListener(std::function<void()> cb);
-	void AddNodeChangedListenerOnce(std::function<void()> cb);
-	void NotifyNodeChanged();
+	//void AddNodeGeneratedListener(std::function<void()> cb);
+	void AddNodeGeneratedListenerOnce(std::function<void()> cb);
+	void AddNodeDestroyedListenerOnce(std::function<bool()> cb);
+	void NotifyNodeGenerated();
+	void NotifyNodeDestroyed();
 
 	FMOD::Channel* GetBGMCh1() { return m_BGMChannel1; }
 	FMOD::Channel* GetBGMCh2() { return m_BGMChannel2; }
@@ -114,6 +126,8 @@ private:
 
 	size_t m_rhythmTimerIndex = 0;	//raw time
 	size_t m_rhythmUIIndex = 0;
+	size_t m_rhythmDestroyIndex = 0;
+
 	//FMOD_CPU_USAGE m_Usage;
 
 	FMOD::DSP* m_lowpass = nullptr;
@@ -124,9 +138,11 @@ private:
 
 	float m_RhythmOffSet = 1.28f;
 
-	bool m_OnNodeChanged = false;
+	bool m_OnNodeGenerated = false;
+	bool m_OnNodeDestroyed = false;
 
-	std::vector<std::function<void()>> m_NodeChangedListeners;
-	std::vector<std::function<void()>> m_NodeChangedListenerOnce;
+	//std::vector<std::function<void()>> m_NodeChangedListeners;
+	std::vector<std::function<void()>> m_NodeGeneratedListenerOnce;
+	std::vector<std::function<bool()>> m_NodeDestroyedListenerOnce;
 };
 

@@ -1,12 +1,13 @@
 #include "stdafx.h"
-
 #include "Renderer.h"
 #include "GameObjectBase.h"
+
 #include "ResourceManager.h"
 #include "TimeManager.h"
 #include "SoundManager.h"
-#include "CrossHairAndNode.h"
 #include "InputManager.h"
+
+#include "CrossHairAndNode.h"
 #include "Player.h"
 
 REGISTER_TYPE(CrossHairAndNode)
@@ -145,6 +146,6 @@ void CrossHairAndNode::GenerateNode()
 
 	/*if (!sm.ConsumeNodeChanged())
 		return;*/
-	SoundManager::GetInstance().AddNodeChangedListenerOnce([&]() { m_UINode.push_back(sm.GetRhythmOffset()); });
+	SoundManager::GetInstance().AddNodeGeneratedListenerOnce([&]() { m_UINode.push_back(sm.GetRhythmOffset()); });
 
 }

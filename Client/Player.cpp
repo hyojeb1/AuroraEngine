@@ -50,9 +50,23 @@ void Player::Update()
 	auto& sm = SoundManager::GetInstance();
 
 	PlayerMove(deltaTime, input);
-	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f)) { PlayerShoot(); };
-	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f)) PlayerDeadEyeStart();
-	if (input.GetKeyDown(KeyCode::R) && sm.CheckRhythm(0.1f)) { PlayerReload(); };
+	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f) < InputType::Miss) { PlayerShoot(); };
+	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerDeadEyeStart();
+	if (input.GetKeyDown(KeyCode::R))
+	{
+		switch (sm.CheckRhythm(0.1f))
+		{
+		case InputType::Early:
+			PlayerReload(1);
+			break;
+		case InputType::Perfect:
+			PlayerReload(0);
+			break;
+		case InputType::Late:
+			PlayerReload(0);
+			break;
+		}
+	}
 	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime, input);
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
@@ -142,7 +156,7 @@ void Player::PlayerShoot()
 	}
 }
 
-void Player::PlayerReload()
+void Player::PlayerReload(int cnt)
 {
 	if (m_bulletCnt == m_MaxBullet) return;
 
@@ -151,7 +165,17 @@ void Player::PlayerReload()
 	m_bulletCnt = m_MaxBullet;
 
 	SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Reload_Spin);
-	SoundManager::GetInstance().AddNodeChangedListenerOnce([&]() {SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Reload_Cocking); });
+
+	int reloadCount = Config::Player_Reload_Cocking_Count + cnt;
+	SoundManager::GetInstance().AddNodeDestroyedListenerOnce([this, cnt = reloadCount]()mutable ->bool
+		{
+			if (--cnt > 0)
+			{
+				return false;
+			}
+			SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Reload_Cocking);
+			return true;
+		});
 }
 
 void Player::PlayerDeadEyeStart()

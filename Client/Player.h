@@ -61,7 +61,7 @@ private:
 
 	void PlayerMove(float deltaTime, class InputManager& input);
 	void PlayerShoot();
-	void PlayerReload();
+	void PlayerReload(int cnt);
 	void PlayerDeadEyeStart();
 	void PlayerDeadEye(float deltaTime, class InputManager& input);
 	void PlayerDeadEyeEnd();

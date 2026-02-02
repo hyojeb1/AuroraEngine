@@ -82,8 +82,10 @@ void SoundManager::Update()
 	UpdateLowpass();
 
 	UpdateNodeIndex();
-	UpdateUINodeIndex();
-	ConsumeNodeChanged();
+	UpdateUINodeIndexAndGenerated();
+	UpdateUINodeDestroyed();
+	ConsumeNodeGenerated();
+	ConsumeNodeDestroyed();
 
 	//std::cout << m_rhythmTimerIndex << " : index "
 	//	<< m_NodeData[m_rhythmTimerIndex].first << " : startTime "
@@ -493,34 +495,61 @@ void SoundManager::UpdateNodeIndex() //raw time
 	}
 }
 
-void SoundManager::UpdateUINodeIndex()
+void SoundManager::UpdateUINodeIndexAndGenerated()
 {
 	if (m_rhythmUIIndex < m_NodeData[m_CurrentTrackName].size() &&
 		m_NodeData[m_CurrentTrackName][m_rhythmUIIndex].first < GetCurrentPlaybackTime())
 	{
 		m_rhythmUIIndex++;
-		m_OnNodeChanged = true;
+		m_OnNodeGenerated = true;
 
 		//std::cout << "UIndex : " << m_rhythmUIIndex << std::endl;
 	}
 }
 
-bool SoundManager::CheckRhythm(float correction)
+InputType SoundManager::CheckRhythm(float correction)
 {
-	if (m_CurrentTrackName.empty() || m_CurrentTrackName == "") return false;
+	if (m_CurrentTrackName.empty() || m_CurrentTrackName == "") return InputType::Fatal;
 
 	const float time = GetCurrentPlaybackTime();
 
-	if (m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].first - correction + m_RhythmOffSet <= time && m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].second + correction + m_RhythmOffSet >= time)
+	// c - s < time > s = ealry
+	if (m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].first - correction + m_RhythmOffSet < time && m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].first + m_RhythmOffSet > time)
 	{
-		std::cout << "Success!" << std::endl;
-		return true;
+		std::cout << "Ealry!" << std::endl;
+		return InputType::Early;
+	}
+	// s < time > e  = perfect
+	else if (m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].first + m_RhythmOffSet < time && m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].second + m_RhythmOffSet > time)
+	{
+		std::cout << "Perfect" << std::endl;
+		return InputType::Perfect;
+	}
+	// e < time > e + c = late
+	else if (m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].second + m_RhythmOffSet < time && m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].second + correction + m_RhythmOffSet > time)
+	{
+		std::cout << "late" << std::endl;
+		return InputType::Late;
 	}
 	else
 	{
-		std::cout << "Failed!" << std::endl;
+		std::cout << "Miss!" << std::endl;
 
-		return false;
+		return InputType::Miss;
+	}
+}
+
+void SoundManager::UpdateUINodeDestroyed()
+{
+	if (m_CurrentTrackName.empty() || m_CurrentTrackName == "" && m_rhythmDestroyIndex < m_NodeData[m_CurrentTrackName].size()) return;
+
+	if (m_NodeData[m_CurrentTrackName][m_rhythmDestroyIndex].first + m_RhythmOffSet < GetCurrentPlaybackTime())
+	{
+		static int cnt = 0;
+
+		m_rhythmDestroyIndex++;
+		m_OnNodeDestroyed = true;
+		return;
 	}
 }
 
@@ -533,9 +562,10 @@ void SoundManager::Main_BGM_Shot(const std::string filename,float delay)
 		CheckResult(-1, "invalid track name");
 	}
 
-	m_CurrentTrackName = it->first + "_Beat";
+	m_CurrentTrackName = it->first;// +"_Beat";
 	m_rhythmTimerIndex = 0;
 	m_rhythmUIIndex = 0;
+	m_rhythmDestroyIndex = 0;
 
 	m_CoreSystem->playSound(it->second, m_BGMGroup, true, &m_BGMChannel1);
 
@@ -705,12 +735,21 @@ FMOD_VECTOR SoundManager::ToFMOD(DirectX::XMVECTOR vector)
 	return FMOD_pos;
 }
 
-void SoundManager::ConsumeNodeChanged()
+void SoundManager::ConsumeNodeGenerated()
 {
-	if (m_OnNodeChanged)
+	if (m_OnNodeGenerated)
 	{
-		NotifyNodeChanged();
-		m_OnNodeChanged = false;
+		NotifyNodeGenerated();
+		m_OnNodeGenerated = false;
+	}
+}
+
+void SoundManager::ConsumeNodeDestroyed()
+{
+	if (m_OnNodeDestroyed)
+	{
+		NotifyNodeDestroyed();
+		m_OnNodeDestroyed = false;
 	}
 }
 
@@ -719,23 +758,41 @@ void SoundManager::ConsumeNodeChanged()
 //	m_NodeChangedListeners.push_back(cb);
 //}
 
-void SoundManager::AddNodeChangedListenerOnce(std::function<void()> cb)
+void SoundManager::AddNodeGeneratedListenerOnce(std::function<void()> cb)
 {
-	m_NodeChangedListenerOnce.push_back(cb);
+	m_NodeGeneratedListenerOnce.push_back(cb);
 }
 
-void SoundManager::NotifyNodeChanged()
+void SoundManager::AddNodeDestroyedListenerOnce(std::function<bool()> cb)
+{
+	m_NodeDestroyedListenerOnce.push_back(cb);
+}
+
+void SoundManager::NotifyNodeGenerated()
 {
 	/*for (auto& cb : m_NodeChangedListeners)
 		cb();*/ // only insert로 인한 memory leak 발생
 
-	for (auto& cb : m_NodeChangedListenerOnce)
+	for (auto& cb : m_NodeGeneratedListenerOnce)
 		cb();
 
-	m_NodeChangedListenerOnce.clear();
+	m_NodeGeneratedListenerOnce.clear();
 }
 
-void SoundManager::UpdateLowpass()
+void SoundManager::NotifyNodeDestroyed()
+{
+	auto it = m_NodeDestroyedListenerOnce.begin();
+
+	while (it != m_NodeDestroyedListenerOnce.end())
+	{
+		if ((*it)())
+			it = m_NodeDestroyedListenerOnce.erase(it);
+		else
+			++it;
+	}
+}
+
+	void SoundManager::UpdateLowpass()
 {
 	float delta = TimeManager::GetInstance().GetNSDeltaTime();
 	float speed = 60000.0f;
