@@ -42,7 +42,7 @@ float4 main(PS_INPUT_POS_UV input) : SV_TARGET
     if (PostProcessingFlags & PP_BLOOM)
     {
         float4 tresholdColor;
-        [loop] for (int i = 0; i < 10; ++i) tresholdColor += sceneTexture.SampleLevel(SamplerLinearClamp, float3(input.UV, 1.0f), i); // 겁나 싼 짭우시안 블러
+        [loop] for (int i = 1; i < 11; ++i) tresholdColor += sceneTexture.SampleLevel(SamplerLinearClamp, float3(input.UV, 1.0f), i); // 겁나 싼 짭우시안 블러
         color += tresholdColor * 0.1f * BloomIntensity;
     }
     

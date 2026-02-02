@@ -12,6 +12,7 @@
 #include "ModelComponent.h"
 #include "SceneBase.h"
 #include "Enemy.h"
+#include "ParticleObject.h"
 
 #include "FSMComponentGun.h"
 
@@ -19,7 +20,6 @@ REGISTER_TYPE(Player)
 
 using namespace std;
 using namespace DirectX;
-
 
 void Player::Initialize()
 {
@@ -161,48 +161,35 @@ void Player::PlayerShoot()
 {
 	if (!m_gunObject || m_isDeadEyeActive) return;
 
+	if (m_gunFSM) m_gunFSM->Fire();
 	--m_bulletCnt;
 	SoundManager::GetInstance().SFX_Shot(GetPosition(), "cannon1");
 
 	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
+
 	const XMVECTOR& origin = mainCamera.GetPosition();
 	const XMVECTOR& direction = mainCamera.GetForwardVector();
 	float distance = 0.0f;
 	GameObjectBase* hit = ColliderComponent::CheckCollision(origin, direction, distance);
 	const XMVECTOR& hitPosition = XMVectorAdd(origin, XMVectorScale(direction, distance));
-	if (hit)
+
+	ParticleObject* smoke = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Smoke.json"));
+	const XMVECTOR& gunPos = m_gunObject->GetWorldPosition();
+	smoke->SetPosition(gunPos);
+	smoke->SetScale(XMVectorSet(1.0f, 1.0f, distance, 1.0f));
+	smoke->LookAt(hitPosition);
+	smoke->SetLifetime(5.0f);
+
+	if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
 	{
+		enemy->Die();
+		ParticleObject* gem = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Gem.json"));
+		gem->SetPosition(hitPosition);
+		gem->SetLifetime(5.0f);
+
+		m_enemyHitTimer = m_enemyHitDisplayTime;
+
 		TriggerLUT();
-
-		if (m_gunFSM) m_gunFSM->Fire();
-		if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
-		{
-			enemy->Die();
-			GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
-			gem->SetPosition(hitPosition);
-
-			m_enemyHitTimer = m_enemyHitDisplayTime;
-		}
-
-		LineBuffer lineBuffer = {};
-		XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
-		lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		XMStoreFloat4(&lineBuffer.linePoints[1], hitPosition);
-		lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-
-		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
-
-	}
-	else
-	{
-		if (m_gunFSM) m_gunFSM->Fire();
-
-		LineBuffer lineBuffer = {};
-		XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
-		lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		XMStoreFloat4(&lineBuffer.linePoints[1], XMVectorAdd(origin, XMVectorScale(direction, 1000.0f)));
-		lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
 	}
 }
 
@@ -234,8 +221,14 @@ void Player::PlayerDeadEyeStart()
 	{
 		if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
 		{
+			// 사이에 장애물이 있는지 확인
+			float distance = 0.0f;
+			const XMVECTOR& origin = mainCamera.GetPosition();
+			const XMVECTOR& targetPos = XMVectorAdd(enemy->GetWorldPosition(), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)); // 적 충심이 y = 0.0f여서 약간 올림
+			if (!dynamic_cast<Enemy*>(ColliderComponent::CheckCollision(origin, XMVectorSubtract(targetPos, origin), distance))) continue;
+
 			hasEnemy = true;
-			XMFLOAT2 distancePair = mainCamera.WorldToScreenPosition(enemy->GetWorldPosition());
+			XMFLOAT2 distancePair = mainCamera.WorldToScreenPosition(targetPos);
 			m_deadEyeTargets.emplace_back(powf(distancePair.x - halfWidth, 2) + powf(distancePair.y - halfHeight, 2), enemy);
 		}
 	}
@@ -277,7 +270,9 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
-		m_prevDeadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(m_deadEyeTargets.back().second->GetWorldPosition());
+		const XMVECTOR& targetPos = m_deadEyeTargets.back().second->GetWorldPosition();
+
+		m_prevDeadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(targetPos);
 		m_deadEyeTargets.back().second->Die();
 		if (m_deadEyeTargets.size() > 1)
 		{
@@ -286,15 +281,16 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 		}
 		else m_nextDeadEyePos = m_prevDeadEyePos;
 
-		GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
-		gem->SetPosition(m_deadEyeTargets.back().second->GetWorldPosition());
+		const XMVECTOR& gunPos = m_gunObject->GetWorldPosition();
+		ParticleObject* smoke = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Smoke.json"));
+		smoke->SetPosition(gunPos);
+		smoke->SetScale(XMVectorSet(1.0f, 1.0f, XMVectorGetX(XMVector3LengthEst(XMVectorSubtract(gunPos, targetPos))), 1.0f));
+		smoke->LookAt(targetPos);
+		smoke->SetLifetime(5.0f);
 
-		LineBuffer lineBuffer = {};
-		if (m_gunObject) XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
-		lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		XMStoreFloat4(&lineBuffer.linePoints[1], m_deadEyeTargets.back().second->GetWorldPosition());
-		lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
+		ParticleObject* gem = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Gem.json"));
+		gem->SetPosition(targetPos);
+		gem->SetLifetime(5.0f);
 
 		m_deadEyeTargets.pop_back();
 	}

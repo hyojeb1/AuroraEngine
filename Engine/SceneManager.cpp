@@ -13,6 +13,7 @@ constexpr double fixedDt = 0.016; // 60fps 기준
 void SceneManager::Initialize()
 {
 	TimeManager::GetInstance().Initialize();
+	LoadAllPrefabs();
 }
 
 void SceneManager::Run()
@@ -64,4 +65,30 @@ void SceneManager::ChangeScene(const string& sceneTypeName)
 SceneBase* SceneManager::GetCurrentScene()
 {
 	return dynamic_cast<SceneBase*>(m_currentScene.get());
+}
+
+const nlohmann::json* SceneManager::GetPrefabData(const string& prefabName)
+{
+	auto it = m_prefabCache.find(prefabName);
+	if (it != m_prefabCache.end()) return &it->second;
+
+	return nullptr;
+}
+
+void SceneManager::LoadAllPrefabs()
+{
+	const filesystem::path prefabDirectory = "../Asset/Prefab/";
+	if (!filesystem::exists(prefabDirectory)) return;
+
+	for (const auto& entry : filesystem::directory_iterator(prefabDirectory))
+	{
+		if (entry.path().extension() == ".json")
+		{
+			ifstream file(entry.path());
+			nlohmann::json prefabData;
+			file >> prefabData;
+			file.close();
+			m_prefabCache[entry.path().filename().string()] = prefabData;
+		}
+	}
 }
