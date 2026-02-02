@@ -508,6 +508,7 @@ enum class PSConstBuffers
 	CameraPosition, // CameraPositionBuffer
 	GlobalLight, // GlobalLightBuffer
 	MaterialFactor, // MaterialFactorBuffer
+	ParticleEmission, // ParticleEmissionBuffer
 
 	Count
 };
@@ -564,6 +565,10 @@ struct MaterialFactorBuffer
 
 
 };
+struct ParticleEmissionBuffer
+{
+	DirectX::XMFLOAT4 emissionColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+};
 constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(PSConstBuffers::Count)> PS_CONST_BUFFER_DESCS =
 {
 	// PostProcessingBuffer
@@ -603,6 +608,17 @@ constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(PSConstBuffers::Coun
 	D3D11_BUFFER_DESC
 	{
 		.ByteWidth = sizeof(MaterialFactorBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	},
+
+	// ParticleEmissionBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(ParticleEmissionBuffer),
 		.Usage = D3D11_USAGE_DEFAULT,
 		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
 		.CPUAccessFlags = 0,

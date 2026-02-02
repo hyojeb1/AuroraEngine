@@ -525,6 +525,16 @@ nlohmann::json SceneBase::BaseSerialize()
 		m_globalLightData.lightDirection.m128_f32[3]
 	};
 
+	// 후처리 정보
+	jsonData["postProcessing"] =
+	{
+		{ "flags", m_postProcessingData.flags },
+		{ "bloomIntensity", m_postProcessingData.bloomIntensity },
+		{ "gammaIntensity", m_postProcessingData.gammaIntensity },
+		{ "grayScaleIntensity", m_postProcessingData.grayScaleIntensity },
+		{ "vignettingColor", { m_postProcessingData.vignettingColor.x, m_postProcessingData.vignettingColor.y, m_postProcessingData.vignettingColor.z, m_postProcessingData.vignettingColor.w } }
+	};
+
 	// 환경 맵 파일 이름
 	jsonData["environmentMapFileName"] = m_environmentMapFileName;
 
@@ -567,6 +577,26 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 			jsonData["lightDirection"][2].get<float>(),
 			jsonData["lightDirection"][3].get<float>()
 		);
+	}
+
+	// 후처리 정보
+	if (jsonData.contains("postProcessing"))
+	{
+		const nlohmann::json& ppData = jsonData["postProcessing"];
+		if (ppData.contains("flags")) m_postProcessingData.flags = ppData["flags"].get<UINT>();
+		if (ppData.contains("bloomIntensity")) m_postProcessingData.bloomIntensity = ppData["bloomIntensity"].get<float>();
+		if (ppData.contains("gammaIntensity")) m_postProcessingData.gammaIntensity = ppData["gammaIntensity"].get<float>();
+		if (ppData.contains("grayScaleIntensity")) m_postProcessingData.grayScaleIntensity = ppData["grayScaleIntensity"].get<float>();
+		if (ppData.contains("vignettingColor"))
+		{
+			m_postProcessingData.vignettingColor = XMFLOAT4
+			(
+				ppData["vignettingColor"][0].get<float>(),
+				ppData["vignettingColor"][1].get<float>(),
+				ppData["vignettingColor"][2].get<float>(),
+				ppData["vignettingColor"][3].get<float>()
+			);
+		}
 	}
 
 	// 환경 맵 파일 이름

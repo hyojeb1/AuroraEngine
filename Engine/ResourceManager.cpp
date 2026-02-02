@@ -118,7 +118,8 @@ void ResourceManager::SetAllConstantBuffers()
 	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::GlobalLight), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::GlobalLight)].GetAddressOf());
 	// 재질 팩터 상수 버퍼
 	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::MaterialFactor), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::MaterialFactor)].GetAddressOf());
-
+	// 파티클 에미션 상수 버퍼
+	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::ParticleEmission), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::ParticleEmission)].GetAddressOf());
 }
 
 void ResourceManager::SetAllSamplerStates()
@@ -589,6 +590,9 @@ void ResourceManager::CreateConstantBuffers()
 	// 재질 팩터 상수 버퍼
 	hr = m_device->CreateBuffer(&PS_CONST_BUFFER_DESCS[static_cast<size_t>(PSConstBuffers::MaterialFactor)], nullptr, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::MaterialFactor)].GetAddressOf());
 	CheckResult(hr, "MaterialFactor 상수 버퍼 생성 실패.");
+	// 파티클 에미션 상수 버퍼
+	hr = m_device->CreateBuffer(&PS_CONST_BUFFER_DESCS[static_cast<size_t>(PSConstBuffers::ParticleEmission)], nullptr, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::ParticleEmission)].GetAddressOf());
+	CheckResult(hr, "ParticleEmission 상수 버퍼 생성 실패.");
 }
 
 void ResourceManager::CreateSamplerStates()

@@ -52,7 +52,11 @@ cbuffer MaterialFactor : register(b3)
     float DissolveEdgeIntensity; 
     float DissolvePadding; 
     float4 DissolveEdgeColor;
-      
+};
+
+cbuffer ParticleEmission : register(b4)
+{
+    float4 EmissionColor;
 };
 
 // --------------------------------------------------------

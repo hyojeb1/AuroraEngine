@@ -14,6 +14,18 @@
     ],
     "navPolyIndices": [],
     "navVertices": [],
+    "postProcessing": {
+        "bloomIntensity": 20.700000762939453,
+        "flags": 1,
+        "gammaIntensity": 1.0,
+        "grayScaleIntensity": 0.0,
+        "vignettingColor": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ]
+    },
     "rootGameObjects": [
         {
             "childGameObjects": [],
@@ -54,7 +66,7 @@
                     "blendState": 1,
                     "flipbookAutoPlay": true,
                     "flipbookColumns": 40,
-                    "flipbookCurrentFrame": 32,
+                    "flipbookCurrentFrame": 50,
                     "flipbookDestroyOnFinish": false,
                     "flipbookEndFrame": 120,
                     "flipbookFPS": 8.0,
@@ -66,6 +78,12 @@
                     "flipbookStartFrame": 0,
                     "imageScale": 0.3499999940395355,
                     "particleAmount": 22,
+                    "particleEmissionColor": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
                     "particleTotalTime": 0.36000001430511475,
                     "psShaderName": "PSParticle.hlsl",
                     "rasterState": 2,
@@ -74,8 +92,8 @@
                     "textureFileName": "Gem.png",
                     "type": "FlipbookParticleComponent",
                     "uvOffset": [
-                        0.800000011920929,
-                        0.0
+                        0.25,
+                        0.0416666679084301
                     ],
                     "uvScale": [
                         0.02500000037252903,
