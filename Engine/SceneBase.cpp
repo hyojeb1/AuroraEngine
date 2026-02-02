@@ -546,7 +546,8 @@ nlohmann::json SceneBase::BaseSerialize()
 		{ "gammaIntensity", m_postProcessingData.gammaIntensity },
 		{ "grayScaleIntensity", m_postProcessingData.grayScaleIntensity },
 		{ "vignettingColor", { m_postProcessingData.vignettingColor.x, m_postProcessingData.vignettingColor.y, m_postProcessingData.vignettingColor.z, m_postProcessingData.vignettingColor.w } },
-		{ "radialBlurParam", { m_postProcessingData.radialBlurParam.x, m_postProcessingData.radialBlurParam.y, m_postProcessingData.radialBlurParam.z, m_postProcessingData.radialBlurParam.w } }
+		{ "radialBlurParam", { m_postProcessingData.radialBlurParam.x, m_postProcessingData.radialBlurParam.y, m_postProcessingData.radialBlurParam.z, m_postProcessingData.radialBlurParam.w } },
+		{ "lutLerpFactor", m_postProcessingData.lutLerpFactor}
 	};
 
 	// 환경 맵 파일 이름
@@ -621,6 +622,7 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 				ppData["radialBlurParam"][3].get<float>()
 			);
 		}
+		if (ppData.contains("lutLerpFactor")) m_postProcessingData.lutLerpFactor = ppData["lutLerpFactor"].get<float>();
 	}
 
 	// 환경 맵 파일 이름
