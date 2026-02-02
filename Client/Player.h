@@ -61,7 +61,6 @@ public:
 private:
 	void Initialize() override;
 	void Update() override;
-	void UpdateLutCrossfade(float deltaTime);
 	void Render() override;
 	void Finalize() override;
 
@@ -77,4 +76,7 @@ private:
 	void RenderEnemyHitUI(class Renderer& renderer);
 	void RenderUINode(class Renderer& renderer);
 	void RenderBullets(class Renderer& renderer);
+
+	void UpdateLutCrossfade(float deltaTime);
+	void TriggerLUT();
 };

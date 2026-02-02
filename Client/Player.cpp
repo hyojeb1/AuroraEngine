@@ -66,39 +66,6 @@ void Player::Update()
 	UpdateLutCrossfade(deltaTime);
 }
 
-void Player::UpdateLutCrossfade(float deltaTime)
-{
-	if (!m_lutCrossfadeActive) return;
-
-	m_lutCrossfadeElapsed += deltaTime;
-	float t = m_lutCrossfadeElapsed / m_lutCrossfadeDuration;
-	if (t > 1.0f) t = 1.0f;
-
-	// smoothstep (깔끔한 가속/감속)
-	float smooth = t * t * (3.0f - 2.0f * t);
-	float factor = m_lutCrossfadeReverse ? (1.0f - smooth) : smooth;
-
-	SceneBase::SetLutLerpFactor(factor);
-
-	if (t >= 1.0f)
-	{
-		if (!m_lutCrossfadeReverse)
-		{
-			// 역방향 시작
-			m_lutCrossfadeReverse = true;
-			m_lutCrossfadeElapsed = 0.0f;
-		}
-		else
-		{
-			// 종료: flag off + 원복
-			m_lutCrossfadeActive = false;
-			m_lutCrossfadeReverse = false;
-			SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::LUT_CROSSFADE, false);
-			SceneBase::SetLutLerpFactor(0.0f);
-		}
-	}
-}
-
 void Player::Render()
 {
 	Renderer& renderer = Renderer::GetInstance();
@@ -126,7 +93,7 @@ void Player::PlayerMove(float deltaTime, InputManager& input)
 	if (input.GetKey(KeyCode::A)) rightInput -= m_moveSpeed;
 	if (input.GetKey(KeyCode::D)) rightInput += m_moveSpeed;
 
-	// ???각선 ?��?�� 보정
+	// 대각선 보정
 	if (forwardInput != 0.0f && rightInput != 0.0f) { forwardInput *= 0.7071f; rightInput *= 0.7071f; }
 	MovePosition(GetWorldDirectionVector(Direction::Forward) * forwardInput * deltaTime + GetWorldDirectionVector(Direction::Right) * rightInput * deltaTime);
 }
@@ -146,11 +113,7 @@ void Player::PlayerShoot()
 	const XMVECTOR& hitPosition = XMVectorAdd(origin, XMVectorScale(direction, distance));
 	if (hit)
 	{
-		m_lutCrossfadeActive = true;
-		m_lutCrossfadeReverse = false;
-		m_lutCrossfadeElapsed = 0.0f;
-		SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::LUT_CROSSFADE, true);
-		SceneBase::SetLutLerpFactor(0.0f);
+		TriggerLUT();
 
 		if (m_gunFSM) m_gunFSM->Fire();
 		if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
@@ -296,6 +259,8 @@ void Player::PlayerDeadEyeEnd()
 	SceneBase::SetGrayScaleIntensity(0.0f);
 
 	SoundManager::GetInstance().ChangeLowpass();
+
+	//TriggerLUT(); // 맛이 없음
 }
 
 void Player::RenderLineBuffers(Renderer& renderer)
@@ -363,4 +328,47 @@ void Player::RenderBullets(class Renderer& renderer)
 		pos = m_bulletUIpos.first + (m_bulletInterval * i);
 		renderer.UI_RENDER_FUNCTIONS().emplace_back([&,pos]() { Renderer::GetInstance().RenderImageUIPosition(m_bulletImgs.first, { pos, m_bulletUIpos.second }, m_bulletImgs.second, 0.1f); });
 	}
+}
+
+
+void Player::UpdateLutCrossfade(float deltaTime)
+{
+	if (!m_lutCrossfadeActive) return;
+
+	m_lutCrossfadeElapsed += deltaTime;
+	float t = m_lutCrossfadeElapsed / m_lutCrossfadeDuration;
+	if (t > 1.0f) t = 1.0f;
+
+	// smoothstep (깔끔한 가속/감속)
+	float smooth = t * t * (3.0f - 2.0f * t);
+	float factor = m_lutCrossfadeReverse ? (1.0f - smooth) : smooth;
+
+	SceneBase::SetLutLerpFactor(factor);
+
+	if (t >= 1.0f)
+	{
+		if (!m_lutCrossfadeReverse)
+		{
+			// 역방향 시작
+			m_lutCrossfadeReverse = true;
+			m_lutCrossfadeElapsed = 0.0f;
+		}
+		else
+		{
+			// 종료: flag off + 원복
+			m_lutCrossfadeActive = false;
+			m_lutCrossfadeReverse = false;
+			SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::LUT_CROSSFADE, false);
+			SceneBase::SetLutLerpFactor(0.0f);
+		}
+	}
+}
+
+void Player::TriggerLUT()
+{
+	m_lutCrossfadeActive = true;
+	m_lutCrossfadeReverse = false;
+	m_lutCrossfadeElapsed = 0.0f;
+	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::LUT_CROSSFADE, true);
+	SceneBase::SetLutLerpFactor(0.0f);
 }
