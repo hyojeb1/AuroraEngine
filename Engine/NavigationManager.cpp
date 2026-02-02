@@ -492,6 +492,7 @@ XMVECTOR NavigationManager::ClosestPointOnLineSegment(const pair<XMVECTOR, XMVEC
 
 	if (denom < numeric_limits<float>::epsilon()) { s = 0.0f; t = (b > c ? d / b : e / c); }
 	else { s = (b * e - c * d) / denom; t = (a * e - b * d) / denom; }
+
 	s = max(0.0f, min(1.0f, s));
 	t = max(0.0f, min(1.0f, t));
 
