@@ -31,7 +31,9 @@ void ParticleComponent::Initialize()
 void ParticleComponent::Update()
 {
 	m_elapsedTime += TimeManager::GetInstance().GetDeltaTime();
-	uv_buffer_data_.eclipsedTime = fmodf(m_elapsedTime / m_particleTotalTime, 1.0f); // 0~1 사이 값으로 유지
+
+	if (m_elapsedTime > m_particleTotalTime) m_elapsedTime = 0.0f;
+	else uv_buffer_data_.eclipsedTime = m_elapsedTime / m_particleTotalTime;
 }
 
 void ParticleComponent::Render()
