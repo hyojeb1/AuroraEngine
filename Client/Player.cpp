@@ -124,10 +124,10 @@ void Player::PlayerTriggerDash(InputManager& input)
 
 	//need BackUp
 	XMFLOAT2 blurCenter = { 0.5f, 0.5f }; // (W/S)
-	if (rightInput < 0) {// (A, WA, SA)
+	if (rightInput < 0) {
 		if (forwardInput != 0.0f)	blurCenter = { 0.1465f, 0.5f }; // (WA, SA)
 		else						blurCenter = { 0.0f, 0.5f }; // (A)
-	} else if (rightInput > 0)  {// (D, WD, SD)
+	} else if (rightInput > 0)  {
 		if (forwardInput != 0.0f)	blurCenter = { 0.8535f, 0.5f };// (WD, SD)
 		else						blurCenter = { 1.0f, 0.5f };// (D)
 	}
