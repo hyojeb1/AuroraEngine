@@ -12,6 +12,7 @@
 #include "ModelComponent.h"
 #include "SceneBase.h"
 #include "Enemy.h"
+#include "ParticleObject.h"
 
 #include "FSMComponentGun.h"
 
@@ -19,7 +20,6 @@ REGISTER_TYPE(Player)
 
 using namespace std;
 using namespace DirectX;
-
 
 void Player::Initialize()
 {
@@ -111,17 +111,19 @@ void Player::PlayerShoot()
 	GameObjectBase* hit = ColliderComponent::CheckCollision(origin, direction, distance);
 	const XMVECTOR& hitPosition = XMVectorAdd(origin, XMVectorScale(direction, distance));
 
-	GameObjectBase* smoke = CreatePrefabChildGameObject("Smoke.json");
+	ParticleObject* smoke = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Smoke.json"));
 	const XMVECTOR& gunPos = m_gunObject->GetWorldPosition();
 	smoke->SetPosition(gunPos);
 	smoke->SetScale(XMVectorSet(1.0f, 1.0f, distance, 1.0f));
 	smoke->LookAt(hitPosition);
+	smoke->SetLifetime(5.0f);
 
 	if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
 	{
 		enemy->Die();
-		GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
+		ParticleObject* gem = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Gem.json"));
 		gem->SetPosition(hitPosition);
+		gem->SetLifetime(5.0f);
 
 		m_enemyHitTimer = m_enemyHitDisplayTime;
 	}
@@ -204,15 +206,13 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 		}
 		else m_nextDeadEyePos = m_prevDeadEyePos;
 
-		GameObjectBase* gem = CreatePrefabChildGameObject("Gem.json");
-		gem->SetPosition(m_deadEyeTargets.back().second->GetWorldPosition());
+		ParticleObject* smoke = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Smoke.json"));
+		smoke->SetPosition(m_deadEyeTargets.back().second->GetWorldPosition());
+		smoke->SetLifetime(5.0f);
 
-		LineBuffer lineBuffer = {};
-		if (m_gunObject) XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
-		lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		XMStoreFloat4(&lineBuffer.linePoints[1], m_deadEyeTargets.back().second->GetWorldPosition());
-		lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
+		ParticleObject* gem = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Gem.json"));
+		gem->SetPosition(m_deadEyeTargets.back().second->GetWorldPosition());
+		gem->SetLifetime(5.0f);
 
 		m_deadEyeTargets.pop_back();
 	}
