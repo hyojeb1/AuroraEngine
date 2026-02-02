@@ -157,8 +157,8 @@ void Player::PlayerDeadEyeStart()
 			// 사이에 장애물이 있는지 확인
 			float distance = 0.0f;
 			const XMVECTOR& origin = mainCamera.GetPosition();
-			const XMVECTOR& targetPos = enemy->GetWorldPosition();
-			//if (dynamic_cast<Enemy*>(ColliderComponent::CheckCollision(origin, XMVectorSubtract(targetPos, origin), distance))) continue;
+			const XMVECTOR& targetPos = XMVectorAdd(enemy->GetWorldPosition(), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)); // 적 충심이 y = 0.0f여서 약간 올림
+			if (!dynamic_cast<Enemy*>(ColliderComponent::CheckCollision(origin, XMVectorSubtract(targetPos, origin), distance))) continue;
 
 			hasEnemy = true;
 			XMFLOAT2 distancePair = mainCamera.WorldToScreenPosition(targetPos);
