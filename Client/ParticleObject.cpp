@@ -10,7 +10,3 @@ void ParticleObject::Initialize()
 {
 	SetIgnoreParentTransform(true);
 }
-
-void ParticleObject::Update()
-{
-}

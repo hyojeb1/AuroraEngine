@@ -32,12 +32,18 @@ void ParticleComponent::Initialize()
 void ParticleComponent::Update()
 {
 	m_elapsedTime += TimeManager::GetInstance().GetDeltaTime();
-	#ifdef NDEBUG
-	if (m_killOwnerAfterFinish && m_elapsedTime > m_particleTotalTime) m_owner->SetAlive(false);
-	#endif
+	float progress = fmodf(m_elapsedTime / m_particleTotalTime, 1.0f);
+
+	if (!m_restartOnFinish)
+	{
+		#ifdef NDEBUG
+		if (m_elapsedTime >= m_particleTotalTime) SetAlive(false);
+		#endif
+		m_particleColor.baseColor.w = max(0.0f, 1.0f - powf(progress, 2.0f));
+	}
 
 	if (m_particleConstTime >= 0.0f) uv_buffer_data_.eclipsedTime = m_particleConstTime;
-	else uv_buffer_data_.eclipsedTime = fmodf(m_elapsedTime / m_particleTotalTime, 1.0f); // 0~1 사이 값으로 유지
+	else uv_buffer_data_.eclipsedTime = progress; // 0~1 사이 값으로 유지
 }
 
 void ParticleComponent::Render()
@@ -88,7 +94,7 @@ void ParticleComponent::RenderImGui()
 		ImGui::DragFloat("Spread Distance", &uv_buffer_data_.spreadDistance, 0.1f, 0.0f, 1000.0f);
 		ImGui::DragFloat("Particle Constant Time", &m_particleConstTime, 0.01f, -1.0f, 100.0f);
 		ImGui::DragFloat("Particle Total Time", &m_particleTotalTime, 0.01f, 0.1f, 100.0f);
-		ImGui::Checkbox("Kill Owner After Finish", &m_killOwnerAfterFinish);
+		ImGui::Checkbox("Restart On Finish", &m_restartOnFinish);
 		ImGui::ColorEdit4("Particle Color", &m_particleColor.baseColor.x);
 		ImGui::ColorEdit4("Particle Emission Color", &m_particleColor.emissionColor.x);
 
@@ -166,7 +172,7 @@ nlohmann::json ParticleComponent::Serialize()
 	jsonData["spreadDistance"] = uv_buffer_data_.spreadDistance;
 	jsonData["particleConstTime"] = m_particleConstTime;
 	jsonData["particleTotalTime"] = m_particleTotalTime;
-	jsonData["KillOwnerAfterFinish"] = m_killOwnerAfterFinish;
+	jsonData["RestartOnFinish"] = m_restartOnFinish;
 	jsonData["particleColor"] = { m_particleColor.baseColor.x, m_particleColor.baseColor.y, m_particleColor.baseColor.z, m_particleColor.baseColor.w };
 	jsonData["particleEmissionColor"] = { m_particleColor.emissionColor.x, m_particleColor.emissionColor.y, m_particleColor.emissionColor.z, m_particleColor.emissionColor.w };
 
@@ -205,7 +211,7 @@ void ParticleComponent::Deserialize(const nlohmann::json& jsonData)
 	if (jsonData.contains("spreadDistance")) uv_buffer_data_.spreadDistance = jsonData["spreadDistance"].get<float>();
 	if (jsonData.contains("particleConstTime")) m_particleConstTime = jsonData["particleConstTime"].get<float>();
 	if (jsonData.contains("particleTotalTime")) m_particleTotalTime = jsonData["particleTotalTime"].get<float>();
-	if (jsonData.contains("KillOwnerAfterFinish")) m_killOwnerAfterFinish = jsonData["KillOwnerAfterFinish"].get<bool>();
+	if (jsonData.contains("RestartOnFinish")) m_restartOnFinish = jsonData["RestartOnFinish"].get<bool>();
 	if (jsonData.contains("particleColor"))
 	{
 		m_particleColor.baseColor.x = jsonData["particleColor"][0].get<float>();

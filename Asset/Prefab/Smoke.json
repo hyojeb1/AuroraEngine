@@ -4,11 +4,17 @@
             "childGameObjects": [],
             "components": [
                 {
-                    "KillOwnerAfterFinish": false,
+                    "RestartOnFinish": false,
                     "billboardType": 1,
                     "blendState": 1,
                     "imageScale": 0.10000000149011612,
                     "particleAmount": 500,
+                    "particleColor": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
                     "particleConstTime": 1.0,
                     "particleEmissionColor": [
                         0.0,
