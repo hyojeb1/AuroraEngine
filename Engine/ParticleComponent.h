@@ -29,6 +29,7 @@ protected:
 	ParticleBuffer uv_buffer_data_ = {};
 	float m_elapsedTime = 0.0f;
 	float m_particleTotalTime = 1.0f;
+	bool m_killOwnerAfterFinish = false;
 	DirectX::XMFLOAT4 m_particleEmissionColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 	com_ptr<ID3D11Buffer> m_particleBuffer = nullptr; // 파티클 상수 버퍼

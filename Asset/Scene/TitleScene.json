@@ -62,16 +62,17 @@
             "childGameObjects": [],
             "components": [
                 {
+                    "KillOwnerAfterFinish": true,
                     "billboardType": 1,
                     "blendState": 1,
                     "flipbookAutoPlay": true,
                     "flipbookColumns": 40,
-                    "flipbookCurrentFrame": 50,
+                    "flipbookCurrentFrame": 64,
                     "flipbookDestroyOnFinish": false,
                     "flipbookEndFrame": 120,
                     "flipbookFPS": 8.0,
                     "flipbookLoop": true,
-                    "flipbookPlaybackSpeed": 0.10000000149011612,
+                    "flipbookPlaybackSpeed": 4.0,
                     "flipbookPlaying": true,
                     "flipbookRandomStart": false,
                     "flipbookRows": 24,
@@ -92,7 +93,7 @@
                     "textureFileName": "Gem.png",
                     "type": "FlipbookParticleComponent",
                     "uvOffset": [
-                        0.25,
+                        0.6000000238418579,
                         0.0416666679084301
                     ],
                     "uvScale": [

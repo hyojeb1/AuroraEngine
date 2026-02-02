@@ -32,6 +32,12 @@ void ParticleComponent::Initialize()
 void ParticleComponent::Update()
 {
 	m_elapsedTime += TimeManager::GetInstance().GetDeltaTime();
+	if (m_killOwnerAfterFinish && m_elapsedTime > m_particleTotalTime)
+	{
+		#ifdef NDEBUG
+		//m_owner->SetAlive(false);
+		#endif
+	};
 	uv_buffer_data_.eclipsedTime = fmodf(m_elapsedTime / m_particleTotalTime, 1.0f); // 0~1 사이 값으로 유지
 }
 
@@ -82,6 +88,7 @@ void ParticleComponent::RenderImGui()
 		ImGui::DragFloat("Spread Radius", &uv_buffer_data_.spreadRadius, 0.1f, 0.0f, 10.0f);
 		ImGui::DragFloat("Spread Distance", &uv_buffer_data_.spreadDistance, 0.1f, 0.0f, 1000.0f);
 		ImGui::DragFloat("Particle Total Time", &m_particleTotalTime, 0.01f, 0.1f, 100.0f);
+		ImGui::Checkbox("Kill Owner After Finish", &m_killOwnerAfterFinish);
 		ImGui::ColorEdit4("Particle Emission Color", &m_particleEmissionColor.x);
 
 		ImGui::Separator();
@@ -157,6 +164,7 @@ nlohmann::json ParticleComponent::Serialize()
 	jsonData["spreadRadius"] = uv_buffer_data_.spreadRadius;
 	jsonData["spreadDistance"] = uv_buffer_data_.spreadDistance;
 	jsonData["particleTotalTime"] = m_particleTotalTime;
+	jsonData["KillOwnerAfterFinish"] = m_killOwnerAfterFinish;
 	jsonData["particleEmissionColor"] = { m_particleEmissionColor.x, m_particleEmissionColor.y, m_particleEmissionColor.z, m_particleEmissionColor.w };
 
 	jsonData["billboardType"] = static_cast<int>(billboard_type_);
@@ -193,6 +201,7 @@ void ParticleComponent::Deserialize(const nlohmann::json& jsonData)
 	if (jsonData.contains("spreadRadius")) uv_buffer_data_.spreadRadius = jsonData["spreadRadius"].get<float>();
 	if (jsonData.contains("spreadDistance")) uv_buffer_data_.spreadDistance = jsonData["spreadDistance"].get<float>();
 	if (jsonData.contains("particleTotalTime")) m_particleTotalTime = jsonData["particleTotalTime"].get<float>();
+	if (jsonData.contains("KillOwnerAfterFinish")) m_killOwnerAfterFinish = jsonData["KillOwnerAfterFinish"].get<bool>();
 	if (jsonData.contains("particleEmissionColor"))
 	{
 		m_particleEmissionColor.x = jsonData["particleEmissionColor"][0].get<float>();

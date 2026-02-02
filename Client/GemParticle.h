@@ -3,9 +3,6 @@
 
 class GemParticle : public GameObjectBase
 {
-	float m_lifeTime = 0.0f;
-	const float m_maxLifeTime = 3.0f;
-
 public:
 	GemParticle() = default;
 	~GemParticle() override = default;
@@ -16,5 +13,4 @@ public:
 
 private:
 	void Initialize() override;
-	void Update() override;
 };
