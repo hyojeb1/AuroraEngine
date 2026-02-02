@@ -128,6 +128,17 @@ void Player::PlayerShoot()
 
 		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
 	}
+	else
+	{
+		if (m_gunFSM) m_gunFSM->Fire();
+
+		LineBuffer lineBuffer = {};
+		XMStoreFloat4(&lineBuffer.linePoints[0], m_gunObject->GetWorldPosition());
+		lineBuffer.lineColors[0] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+		XMStoreFloat4(&lineBuffer.linePoints[1], XMVectorAdd(origin, XMVectorScale(direction, 1000.0f)));
+		lineBuffer.lineColors[1] = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+		m_lineBuffers.emplace_back(lineBuffer, 0.5f);
+	}
 }
 
 void Player::PlayerReload()
@@ -193,7 +204,7 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 	if (m_deadEyeTargets.empty()) { PlayerDeadEyeEnd(); return; }
 
 	m_deadEyeDuration += deltaTime;
-	m_deadEyeMoveTimer += deltaTime * 250.0f;
+	m_deadEyeMoveTimer += deltaTime * m_deadEyeMoveSpeed;
 	SceneBase::SetGrayScaleIntensity((m_deadEyeDuration / m_deadEyeTotalDuration) * 16.0f);
 
 	if (input.GetKeyDown(KeyCode::MouseLeft))

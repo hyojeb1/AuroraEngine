@@ -62,6 +62,7 @@ class Renderer : public Singleton<Renderer>
 
 	// 씬이 갖고 있을수 있음 그래서 각 씬마다 다른 분위기를 낼 수 있다.
 	int m_selectedLUTIndex = 0;
+	
 public:
 	Renderer() = default;
 	~Renderer() = default;
@@ -106,7 +107,10 @@ public:
 	com_ptr<ID3D11DeviceContext> GetDeviceContext() const { return m_deviceContext; }
 
 	// 화면 크기 조정
-	HRESULT Resize(UINT width, UINT height);
+	void Resize(UINT width, UINT height);
+	// 전체 화면 전환
+	void SetFullscreen(bool enable);
+
 	// 뷰포트 설정
 	void SetViewport(FLOAT Width, FLOAT Height);
 	// 뷰포트 설정 (현재 스왑 체인 크기로)
@@ -147,6 +151,8 @@ private:
 	void RenderSceneToBackBuffer();
 	// XTK 스프라이트 배치 렌더링
 	void RenderXTKSpriteBatch();
+	#ifdef _DEBUG
 	// ImGui 프레임 종료
 	void EndImGuiFrame();
+	#endif
 };

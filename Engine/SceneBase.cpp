@@ -176,7 +176,7 @@ void SceneBase::BaseUpdate()
 
 	#ifdef _DEBUG
 	// 네비게이션 메시 생성 모드일 때 링크 배치 처리
-	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink();
+	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink(m_navMeshCreationHeight);
 
 	// Ctrl + S 입력 시 씬 저장
 	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::S))
@@ -216,7 +216,7 @@ void SceneBase::BaseRender()
 			renderer.SetViewport(static_cast<FLOAT>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE), static_cast<FLOAT>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE));
 
 			// 뷰-투영 상수 버퍼 방향광 기준으로 업데이트
-			const float cameraFarPlane = mainCamera.GetFarZ() * 0.1f;
+			const float cameraFarPlane = mainCamera.GetFarZ();
 
 			XMVECTOR lightPosition = (m_globalLightData.lightDirection * -cameraFarPlane) + mainCamera.GetPosition();
 			lightPosition = XMVectorSetW(lightPosition, 1.0f);
@@ -306,23 +306,35 @@ void SceneBase::BaseRender()
 	#endif
 }
 
+#ifdef _DEBUG
 void SceneBase::BaseRenderImGui()
 {
-	#ifdef _DEBUG
 	ImGui::Begin("Debug Camera");
 	static_cast<Base*>(m_debugCamera.get())->BaseRenderImGui();
 	ImGui::End();
-	#endif
 
 	ImGui::Begin(m_type.c_str());
 
-	#ifdef _DEBUG
 	ImGui::Checkbox("Debug Coordinates", &m_isRenderDebugCoordinates);
 
 	ImGui::Checkbox("NavMesh Creating", &m_isNavMeshCreating);
-	#endif
+	ImGui::DragFloat("NavMesh Creation Height", &m_navMeshCreationHeight, 0.1f, 0.1f, 100.0f);
 
-	ImGui::DragFloat("Gamma", &m_postProcessingData.gamma, 0.01f, 0.1f, 5.0f);
+	ImGui::Separator();
+	ImGui::Text("Post Processing");
+	ImGui::Separator();
+
+	ImGui::CheckboxFlags("Bloom", &m_postProcessingData.flags, static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Bloom));
+	ImGui::DragFloat("Bloom Intensity", &m_postProcessingData.bloomIntensity, 0.1f, 0.0f, 100.0f);
+
+	ImGui::CheckboxFlags("Gamma", &m_postProcessingData.flags, static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Gamma));
+	ImGui::DragFloat("Gamma Intensity", &m_postProcessingData.gammaIntensity, 0.01f, 0.1f, 5.0f);
+
+	ImGui::CheckboxFlags("Grayscale", &m_postProcessingData.flags, static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Grayscale));
+	ImGui::DragFloat("Grayscale Intensity", &m_postProcessingData.grayScaleIntensity, 0.01f, 0.0f, 1.0f);
+
+	ImGui::CheckboxFlags("Vignetting", &m_postProcessingData.flags, static_cast<UINT>(PostProcessingBuffer::PostProcessingFlag::Vignetting));
+	ImGui::ColorEdit4("Vignetting Color And Intensity", &m_postProcessingData.vignettingColor.x);
 
 	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);
 	ImGui::DragFloat("IBL Intensity", &m_globalLightData.lightColor.w, 0.001f, 0.0f, 1.0f);
@@ -374,7 +386,6 @@ void SceneBase::BaseRenderImGui()
 
 	ImGui::End();
 
-	#ifdef _DEBUG
 	GameObjectBase* selectedObject = GameObjectBase::GetSelectedObject();
 	if (selectedObject)
 	{
@@ -452,8 +463,8 @@ void SceneBase::BaseRenderImGui()
 
 		if (ImGuizmo::IsUsing()) selectedObject->ApplyWorldMatrix(worldMatrix);
 	}
-	#endif
 }
+#endif
 
 void SceneBase::BaseFinalize()
 {

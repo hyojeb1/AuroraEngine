@@ -220,6 +220,7 @@ void ColliderComponent::Render()
 }
 #endif
 
+#ifdef _DEBUG
 void ColliderComponent::RenderImGui()
 {
 	if ((ImGui::TreeNode("Bounding Boxes")))
@@ -284,6 +285,7 @@ void ColliderComponent::RenderImGui()
 
 	if (ImGui::Button("Load From Model Mesh")) LoadFromModelMesh();
 }
+#endif
 
 void ColliderComponent::Finalize()
 {

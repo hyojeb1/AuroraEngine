@@ -7,6 +7,9 @@ class WindowManager : public Singleton<WindowManager>
 	HWND m_hWnd = nullptr; // 윈도우 핸들
 	HINSTANCE m_hInstance = GetModuleHandle(nullptr); // 윈도우 인스턴스 핸들
 
+	RECT m_windowedRect = {};
+	bool m_isFullscreen = false;
+
 	static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 public:
@@ -27,6 +30,9 @@ public:
 	HWND GetHWnd() const { return m_hWnd; }
 	// 클라이언트 영역 크기 얻기
 	RECT GetClientPosRect() const;
+
+	// 전체화면 토글 (Alt+Enter 처리)
+	void ToggleFullscreen();
 
 private:
 	WindowManager() = default;

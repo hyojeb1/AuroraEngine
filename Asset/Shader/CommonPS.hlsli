@@ -10,9 +10,10 @@ cbuffer PostProcessParams : register(b0)
 {
     uint PostProcessingFlags;
     
+    float BloomIntensity;
     float Gamma;
     float GrayScaleIntensity;
-    float MotionBlurIntensity;
+    float4 VignettingColor; // w는 비네팅 강도
 };
 
 cbuffer CameraPosition : register(b1)
@@ -39,6 +40,15 @@ cbuffer MaterialFactor : register(b3)
     float NormalScale;
     
     float4 EmissionFactor;
+    
+    
+    float DissolveThreshold; 
+    float DissolveEdgeWidth; 
+    float DissolveEdgeIntensity; 
+    float DissolvePadding; 
+    
+    float4 DissolveEdgeColor;
+    
 };
 
 // --------------------------------------------------------
@@ -63,6 +73,7 @@ Texture2D normalTexture : register(t5);
 Texture2D emissionTexture : register(t6);
 
 Texture2D lutTexture : register(t7);
+Texture2D noiseTexture : register(t8);
 
 // --------------------------------------------------------
 // Input Structures (VS 출력과 매칭되어야 함)

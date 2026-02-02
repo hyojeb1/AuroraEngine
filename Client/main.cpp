@@ -14,10 +14,12 @@ using namespace std;
 
 int main()
 {
+	#ifdef _DEBUG
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
+	#endif
 
 	// 윈도우 매니저 초기화 // 렌더러, 인풋 매니저도 내부에서 초기화됨
 	WindowManager& windowManager = WindowManager::GetInstance();
@@ -27,7 +29,7 @@ int main()
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
 	sceneManager.Initialize();
-	sceneManager.ChangeScene("TitleScene");
+	sceneManager.ChangeScene("HyojeTestScene");
 
 	RNG::GetInstance().Initialize();
 
@@ -44,5 +46,7 @@ int main()
 
 	sceneManager.Finalize();
 
+	#ifdef _DEBUG
 	ImGui::DestroyContext();
+	#endif
 }

@@ -16,7 +16,9 @@ public:
 	virtual void BaseFixedUpdate() = 0;
 	virtual void BaseUpdate() = 0;
 	virtual void BaseRender() = 0;
+	#ifdef _DEBUG
 	virtual void BaseRenderImGui() = 0;
+	#endif
 	virtual void BaseFinalize() = 0;
 
 	virtual nlohmann::json BaseSerialize() = 0;
@@ -58,8 +60,10 @@ protected:
 	virtual void Update() {}
 	// 파생 클래스의 렌더링
 	virtual void Render() {}
+	#ifdef _DEBUG
 	// 파생 클래스의 ImGui 렌더링
 	virtual void RenderImGui() {}
+	#endif
 	// 파생 클래스의 종료
 	virtual void Finalize() {}
 

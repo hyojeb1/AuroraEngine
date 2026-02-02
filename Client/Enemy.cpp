@@ -9,6 +9,7 @@
 #include "Player.h"
 #include "SceneManager.h"
 #include "SceneBase.h"
+#include "NavigationManager.h"
 
 REGISTER_TYPE(Enemy)
 
@@ -16,7 +17,6 @@ using namespace DirectX;
 
 void Enemy::Initialize()
 {
-	m_model = GetComponent<SkinnedModelComponent>();
 	m_fsm = GetComponent<FSMComponentEnemy>();
 	m_collider = GetComponent<ColliderComponent>();
 
@@ -42,7 +42,26 @@ void Enemy::Update()
 		m_deathTimer += TimeManager::GetInstance().GetDeltaTime();
 
 		if (m_deathTimer >= m_deathDuration) SetAlive(false);
+
+		return;
 	}
-	LookAt(m_player->GetPosition());
-	MoveDirection(TimeManager::GetInstance().GetDeltaTime() * 2.0f, Direction::Forward);
+
+	MoveAlongPath();
+}
+
+void Enemy::MoveAlongPath()
+{
+	// 플레이어까지 경로 계산
+	if (m_path.empty()) m_path = NavigationManager::GetInstance().FindPath(GetPosition(), m_player->GetPosition());
+
+	// 경로 따라 이동
+	XMVECTOR toTarget = XMVectorSubtract(m_path.front(), GetPosition());
+	float distanceSquared = XMVectorGetX(XMVector3LengthSq(toTarget));
+	if (distanceSquared < 0.1f * 0.1f) m_path.pop_front();
+	else
+	{
+		XMVECTOR direction = XMVector3Normalize(toTarget);
+		XMVECTOR deltaPosition = XMVectorScale(direction, m_moveSpeedSquared * TimeManager::GetInstance().GetDeltaTime());
+		MovePosition(deltaPosition);
+	}
 }

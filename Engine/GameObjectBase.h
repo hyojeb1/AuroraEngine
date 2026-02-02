@@ -125,8 +125,10 @@ private:
 	void BaseUpdate() override;
 	// 게임 오브젝트 렌더링
 	void BaseRender() override;
+	#ifdef _DEBUG
 	// ImGui 렌더링
 	void BaseRenderImGui() override;
+	#endif
 	// 게임 오브젝트 종료
 	void BaseFinalize() override;
 
