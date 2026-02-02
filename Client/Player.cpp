@@ -154,8 +154,14 @@ void Player::PlayerDeadEyeStart()
 	{
 		if (Enemy* enemy = dynamic_cast<Enemy*>(hit))
 		{
+			// 사이에 장애물이 있는지 확인
+			float distance = 0.0f;
+			const XMVECTOR& origin = mainCamera.GetPosition();
+			const XMVECTOR& targetPos = enemy->GetWorldPosition();
+			//if (dynamic_cast<Enemy*>(ColliderComponent::CheckCollision(origin, XMVectorSubtract(targetPos, origin), distance))) continue;
+
 			hasEnemy = true;
-			XMFLOAT2 distancePair = mainCamera.WorldToScreenPosition(enemy->GetWorldPosition());
+			XMFLOAT2 distancePair = mainCamera.WorldToScreenPosition(targetPos);
 			m_deadEyeTargets.emplace_back(powf(distancePair.x - halfWidth, 2) + powf(distancePair.y - halfHeight, 2), enemy);
 		}
 	}
@@ -197,7 +203,9 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
-		m_prevDeadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(m_deadEyeTargets.back().second->GetWorldPosition());
+		const XMVECTOR& targetPos = m_deadEyeTargets.back().second->GetWorldPosition();
+
+		m_prevDeadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(targetPos);
 		m_deadEyeTargets.back().second->Die();
 		if (m_deadEyeTargets.size() > 1)
 		{
@@ -206,12 +214,15 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 		}
 		else m_nextDeadEyePos = m_prevDeadEyePos;
 
+		const XMVECTOR& gunPos = m_gunObject->GetWorldPosition();
 		ParticleObject* smoke = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Smoke.json"));
-		smoke->SetPosition(m_deadEyeTargets.back().second->GetWorldPosition());
+		smoke->SetPosition(gunPos);
+		smoke->SetScale(XMVectorSet(1.0f, 1.0f, XMVectorGetX(XMVector3LengthEst(XMVectorSubtract(gunPos, targetPos))), 1.0f));
+		smoke->LookAt(targetPos);
 		smoke->SetLifetime(5.0f);
 
 		ParticleObject* gem = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Gem.json"));
-		gem->SetPosition(m_deadEyeTargets.back().second->GetWorldPosition());
+		gem->SetPosition(targetPos);
 		gem->SetLifetime(5.0f);
 
 		m_deadEyeTargets.pop_back();
