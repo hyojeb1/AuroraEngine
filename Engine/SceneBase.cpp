@@ -532,7 +532,8 @@ nlohmann::json SceneBase::BaseSerialize()
 		{ "bloomIntensity", m_postProcessingData.bloomIntensity },
 		{ "gammaIntensity", m_postProcessingData.gammaIntensity },
 		{ "grayScaleIntensity", m_postProcessingData.grayScaleIntensity },
-		{ "vignettingColor", { m_postProcessingData.vignettingColor.x, m_postProcessingData.vignettingColor.y, m_postProcessingData.vignettingColor.z, m_postProcessingData.vignettingColor.w } }
+		{ "vignettingColor", { m_postProcessingData.vignettingColor.x, m_postProcessingData.vignettingColor.y, m_postProcessingData.vignettingColor.z, m_postProcessingData.vignettingColor.w } },
+		{ "radialBlurParam", { m_postProcessingData.radialBlurParam.x, m_postProcessingData.radialBlurParam.y, m_postProcessingData.radialBlurParam.z, m_postProcessingData.radialBlurParam.w } }
 	};
 
 	// 환경 맵 파일 이름
@@ -595,6 +596,16 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 				ppData["vignettingColor"][1].get<float>(),
 				ppData["vignettingColor"][2].get<float>(),
 				ppData["vignettingColor"][3].get<float>()
+			);
+		}
+		if (ppData.contains("radialBlurParam"))
+		{
+			m_postProcessingData.radialBlurParam = XMFLOAT4
+			(
+				ppData["radialBlurParam"][0].get<float>(),
+				ppData["radialBlurParam"][1].get<float>(),
+				ppData["radialBlurParam"][2].get<float>(),
+				ppData["radialBlurParam"][3].get<float>()
 			);
 		}
 	}

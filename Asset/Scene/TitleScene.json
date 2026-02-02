@@ -16,9 +16,15 @@
     "navVertices": [],
     "postProcessing": {
         "bloomIntensity": 20.700000762939453,
-        "flags": 1,
+        "flags": 17,
         "gammaIntensity": 1.0,
         "grayScaleIntensity": 0.0,
+        "radialBlurParam": [
+            0.5,
+            0.5,
+            0.33000001311302185,
+            1.7000000476837158
+        ],
         "vignettingColor": [
             0.0,
             0.0,
@@ -66,7 +72,7 @@
                     "blendState": 1,
                     "flipbookAutoPlay": true,
                     "flipbookColumns": 40,
-                    "flipbookCurrentFrame": 50,
+                    "flipbookCurrentFrame": 61,
                     "flipbookDestroyOnFinish": false,
                     "flipbookEndFrame": 120,
                     "flipbookFPS": 8.0,
@@ -92,7 +98,7 @@
                     "textureFileName": "Gem.png",
                     "type": "FlipbookParticleComponent",
                     "uvOffset": [
-                        0.25,
+                        0.5250000357627869,
                         0.0416666679084301
                     ],
                     "uvScale": [
