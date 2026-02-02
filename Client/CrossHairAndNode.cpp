@@ -71,7 +71,7 @@ void CrossHairAndNode::RenderImGui()
 	ImGui::DragFloat("Interval", &m_linePos, 0.001f, 0.1f, 0.5f);
 	ImGui::DragFloat("Line Scl", &m_lineScl, 0.001f, 0.004f, 0.5f);
 }
-#endif
+#endif-
 
 void CrossHairAndNode::Finalize()
 {
@@ -141,9 +141,10 @@ void CrossHairAndNode::RenderCrossHair(Renderer& renderer)
 
 void CrossHairAndNode::GenerateNode()
 {
-	auto& sm = SoundManager::GetInstance();
+	SoundManager& sm = SoundManager::GetInstance();
 
 	/*if (!sm.ConsumeNodeChanged())
 		return;*/
-	SoundManager::GetInstance().AddNodeChangedListener([&]() { m_UINode.push_back(sm.GetRhythmOffset()); });
+	SoundManager::GetInstance().AddNodeChangedListenerOnce([&]() { m_UINode.push_back(sm.GetRhythmOffset()); });
+
 }

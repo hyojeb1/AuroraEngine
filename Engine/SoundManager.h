@@ -31,6 +31,7 @@ public:
 
 	void CreateNodeData(const std::string& filename);
 	void LoadNodeData();
+
 	void UpdateNodeIndex();
 	void UpdateUINodeIndex();
 	bool CheckRhythm(float correction);
@@ -42,6 +43,7 @@ public:
 	void SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename);
 	void UI_Shot(const std::string filename);
 
+	
 	void Pause();
 	void Resume();
 

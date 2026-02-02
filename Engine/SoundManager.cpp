@@ -489,7 +489,7 @@ void SoundManager::UpdateNodeIndex() //raw time
 	{
 		m_rhythmTimerIndex++;
 
-		std::cout << "RTIndex : " << m_rhythmTimerIndex << std::endl;
+		//std::cout << "RTIndex : " << m_rhythmTimerIndex << std::endl;
 	}
 }
 
@@ -501,7 +501,7 @@ void SoundManager::UpdateUINodeIndex()
 		m_rhythmUIIndex++;
 		m_OnNodeChanged = true;
 
-		std::cout << "UIndex : " << m_rhythmUIIndex << std::endl;
+		//std::cout << "UIndex : " << m_rhythmUIIndex << std::endl;
 	}
 }
 
@@ -533,7 +533,7 @@ void SoundManager::Main_BGM_Shot(const std::string filename,float delay)
 		CheckResult(-1, "invalid track name");
 	}
 
-	m_CurrentTrackName = it->first;
+	m_CurrentTrackName = it->first + "_Beat";
 	m_rhythmTimerIndex = 0;
 	m_rhythmUIIndex = 0;
 
@@ -714,10 +714,10 @@ void SoundManager::ConsumeNodeChanged()
 	}
 }
 
-void SoundManager::AddNodeChangedListener(std::function<void()> cb)
-{
-	m_NodeChangedListeners.push_back(cb);
-}
+//void SoundManager::AddNodeChangedListener(std::function<void()> cb)
+//{
+//	m_NodeChangedListeners.push_back(cb);
+//}
 
 void SoundManager::AddNodeChangedListenerOnce(std::function<void()> cb)
 {
@@ -726,8 +726,8 @@ void SoundManager::AddNodeChangedListenerOnce(std::function<void()> cb)
 
 void SoundManager::NotifyNodeChanged()
 {
-	for (auto& cb : m_NodeChangedListeners)
-		cb();
+	/*for (auto& cb : m_NodeChangedListeners)
+		cb();*/ // only insert로 인한 memory leak 발생
 
 	for (auto& cb : m_NodeChangedListenerOnce)
 		cb();

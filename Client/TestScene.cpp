@@ -21,7 +21,7 @@ void TestScene::Initialize()
 {
 	ShowCursor(FALSE);
 
-	SoundManager::GetInstance().Main_BGM_Shot("DOB Music_test2",1.0f);
+	SoundManager::GetInstance().Main_BGM_Shot(Config::Main_BGM,1.0f);
 }
 
 void TestScene::Update()

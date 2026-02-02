@@ -101,7 +101,7 @@ void Player::PlayerShoot()
 	if (!m_gunObject || m_isDeadEyeActive) return;
 
 	--m_bulletCnt;
-	SoundManager::GetInstance().SFX_Shot(GetPosition(), "cannon1");
+	SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Shoot);
 
 	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 	const XMVECTOR& origin = mainCamera.GetPosition();
@@ -150,8 +150,8 @@ void Player::PlayerReload()
 
 	m_bulletCnt = m_MaxBullet;
 
-	SoundManager::GetInstance().SFX_Shot(GetPosition(), "spin");
-	SoundManager::GetInstance().AddNodeChangedListenerOnce([&]() {SoundManager::GetInstance().SFX_Shot(GetPosition(), "cocking"); });
+	SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Reload_Spin);
+	SoundManager::GetInstance().AddNodeChangedListenerOnce([&]() {SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Reload_Cocking); });
 }
 
 void Player::PlayerDeadEyeStart()
@@ -191,7 +191,6 @@ void Player::PlayerDeadEyeStart()
 		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [&](const auto& a, const auto& b) { return mainCamera.WorldToScreenPosition(a.second->GetWorldPosition()).x > mainCamera.WorldToScreenPosition(b.second->GetWorldPosition()).x; });
 
 		SoundManager::GetInstance().ChangeLowpass();
-		SoundManager::GetInstance().Sub_BGM_Shot("deadeye_test_3enemy_beat", 0.1f);
 
 		m_currentNodeIndex = SoundManager::GetInstance().GetRhythmTimerIndex();
 		m_DeadEyeCount = m_deadEyeTargets.size();
