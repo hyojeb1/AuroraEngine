@@ -74,6 +74,9 @@ public:
 	static void SetGrayScaleIntensity(float intensity) { m_postProcessingData.grayScaleIntensity = intensity; }
 	static void SetVignettingColor(const DirectX::XMFLOAT3& color) { m_postProcessingData.vignettingColor.x = color.x; m_postProcessingData.vignettingColor.y = color.y; m_postProcessingData.vignettingColor.z = color.z; }
 	static void SetVignettingIntensity(float intensity) { m_postProcessingData.vignettingColor.w = intensity; }
+	static void SetRadialBlurCenter(const DirectX::XMFLOAT2& center) { m_postProcessingData.radialBlurParam.x = center.x; m_postProcessingData.radialBlurParam.y = center.y;}
+	static void SetRadialBlurDist(float dist) { m_postProcessingData.radialBlurParam.z = dist; }
+	static void SetRadialBlurStrength(float strength) { m_postProcessingData.radialBlurParam.w = strength; }
 
 	// 루트 게임 오브젝트 생성 // 게임 오브젝트 베이스 포인터 반환
 	GameObjectBase* CreateRootGameObject(const std::string& typeName);

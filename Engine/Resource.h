@@ -521,6 +521,7 @@ struct PostProcessingBuffer
 		Gamma = 1 << 1,
 		Grayscale = 1 << 2,
 		Vignetting = 1 << 3,
+		RadialBlur = 1 << 4,
 	};
 	UINT flags = static_cast<UINT>(PostProcessingFlag::None); // 후처리 플래그
 
@@ -529,6 +530,8 @@ struct PostProcessingBuffer
 	float grayScaleIntensity = 0.0f; // 그레이스케일 강도
 
 	DirectX::XMFLOAT4 vignettingColor = { 0.0f, 0.0f, 0.0f, 0.0f }; // 비네팅 색상 // w는 강도
+
+	DirectX::XMFLOAT4 radialBlurParam = { 0.5f, 0.5f, 0.33f, 1.7f }; //x,y = Center # z = Distance #  w = Strength
 };
 struct CameraPositionBuffer // 카메라 위치 상수 버퍼 구조체
 {

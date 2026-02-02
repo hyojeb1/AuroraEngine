@@ -14,7 +14,13 @@ cbuffer PostProcessParams : register(b0)
     float Gamma;
     float GrayScaleIntensity;
     float4 VignettingColor; // w는 비네팅 강도
+    
+    float4 RadialBlurParam;
 };
+#define RadialBlurCenter float2(RadialBlurParam.x, RadialBlurParam.y)
+#define RadialBlurDist RadialBlurParam.z
+#define RadialBlurStrength RadialBlurParam.w
+
 
 cbuffer CameraPosition : register(b1)
 {
@@ -41,14 +47,12 @@ cbuffer MaterialFactor : register(b3)
     
     float4 EmissionFactor;
     
-    
     float DissolveThreshold; 
     float DissolveEdgeWidth; 
     float DissolveEdgeIntensity; 
     float DissolvePadding; 
-    
     float4 DissolveEdgeColor;
-    
+      
 };
 
 // --------------------------------------------------------
