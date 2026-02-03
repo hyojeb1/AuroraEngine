@@ -179,6 +179,11 @@ void Slider::SetValue(float value)
 	m_value = std::clamp(value, m_min, m_max);
 }
 
+void Slider::SetHandleTexture(const std::string& tex)
+{
+	m_handleTex = ResourceManager::GetInstance().GetTextureAndOffset(tex);
+}
+
 void Slider::RenderUI(Renderer& renderer)
 {
 	if (!IsActuallyActive())

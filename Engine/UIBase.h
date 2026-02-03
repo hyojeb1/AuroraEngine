@@ -1,18 +1,5 @@
 #pragma once
 
-#include <utility>
-#include <string>
-#include <functional>
-
-#include <Windows.h>
-#include <DirectXMath.h>
-#include <d3d11.h>
-#include <wrl/client.h>
-
-using Microsoft::WRL::ComPtr;
-
-class Renderer;
-
 class UIBase
 {
 public:
@@ -138,7 +125,7 @@ public:
 	void SetValue(float value);
 	float GetValue() const { return m_value; }
 
-	void SetHandleTexture(const std::string& tex) { m_handleTex = ResourceManager::GetInstance().GetTextureAndOffset(tex); }
+	void SetHandleTexture(const std::string& tex);
 	//void SetFillTexture(const std::string& tex) { m_fillTexture = ResourceManager::GetInstance().GetTextureAndOffset(tex); }
 
 protected:
