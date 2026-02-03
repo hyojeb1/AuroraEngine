@@ -403,7 +403,7 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 
 	//1. 모델 타입 결정 로직 변경
 	bool hasBones = SceneHasBones(scene);
-	bool hasAnims = scene->HasAnimations();
+    bool hasAnims = scene->HasAnimations();
 
 	if (hasBones) { model.type = ModelType::Skinned; }
 	else if (hasAnims) {
@@ -675,7 +675,9 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 	}
 
 	uint32_t ownerNodeIndex = 0;
-	bool isRigid = (model.type == ModelType::Rigid);
+	const bool isRigid = (model.type == ModelType::Rigid);
+	const bool isSkinned = (model.type == ModelType::Skinned);
+	const bool hasBones = mesh->HasBones();
 
 	if (isRigid) {
 		string nodeName = node->mName.C_Str();
@@ -705,12 +707,15 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 		if (isRigid) {
 			vertex.boneIndex[0] = ownerNodeIndex;
 			vertex.boneWeight.x = 1.f;
+		} else if (isSkinned && !hasBones) {
+			vertex.boneIndex[0] = 0;
+			vertex.boneWeight.x = 1.f;
 		}
 
 		resultMesh.vertices.push_back(vertex);
 	}
 
-	if (mesh->HasBones() && model.type == ModelType::Skinned){
+	if (hasBones && isSkinned){
 		auto addBoneData = [](Vertex& vertex, uint32_t boneIndex, float weight){
 				float* weights = &vertex.boneWeight.x;
 				uint32_t* indices = vertex.boneIndex.data();

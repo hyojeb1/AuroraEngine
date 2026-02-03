@@ -279,7 +279,7 @@
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",
-                    "vsShaderName": "VSModel.hlsl"
+                    "vsShaderName": "VSModelSkinAnim.hlsl"
                 }
             ],
             "name": "GameObjectBase_4",
