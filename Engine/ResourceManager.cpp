@@ -401,12 +401,28 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 
 	Model& model = m_models[fileName];
 
-	// 1. 메쉬 및 노드 처리 (이 과정에서 본 정보가 있다면 Skeleton에 등록됨)
+	//1. 모델 타입 결정 로직 변경
+	bool hasBones = SceneHasBones(scene);
+	bool hasAnims = scene->HasAnimations();
+
+	if (hasBones) { model.type = ModelType::Skinned; }
+	else if (hasAnims) {
+		model.type = ModelType::Rigid;
+		BuildRigidSkeleton(scene->mRootNode, model.skeleton);
+
+		aiMatrix4x4 inverse_root_transform = scene->mRootNode->mTransformation;
+		inverse_root_transform.Inverse();
+		model.skeleton.globalInverseTransform = ToXMFLOAT4X4(inverse_root_transform);
+	} 
+	else { model.type = ModelType::Static; }
+
+
+
+	// 2. 메쉬 및 노드 처리 (이 과정에서 본 정보가 있다면 Skeleton에 등록됨)
 	ProcessNode(scene->mRootNode, scene, model);
 
-	// 2. 모델 텍스처 로드 (Assimp 재질 정보 기반)
+	// 3. 모델 텍스처 로드 (Assimp 재질 정보 기반)
 	const string fileNameWithoutExtension = filesystem::path(fileName).stem().string();
-
 	const aiMaterial* material = (scene->HasMaterials() && scene->HasMeshes())
 		? scene->mMaterials[scene->mMeshes[0]->mMaterialIndex]
 		: nullptr;
@@ -416,17 +432,18 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 	model.materialTexture.emissionTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_EMISSIVE, "_Emissive.png", TextureType::Emissive);
 	model.materialTexture.ORMTextureSRV = LoadTextureHybrid(material, fileNameWithoutExtension, aiTextureType_METALNESS, "_OcclusionRoughnessMetallic.png", TextureType::ORM);
 
-	// 3. 본 정보가 있다면 스켈레톤 구축
-	if (SceneHasBones(scene))
-	{
+	// 4. 본 정보가 있다면 스켈레톤 구축
+	if (model.type == ModelType::Skinned){
 		aiMatrix4x4 inverse_root_transform = scene->mRootNode->mTransformation;
 		inverse_root_transform.Inverse();
 		model.skeleton.globalInverseTransform = ToXMFLOAT4X4(inverse_root_transform);
 		model.skeleton.root = BuildSkeletonNode(scene->mRootNode, model.skeleton);
-		model.type = ModelType::Skinned; // 필요하다면 타입 마킹
+	}
+	else if (model.type == ModelType::Rigid){
+		model.skeleton.root = BuildSkeletonNode(scene->mRootNode, model.skeleton);
 	}
 
-	// 4. 애니메이션 로드
+	// 5. 애니메이션 로드
 	if (scene->HasAnimations()) LoadAnimations(scene, model);
 
 	return &m_models[fileName];
@@ -639,34 +656,32 @@ void ResourceManager::ProcessNode(const aiNode* node, const aiScene* scene, Mode
 	for (UINT i = 0; i < node->mNumMeshes; ++i)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		model.meshes.push_back(ProcessMesh(mesh, scene, model));
+		model.meshes.push_back(ProcessMesh(mesh, scene, model, node));
 	}
 
 	// 자식 노드 재귀 처리
 	for (UINT i = 0; i < node->mNumChildren; ++i) ProcessNode(node->mChildren[i], scene, model);
 }
 
-Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Model& model)
+Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Model& model, const aiNode* node)
 {
 	Mesh resultMesh;
 
-	switch (mesh->mPrimitiveTypes)
-	{
-	case aiPrimitiveType_POINT:
-		resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
-		break;
+	switch (mesh->mPrimitiveTypes) {
+	case aiPrimitiveType_POINT:		resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;		break;
+	case aiPrimitiveType_LINE:		resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;		break;
+	case aiPrimitiveType_TRIANGLE:	resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;	break;
+	default:						resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;		break;
+	}
 
-	case aiPrimitiveType_LINE:
-		resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-		break;
+	uint32_t ownerNodeIndex = 0;
+	bool isRigid = (model.type == ModelType::Rigid);
 
-	case aiPrimitiveType_TRIANGLE:
-		resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		break;
-	
-	default:
-		resultMesh.topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
-		break;
+	if (isRigid) {
+		string nodeName = node->mName.C_Str();
+		if(model.skeleton.boneMapping.find(nodeName) != model.skeleton.boneMapping.end()){
+			ownerNodeIndex = model.skeleton.boneMapping[nodeName];
+		}
 	}
 
 	// 정점 처리
@@ -674,43 +689,34 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 	for (UINT i = 0; i < mesh->mNumVertices; ++i)
 	{
 		Vertex vertex = {};
-		// 위치
 		vertex.position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z, 1.0f };
 
-		// UV // 첫 번째 UV 채널만 사용
 		if (mesh->mTextureCoords[0]) vertex.UV = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
-
-		// 법선
 		if (mesh->HasNormals()) vertex.normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
-
-		// 쌍접선, 접선
-		if (mesh->HasTangentsAndBitangents())
-		{
+		if (mesh->HasTangentsAndBitangents()){
 			vertex.bitangent = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
 			vertex.tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
 		}
 
-		// 본 데이터 초기화 (정적 모델은 0으로 유지)
+		// 본 데이터 초기화
 		vertex.boneIndex = { 0, 0, 0, 0 };
 		vertex.boneWeight = { 0.f, 0.f, 0.f, 0.f };
+
+		if (isRigid) {
+			vertex.boneIndex[0] = ownerNodeIndex;
+			vertex.boneWeight.x = 1.f;
+		}
 
 		resultMesh.vertices.push_back(vertex);
 	}
 
-	// 본(Bone) 가중치 처리 (본이 있는 경우에만 실행)
-	if (mesh->HasBones())
-	{
-		// 람다: 정점에 본 ID와 가중치를 추가하는 함수
-		auto addBoneData = [](Vertex& vertex, uint32_t boneIndex, float weight)
-			{
+	if (mesh->HasBones() && model.type == ModelType::Skinned){
+		auto addBoneData = [](Vertex& vertex, uint32_t boneIndex, float weight){
 				float* weights = &vertex.boneWeight.x;
 				uint32_t* indices = vertex.boneIndex.data();
 
-				// 빈 슬롯(가중치가 0인 곳)을 찾아 넣음
-				for (int i = 0; i < 4; ++i)
-				{
-					if (weights[i] == 0.0f)
-					{
+				for (int i = 0; i < 4; ++i) {
+					if (weights[i] == 0.0f) {
 						indices[i] = boneIndex;
 						weights[i] = weight;
 						return;
@@ -722,45 +728,32 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 		{
 			const aiBone* bone = mesh->mBones[i];
 			const string boneName = bone->mName.C_Str();
-
 			uint32_t boneIndex = 0;
 
-			// 모델의 스켈레톤에 본 등록
 			auto mappingIt = model.skeleton.boneMapping.find(boneName);
-			if (mappingIt == model.skeleton.boneMapping.end())
-			{
+			if (mappingIt == model.skeleton.boneMapping.end()) {
 				boneIndex = static_cast<uint32_t>(model.skeleton.bones.size());
 				model.skeleton.boneMapping[boneName] = boneIndex;
-
 				BoneInfo info = {};
 				info.id = boneIndex;
 				info.offset_matrix = ToXMFLOAT4X4(bone->mOffsetMatrix);
 				model.skeleton.bones.push_back(info);
-			}
-			else
-			{
+			} else {
 				boneIndex = mappingIt->second;
 			}
 
-			// 해당 본의 영향을 받는 정점들에 가중치 기록
-			for (UINT weightIndex = 0; weightIndex < bone->mNumWeights; ++weightIndex)
-			{
+			for (UINT weightIndex = 0; weightIndex < bone->mNumWeights; ++weightIndex) {
 				const aiVertexWeight& weight = bone->mWeights[weightIndex];
-				if (weight.mVertexId < resultMesh.vertices.size())
-				{
+				if (weight.mVertexId < resultMesh.vertices.size()) {
 					addBoneData(resultMesh.vertices[weight.mVertexId], boneIndex, weight.mWeight);
 				}
 			}
 		}
 
-		for (auto& vertex : resultMesh.vertices)
-		{
+		for (auto& vertex : resultMesh.vertices) {
 			float* weights = &vertex.boneWeight.x;
 			float sum = weights[0] + weights[1] + weights[2] + weights[3];
-			if (sum > 0.0f)
-			{
-				for (int i = 0; i < 4; ++i) weights[i] /= sum;
-			}
+			if (sum > 0.0f) { for (int i = 0; i < 4; ++i) weights[i] /= sum;}
 		}
 	}
 
@@ -795,7 +788,32 @@ Mesh ResourceManager::ProcessMesh(const aiMesh* mesh, const aiScene* scene, Mode
 	return resultMesh;
 }
 
+void ResourceManager::BuildRigidSkeleton(const aiNode* node, Skeleton& skeleton)
+{
+	std::string nodeName = node->mName.C_Str();
 
+	// 이미 등록된 본인지 확인 (중복 방지)
+	if (skeleton.boneMapping.find(nodeName) == skeleton.boneMapping.end())
+	{
+		uint32_t newIndex = static_cast<uint32_t>(skeleton.bones.size());
+		skeleton.boneMapping[nodeName] = newIndex;
+
+		BoneInfo info = {};
+		info.id = newIndex;
+
+		// Rigid 애니메이션: 정점이 이미 노드 로컬 좌표계에 있으므로
+		// Bind Pose 변환(Offset Matrix)은 단위 행렬(Identity)입니다.
+		XMStoreFloat4x4(&info.offset_matrix, XMMatrixIdentity());
+
+		skeleton.bones.push_back(info);
+	}
+
+	// 자식 노드 순회
+	for (UINT i = 0; i < node->mNumChildren; ++i)
+	{
+		BuildRigidSkeleton(node->mChildren[i], skeleton);
+	}
+}
 
 void ResourceManager::CreateMeshBuffers(Mesh& mesh)
 {
