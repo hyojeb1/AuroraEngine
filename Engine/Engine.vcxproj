@@ -171,6 +171,7 @@
     <ClInclude Include="ModelComponent.h" />
     <ClInclude Include="ParticleComponent.h" />
     <ClInclude Include="NavigationManager.h" />
+    <ClInclude Include="RigidModelComponent.h" />
     <ClInclude Include="RNG.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="ResourceManager.h" />
@@ -204,6 +205,7 @@
     <ClCompile Include="NavigationManager.cpp" />
     <ClCompile Include="ParticleComponent.cpp" />
     <ClCompile Include="Resource.cpp" />
+    <ClCompile Include="RigidModelComponent.cpp" />
     <ClCompile Include="RNG.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="ResourceManager.cpp" />

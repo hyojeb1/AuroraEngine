@@ -114,6 +114,9 @@
     <ClCompile Include="UIBase.cpp">
       <Filter>Base</Filter>
     </ClCompile>
+    <ClCompile Include="RigidModelComponent.cpp">
+      <Filter>Base\Component\Model</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -203,6 +206,9 @@
     </ClInclude>
     <ClInclude Include="UIBase.h">
       <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="RigidModelComponent.h">
+      <Filter>Base\Component\Model</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

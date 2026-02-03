@@ -738,7 +738,7 @@ enum class ModelType
 {
 	Static,
 	Skinned,
-	//Rigid,//마인크래프트
+	Rigid,
 	Count
 };
 
