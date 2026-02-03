@@ -83,8 +83,9 @@ inline DirectX::XMVECTOR ToRadians(const DirectX::XMVECTOR& degrees) { return Di
 inline DirectX::XMVECTOR ToDegrees(const DirectX::XMVECTOR& radians) { return DirectX::XMVectorScale(radians, RAD_TO_DEG); }
 
 // 타입 이름 얻기 매크로
-template<typename T>
+
 // 템플릿 기반 타입 이름 얻기
+template<typename T>
 inline std::string GetTypeName()
 {
 	std::string typeName = typeid(T).name();
@@ -99,8 +100,8 @@ inline std::string GetTypeName()
 	}
 	return typeName;
 }
-template<typename T>
 // 객체 기반 타입 이름 얻기
+template<typename T>
 constexpr std::string GetTypeName(T& obj)
 {
 	std::string typeName = typeid(obj).name();

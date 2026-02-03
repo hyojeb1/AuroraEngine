@@ -8,7 +8,6 @@
 #include "ColliderComponent.h"
 #include "CameraComponent.h"
 #include "ResourceManager.h"
-#include "CamRotObject.h"
 #include "ModelComponent.h"
 #include "SceneBase.h"
 #include "Enemy.h"
@@ -23,12 +22,15 @@ using namespace DirectX;
 
 void Player::Initialize()
 {
+	XMStoreFloat3(&m_playerRotation, GetRotation());
+
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_lineVertexBufferAndShader = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_linePixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
 
-	m_cameraObject = dynamic_cast<CamRotObject*>(GetChildGameObject("CamRotObject_2"));
-	m_gunObject = m_cameraObject->GetChildGameObject("Gun");
+	m_cameraComponent = GetComponent<CameraComponent>();
+	m_cameraComponent->SetAsMainCamera();
+	m_gunObject = GetChildGameObject("Gun");
 	m_gunFSM = m_gunObject->CreateComponent<FSMComponentGun>();
 
 	m_deadEyeTextureAndOffset = resourceManager.GetTextureAndOffset("Crosshair.png");
@@ -48,16 +50,26 @@ void Player::Update()
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	InputManager& input = InputManager::GetInstance();
 	auto& sm = SoundManager::GetInstance();
+	InputType inputType = sm.CheckRhythm(0.1f);
 
-	if (input.GetKeyDown(KeyCode::Space) && !m_isDashing && sm.CheckRhythm(0.1f) < InputType::Miss) { PlayerTriggerDash(input); }
-	if (m_isDashing) { PlayerDash(deltaTime, input); }
-	else { PlayerMove(deltaTime, input); }
 
-	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f) < InputType::Miss) { PlayerShoot(); };
-	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerDeadEyeStart();
+	UpdateRotation(input, deltaTime);
+	UpdateMoveDirection(input);
+
+	if (inputType < InputType::Miss)
+	{
+		if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && inputType < InputType::Miss) PlayerShoot();
+		if (!m_isDashing && input.GetKeyDown(KeyCode::Space) && inputType < InputType::Miss) PlayerTriggerDash();
+		if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && inputType < InputType::Miss) PlayerDeadEyeStart();
+	}
+
+	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime, input);
+	if (m_isDashing) PlayerDash(deltaTime);
+	else MovePosition(m_normalizedMoveDirection * m_moveSpeed * deltaTime); // 일반 움직임
+
 	if (input.GetKeyDown(KeyCode::R))
 	{
-		switch (sm.CheckRhythm(0.1f))
+		switch (inputType)
 		{
 		case InputType::Early:
 			PlayerReload(1);
@@ -70,8 +82,6 @@ void Player::Update()
 			break;
 		}
 	}
-
-	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime, input);
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
 	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();
@@ -99,54 +109,51 @@ void Player::Finalize()
 	TimeManager::GetInstance().SetTimeScale(1.0f);
 }
 
-void Player::PlayerMove(float deltaTime, InputManager& input)
+void Player::UpdateRotation(InputManager& input, float deltaTime)
 {
-	float yaw = XMVectorGetY(GetRotation()) + static_cast<float>(input.GetMouseDelta().x) * m_xSensitivity;
-	SetRotation(XMVectorSet(0.0f, yaw, 0.0f, 0.0f));
+	const POINT& mouseDelta = input.GetMouseDelta();
 
-	float forwardInput = 0.0f;
-	float rightInput = 0.0f;
-	if (input.GetKey(KeyCode::W)) forwardInput += m_moveSpeed;
-	if (input.GetKey(KeyCode::S)) forwardInput -= m_moveSpeed;
-	if (input.GetKey(KeyCode::A)) rightInput -= m_moveSpeed;
-	if (input.GetKey(KeyCode::D)) rightInput += m_moveSpeed;
+	m_playerRotation.x += static_cast<float>(mouseDelta.y) * m_cameraSensitivity;
+	m_playerRotation.y += static_cast<float>(mouseDelta.x) * m_cameraSensitivity;
 
-	// 대각선 보정
-	if (forwardInput != 0.0f && rightInput != 0.0f) { forwardInput *= 0.7071f; rightInput *= 0.7071f; }
-	MovePosition(GetWorldDirectionVector(Direction::Forward) * forwardInput * deltaTime + GetWorldDirectionVector(Direction::Right) * rightInput * deltaTime);
+	constexpr float LIMIT = 90.0f - 1.0f;
+	if (m_playerRotation.x > LIMIT) m_playerRotation.x = LIMIT;
+	if (m_playerRotation.x < -LIMIT) m_playerRotation.x = -LIMIT;
+
+	SetRotation({ m_playerRotation.x, m_playerRotation.y, 0.0f, 0.0f });
+
+	m_playerRotation.z = lerp(m_playerRotation.z, 0.0f, deltaTime * 5.0f);
+	Rotate({ 0.0f, 0.0f, m_playerRotation.z, 0.0f });
 }
 
-
-void Player::PlayerTriggerDash(InputManager& input)
+void Player::UpdateMoveDirection(InputManager& input)
 {
+	m_inputDirection =
+	{
+		static_cast<float>(input.GetKey(KeyCode::D)) - static_cast<float>(input.GetKey(KeyCode::A)),
+		0.0f,
+		static_cast<float>(input.GetKey(KeyCode::W)) - static_cast<float>(input.GetKey(KeyCode::S)),
+		0.0f
+	};
+
+	XMVECTOR yawQuaternion = XMQuaternionRotationRollPitchYaw(0.0f, m_playerRotation.y * DEG_TO_RAD, 0.0f);
+	m_normalizedMoveDirection = XMVector3Normalize(XMVector3Rotate(m_inputDirection, yawQuaternion));
+}
+
+void Player::PlayerTriggerDash()
+{
+	if (XMVector3LengthSq(m_normalizedMoveDirection).m128_f32[0] <= numeric_limits<float>::epsilon()) return;
+
 	m_isDashing = true;
 	m_dashTimer = m_kDashDuration;
+	m_dashDirection = m_normalizedMoveDirection;
+	const float inputX = XMVectorGetX(XMVector3Normalize(m_inputDirection));
 
-	float forwardInput = 0.0f;
-	float rightInput = 0.0f;
-	if (input.GetKey(KeyCode::W)) forwardInput += 1.f;
-	if (input.GetKey(KeyCode::S)) forwardInput -= 1.f;
-	if (input.GetKey(KeyCode::A))   rightInput -= 1.f;
-	if (input.GetKey(KeyCode::D))   rightInput += 1.f;
+	// 카메라 회전
+	m_playerRotation.z = -10.0f * inputX;
 
-	if (forwardInput == 0.0f && rightInput == 0.0f) {
-		m_dashDirection = GetWorldDirectionVector(Direction::Forward);
-	}
-	else {
-		XMVECTOR dir = GetWorldDirectionVector(Direction::Forward) * forwardInput + GetWorldDirectionVector(Direction::Right) * rightInput;
-		m_dashDirection = XMVector3Normalize(dir);
-	}
-
-	//need BackUp
-	XMFLOAT2 blurCenter = { 0.5f, 0.5f }; // (W/S)
-	if (rightInput < 0) {
-		if (forwardInput != 0.0f)	blurCenter = { 0.1465f, 0.5f }; // (WA, SA)
-		else						blurCenter = { 0.0f, 0.5f }; // (A)
-	} else if (rightInput > 0)  {
-		if (forwardInput != 0.0f)	blurCenter = { 0.8535f, 0.5f };// (WD, SD)
-		else						blurCenter = { 1.0f, 0.5f };// (D)
-	}
-	SceneBase::SetRadialBlurCenter(blurCenter);
+	// Radial Blur 설정
+	SceneBase::SetRadialBlurCenter({ inputX * 0.5f + 0.5f, 0.5f });
 	SceneBase::SetRadialBlurDist(0.33f);
 	SceneBase::SetRadialBlurStrength(1.7f);
 	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::RadialBlur, true);
@@ -154,22 +161,22 @@ void Player::PlayerTriggerDash(InputManager& input)
 	// 사운드 여기다 넣아야 함
 }
 
-void Player::PlayerDash(float deltaTime, InputManager& input)
+void Player::PlayerDash(float deltaTime)
 {
 	m_dashTimer -= deltaTime;
 	MovePosition(m_dashDirection * m_kDashSpeed * deltaTime);
-	if (m_dashTimer <= 0.0f) { m_isDashing = false; }
+	if (m_dashTimer <= 0.0f) m_isDashing = false;
 
 	float t = 1.0f - (m_dashTimer / m_kDashDuration); // 0->1
-	float smooth = t * t * (3.0f - 2.0f * t);         // smoothstep
+	float smooth = t * t * (3.0f - 2.0f * t); // smoothstep
 	SceneBase::SetRadialBlurStrength(8.0f * (1.0f - smooth)); // 점점 약해짐
 
-	if (m_dashTimer <= 0.0f) {
+	if (m_dashTimer <= 0.0f)
+	{
 		m_isDashing = false;
 		SceneBase::SetRadialBlurStrength(0.0f);
 		SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::RadialBlur, false);
 	}
-
 }
 
 void Player::PlayerShoot()
@@ -180,10 +187,8 @@ void Player::PlayerShoot()
 	--m_bulletCnt;
 	SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Shoot);
 
-	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
-
-	const XMVECTOR& origin = mainCamera.GetPosition();
-	const XMVECTOR& direction = mainCamera.GetForwardVector();
+	const XMVECTOR& origin = GetPosition();
+	const XMVECTOR& direction = GetWorldDirectionVector(Direction::Forward);
 	float distance = 0.0f;
 	GameObjectBase* hit = ColliderComponent::CheckCollision(origin, direction, distance);
 	const XMVECTOR& hitPosition = XMVectorAdd(origin, XMVectorScale(direction, distance));
@@ -191,7 +196,7 @@ void Player::PlayerShoot()
 	ParticleObject* smoke = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Smoke.json"));
 	const XMVECTOR& gunPos = m_gunObject->GetWorldPosition();
 	smoke->SetPosition(gunPos);
-	smoke->SetScale(XMVectorSet(1.0f, 1.0f, distance, 1.0f));
+	smoke->SetScale({ 1.0f, 1.0f, distance, 1.0f });
 	smoke->LookAt(hitPosition);
 	smoke->SetLifetime(5.0f);
 
@@ -236,8 +241,7 @@ void Player::PlayerDeadEyeStart()
 	float halfWidth = static_cast<float>(swapChainDesc.Width) * 0.5f;
 	float halfHeight = static_cast<float>(swapChainDesc.Height) * 0.5f;
 
-	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
-	vector<GameObjectBase*> hits = ColliderComponent::CheckCollision(mainCamera.GetBoundingFrustum());
+	vector<GameObjectBase*> hits = ColliderComponent::CheckCollision(m_cameraComponent->GetBoundingFrustum());
 	if (hits.empty()) return;
 
 	bool hasEnemy = false;
@@ -248,12 +252,12 @@ void Player::PlayerDeadEyeStart()
 		{
 			// 사이에 장애물이 있는지 확인
 			float distance = 0.0f;
-			const XMVECTOR& origin = mainCamera.GetPosition();
-			const XMVECTOR& targetPos = XMVectorAdd(enemy->GetWorldPosition(), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)); // 적 충심이 y = 0.0f여서 약간 올림
+			const XMVECTOR& origin = GetPosition();
+			const XMVECTOR& targetPos = XMVectorAdd(enemy->GetWorldPosition(), { 0.0f, 1.0f, 0.0f, 0.0f }); // 적 충심이 y = 0.0f여서 약간 올림
 			if (!dynamic_cast<Enemy*>(ColliderComponent::CheckCollision(origin, XMVectorSubtract(targetPos, origin), distance))) continue;
 
 			hasEnemy = true;
-			XMFLOAT2 distancePair = mainCamera.WorldToScreenPosition(targetPos);
+			XMFLOAT2 distancePair = m_cameraComponent->WorldToScreenPosition(targetPos);
 			m_deadEyeTargets.emplace_back(powf(distancePair.x - halfWidth, 2) + powf(distancePair.y - halfHeight, 2), enemy);
 		}
 	}
@@ -262,15 +266,14 @@ void Player::PlayerDeadEyeStart()
 		m_isDeadEyeActive = true;
 
 		TimeManager::GetInstance().SetTimeScale(0.1f);
-		m_cameraYSensitivity = m_cameraObject->GetSensitivity();
-		m_cameraObject->SetSensitivity(0.01f);
-		m_xSensitivity = m_cameraObject->GetSensitivity();
+
+		m_cameraSensitivity = 0.01f;
 
 		SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, true);
 
 		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
 		if (m_deadEyeTargets.size() > 6) m_deadEyeTargets.resize(6);
-		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [&](const auto& a, const auto& b) { return mainCamera.WorldToScreenPosition(a.second->GetWorldPosition()).x > mainCamera.WorldToScreenPosition(b.second->GetWorldPosition()).x; });
+		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [&](const auto& a, const auto& b) { return m_cameraComponent->WorldToScreenPosition(a.second->GetWorldPosition()).x > m_cameraComponent->WorldToScreenPosition(b.second->GetWorldPosition()).x; });
 
 		SoundManager::GetInstance().ChangeLowpass();
 
@@ -279,7 +282,7 @@ void Player::PlayerDeadEyeStart()
 		m_deadEyeTotalDuration = static_cast<float>(m_DeadEyeCount) * 0.5f;
 		m_deadEyeDuration = 0.0f;
 
-		m_prevDeadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(m_deadEyeTargets.back().second->GetWorldPosition());
+		m_prevDeadEyePos = m_cameraComponent->WorldToScreenPosition(m_deadEyeTargets.back().second->GetWorldPosition());
 		m_nextDeadEyePos = m_prevDeadEyePos;
 	}
 }
@@ -296,11 +299,11 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 	{
 		const XMVECTOR& targetPos = m_deadEyeTargets.back().second->GetWorldPosition();
 
-		m_prevDeadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(targetPos);
+		m_prevDeadEyePos = m_cameraComponent->WorldToScreenPosition(targetPos);
 		m_deadEyeTargets.back().second->Die();
 		if (m_deadEyeTargets.size() > 1)
 		{
-			m_nextDeadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(m_deadEyeTargets[m_deadEyeTargets.size() - 2].second->GetWorldPosition());
+			m_nextDeadEyePos = m_cameraComponent->WorldToScreenPosition(m_deadEyeTargets[m_deadEyeTargets.size() - 2].second->GetWorldPosition());
 			m_deadEyeMoveTimer = 0.0f;
 		}
 		else m_nextDeadEyePos = m_prevDeadEyePos;
@@ -308,7 +311,7 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 		const XMVECTOR& gunPos = m_gunObject->GetWorldPosition();
 		ParticleObject* smoke = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Smoke.json"));
 		smoke->SetPosition(gunPos);
-		smoke->SetScale(XMVectorSet(1.0f, 1.0f, XMVectorGetX(XMVector3LengthEst(XMVectorSubtract(gunPos, targetPos))), 1.0f));
+		smoke->SetScale({ 1.0f, 1.0f, XMVectorGetX(XMVector3LengthEst(XMVectorSubtract(gunPos, targetPos))), 1.0f });
 		smoke->LookAt(targetPos);
 		smoke->SetLifetime(5.0f);
 
@@ -329,8 +332,8 @@ void Player::PlayerDeadEyeEnd()
 	m_isDeadEyeActive = false;
 
 	TimeManager::GetInstance().SetTimeScale(1.0f);
-	m_cameraObject->SetSensitivity(m_cameraYSensitivity);
-	m_xSensitivity = m_cameraObject->GetSensitivity();
+
+	m_cameraSensitivity = 0.1f;
 
 	m_deadEyeTargets.clear();
 
