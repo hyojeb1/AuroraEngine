@@ -100,6 +100,7 @@ public:
 	DirectX::SpriteBatch* GetSpriteBatch() { return m_spriteBatch.get(); }
 	DirectX::SpriteFont* GetSpriteFont(const std::wstring& fontName);
 
+
 	com_ptr<ID3D11ShaderResourceView> GetLUT(const int id) { return m_luts[id].srv; };
 	void LoadLUTTexture();
 	com_ptr<ID3D11ShaderResourceView> GetNoise(const int id) { return m_noises[id].srv; };
@@ -126,7 +127,10 @@ private:
 	// 노드 처리 함수
 	void ProcessNode(const aiNode* node, const aiScene* scene, Model& model);
 	// 메쉬 처리 함수
-	Mesh ProcessMesh(const aiMesh* mesh, const aiScene* scene, Model& model);
+	// Mesh ProcessMesh(const aiMesh* mesh, const aiScene* scene, Model& model);
+	Mesh ProcessMesh(const aiMesh* mesh, const aiScene* scene, Model& model, const aiNode* node);
+	void BuildRigidSkeleton(const aiNode* node, Skeleton& skeleton);
+
 	// 메쉬 버퍼(GPU) 생성 함수
 	void CreateMeshBuffers(Mesh& mesh);
 

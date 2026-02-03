@@ -16,5 +16,6 @@ public:
 protected:
 	virtual void Initialize() override;
 	virtual void Update() override;
+	virtual void Finalize() override;
 };
 /// HyojeTestScene.h의 끝

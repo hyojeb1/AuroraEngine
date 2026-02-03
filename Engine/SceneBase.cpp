@@ -1,4 +1,4 @@
-///SceneBase.cpp의 시작
+///SceneBase.cpp?�� ?��?��
 #include "stdafx.h"
 #include "SceneBase.h"
 
@@ -11,9 +11,8 @@
 #include "ModelComponent.h"
 #include "InputManager.h"
 #include "SceneManager.h" 
-
+#include "ScoreManager.h"
 #include "UIBase.h"
-
 
 using namespace std;
 using namespace DirectX;
@@ -36,7 +35,7 @@ GameObjectBase* SceneBase::CreatePrefabRootGameObject(const string& prefabFileNa
 	const nlohmann::json* prefabJsonPtr = SceneManager::GetInstance().GetPrefabData(prefabFileName);
 	if (!prefabJsonPtr)
 	{
-		cerr << "오류: 프리팹 '" << prefabFileName << "'을(를) 찾을 수 없습니다." << endl;
+		cerr << "?���?: ?��리팹 '" << prefabFileName << "'?��(�?) 찾을 ?�� ?��?��?��?��." << endl;
 		return nullptr;
 	}
 
@@ -131,7 +130,7 @@ void SceneBase::BaseInitialize()
 	m_debugCamera->Initialize();
 	#endif
 
-	// 저장된 씬 파일 불러오기
+	// ????��?�� ?�� ?��?�� 불러?���?
 	const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
 	if (filesystem::exists(sceneFilePath))
 	{
@@ -167,7 +166,7 @@ void SceneBase::BaseUpdate()
 	#endif
 
 	RemovePending();
-	// 게임 오브젝트 업데이트
+	// 게임 ?��브젝?�� ?��?��?��?��
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseUpdate();
 
 	InputManager& inputManager = InputManager::GetInstance();
@@ -192,13 +191,13 @@ void SceneBase::BaseUpdate()
 
 
 	#ifdef _DEBUG
-	// 네비게이션 메시 생성 모드일 때 링크 배치 처리
+	// ?��비게?��?�� 메시 ?��?�� 모드?�� ?�� 링크 배치 처리
 	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink(m_navMeshCreationHeight);
 
-	// Ctrl + S 입력 시 씬 저장
+	// Ctrl + S ?��?�� ?�� ?�� ????��
 	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::S))
 	{
-		cout << "씬: " << m_type << " 저장 중..." << endl;
+		cout << "?��: " << m_type << " ????�� �?..." << endl;
 
 		const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
 
@@ -206,13 +205,13 @@ void SceneBase::BaseUpdate()
 		sceneFile << BaseSerialize().dump(4);
 		sceneFile.close();
 
-		cout << "씬: " << m_type << " 저장 완료!" << endl;
+		cout << "?��: " << m_type << " ????�� ?���?!" << endl;
 	}
 
 	if (inputManager.GetKeyUp(KeyCode::MouseLeft)) SaveState();
 	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::Z)) Undo();
 
-	// 디버그 카메라로 오브젝트 선택
+	// ?��버그 카메?���? ?��브젝?�� ?��?��
 	PickObjectDebugCamera();
 	#endif
 }
@@ -221,10 +220,10 @@ void SceneBase::BaseRender()
 {
 	Renderer& renderer = Renderer::GetInstance();
 
-	// 방향성 광원 그림자 맵 렌더링
+	// 방향?�� 광원 그림?�� �? ?��?���?
 	renderer.RENDER_FUNCTION(RenderStage::DirectionalLightShadow, BlendState::Opaque).emplace_back
 	(
-		numeric_limits<float>::lowest(), // 우선순위 가장 높음
+		numeric_limits<float>::lowest(), // ?��?��?��?�� �??�� ?��?��
 		[&]()
 		{
 			Renderer& renderer = Renderer::GetInstance();
@@ -232,12 +231,12 @@ void SceneBase::BaseRender()
 
 			renderer.SetViewport(static_cast<FLOAT>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE), static_cast<FLOAT>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE));
 
-			// 뷰-투영 상수 버퍼 방향광 기준으로 업데이트
+			// �?-?��?�� ?��?�� 버퍼 방향�? 기�???���? ?��?��?��?��
 			const float cameraFarPlane = mainCamera.GetFarZ();
 
 			XMVECTOR lightPosition = (m_globalLightData.lightDirection * -cameraFarPlane) + mainCamera.GetPosition();
 			lightPosition = XMVectorSetW(lightPosition, 1.0f);
-			renderer.SetRenderSortPoint(lightPosition); // 정렬 기준점도 라이트 위치로 설정
+			renderer.SetRenderSortPoint(lightPosition); // ?��?�� 기�???��?�� ?��?��?�� ?��치로 ?��?��
 
 			constexpr XMVECTOR LIGHT_UP = { 0.0f, 1.0f, 0.0f, 0.0f };
 			m_viewProjectionData.viewMatrix = XMMatrixLookAtLH(lightPosition, mainCamera.GetPosition(), LIGHT_UP);
@@ -250,15 +249,15 @@ void SceneBase::BaseRender()
 
 			m_deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
 
-			// 상수 버퍼 설정
+			// ?��?�� 버퍼 ?��?��
 			m_deviceContext->PSSetShader(m_shadowMapPixelShader.Get(), nullptr, 0);
 		}
 	);
 
-	// 씬 렌더링
+	// ?�� ?��?���?
 	renderer.RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
 	(
-		numeric_limits<float>::lowest(), // 우선순위 가장 높음
+		numeric_limits<float>::lowest(), // ?��?��?��?�� �??�� ?��?��
 		[&]()
 		{
 			Renderer& renderer = Renderer::GetInstance();
@@ -266,19 +265,19 @@ void SceneBase::BaseRender()
 
 			renderer.SetViewport();
 
-			// 정렬 기준점 카메라 위치로 설정
+			// ?��?�� 기�???�� 카메?�� ?��치로 ?��?��
 			renderer.SetRenderSortPoint(mainCamera.GetPosition());
 
-			// 상수 버퍼 업데이트 및 셰이더에 설정
+			// ?��?�� 버퍼 ?��?��?��?�� �? ?��?��?��?�� ?��?��
 			UpdateConstantBuffers();
 
-			// 환경 맵 설정
+			// ?���? �? ?��?��
 			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Environment), 1, m_environmentMapSRV.GetAddressOf());
-			// 스카이박스 렌더링
+			// ?��카이박스 ?��?���?
 			RenderSkybox();
 
 			#ifdef _DEBUG
-			// 디버그 좌표축 렌더링 (디버그 모드에서만)
+			// ?��버그 좌표�? ?��?���? (?��버그 모드?��?���?)
 			if (m_isRenderDebugCoordinates) RenderDebugCoordinates();
 			#else
 			Render();
@@ -312,10 +311,10 @@ void SceneBase::BaseRender()
 		);
 	}
 
-	// 게임 오브젝트 렌더링
+	// 게임 ?��브젝?�� ?��?���?
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseRender();
 
-	// UI 렌더링
+	// UI ?��?���?
 	for (const unique_ptr<UIBase>& ui : m_UIList) ui->RenderUI(renderer);
 
 	#ifdef _DEBUG
@@ -528,7 +527,7 @@ void SceneBase::BaseFinalize()
 	Finalize();
 	#endif
 
-	// 게임 오브젝트 종료
+	// 게임 ?��브젝?�� 종료
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseFinalize();
 }
 
@@ -536,8 +535,8 @@ nlohmann::json SceneBase::BaseSerialize()
 {
 	nlohmann::json jsonData;
 
-	// 기본 씬 데이터 저장
-	// 씬 조명 정보
+	// 기본 ?�� ?��?��?�� ????��
+	// ?�� 조명 ?���?
 	jsonData["lightColor"] =
 	{
 		m_globalLightData.lightColor.x,
@@ -553,7 +552,7 @@ nlohmann::json SceneBase::BaseSerialize()
 		m_globalLightData.lightDirection.m128_f32[3]
 	};
 
-	// 후처리 정보
+	// ?��처리 ?���?
 	jsonData["postProcessing"] =
 	{
 		{ "flags", m_postProcessingData.flags },
@@ -565,18 +564,18 @@ nlohmann::json SceneBase::BaseSerialize()
 		{ "lutLerpFactor", m_postProcessingData.lutLerpFactor}
 	};
 
-	// 환경 맵 파일 이름
+	// ?���? �? ?��?�� ?���?
 	jsonData["environmentMapFileName"] = m_environmentMapFileName;
 
-	// 네비게이션 메시 저장
+	// ?��비게?��?�� 메시 ????��
 	nlohmann::json navMeshData = NavigationManager::GetInstance().Serialize();
 	if (!navMeshData.is_null() && navMeshData.is_object()) jsonData.merge_patch(navMeshData);
 
-	// 파생 클래스의 직렬화 호출
+	// ?��?�� ?��?��?��?�� 직렬?�� ?���?
 	nlohmann::json derivedData = Serialize();
 	if (!derivedData.is_null() && derivedData.is_object()) jsonData.merge_patch(derivedData);
 
-	// 게임 오브젝트들 저장
+	// 게임 ?��브젝?��?�� ????��
 	nlohmann::json gameObjectsData = nlohmann::json::array();
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObjectsData.push_back(gameObject->BaseSerialize());
 	jsonData["rootGameObjects"] = gameObjectsData;
@@ -586,8 +585,8 @@ nlohmann::json SceneBase::BaseSerialize()
 
 void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 {
-	// 기본 씬 데이터 로드
-	// 씬 조명 정보
+	// 기본 ?�� ?��?��?�� 로드
+	// ?�� 조명 ?���?
 	if (jsonData.contains("lightColor"))
 	{
 		m_globalLightData.lightColor = XMFLOAT4
@@ -609,7 +608,7 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 		);
 	}
 
-	// 후처리 정보
+	// ?��처리 ?���?
 	if (jsonData.contains("postProcessing"))
 	{
 		const nlohmann::json& ppData = jsonData["postProcessing"];
@@ -640,22 +639,22 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 		if (ppData.contains("lutLerpFactor")) m_postProcessingData.lutLerpFactor = ppData["lutLerpFactor"].get<float>();
 	}
 
-	// 환경 맵 파일 이름
+	// ?���? �? ?��?�� ?���?
 	if (jsonData.contains("environmentMapFileName")) m_environmentMapFileName = jsonData["environmentMapFileName"].get<string>();
 
-	// 네비게이션 메시 로드
+	// ?��비게?��?�� 메시 로드
 	NavigationManager::GetInstance().Deserialize(jsonData);
 
-	// 파생 클래스의 데이터 로드
+	// ?��?�� ?��?��?��?�� ?��?��?�� 로드
 	Deserialize(jsonData);
 
-	// 선택된 게임 오브젝트 초기화
+	// ?��?��?�� 게임 ?��브젝?�� 초기?��
 	GameObjectBase::SetSelectedObject(nullptr);
-	// 기존 게임 오브젝트들 종료 및 제거
+	// 기존 게임 ?��브젝?��?�� 종료 �? ?���?
 	BaseFinalize();
 	m_gameObjects.clear();
 
-	// 게임 오브젝트들 로드
+	// 게임 ?��브젝?��?�� 로드
 	for (const auto& gameObjectData : jsonData["rootGameObjects"])
 	{
 		string typeName = gameObjectData["type"].get<string>();
@@ -688,25 +687,25 @@ void SceneBase::GetResources()
 {
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-	m_skyboxVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSSkybox.hlsl"); // 스카이박스 정점 셰이더 얻기
-	m_skyboxPixelShader = resourceManager.GetPixelShader("PSSkybox.hlsl"); // 스카이박스 픽셀 셰이더 얻기
-	m_shadowMapPixelShader = resourceManager.GetPixelShader("PSShadow.hlsl"); // 그림자 맵 생성용 픽셀 셰이더 얻기
+	m_skyboxVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSSkybox.hlsl"); // ?��카이박스 ?��?�� ?��?��?�� ?���?
+	m_skyboxPixelShader = resourceManager.GetPixelShader("PSSkybox.hlsl"); // ?��카이박스 ?��??? ?��?��?�� ?���?
+	m_shadowMapPixelShader = resourceManager.GetPixelShader("PSShadow.hlsl"); // 그림?�� �? ?��?��?�� ?��??? ?��?��?�� ?���?
 
 	#ifdef _DEBUG
-	m_debugCoordinateVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSCoordinateLine.hlsl"); // 디버그 좌표 정점 셰이더 얻기
-	m_debugCoordinatePixelShader = resourceManager.GetPixelShader("PSColor.hlsl"); // 디버그 좌표 픽셀 셰이더 얻기
+	m_debugCoordinateVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSCoordinateLine.hlsl"); // ?��버그 좌표 ?��?�� ?��?��?�� ?���?
+	m_debugCoordinatePixelShader = resourceManager.GetPixelShader("PSColor.hlsl"); // ?��버그 좌표 ?��??? ?��?��?�� ?���?
 	#endif
 
-	m_environmentMapSRV = resourceManager.GetTexture(m_environmentMapFileName); // 환경 맵 로드
+	m_environmentMapSRV = resourceManager.GetTexture(m_environmentMapFileName); // ?���? �? 로드
 
-	m_viewProjectionConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::ViewProjection); // 뷰-투영 상수 버퍼 생성
-	m_skyboxViewProjectionConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::SkyboxViewProjection); // 스카이박스 뷰-투영 역행렬 상수 버퍼 생성
-	m_timeConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Time); // 시간 상수 버퍼 생성
+	m_viewProjectionConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::ViewProjection); // �?-?��?�� ?��?�� 버퍼 ?��?��
+	m_skyboxViewProjectionConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::SkyboxViewProjection); // ?��카이박스 �?-?��?�� ?��?��?�� ?��?�� 버퍼 ?��?��
+	m_timeConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Time); // ?���? ?��?�� 버퍼 ?��?��
 
-	m_cameraPositionConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::CameraPosition); // 카메라 위치 상수 버퍼 생성
-	m_globalLightConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::GlobalLight); // 방향광 상수 버퍼 생성
+	m_cameraPositionConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::CameraPosition); // 카메?�� ?���? ?��?�� 버퍼 ?��?��
+	m_globalLightConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::GlobalLight); // 방향�? ?��?�� 버퍼 ?��?��
 
-	m_postProcessingConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::PostProcessing); // 후처리용 상수 버퍼 생성
+	m_postProcessingConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::PostProcessing); // ?��처리?�� ?��?�� 버퍼 ?��?��
 
 	m_spriteFont = resourceManager.GetSpriteFont(L"Gugi");
 }
@@ -715,32 +714,32 @@ void SceneBase::UpdateConstantBuffers()
 {
 	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 
-	// 뷰-투영 상수 버퍼 업데이트 및 셰이더에 설정
+	// �?-?��?�� ?��?�� 버퍼 ?��?��?��?�� �? ?��?��?��?�� ?��?��
 	m_viewProjectionData.viewMatrix = mainCamera.GetViewMatrix();
 	m_viewProjectionData.projectionMatrix = mainCamera.GetProjectionMatrix();
 	m_viewProjectionData.VPMatrix = XMMatrixTranspose(m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix);
 	m_deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
 
-	// 스카이박스 뷰-투영 역행렬 상수 버퍼 업데이트 및 셰이더에 설정 // m_viewProjectionData 재활용
-	m_viewProjectionData.viewMatrix.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // 뷰 행렬의 위치 성분 제거
+	// ?��카이박스 �?-?��?�� ?��?��?�� ?��?�� 버퍼 ?��?��?��?�� �? ?��?��?��?�� ?��?�� // m_viewProjectionData ?��?��?��
+	m_viewProjectionData.viewMatrix.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // �? ?��?��?�� ?���? ?���? ?���?
 	m_skyboxViewProjectionData.skyboxVPMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix));
 	m_deviceContext->UpdateSubresource(m_skyboxViewProjectionConstantBuffer.Get(), 0, nullptr, &m_skyboxViewProjectionData, 0, 0);
 
-	// 시간 상수 버퍼 업데이트 및 셰이더에 설정
+	// ?���? ?��?�� 버퍼 ?��?��?��?�� �? ?��?��?��?�� ?��?��
 	m_timeData.totalTime = TimeManager::GetInstance().GetTotalTime();
 	m_timeData.deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	m_timeData.sinTime = sinf(m_timeData.totalTime);
 	m_timeData.cosTime = cosf(m_timeData.totalTime);
 	m_deviceContext->UpdateSubresource(m_timeConstantBuffer.Get(), 0, nullptr, &m_timeData, 0, 0);
 
-	// 카메라 위치 상수 버퍼 업데이트 및 셰이더에 설정
+	// 카메?�� ?���? ?��?�� 버퍼 ?��?��?��?�� �? ?��?��?��?�� ?��?��
 	m_cameraPositionData.cameraPosition = mainCamera.GetPosition();
 	m_deviceContext->UpdateSubresource(m_cameraPositionConstantBuffer.Get(), 0, nullptr, &m_cameraPositionData, 0, 0);
 
-	// 환경광, 방향광 상수 버퍼 업데이트 및 셰이더에 설정
+	// ?��경광, 방향�? ?��?�� 버퍼 ?��?��?��?�� �? ?��?��?��?�� ?��?��
 	m_deviceContext->UpdateSubresource(m_globalLightConstantBuffer.Get(), 0, nullptr, &m_globalLightData, 0, 0);
 
-	// 후처리용 상수 버퍼 업데이트 및 셰이더에 설정
+	// ?��처리?�� ?��?�� 버퍼 ?��?��?��?�� �? ?��?��?��?�� ?��?��
 	m_deviceContext->UpdateSubresource(m_postProcessingConstantBuffer.Get(), 0, nullptr, &m_postProcessingData, 0, 0);
 }
 

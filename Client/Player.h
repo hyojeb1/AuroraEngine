@@ -20,11 +20,13 @@ class Player : public GameObjectBase
 
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_bulletImgs = {};
 
+	DirectX::XMVECTOR m_inputDirection = {};
+	DirectX::XMVECTOR m_normalizedMoveDirection = {};
+	DirectX::XMFLOAT3 m_playerRotation = {}; // 쿼터니언 각으로 변환하지 않는 회전 각도
 	float m_moveSpeed = 5.0f;
-	float m_xSensitivity = 0.1f;
 
-	class CamRotObject* m_cameraObject = nullptr;
-	float m_cameraYSensitivity = 0.1f;
+	class CameraComponent* m_cameraComponent = nullptr;
+	float m_cameraSensitivity = 0.1f;
 	GameObjectBase* m_gunObject = nullptr;
 	class FSMComponentGun* m_gunFSM = nullptr;
 
@@ -62,7 +64,7 @@ public:
 	Player(Player&&) = default;
 	Player& operator=(Player&&) = default;
 
-	bool GetActiveDeadEye() { return m_isDeadEyeActive; }
+	bool GetActiveDeadEye() const { return m_isDeadEyeActive; }
 
 private:
 	void Initialize() override;
@@ -70,9 +72,10 @@ private:
 	void Render() override;
 	void Finalize() override;
 
-	void PlayerTriggerDash(class InputManager& input);
-	void PlayerDash(float deltaTime, class InputManager& input);
-	void PlayerMove(float deltaTime, class InputManager& input);
+	void UpdateRotation(class InputManager& input, float deltaTime);
+	void UpdateMoveDirection(class InputManager& input);
+	void PlayerTriggerDash();
+	void PlayerDash(float deltaTime);
 	void PlayerShoot();
 	void PlayerReload(int cnt);
 	void PlayerDeadEyeStart();

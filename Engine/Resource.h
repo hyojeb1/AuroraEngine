@@ -705,8 +705,8 @@ struct Skeleton
 
 struct AnimationClip
 {
-	static constexpr float DEFAULT_FPS = 24.0f;
 	std::string name = {};
+	static constexpr float DEFAULT_FPS = 24.0f;
 	float duration = 0.0f;
 	float ticks_per_second = 0.f; // 틱 준비
 	std::unordered_map<std::string, BoneAnimationChannel> channels = {};
@@ -738,7 +738,7 @@ enum class ModelType
 {
 	Static,
 	Skinned,
-	//Rigid,//마인크래프트
+	Rigid,
 	Count
 };
 
