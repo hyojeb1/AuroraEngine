@@ -395,7 +395,7 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
-		cerr << "모델 로드 실패: " << importer.GetErrorString() << endl;
+		cerr << "모델 " << fullPath << " 로드 실패 : " << importer.GetErrorString() << endl;
 		exit(EXIT_FAILURE);
 	}
 
