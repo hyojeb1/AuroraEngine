@@ -22,6 +22,7 @@ class Player : public GameObjectBase
 
 	DirectX::XMVECTOR m_inputDirection = {};
 	DirectX::XMVECTOR m_normalizedMoveDirection = {};
+	DirectX::XMFLOAT3 m_playerRotation = {}; // 쿼터니언 각으로 변환하지 않는 회전 각도
 	float m_moveSpeed = 5.0f;
 
 	class CameraComponent* m_cameraComponent = nullptr;
@@ -71,6 +72,7 @@ private:
 	void Render() override;
 	void Finalize() override;
 
+	void UpdateRotation(class InputManager& input, float deltaTime);
 	void UpdateMoveDirection(class InputManager& input);
 	void PlayerTriggerDash();
 	void PlayerDash(float deltaTime);

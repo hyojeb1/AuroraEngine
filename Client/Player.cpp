@@ -22,6 +22,8 @@ using namespace DirectX;
 
 void Player::Initialize()
 {
+	XMStoreFloat3(&m_playerRotation, GetRotation());
+
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 	m_lineVertexBufferAndShader = resourceManager.GetVertexShaderAndInputLayout("VSLine.hlsl");
 	m_linePixelShader = resourceManager.GetPixelShader("PSColor.hlsl");
@@ -50,6 +52,8 @@ void Player::Update()
 	auto& sm = SoundManager::GetInstance();
 	InputType inputType = sm.CheckRhythm(0.1f);
 
+
+	UpdateRotation(input, deltaTime);
 	UpdateMoveDirection(input);
 
 	if (inputType < InputType::Miss)
@@ -105,20 +109,25 @@ void Player::Finalize()
 	TimeManager::GetInstance().SetTimeScale(1.0f);
 }
 
-void Player::UpdateMoveDirection(InputManager& input)
+void Player::UpdateRotation(InputManager& input, float deltaTime)
 {
 	const POINT& mouseDelta = input.GetMouseDelta();
-	const XMVECTOR& currentRotation = GetRotation();
 
-	float pitch = XMVectorGetX(currentRotation) + static_cast<float>(mouseDelta.y) * m_cameraSensitivity;
-	float yaw = XMVectorGetY(currentRotation) + static_cast<float>(mouseDelta.x) * m_cameraSensitivity;
+	m_playerRotation.x += static_cast<float>(mouseDelta.y) * m_cameraSensitivity;
+	m_playerRotation.y += static_cast<float>(mouseDelta.x) * m_cameraSensitivity;
 
 	constexpr float LIMIT = 90.0f - 1.0f;
-	if (pitch > LIMIT) pitch = LIMIT;
-	if (pitch < -LIMIT) pitch = -LIMIT;
+	if (m_playerRotation.x > LIMIT) m_playerRotation.x = LIMIT;
+	if (m_playerRotation.x < -LIMIT) m_playerRotation.x = -LIMIT;
 
-	SetRotation({ pitch, yaw, 0.0f, 0.0f });
+	SetRotation({ m_playerRotation.x, m_playerRotation.y, 0.0f, 0.0f });
 
+	m_playerRotation.z = lerp(m_playerRotation.z, 0.0f, deltaTime * 5.0f);
+	Rotate({ 0.0f, 0.0f, m_playerRotation.z, 0.0f });
+}
+
+void Player::UpdateMoveDirection(InputManager& input)
+{
 	m_inputDirection =
 	{
 		static_cast<float>(input.GetKey(KeyCode::D)) - static_cast<float>(input.GetKey(KeyCode::A)),
@@ -127,7 +136,7 @@ void Player::UpdateMoveDirection(InputManager& input)
 		0.0f
 	};
 
-	XMVECTOR yawQuaternion = XMQuaternionRotationRollPitchYaw(0.0f, yaw * DEG_TO_RAD, 0.0f);
+	XMVECTOR yawQuaternion = XMQuaternionRotationRollPitchYaw(0.0f, m_playerRotation.y * DEG_TO_RAD, 0.0f);
 	m_normalizedMoveDirection = XMVector3Normalize(XMVector3Rotate(m_inputDirection, yawQuaternion));
 }
 
@@ -138,8 +147,13 @@ void Player::PlayerTriggerDash()
 	m_isDashing = true;
 	m_dashTimer = m_kDashDuration;
 	m_dashDirection = m_normalizedMoveDirection;
+	const float inputX = XMVectorGetX(XMVector3Normalize(m_inputDirection));
 
-	SceneBase::SetRadialBlurCenter({ XMVectorGetX(m_normalizedMoveDirection) * 0.5f + 0.5f, 0.5f });
+	// 카메라 회전
+	m_playerRotation.z = -10.0f * inputX;
+
+	// Radial Blur 설정
+	SceneBase::SetRadialBlurCenter({ inputX * 0.5f + 0.5f, 0.5f });
 	SceneBase::SetRadialBlurDist(0.33f);
 	SceneBase::SetRadialBlurStrength(1.7f);
 	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::RadialBlur, true);
@@ -156,8 +170,6 @@ void Player::PlayerDash(float deltaTime)
 	float t = 1.0f - (m_dashTimer / m_kDashDuration); // 0->1
 	float smooth = t * t * (3.0f - 2.0f * t); // smoothstep
 	SceneBase::SetRadialBlurStrength(8.0f * (1.0f - smooth)); // 점점 약해짐
-
-	// 카메라 회전
 
 	if (m_dashTimer <= 0.0f)
 	{
