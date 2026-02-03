@@ -72,8 +72,8 @@ private:
 	void Finalize() override;
 
 	void UpdateMoveDirection(class InputManager& input);
-	void PlayerTriggerDash(class InputManager& input);
-	void PlayerDash(float deltaTime, class InputManager& input);
+	void PlayerTriggerDash();
+	void PlayerDash(float deltaTime);
 	void PlayerShoot();
 	void PlayerReload(int cnt);
 	void PlayerDeadEyeStart();

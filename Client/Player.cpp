@@ -48,19 +48,24 @@ void Player::Update()
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	InputManager& input = InputManager::GetInstance();
 	auto& sm = SoundManager::GetInstance();
+	InputType inputType = sm.CheckRhythm(0.1f);
 
 	UpdateMoveDirection(input);
 
-	if (input.GetKeyDown(KeyCode::Space) && !m_isDashing && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerTriggerDash(input);
+	if (inputType < InputType::Miss)
+	{
+		if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && inputType < InputType::Miss) PlayerShoot();
+		if (!m_isDashing && input.GetKeyDown(KeyCode::Space) && inputType < InputType::Miss) PlayerTriggerDash();
+		if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && inputType < InputType::Miss) PlayerDeadEyeStart();
+	}
 
-	if (m_isDashing) PlayerDash(deltaTime, input);
+	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime, input);
+	if (m_isDashing) PlayerDash(deltaTime);
 	else MovePosition(m_normalizedMoveDirection * m_moveSpeed * deltaTime); // 일반 움직임
 
-	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerShoot();
-	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerDeadEyeStart();
 	if (input.GetKeyDown(KeyCode::R))
 	{
-		switch (sm.CheckRhythm(0.1f))
+		switch (inputType)
 		{
 		case InputType::Early:
 			PlayerReload(1);
@@ -73,8 +78,6 @@ void Player::Update()
 			break;
 		}
 	}
-
-	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime, input);
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
 	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();
@@ -128,7 +131,7 @@ void Player::UpdateMoveDirection(InputManager& input)
 	m_normalizedMoveDirection = XMVector3Normalize(XMVector3Rotate(m_inputDirection, yawQuaternion));
 }
 
-void Player::PlayerTriggerDash(InputManager& input)
+void Player::PlayerTriggerDash()
 {
 	if (XMVector3LengthSq(m_normalizedMoveDirection).m128_f32[0] <= numeric_limits<float>::epsilon()) return;
 
@@ -144,7 +147,7 @@ void Player::PlayerTriggerDash(InputManager& input)
 	// 사운드 여기다 넣아야 함
 }
 
-void Player::PlayerDash(float deltaTime, InputManager& input)
+void Player::PlayerDash(float deltaTime)
 {
 	m_dashTimer -= deltaTime;
 	MovePosition(m_dashDirection * m_kDashSpeed * deltaTime);
@@ -162,7 +165,6 @@ void Player::PlayerDash(float deltaTime, InputManager& input)
 		SceneBase::SetRadialBlurStrength(0.0f);
 		SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::RadialBlur, false);
 	}
-
 }
 
 void Player::PlayerShoot()
