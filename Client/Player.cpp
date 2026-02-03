@@ -116,9 +116,13 @@ void Player::UpdateMoveDirection(InputManager& input)
 
 	SetRotation({ pitch, yaw, 0.0f, 0.0f });
 
-	m_inputDirection = XMVectorZero();
-	XMVectorSetZ(m_inputDirection, static_cast<float>(input.GetKey(KeyCode::W)) - static_cast<float>(input.GetKey(KeyCode::S)));
-	XMVectorSetX(m_inputDirection, static_cast<float>(input.GetKey(KeyCode::D)) - static_cast<float>(input.GetKey(KeyCode::A)));
+	m_inputDirection =
+	{
+		static_cast<float>(input.GetKey(KeyCode::D)) - static_cast<float>(input.GetKey(KeyCode::A)),
+		0.0f,
+		static_cast<float>(input.GetKey(KeyCode::W)) - static_cast<float>(input.GetKey(KeyCode::S)),
+		0.0f
+	};
 
 	XMVECTOR yawQuaternion = XMQuaternionRotationRollPitchYaw(0.0f, yaw * DEG_TO_RAD, 0.0f);
 	m_normalizedMoveDirection = XMVector3Normalize(XMVector3Rotate(m_inputDirection, yawQuaternion));
@@ -126,13 +130,11 @@ void Player::UpdateMoveDirection(InputManager& input)
 
 void Player::PlayerTriggerDash(InputManager& input)
 {
+	if (XMVector3LengthSq(m_normalizedMoveDirection).m128_f32[0] <= numeric_limits<float>::epsilon()) return;
+
 	m_isDashing = true;
 	m_dashTimer = m_kDashDuration;
 	m_dashDirection = m_normalizedMoveDirection;
-
-	XMFLOAT2 blurCenter = { XMVectorGetX(m_normalizedMoveDirection) * 0.5f + 0.5f, 0.5f };
-
-
 
 	SceneBase::SetRadialBlurCenter({ XMVectorGetX(m_normalizedMoveDirection) * 0.5f + 0.5f, 0.5f });
 	SceneBase::SetRadialBlurDist(0.33f);
@@ -146,10 +148,10 @@ void Player::PlayerDash(float deltaTime, InputManager& input)
 {
 	m_dashTimer -= deltaTime;
 	MovePosition(m_dashDirection * m_kDashSpeed * deltaTime);
-	if (m_dashTimer <= 0.0f) { m_isDashing = false; }
+	if (m_dashTimer <= 0.0f) m_isDashing = false;
 
 	float t = 1.0f - (m_dashTimer / m_kDashDuration); // 0->1
-	float smooth = t * t * (3.0f - 2.0f * t);         // smoothstep
+	float smooth = t * t * (3.0f - 2.0f * t); // smoothstep
 	SceneBase::SetRadialBlurStrength(8.0f * (1.0f - smooth)); // 점점 약해짐
 
 	// 카메라 회전
