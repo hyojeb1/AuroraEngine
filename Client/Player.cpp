@@ -175,10 +175,8 @@ void Player::PlayerShoot()
 	--m_bulletCnt;
 	SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Shoot);
 
-	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
-
-	const XMVECTOR& origin = mainCamera.GetPosition();
-	const XMVECTOR& direction = mainCamera.GetForwardVector();
+	const XMVECTOR& origin = GetPosition();
+	const XMVECTOR& direction = GetWorldDirectionVector(Direction::Forward);
 	float distance = 0.0f;
 	GameObjectBase* hit = ColliderComponent::CheckCollision(origin, direction, distance);
 	const XMVECTOR& hitPosition = XMVectorAdd(origin, XMVectorScale(direction, distance));
@@ -231,8 +229,7 @@ void Player::PlayerDeadEyeStart()
 	float halfWidth = static_cast<float>(swapChainDesc.Width) * 0.5f;
 	float halfHeight = static_cast<float>(swapChainDesc.Height) * 0.5f;
 
-	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
-	vector<GameObjectBase*> hits = ColliderComponent::CheckCollision(mainCamera.GetBoundingFrustum());
+	vector<GameObjectBase*> hits = ColliderComponent::CheckCollision(m_cameraComponent->GetBoundingFrustum());
 	if (hits.empty()) return;
 
 	bool hasEnemy = false;
@@ -243,12 +240,12 @@ void Player::PlayerDeadEyeStart()
 		{
 			// 사이에 장애물이 있는지 확인
 			float distance = 0.0f;
-			const XMVECTOR& origin = mainCamera.GetPosition();
+			const XMVECTOR& origin = GetPosition();
 			const XMVECTOR& targetPos = XMVectorAdd(enemy->GetWorldPosition(), { 0.0f, 1.0f, 0.0f, 0.0f }); // 적 충심이 y = 0.0f여서 약간 올림
 			if (!dynamic_cast<Enemy*>(ColliderComponent::CheckCollision(origin, XMVectorSubtract(targetPos, origin), distance))) continue;
 
 			hasEnemy = true;
-			XMFLOAT2 distancePair = mainCamera.WorldToScreenPosition(targetPos);
+			XMFLOAT2 distancePair = m_cameraComponent->WorldToScreenPosition(targetPos);
 			m_deadEyeTargets.emplace_back(powf(distancePair.x - halfWidth, 2) + powf(distancePair.y - halfHeight, 2), enemy);
 		}
 	}
@@ -264,7 +261,7 @@ void Player::PlayerDeadEyeStart()
 
 		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
 		if (m_deadEyeTargets.size() > 6) m_deadEyeTargets.resize(6);
-		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [&](const auto& a, const auto& b) { return mainCamera.WorldToScreenPosition(a.second->GetWorldPosition()).x > mainCamera.WorldToScreenPosition(b.second->GetWorldPosition()).x; });
+		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [&](const auto& a, const auto& b) { return m_cameraComponent->WorldToScreenPosition(a.second->GetWorldPosition()).x > m_cameraComponent->WorldToScreenPosition(b.second->GetWorldPosition()).x; });
 
 		SoundManager::GetInstance().ChangeLowpass();
 
@@ -273,7 +270,7 @@ void Player::PlayerDeadEyeStart()
 		m_deadEyeTotalDuration = static_cast<float>(m_DeadEyeCount) * 0.5f;
 		m_deadEyeDuration = 0.0f;
 
-		m_prevDeadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(m_deadEyeTargets.back().second->GetWorldPosition());
+		m_prevDeadEyePos = m_cameraComponent->WorldToScreenPosition(m_deadEyeTargets.back().second->GetWorldPosition());
 		m_nextDeadEyePos = m_prevDeadEyePos;
 	}
 }
@@ -290,11 +287,11 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 	{
 		const XMVECTOR& targetPos = m_deadEyeTargets.back().second->GetWorldPosition();
 
-		m_prevDeadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(targetPos);
+		m_prevDeadEyePos = m_cameraComponent->WorldToScreenPosition(targetPos);
 		m_deadEyeTargets.back().second->Die();
 		if (m_deadEyeTargets.size() > 1)
 		{
-			m_nextDeadEyePos = CameraComponent::GetMainCamera().WorldToScreenPosition(m_deadEyeTargets[m_deadEyeTargets.size() - 2].second->GetWorldPosition());
+			m_nextDeadEyePos = m_cameraComponent->WorldToScreenPosition(m_deadEyeTargets[m_deadEyeTargets.size() - 2].second->GetWorldPosition());
 			m_deadEyeMoveTimer = 0.0f;
 		}
 		else m_nextDeadEyePos = m_prevDeadEyePos;
