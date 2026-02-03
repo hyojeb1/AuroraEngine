@@ -123,6 +123,7 @@ private:
 	std::unordered_map<std::string, FMOD::Sound*> UI_List;
 
 	std::string m_CurrentTrackName{};
+	std::string m_CurrentNodeDataName{};
 
 	size_t m_rhythmTimerIndex = 0;	//raw time
 	size_t m_rhythmUIIndex = 0;

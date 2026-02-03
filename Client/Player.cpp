@@ -49,15 +49,32 @@ void Player::Update()
 	InputManager& input = InputManager::GetInstance();
 	auto& sm = SoundManager::GetInstance();
 
-	if (input.GetKeyDown(KeyCode::Space) && !m_isDashing && sm.CheckRhythm(0.1f) < InputType::Miss) { PlayerTriggerDash(input); }
+//Move
+	if (input.GetKeyDown(KeyCode::Space) && !m_isDashing && sm.CheckRhythm(0.2f) < InputType::Miss) { PlayerTriggerDash(input); }
 	if (m_isDashing) { PlayerDash(deltaTime, input); }
 	else { PlayerMove(deltaTime, input); }
+//Move end
 
-	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f) < InputType::Miss) { PlayerShoot(); };
-	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerDeadEyeStart();
+
+//shoot
+	if (m_bulletCnt > 0)
+	{
+		if (input.GetKeyDown(KeyCode::MouseLeft) && sm.CheckRhythm(0.2f) < InputType::Miss)
+		{
+			PlayerShoot();
+		};
+	}
+	else
+	{
+		
+	}
+//shoot end
+
+
+//Reload
 	if (input.GetKeyDown(KeyCode::R))
 	{
-		switch (sm.CheckRhythm(0.1f))
+		switch (sm.CheckRhythm(0.2f))
 		{
 		case InputType::Early:
 			PlayerReload(1);
@@ -70,7 +87,10 @@ void Player::Update()
 			break;
 		}
 	}
+//Reload end
 
+
+	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.2f) < InputType::Miss) PlayerDeadEyeStart();
 	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime, input);
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
@@ -152,6 +172,7 @@ void Player::PlayerTriggerDash(InputManager& input)
 	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::RadialBlur, true);
 
 	// 사운드 여기다 넣아야 함
+	SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Dash);
 }
 
 void Player::PlayerDash(float deltaTime, InputManager& input)

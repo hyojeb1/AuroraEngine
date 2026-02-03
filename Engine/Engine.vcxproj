@@ -183,9 +183,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TimeManager.h" />
     <ClInclude Include="TypeRegistry.h" />
-    <ClInclude Include="UIBase.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="UIBase.h" />
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
@@ -214,9 +212,7 @@
     <ClCompile Include="Animator.cpp" />
     <ClCompile Include="TimeManager.cpp" />
     <ClCompile Include="TypeRegistry.cpp" />
-    <ClCompile Include="UIBase.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="UIBase.cpp" />
     <ClCompile Include="WindowManager.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

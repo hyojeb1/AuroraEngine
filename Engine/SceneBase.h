@@ -5,6 +5,8 @@
 #include "DebugCamera.h"
 #endif
 
+#include "UIBase.h"
+
 class SceneBase : public Base
 {
 	#ifdef _DEBUG
@@ -19,7 +21,7 @@ class SceneBase : public Base
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트 포인터
 
 	std::vector<std::unique_ptr<Base>> m_gameObjects = {}; // 게임 오브젝트 배열
-	std::vector<std::unique_ptr<class Button>> m_buttons = {}; // 버튼 배열
+	std::vector<std::unique_ptr<class UIBase>> m_UIList = {}; // 버튼 배열
 
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_skyboxVertexShaderAndInputLayout = {}; // 스카이박스 정점 셰이더
 	com_ptr<ID3D11PixelShader> m_skyboxPixelShader = nullptr; // 스카이박스 픽셀 셰이더
@@ -92,11 +94,12 @@ public:
 	#ifdef _DEBUG
 	void SaveState(); // 현재 상태 저장
 	void Undo(); // 이전 상태로 되돌리기
-	#endif
+	
+#endif
 
 protected:
 	class Button* CreateButton(); // 버튼 생성
-
+	class Panel* CreatePanel();
 private:
 	// 씬 초기화 // 씬 사용 전 반드시 호출해야 함
 	void BaseInitialize() override;
@@ -147,59 +150,3 @@ inline T* SceneBase::CreateRootGameObject()
 
 	return gameObjectPtr;
 }
-
-class Button
-{
-	enum class ButtonState
-	{
-		Idle,
-		Hoverd,
-		Pressed,
-		Clicked
-	};
-
-	std::string ToString(ButtonState type)
-	{
-		switch (type)
-		{
-		case ButtonState::Idle: return "Idle";
-		case ButtonState::Hoverd:  return "Hoverd";
-		case ButtonState::Pressed:  return "Pressed";
-		case ButtonState::Clicked: return "Clicked";
-		}
-	}
-
-	bool m_isActive = true;
-
-	ButtonState m_ButtonState;
-
-	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_textureIdle = {};
-	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_textureHoverd = {};
-	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_texturePressed = {};
-	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_textureClicked = {};
-
-	DirectX::XMFLOAT2 m_UIPosition = {};
-	float m_scale = 1.0f;
-	DirectX::XMVECTOR m_color = { 1.0f, 1.0f, 1.0f, 1.0f };
-	float m_depth = 0.0f;
-
-	RECT m_buttonRect = {};
-
-	std::function<void()> m_onClick = nullptr;
-
-public:
-	void SetActive(bool isActive) { m_isActive = isActive; }
-	void SetTextureAndOffset(const std::string& idle, const std::string& hoverd, const std::string& pressed); //overroad
-	void SetTextureAndOffset(const std::string& idle, const std::string& hoverd, const std::string& pressed, const std::string& clicked);
-	void SetUIPosition(const DirectX::XMFLOAT2& position) { m_UIPosition = position; UpdateRect(); }
-	void SetScale(float scale) { m_scale = scale; UpdateRect(); }
-	void SetColor(const DirectX::XMVECTOR& color) { m_color = color; }
-	void SetDepth(float depth) { m_depth = depth; }
-	void SetOnClick(const std::function<void()>& onClick) { m_onClick = onClick; }
-
-	void RenderButton(class Renderer& renderer);
-	void CheckInput(const POINT& mousePosition, bool isMouseClicked, bool isMousePressed);
-
-private:
-	void UpdateRect();
-};

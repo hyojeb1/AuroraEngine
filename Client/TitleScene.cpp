@@ -4,6 +4,8 @@
 #include "SceneManager.h"
 #include "CameraComponent.h"
 
+#include "UIBase.h"
+
 REGISTER_TYPE(TitleScene);
 
 void TitleScene::Initialize()
@@ -14,23 +16,23 @@ void TitleScene::Initialize()
 
 	Button* startButton = CreateButton();
 	startButton->SetTextureAndOffset("IDLE.png", "HOVERD.png", "PRESSED.png", "CLICKED.png");
-	startButton->SetUIPosition({ buttonX, 0.3f });
+	startButton->SetLocalPosition({ buttonX, 0.3f });
 	startButton->SetOnClick([]() { SceneManager::GetInstance().ChangeScene("TestScene"); });
 	startButton->SetScale(0.3f);
 
 	Button* optionButton = CreateButton();
 	optionButton->SetTextureAndOffset("IDLE.png", "HOVERD.png", "PRESSED.png", "CLICKED.png");
-	optionButton->SetUIPosition({ buttonX, 0.5f });
+	optionButton->SetLocalPosition({ buttonX, 0.5f });
 	optionButton->SetScale(0.3f);
 
 	Button* creditbutton = CreateButton();
 	creditbutton->SetTextureAndOffset("IDLE.png", "HOVERD.png", "PRESSED.png", "CLICKED.png");
-	creditbutton->SetUIPosition({ buttonX, 0.7f });
+	creditbutton->SetLocalPosition({ buttonX, 0.7f });
 	creditbutton->SetScale(0.3f);
 
 	Button* exitbutton = CreateButton();
 	exitbutton->SetTextureAndOffset("IDLE.png", "HOVERD.png", "PRESSED.png", "CLICKED.png");
-	exitbutton->SetUIPosition({ buttonX, 0.9f });
+	exitbutton->SetLocalPosition({ buttonX, 0.9f });
 	exitbutton->SetScale(0.3f);
 }
 

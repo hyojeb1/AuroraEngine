@@ -71,6 +71,9 @@ void SoundManager::Initialize()
 		m_lowpass->setParameterFloat(FMOD_DSP_LOWPASS_CUTOFF, 22000.0f);
 		m_BGMChannel1->addDSP(0, m_lowpass);
 
+		m_CurrentTrackName = "";
+		m_CurrentNodeDataName = "";
+
 		m_CoreSystem->update();
 	}
 }
@@ -86,6 +89,9 @@ void SoundManager::Update()
 	UpdateUINodeDestroyed();
 	ConsumeNodeGenerated();
 	ConsumeNodeDestroyed();
+
+	FMOD::ChannelGroup* master;
+	m_CoreSystem->getMasterChannelGroup(&master);
 
 	//std::cout << m_rhythmTimerIndex << " : index "
 	//	<< m_NodeData[m_rhythmTimerIndex].first << " : startTime "
@@ -486,8 +492,8 @@ void SoundManager::LoadNodeData()
 
 void SoundManager::UpdateNodeIndex() //raw time
 {
-	if (m_rhythmTimerIndex < m_NodeData[m_CurrentTrackName].size() &&
-		m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].second + m_RhythmOffSet < GetCurrentPlaybackTime())
+	if (m_rhythmTimerIndex < m_NodeData[m_CurrentNodeDataName].size() &&
+		m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + m_RhythmOffSet < GetCurrentPlaybackTime())
 	{
 		m_rhythmTimerIndex++;
 
@@ -497,8 +503,8 @@ void SoundManager::UpdateNodeIndex() //raw time
 
 void SoundManager::UpdateUINodeIndexAndGenerated()
 {
-	if (m_rhythmUIIndex < m_NodeData[m_CurrentTrackName].size() &&
-		m_NodeData[m_CurrentTrackName][m_rhythmUIIndex].first < GetCurrentPlaybackTime())
+	if (m_rhythmUIIndex < m_NodeData[m_CurrentNodeDataName].size() &&
+		m_NodeData[m_CurrentNodeDataName][m_rhythmUIIndex].first < GetCurrentPlaybackTime())
 	{
 		m_rhythmUIIndex++;
 		m_OnNodeGenerated = true;
@@ -509,24 +515,24 @@ void SoundManager::UpdateUINodeIndexAndGenerated()
 
 InputType SoundManager::CheckRhythm(float correction)
 {
-	if (m_CurrentTrackName.empty() || m_CurrentTrackName == "") return InputType::Fatal;
+	if (m_CurrentNodeDataName.empty() || m_CurrentNodeDataName == "") return InputType::Fatal;
 
 	const float time = GetCurrentPlaybackTime();
 
 	// c - s < time > s = ealry
-	if (m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].first - correction + m_RhythmOffSet < time && m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].first + m_RhythmOffSet > time)
+	if (m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first - correction + m_RhythmOffSet < time && m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first + m_RhythmOffSet > time)
 	{
 		std::cout << "Ealry!" << std::endl;
 		return InputType::Early;
 	}
 	// s < time > e  = perfect
-	else if (m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].first + m_RhythmOffSet < time && m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].second + m_RhythmOffSet > time)
+	else if (m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first + m_RhythmOffSet < time && m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + m_RhythmOffSet > time)
 	{
 		std::cout << "Perfect" << std::endl;
 		return InputType::Perfect;
 	}
 	// e < time > e + c = late
-	else if (m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].second + m_RhythmOffSet < time && m_NodeData[m_CurrentTrackName][m_rhythmTimerIndex].second + correction + m_RhythmOffSet > time)
+	else if (m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + m_RhythmOffSet < time && m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + correction + m_RhythmOffSet > time)
 	{
 		std::cout << "late" << std::endl;
 		return InputType::Late;
@@ -541,9 +547,9 @@ InputType SoundManager::CheckRhythm(float correction)
 
 void SoundManager::UpdateUINodeDestroyed()
 {
-	if (m_CurrentTrackName.empty() || m_CurrentTrackName == "" && m_rhythmDestroyIndex < m_NodeData[m_CurrentTrackName].size()) return;
+	if (m_CurrentNodeDataName.empty() || m_CurrentNodeDataName == "" && m_rhythmDestroyIndex < m_NodeData[m_CurrentNodeDataName].size()) return;
 
-	if (m_NodeData[m_CurrentTrackName][m_rhythmDestroyIndex].first + m_RhythmOffSet < GetCurrentPlaybackTime())
+	if (m_NodeData[m_CurrentNodeDataName][m_rhythmDestroyIndex].first + m_RhythmOffSet < GetCurrentPlaybackTime())
 	{
 		static int cnt = 0;
 
@@ -558,11 +564,12 @@ void SoundManager::Main_BGM_Shot(const std::string filename,float delay)
 	auto it = BGM_List.find(filename);
 	if (it == BGM_List.end())
 	{
-		std::cerr << "Cannot play: invalid track name." << std::endl;
+		std::cerr << "Cannot play: invalid track name." << it->first << " : " << filename << std::endl;
 		CheckResult(-1, "invalid track name");
 	}
 
-	m_CurrentTrackName = it->first;// +"_Beat";
+	m_CurrentTrackName = it->first;
+	m_CurrentNodeDataName = it->first + "_Beat";
 	m_rhythmTimerIndex = 0;
 	m_rhythmUIIndex = 0;
 	m_rhythmDestroyIndex = 0;
@@ -583,6 +590,7 @@ void SoundManager::Main_BGM_Shot(const std::string filename,float delay)
 	m_BGMChannel1->setDelay(nowDSP + delaySamples, 0, false);
 
 	m_BGMChannel1->setPaused(false);
+	m_BGMChannel1->setVolume(m_Volume_BGM);
 }
 
 void SoundManager::Sub_BGM_Shot(const std::string filename, float delay)
@@ -622,6 +630,11 @@ void SoundManager::SFX_Shot(const DirectX::XMVECTOR pos, const std::string filen
 		FMOD_VECTOR tempPos = ToFMOD(pos);
 		FMOD_VECTOR vel{ 0,0,0 };
 		pChannel->set3DAttributes(&tempPos, &vel);
+	}
+	else
+	{
+		std::cout << "Not Found SFX FileName : " << filename << std::endl;
+		return;
 	}
 }
 
