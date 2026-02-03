@@ -1,72 +1,51 @@
 {
     "childGameObjects": [
         {
-            "childGameObjects": [
-                {
-                    "childGameObjects": [],
-                    "components": [
-                        {
-                            "blendState": 0,
-                            "materialFactorData": {
-                                "ambientOcclusionFactor": 1.0,
-                                "baseColorFactor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "emissionFactor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "metallicFactor": 1.0,
-                                "normalScale": 1.0,
-                                "roughnessFactor": 1.0
-                            },
-                            "modelFileName": "box.fbx",
-                            "psShaderName": "PSModel.hlsl",
-                            "rasterState": 1,
-                            "type": "ModelComponent",
-                            "vsShaderName": "VSModel.hlsl"
-                        }
-                    ],
-                    "name": "Gun",
-                    "position": [
-                        0.44999998807907104,
-                        -0.4000000059604645,
-                        2.299999952316284,
-                        0.0
-                    ],
-                    "rotation": [
-                        0.0,
-                        0.0,
-                        0.0,
-                        1.0
-                    ],
-                    "scale": [
-                        0.10000000149011612,
-                        0.09000000357627869,
-                        0.38999998569488525,
-                        1.0
-                    ],
-                    "type": "GameObjectBase"
-                }
-            ],
+            "childGameObjects": [],
             "components": [
                 {
-                    "farZ": 1000.0,
-                    "fovY": 0.7853981852531433,
-                    "nearZ": 0.10000000149011612,
-                    "type": "CameraComponent"
+                    "NoiseIndex": 0,
+                    "blendState": 0,
+                    "materialFactorData": {
+                        "DissolveEdgeColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "DissolveEdgeIntensity": 1.0,
+                        "DissolveEdgeWidth": 1.0,
+                        "DissolvePadding": 1.0,
+                        "DissolveThreshold": 0.20000000298023224,
+                        "ambientOcclusionFactor": 1.0,
+                        "baseColorFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "emissionFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "metallicFactor": 1.0,
+                        "normalScale": 1.0,
+                        "roughnessFactor": 1.0
+                    },
+                    "modelFileName": "box.fbx",
+                    "psShaderName": "PSModel.hlsl",
+                    "rasterState": 1,
+                    "type": "ModelComponent",
+                    "vsShaderName": "VSModel.hlsl"
                 }
             ],
-            "name": "CamRotObject_2",
+            "name": "Gun",
             "position": [
-                0.0,
-                1.7000000476837158,
-                0.0,
+                0.44999998807907104,
+                -0.4000000059604645,
+                2.299999952316284,
                 0.0
             ],
             "rotation": [
@@ -76,17 +55,23 @@
                 1.0
             ],
             "scale": [
-                1.0,
-                1.0,
-                1.0,
+                0.10000000149011612,
+                0.09000000357627869,
+                0.38999998569488525,
                 1.0
             ],
-            "type": "CamRotObject"
+            "type": "GameObjectBase"
         }
     ],
     "components": [
         {
             "type": "CrossHairAndNode"
+        },
+        {
+            "farZ": 1000.0,
+            "fovY": 0.7853981852531433,
+            "nearZ": 0.10000000149011612,
+            "type": "CameraComponent"
         }
     ],
     "name": "Player",
