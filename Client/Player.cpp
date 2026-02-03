@@ -142,7 +142,7 @@ void Player::UpdateMoveDirection(InputManager& input)
 
 void Player::PlayerTriggerDash()
 {
-	if (XMVector3LengthSq(m_normalizedMoveDirection).m128_f32[0] <= numeric_limits<float>::epsilon()) return;
+	if (XMVectorGetX(XMVector3LengthSq(m_normalizedMoveDirection)) <= numeric_limits<float>::epsilon()) return;
 
 	m_isDashing = true;
 	m_dashTimer = m_kDashDuration;
