@@ -1,5 +1,7 @@
 #pragma once
 
+
+
 class ScoreManager : public Singleton<ScoreManager>
 {
 	friend class Singleton<ScoreManager>;
@@ -17,7 +19,8 @@ public:
     void OnPlayerHit();         // 피격 시 호출 (배율 하락)
     void OnRhythmMiss();        // 리듬 미스 시 호출 (스택 초기화)
     void Update(float dt);      // 점수 차감 로직 처리
+    void Reset();
 
-    int GetScore() { return currentScore; }
-    int GetMultiplier() { return multiplier; }
+    const int GetScore() { return currentScore; }
+    const int GetMultiplier() { return multiplier; }
 };

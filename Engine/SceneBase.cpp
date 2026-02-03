@@ -11,6 +11,7 @@
 #include "ModelComponent.h"
 #include "InputManager.h"
 #include "SceneManager.h"
+#include "ScoreManager.h"
 
 
 using namespace std;

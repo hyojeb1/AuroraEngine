@@ -12,11 +12,33 @@
         0.5213324427604675,
         1.0
     ],
-    "navPolyIndices": [],
-    "navVertices": [],
+    "navPolyIndices": [
+        [
+            0,
+            1,
+            2
+        ]
+    ],
+    "navVertices": [
+        [
+            1.638338565826416,
+            0.0,
+            4.247105598449707
+        ],
+        [
+            3.638338565826416,
+            0.0,
+            4.247105598449707
+        ],
+        [
+            2.638338565826416,
+            0.0,
+            6.247105598449707
+        ]
+    ],
     "postProcessing": {
-        "bloomIntensity": 1.0,
-        "flags": 0,
+        "bloomIntensity": 10.0,
+        "flags": 33,
         "gammaIntensity": 1.0,
         "grayScaleIntensity": 0.0,
         "lutLerpFactor": 0.0,
@@ -34,6 +56,68 @@
         ]
     },
     "rootGameObjects": [
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "NoiseIndex": 0,
+                    "blendState": 0,
+                    "materialFactorData": {
+                        "DissolveEdgeColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "DissolveEdgeIntensity": 1.0,
+                        "DissolveEdgeWidth": 1.0,
+                        "DissolvePadding": 1.0,
+                        "DissolveThreshold": 0.20000000298023224,
+                        "ambientOcclusionFactor": 1.0,
+                        "baseColorFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "emissionFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "metallicFactor": 1.0,
+                        "normalScale": 5.0,
+                        "roughnessFactor": 1.0
+                    },
+                    "modelFileName": "Sand.fbx",
+                    "psShaderName": "PSModel.hlsl",
+                    "rasterState": 1,
+                    "type": "ModelComponent",
+                    "vsShaderName": "VSModel.hlsl"
+                }
+            ],
+            "name": "GameObjectBase_1",
+            "position": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+            ],
+            "scale": [
+                100.0,
+                1.0,
+                100.0,
+                1.0
+            ],
+            "type": "GameObjectBase"
+        },
         {
             "childGameObjects": [
                 {
@@ -195,27 +279,27 @@
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",
-                    "vsShaderName": "VSModelSkinAnim.hlsl"
+                    "vsShaderName": "VSModel.hlsl"
                 }
             ],
             "name": "GameObjectBase_4",
             "position": [
                 0.0,
+                1.2223339080810547,
                 0.0,
-                0.0,
-                0.0
+                1.0
             ],
             "rotation": [
+                -0.0,
                 0.0,
-                0.0,
-                0.0,
+                -0.0,
                 1.0
             ],
             "scale": [
                 1.0,
                 1.0,
                 1.0,
-                1.0
+                0.0
             ],
             "type": "GameObjectBase"
         }

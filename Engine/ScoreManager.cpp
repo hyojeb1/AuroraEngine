@@ -5,7 +5,7 @@
 namespace
 {
 	constexpr int kBaseScore = 100;
-	constexpr int kChainKillBonus = 50; // TODO: confirm desired bonus value
+	constexpr int kChainKillBonus = 50; // 임의 
 	constexpr float kChainKillWindowSec = 2.0f;
 	constexpr int kKillsPerLevel = 10;
 	constexpr int kMaxMultiplier = 8;
@@ -33,11 +33,9 @@ void ScoreManager::AddKill()
 	const int gained = (kBaseScore + bonus) * multiplier;
 	currentScore += gained;
 
-	if (multiplier < kMaxMultiplier)
-	{
+	if (multiplier < kMaxMultiplier){
 		++killCountForNextLevel;
-		if (killCountForNextLevel >= kKillsPerLevel)
-		{
+		if (killCountForNextLevel >= kKillsPerLevel){
 			if (multiplier == 1) multiplier = 2;
 			else if (multiplier == 2) multiplier = 4;
 			else if (multiplier == 4) multiplier = 8;
@@ -81,4 +79,13 @@ void ScoreManager::Update(float dt)
 			break;
 		}
 	}
+}
+
+void ScoreManager::Reset() {
+	currentScore = 0;
+	multiplier = 1;
+	killCountForNextLevel = 0;
+	lastKillTime = 0.0f;
+	isCombatStarted = false;
+	decayTimer = 0.0f;
 }
