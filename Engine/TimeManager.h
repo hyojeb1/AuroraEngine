@@ -26,7 +26,7 @@ public:
 
 	void SetTimeScale(float timeScale) { m_timeScale = timeScale; }
 	// 델타 타임 얻기
-	float GetDeltaTime() const { return m_deltaTime; }
+	float& GetDeltaTime() { return m_deltaTime; }
 	float GetTotalTime() const { return m_totalTime; }
 	float GetNSDeltaTime() const { return m_deltaNoneScaleTime; }
 private:

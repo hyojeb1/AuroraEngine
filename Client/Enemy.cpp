@@ -11,6 +11,7 @@
 #include "SceneBase.h"
 #include "NavigationManager.h"
 #include "RNG.h"
+#include "ScoreManager.h"
 
 REGISTER_TYPE(Enemy)
 
@@ -39,6 +40,8 @@ void Enemy::Die()
 	if (m_collider) m_collider->SetAlive(false);
 
 	if (m_fsm) m_fsm->ChangeState(FSMComponentEnemy::EDead);
+	
+	ScoreManager::GetInstance().AddKill();
 }
 
 void Enemy::Update()

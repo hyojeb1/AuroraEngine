@@ -522,24 +522,25 @@ InputType SoundManager::CheckRhythm(float correction)
 	// c - s < time > s = ealry
 	if (m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first - correction + m_RhythmOffSet < time && m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first + m_RhythmOffSet > time)
 	{
-		std::cout << "Ealry!" << std::endl;
+		//std::cout << "Ealry!" << std::endl;
+		std::cout << "Ealry!\t";
 		return InputType::Early;
 	}
 	// s < time > e  = perfect
 	else if (m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first + m_RhythmOffSet < time && m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + m_RhythmOffSet > time)
 	{
-		std::cout << "Perfect" << std::endl;
+		std::cout << "Perfect\t";
 		return InputType::Perfect;
 	}
 	// e < time > e + c = late
 	else if (m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + m_RhythmOffSet < time && m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + correction + m_RhythmOffSet > time)
 	{
-		std::cout << "late" << std::endl;
+		std::cout << "late\t";
 		return InputType::Late;
 	}
 	else
 	{
-		std::cout << "Miss!" << std::endl;
+		std::cout << "Miss!\t";
 
 		return InputType::Miss;
 	}

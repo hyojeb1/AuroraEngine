@@ -4,6 +4,7 @@
 #include "SceneBase.h"
 #include "Renderer.h"
 #include "TimeManager.h"
+#include "ScoreManager.h"
 
 using namespace std;
 
@@ -27,7 +28,8 @@ void SceneManager::Run()
 
 	TimeManager::GetInstance().UpdateTime();
 
-	m_accumulator += TimeManager::GetInstance().GetDeltaTime();
+	float& dt = TimeManager::GetInstance().GetDeltaTime();
+	m_accumulator += dt;
 
 	int steps = 0;
 	while (m_accumulator >= fixedDt && steps < maxSteps)
@@ -36,6 +38,8 @@ void SceneManager::Run()
 		m_accumulator -= fixedDt;
 		steps++;
 	}
+
+	ScoreManager::GetInstance().Update(dt);
 
 	m_currentScene->BaseUpdate();
 

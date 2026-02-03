@@ -14,12 +14,13 @@ class ScoreManager : public Singleton<ScoreManager>
     bool    isCombatStarted = false;
     float   decayTimer = 0.0f;
 
+    void TempPrint(float dt);   // UI에 넣기 전에 저장할 위치
 public:
-    void AddKill();             // 적 처치 시 호출
-    void OnPlayerHit();         // 피격 시 호출 (배율 하락)
+    void Update(float dt);      // SceneManager.cpp - Run()
+    void AddKill();             // Enemy.cpp - Die()
+    void OnPlayerHit();         // Player.cpp - 뭐임
     void OnRhythmMiss();        // 리듬 미스 시 호출 (스택 초기화)
-    void Update(float dt);      // 점수 차감 로직 처리
-    void Reset();
+    void Reset();               // 씬 바뀔때?
 
     const int GetScore() { return currentScore; }
     const int GetMultiplier() { return multiplier; }

@@ -79,13 +79,30 @@ void ScoreManager::Update(float dt)
 			break;
 		}
 	}
+	
+	TempPrint(dt);
 }
 
-void ScoreManager::Reset() {
+void ScoreManager::Reset() 
+{
 	currentScore = 0;
 	multiplier = 1;
 	killCountForNextLevel = 0;
 	lastKillTime = 0.0f;
 	isCombatStarted = false;
 	decayTimer = 0.0f;
+}
+
+void ScoreManager::TempPrint(float dt) 
+{
+	static float scorePrintTimer = 0.0f;
+	scorePrintTimer += dt;
+	if (scorePrintTimer >= 0.5f) {
+		scorePrintTimer = 0.0f;
+		std::cout << std::endl << "[Score] "
+			<< ScoreManager::GetInstance().GetScore()
+			<< " x"
+			<< ScoreManager::GetInstance().GetMultiplier()
+			<< std::endl;
+	}
 }
