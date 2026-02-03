@@ -42,6 +42,7 @@ public:
 	void SetScale(float scale) { m_scale = scale; UpdateRect(); }
 	void SetColor(const DirectX::XMVECTOR& color) { m_color = color; }
 	void SetDepth(float depth) { m_depth = depth; }
+	void SetTextureAndOffset(const std::string& idle);
 
 	bool IsActuallyActive() const
 	{
@@ -53,6 +54,8 @@ public:
 
 		return true;
 	}
+
+	virtual void OnResize() { UpdateRect(); }
 
 protected:
 	virtual void UpdateRect() = 0;
@@ -113,11 +116,9 @@ private:
 class Panel : public UIBase
 {
 public:
+	void OnResize() override;
 	void RenderUI(class Renderer& renderer) override;
-
-	void AddChild(std::unique_ptr<UIBase> child){ child->SetParent(this); m_children.emplace_back(std::move(child)); }
-
-	void SetTextureAndOffset(const std::string& idle);
+	void AddChild(std::unique_ptr<UIBase> child) { child->SetParent(this); m_children.emplace_back(std::move(child)); }
 private:
 	void UpdateRect() override;
 
@@ -127,8 +128,29 @@ private:
 class Slider : public UIBase
 {
 public:
-	void RenderUI(class Renderer& renderer) override;
+	Slider() = default;
+	~Slider() override = default;
+
+	void RenderUI(Renderer& renderer) override;
+	bool CheckInput(const POINT& mousePos, bool isMousePressed);
+
+	void SetRange(float min, float max);
+	void SetValue(float value);
+	float GetValue() const { return m_value; }
+
+	void SetHandleTexture(const std::string& tex) { m_handleTex = ResourceManager::GetInstance().GetTextureAndOffset(tex); }
+	//void SetFillTexture(const std::string& tex) { m_fillTexture = ResourceManager::GetInstance().GetTextureAndOffset(tex); }
 
 protected:
 	void UpdateRect() override;
+
+private:
+	float m_min = 0.0f;
+	float m_max = 1.0f;
+	float m_value = 0.5f;
+
+	bool m_dragging = false;
+
+	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_handleTex{};
+	//std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_fillTexture{};
 };

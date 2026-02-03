@@ -109,24 +109,15 @@ void SceneBase::Undo()
 	m_lastSavedSnapshot = previousScene;
 }
 #endif
-
-Panel* SceneBase::CreatePanel()
+void SceneBase::OnResizeEvent()
 {
-	unique_ptr<Panel> panel = make_unique<Panel>();
-	Panel* panelPtr = panel.get();
-	m_UIList.push_back(move(panel));
-
-	return panelPtr;
+	for (auto& m : m_UIList)
+	{
+		m->OnResize();
+	}
 }
 
-Button* SceneBase::CreateButton()
-{
-	unique_ptr<Button> button = make_unique<Button>();
-	Button* buttonPtr = button.get();
-	m_UIList.push_back(move(button));
 
-	return buttonPtr;
-}
 
 void SceneBase::BaseInitialize()
 {
@@ -189,6 +180,12 @@ void SceneBase::BaseUpdate()
 		if (auto* button = dynamic_cast<Button*>(it->get()))
 		{
 			if (button->CheckInput(mousePosition, isMousePressed, isMouseClicked))
+				break;
+		}
+
+		if (auto* slider = dynamic_cast<Slider*>(it->get()))
+		{
+			if (slider->CheckInput(mousePosition, isMousePressed))
 				break;
 		}
 	}

@@ -9,28 +9,28 @@
 
 class SceneBase : public Base
 {
-	#ifdef _DEBUG
+#ifdef _DEBUG
 	std::unique_ptr<DebugCamera> m_debugCamera = nullptr; // 디버그 카메라 게임 오브젝트
 	bool m_isNavMeshCreating = false; // 네비게이션 메시 생성 중 여부
 	float m_navMeshCreationHeight = 0.0f; // 네비게이션 메시 생성 높이
 
 	std::deque<nlohmann::json> m_previousStateInversePatches = {}; // 이전 상태 역패치들
 	nlohmann::json m_lastSavedSnapshot = {}; // 마지막으로 저장된 스냅샷
-	#endif
+#endif
 
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트 포인터
 
 	std::vector<std::unique_ptr<Base>> m_gameObjects = {}; // 게임 오브젝트 배열
-	std::vector<std::unique_ptr<class UIBase>> m_UIList = {}; // 버튼 배열
+	std::vector<std::unique_ptr<class UIBase>> m_UIList = {}; // UI 배열
 
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_skyboxVertexShaderAndInputLayout = {}; // 스카이박스 정점 셰이더
 	com_ptr<ID3D11PixelShader> m_skyboxPixelShader = nullptr; // 스카이박스 픽셀 셰이더
 
-	#ifdef _DEBUG
+#ifdef _DEBUG
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_debugCoordinateVertexShaderAndInputLayout = {}; // 디버그 좌표 정점 셰이더
 	com_ptr<ID3D11PixelShader> m_debugCoordinatePixelShader = nullptr; // 디버그 좌표 픽셀 셰이더
 	bool m_isRenderDebugCoordinates = true; // 디버그 좌표 렌더링 여부
-	#endif
+#endif
 
 	std::string m_environmentMapFileName = "Skybox.dds"; // 환경 맵 파일 이름
 	com_ptr<ID3D11ShaderResourceView> m_environmentMapSRV = nullptr; // 환경 맵 셰이더 리소스 뷰
@@ -76,7 +76,7 @@ public:
 	static void SetGrayScaleIntensity(float intensity) { m_postProcessingData.grayScaleIntensity = intensity; }
 	static void SetVignettingColor(const DirectX::XMFLOAT3& color) { m_postProcessingData.vignettingColor.x = color.x; m_postProcessingData.vignettingColor.y = color.y; m_postProcessingData.vignettingColor.z = color.z; }
 	static void SetVignettingIntensity(float intensity) { m_postProcessingData.vignettingColor.w = intensity; }
-	static void SetRadialBlurCenter(const DirectX::XMFLOAT2& center) { m_postProcessingData.radialBlurParam.x = center.x; m_postProcessingData.radialBlurParam.y = center.y;}
+	static void SetRadialBlurCenter(const DirectX::XMFLOAT2& center) { m_postProcessingData.radialBlurParam.x = center.x; m_postProcessingData.radialBlurParam.y = center.y; }
 	static void SetRadialBlurDist(float dist) { m_postProcessingData.radialBlurParam.z = dist; }
 	static void SetRadialBlurStrength(float strength) { m_postProcessingData.radialBlurParam.w = strength; }
 	static void SetLutLerpFactor(float factor) { m_postProcessingData.lutLerpFactor = factor; }
@@ -91,15 +91,22 @@ public:
 	GameObjectBase* GetRootGameObject(const std::string& name); // 이름으로 루트 게임 오브젝트 검색 // 없으면 nullptr 반환
 	GameObjectBase* GetGameObjectRecursive(const std::string& name); // 이름으로 게임 오브젝트 재귀 검색 // 없으면 nullptr 반환
 
-	#ifdef _DEBUG
+	void OnResizeEvent();
+
+#ifdef _DEBUG
 	void SaveState(); // 현재 상태 저장
 	void Undo(); // 이전 상태로 되돌리기
-	
-#endif
 
-protected:
-	class Button* CreateButton(); // 버튼 생성
-	class Panel* CreatePanel();
+#endif
+	template<typename T> T* CreateUI()
+	{
+		unique_ptr<T> UI = make_unique<T>();
+		T* UIPtr = UI.get();
+		m_UIList.push_back(move(UI));
+
+		return UIPtr;
+	}
+
 private:
 	// 씬 초기화 // 씬 사용 전 반드시 호출해야 함
 	void BaseInitialize() override;
@@ -109,10 +116,10 @@ private:
 	void BaseUpdate() override;
 	// 씬 렌더링 // 씬 매니저가 호출
 	void BaseRender() override;
-	#ifdef _DEBUG
+#ifdef _DEBUG
 	// ImGui 렌더링
 	void BaseRenderImGui() override;
-	#endif
+#endif
 	// 씬 종료 // 씬 매니저가 씬을 교체할 때 호출
 	void BaseFinalize() override;
 
@@ -131,12 +138,12 @@ private:
 	// 스카이박스 렌더링
 	void RenderSkybox();
 
-	#ifdef _DEBUG
+#ifdef _DEBUG
 	// 디버그 카메라로 오브젝트 선택
 	void PickObjectDebugCamera();
 	// 디버그 좌표 렌더링
 	void RenderDebugCoordinates();
-	#endif
+#endif
 };
 
 template<typename T> requires std::derived_from<T, GameObjectBase>

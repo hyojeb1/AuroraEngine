@@ -2,6 +2,8 @@
 #include "Renderer.h"
 
 #include "ResourceManager.h"
+#include "SceneManager.h"
+#include "SceneBase.h"
 
 using namespace std;
 using namespace DirectX;
@@ -202,6 +204,12 @@ void Renderer::Resize(UINT width, UINT height)
 
 	// 뷰포트 설정
 	SetViewport();
+
+	SceneBase* temp = SceneManager::GetInstance().GetCurrentScene();
+	if (temp)
+	{
+		temp->OnResizeEvent();
+	}
 }
 
 void Renderer::SetFullscreen(bool enable)
