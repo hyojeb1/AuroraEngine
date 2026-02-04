@@ -32,17 +32,15 @@ GameObjectBase* SceneBase::CreateRootGameObject(const string& typeName)
 
 GameObjectBase* SceneBase::CreatePrefabRootGameObject(const string& prefabFileName)
 {
-	const nlohmann::json* prefabJsonPtr = SceneManager::GetInstance().GetPrefabData(prefabFileName);
-	if (!prefabJsonPtr)
-	{
-		cerr << "?���?: ?��리팹 '" << prefabFileName << "'?��(�?) 찾을 ?�� ?��?��?��?��." << endl;
-		return nullptr;
-	}
+	return CreateFromJson(*SceneManager::GetInstance().GetPrefabData(prefabFileName));
+}
 
-	unique_ptr<GameObjectBase> gameObject = TypeRegistry::GetInstance().CreateGameObject((*prefabJsonPtr)["type"].get<string>());
+GameObjectBase* SceneBase::CreateFromJson(const nlohmann::json& jsonData)
+{
+	unique_ptr<GameObjectBase> gameObject = TypeRegistry::GetInstance().CreateGameObject(jsonData["type"].get<string>());
 	GameObjectBase* gameObjectPtr = gameObject.get();
 
-	static_cast<Base*>(gameObjectPtr)->BaseDeserialize(*prefabJsonPtr);
+	static_cast<Base*>(gameObjectPtr)->BaseDeserialize(jsonData);
 	static_cast<Base*>(gameObjectPtr)->BaseInitialize();
 
 	m_gameObjects.push_back(move(gameObject));
@@ -195,6 +193,21 @@ void SceneBase::BaseUpdate()
 
 	if (inputManager.GetKey(KeyCode::Control))
 	{
+		static nlohmann::json copiedObjectJson = {};
+
+		if (inputManager.GetKeyDown(KeyCode::C))
+		{
+			if (GameObjectBase* selectedObject = GameObjectBase::GetSelectedObject()) copiedObjectJson = static_cast<Base*>(selectedObject)->BaseSerialize();
+		}
+		if (inputManager.GetKeyDown(KeyCode::V))
+		{
+			if (!copiedObjectJson.is_null() && !copiedObjectJson.empty())
+			{
+				if (GameObjectBase* selectedObject = GameObjectBase::GetSelectedObject()) selectedObject->CreateFromJson(copiedObjectJson);
+				else CreateFromJson(copiedObjectJson);
+			}
+		}
+
 		if (inputManager.GetKeyDown(KeyCode::S))
 		{
 			cout << "?��: " << m_type << " ????�� �?..." << endl;

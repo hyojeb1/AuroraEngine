@@ -140,18 +140,16 @@ GameObjectBase* GameObjectBase::CreateChildGameObject(const string& typeName)
 
 GameObjectBase* GameObjectBase::CreatePrefabChildGameObject(const string& prefabFileName)
 {
-	const nlohmann::json* prefabJsonPtr = SceneManager::GetInstance().GetPrefabData(prefabFileName);
-	if (!prefabJsonPtr)
-	{
-		cerr << "오류: 프리팹 '" << prefabFileName << "'을(를) 찾을 수 없습니다." << endl;
-		return nullptr;
-	}
+	return CreateFromJson(*SceneManager::GetInstance().GetPrefabData(prefabFileName));
+}
 
-	unique_ptr<GameObjectBase> childGameObject = TypeRegistry::GetInstance().CreateGameObject((*prefabJsonPtr)["type"].get<string>());
+GameObjectBase* GameObjectBase::CreateFromJson(const nlohmann::json& jsonData)
+{
+	unique_ptr<GameObjectBase> childGameObject = TypeRegistry::GetInstance().CreateGameObject(jsonData["type"].get<string>());
 	GameObjectBase* childGameObjectPtr = childGameObject.get();
 
 	childGameObject->m_parent = this;
-	childGameObject->BaseDeserialize(*prefabJsonPtr);
+	childGameObject->BaseDeserialize(jsonData);
 	childGameObject->BaseInitialize();
 
 	m_childrens.push_back(move(childGameObject));

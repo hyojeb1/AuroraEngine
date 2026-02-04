@@ -36,41 +36,17 @@
     "rootGameObjects": [
         {
             "childGameObjects": [],
-            "components": [],
-            "name": "Fog",
-            "position": [
-                0.0,
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            ],
-            "type": "GameObjectBase"
-        },
-        {
-            "childGameObjects": [],
             "components": [
                 {
                     "RestartOnFinish": true,
                     "billboardType": 4,
                     "blendState": 1,
                     "imageScale": 4.820000171661377,
-                    "particleAmount": 307,
+                    "particleAmount": 639,
                     "particleColor": [
                         1.0,
                         0.7960784435272217,
-                        0.5803921818733215,
+                        0.5058823823928833,
                         1.0
                     ],
                     "particleConstTime": -1.0,
@@ -80,10 +56,10 @@
                         0.0,
                         1.0
                     ],
-                    "particleTotalTime": 29.030000686645508,
+                    "particleTotalTime": 63.459999084472656,
                     "psShaderName": "PSParticle.hlsl",
                     "rasterState": 2,
-                    "spreadDistance": 2.200000047683716,
+                    "spreadDistance": 1.100000023841858,
                     "spreadRadius": 0.0,
                     "textureFileName": "Smoke.png",
                     "type": "ParticleComponent",
@@ -112,9 +88,9 @@
                 1.0
             ],
             "scale": [
-                10.0,
+                50.0,
                 1.0,
-                10.0,
+                50.0,
                 1.0
             ],
             "type": "GameObjectBase"

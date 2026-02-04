@@ -87,6 +87,7 @@ public:
 	T* CreateRootGameObject(); // 루트 게임 오브젝트 생성 // 포인터 반환
 
 	GameObjectBase* CreatePrefabRootGameObject(const std::string& prefabFileName); // 프리팹 파일로부터 루트 게임 오브젝트 생성 // 게임 오브젝트 베이스 포인터 반환
+	GameObjectBase* CreateFromJson(const nlohmann::json& jsonData); // JSON 데이터로부터 게임 오브젝트 생성
 
 	GameObjectBase* GetRootGameObject(const std::string& name); // 이름으로 루트 게임 오브젝트 검색 // 없으면 nullptr 반환
 	GameObjectBase* GetGameObjectRecursive(const std::string& name); // 이름으로 게임 오브젝트 재귀 검색 // 없으면 nullptr 반환
