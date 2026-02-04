@@ -32,17 +32,15 @@ namespace Config
 	//Player
 	inline constexpr const char* Player_Dash = "1.Player_Dash";
 
+	//Enemy
+	inline constexpr const char* Enemy_Die = "8.Enemy_Die";
+
+//UI
 	inline constexpr const char* Player_Shoot = "2.Player_Shot";
 	inline constexpr const char* Player_Reload_Spin = "4.Player_spin";
 
 	inline constexpr const char* Player_Reload_Cocking = "4.Player_cocking";
 	inline constexpr const int   Player_Reload_Cocking_Count = 1;
-
-	//Enemy
-	inline constexpr const char* Enemy_Die = "8.Enemy_Die";
-
-//UI
-
 }
 
 

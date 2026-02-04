@@ -184,7 +184,7 @@ void Player::PlayerShoot()
 
 	if (m_gunFSM) m_gunFSM->Fire();
 	--m_bulletCnt;
-	SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Shoot);
+	SoundManager::GetInstance().UI_Shot(Config::Player_Shoot);
 
 	const XMVECTOR& origin = GetPosition();
 	const XMVECTOR& direction = GetWorldDirectionVector(Direction::Forward);
@@ -220,7 +220,7 @@ void Player::PlayerReload(int cnt)
 
 	m_bulletCnt = m_MaxBullet;
 
-	SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Reload_Spin);
+	SoundManager::GetInstance().UI_Shot(Config::Player_Reload_Spin);
 
 	int reloadCount = Config::Player_Reload_Cocking_Count + cnt;
 	SoundManager::GetInstance().AddNodeDestroyedListenerOnce([this, cnt = reloadCount]()mutable ->bool
@@ -229,7 +229,7 @@ void Player::PlayerReload(int cnt)
 			{
 				return false;
 			}
-			SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Reload_Cocking);
+			SoundManager::GetInstance().UI_Shot(Config::Player_Reload_Cocking);
 			return true;
 		});
 }

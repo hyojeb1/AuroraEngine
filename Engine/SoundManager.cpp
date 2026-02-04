@@ -913,8 +913,8 @@ void SoundManager::UpdateListener(ListenerComponent* listener)
 {
 	FMOD_VECTOR pos = ToFMOD(listener->GetOwner()->GetPosition());
 	FMOD_VECTOR vel{ 0,0,0 };
-	FMOD_VECTOR fwd{ 0,0,1 };
-	FMOD_VECTOR up{ 0,1,0 };
+	FMOD_VECTOR fwd = ToFMOD(listener->GetOwner()->GetWorldDirectionVector(Direction::Forward));
+	FMOD_VECTOR up  = ToFMOD(listener->GetOwner()->GetWorldDirectionVector(Direction::Up));
 
 	m_CoreSystem->set3DListenerAttributes(0, &pos, &vel, &fwd, &up);
 }
