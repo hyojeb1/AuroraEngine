@@ -38,43 +38,44 @@
             "childGameObjects": [],
             "components": [
                 {
-                    "RestartOnFinish": true,
-                    "billboardType": 4,
-                    "blendState": 1,
-                    "imageScale": 4.820000171661377,
-                    "particleAmount": 639,
-                    "particleColor": [
-                        1.0,
-                        0.7960784435272217,
-                        0.5058823823928833,
-                        1.0
-                    ],
-                    "particleConstTime": -1.0,
-                    "particleEmissionColor": [
-                        0.0,
-                        0.027450980618596077,
-                        0.0,
-                        1.0
-                    ],
-                    "particleTotalTime": 63.459999084472656,
-                    "psShaderName": "PSParticle.hlsl",
-                    "rasterState": 2,
-                    "spreadDistance": 1.100000023841858,
-                    "spreadRadius": 0.0,
-                    "textureFileName": "Smoke.png",
-                    "type": "ParticleComponent",
-                    "uvOffset": [
-                        0.0,
-                        0.0
-                    ],
-                    "uvScale": [
-                        1.0,
-                        1.0
-                    ],
-                    "vsShaderName": "VSParticleFountain.hlsl"
+                    "NoiseIndex": 0,
+                    "blendState": 0,
+                    "materialFactorData": {
+                        "DissolveEdgeColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "DissolveEdgeIntensity": 1.0,
+                        "DissolveEdgeWidth": 1.0,
+                        "DissolvePadding": 1.0,
+                        "DissolveThreshold": 0.20000000298023224,
+                        "ambientOcclusionFactor": 1.0,
+                        "baseColorFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "emissionFactor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "metallicFactor": 1.0,
+                        "normalScale": 1.0,
+                        "roughnessFactor": 1.0
+                    },
+                    "modelFileName": "box.fbx",
+                    "psShaderName": "PSModel.hlsl",
+                    "rasterState": 1,
+                    "type": "ModelComponent",
+                    "vsShaderName": "VSModel.hlsl"
                 }
             ],
-            "name": "Fog",
+            "name": "SampleGameObject",
             "position": [
                 0.0,
                 0.0,
@@ -88,9 +89,9 @@
                 1.0
             ],
             "scale": [
-                50.0,
                 1.0,
-                50.0,
+                1.0,
+                1.0,
                 1.0
             ],
             "type": "GameObjectBase"
