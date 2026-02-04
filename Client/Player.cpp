@@ -50,18 +50,15 @@ void Player::Update()
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	InputManager& input = InputManager::GetInstance();
 	auto& sm = SoundManager::GetInstance();
-	InputType inputType = sm.CheckRhythm(0.1f);
 
 
 	UpdateRotation(input, deltaTime);
 	UpdateMoveDirection(input);
-
-	if (inputType < InputType::Miss)
-	{
-		if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && inputType < InputType::Miss) PlayerShoot();
-		if (!m_isDashing && input.GetKeyDown(KeyCode::Space) && inputType < InputType::Miss) PlayerTriggerDash();
-		if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && inputType < InputType::Miss) PlayerDeadEyeStart();
-	}
+	
+	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerShoot();
+	if (!m_isDashing && input.GetKeyDown(KeyCode::Space) && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerTriggerDash();
+	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerDeadEyeStart();
+	
 
 	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime, input);
 	if (m_isDashing) PlayerDash(deltaTime);
@@ -69,7 +66,7 @@ void Player::Update()
 
 	if (input.GetKeyDown(KeyCode::R))
 	{
-		switch (inputType)
+		switch (sm.CheckRhythm(0.1f))
 		{
 		case InputType::Early:
 			PlayerReload(1);
