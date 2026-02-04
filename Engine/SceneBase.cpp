@@ -194,7 +194,6 @@ void SceneBase::BaseUpdate()
 	if (inputManager.GetKey(KeyCode::Control))
 	{
 		static nlohmann::json copiedObjectJson = {};
-
 		if (inputManager.GetKeyDown(KeyCode::C))
 		{
 			if (GameObjectBase* selectedObject = GameObjectBase::GetSelectedObject()) copiedObjectJson = static_cast<Base*>(selectedObject)->BaseSerialize();
