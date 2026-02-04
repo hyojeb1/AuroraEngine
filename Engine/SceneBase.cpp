@@ -32,17 +32,15 @@ GameObjectBase* SceneBase::CreateRootGameObject(const string& typeName)
 
 GameObjectBase* SceneBase::CreatePrefabRootGameObject(const string& prefabFileName)
 {
-	const nlohmann::json* prefabJsonPtr = SceneManager::GetInstance().GetPrefabData(prefabFileName);
-	if (!prefabJsonPtr)
-	{
-		cerr << "?���?: ?��리팹 '" << prefabFileName << "'?��(�?) 찾을 ?�� ?��?��?��?��." << endl;
-		return nullptr;
-	}
+	return CreateFromJson(*SceneManager::GetInstance().GetPrefabData(prefabFileName));
+}
 
-	unique_ptr<GameObjectBase> gameObject = TypeRegistry::GetInstance().CreateGameObject((*prefabJsonPtr)["type"].get<string>());
+GameObjectBase* SceneBase::CreateFromJson(const nlohmann::json& jsonData)
+{
+	unique_ptr<GameObjectBase> gameObject = TypeRegistry::GetInstance().CreateGameObject(jsonData["type"].get<string>());
 	GameObjectBase* gameObjectPtr = gameObject.get();
 
-	static_cast<Base*>(gameObjectPtr)->BaseDeserialize(*prefabJsonPtr);
+	static_cast<Base*>(gameObjectPtr)->BaseDeserialize(jsonData);
 	static_cast<Base*>(gameObjectPtr)->BaseInitialize();
 
 	m_gameObjects.push_back(move(gameObject));
@@ -189,28 +187,42 @@ void SceneBase::BaseUpdate()
 
 
 	#ifdef _DEBUG
-	// ?��비게?��?�� 메시 ?��?�� 모드?�� ?�� 링크 배치 처리
+	if (inputManager.GetKeyUp(KeyCode::MouseLeft)) SaveState();
+
 	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink(m_navMeshCreationHeight);
 
-	// Ctrl + S ?��?�� ?�� ?�� ????��
-	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::S))
+	if (inputManager.GetKey(KeyCode::Control))
 	{
-		cout << "?��: " << m_type << " ????�� �?..." << endl;
+		static nlohmann::json copiedObjectJson = {};
+		if (inputManager.GetKeyDown(KeyCode::C))
+		{
+			if (GameObjectBase* selectedObject = GameObjectBase::GetSelectedObject()) copiedObjectJson = static_cast<Base*>(selectedObject)->BaseSerialize();
+		}
+		if (inputManager.GetKeyDown(KeyCode::V))
+		{
+			if (!copiedObjectJson.is_null() && !copiedObjectJson.empty())
+			{
+				if (GameObjectBase* selectedObject = GameObjectBase::GetSelectedObject()) selectedObject->CreateFromJson(copiedObjectJson);
+				else CreateFromJson(copiedObjectJson);
+			}
+		}
 
-		const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
+		if (inputManager.GetKeyDown(KeyCode::S))
+		{
+			cout << "?��: " << m_type << " ????�� �?..." << endl;
 
-		ofstream sceneFile(sceneFilePath);
-		sceneFile << BaseSerialize().dump(4);
-		sceneFile.close();
+			const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
 
-		cout << "?��: " << m_type << " ????�� ?���?!" << endl;
+			ofstream sceneFile(sceneFilePath);
+			sceneFile << BaseSerialize().dump(4);
+			sceneFile.close();
+
+			cout << "?��: " << m_type << " ????�� ?���?!" << endl;
+		}
+
+		if (inputManager.GetKeyDown(KeyCode::Z)) Undo();
+		if (inputManager.GetKeyDown(KeyCode::MouseLeft)) PickObjectDebugCamera();
 	}
-
-	if (inputManager.GetKeyUp(KeyCode::MouseLeft)) SaveState();
-	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::Z)) Undo();
-
-	// ?��버그 카메?���? ?��브젝?�� ?��?��
-	PickObjectDebugCamera();
 	#endif
 }
 
@@ -775,10 +787,7 @@ void SceneBase::RenderSkybox()
 #ifdef _DEBUG
 void SceneBase::PickObjectDebugCamera()
 {
-	InputManager& inputManager = InputManager::GetInstance();
-	if (!inputManager.GetKeyDown(KeyCode::MouseRight)) return;
-
-	const POINT& mouse = inputManager.GetMousePosition();
+	const POINT& mouse = InputManager::GetInstance().GetMousePosition();
 	pair<XMVECTOR, XMVECTOR> ray = CameraComponent::GetMainCamera().RayCast(static_cast<float>(mouse.x), static_cast<float>(mouse.y));
 	GameObjectBase::SetSelectedObject(ModelComponent::CheckCollision(ray.first, ray.second));
 }

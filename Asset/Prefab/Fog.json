@@ -1,0 +1,61 @@
+{
+    "childGameObjects": [],
+    "components": [
+        {
+            "RestartOnFinish": true,
+            "billboardType": 4,
+            "blendState": 1,
+            "imageScale": 1.3600000143051147,
+            "particleAmount": 8168,
+            "particleColor": [
+                1.0,
+                0.7960784435272217,
+                0.5058823823928833,
+                0.7333333492279053
+            ],
+            "particleConstTime": -1.0,
+            "particleEmissionColor": [
+                0.0,
+                0.027450980618596077,
+                0.0,
+                1.0
+            ],
+            "particleTotalTime": 63.459999084472656,
+            "psShaderName": "PSParticle.hlsl",
+            "rasterState": 2,
+            "spreadDistance": 1.100000023841858,
+            "spreadRadius": 0.0,
+            "textureFileName": "Smoke.png",
+            "type": "ParticleComponent",
+            "uvOffset": [
+                0.0,
+                0.0
+            ],
+            "uvScale": [
+                1.0,
+                1.0
+            ],
+            "vsShaderName": "VSParticleFountain.hlsl"
+        }
+    ],
+    "name": "Fog",
+    "position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+    ],
+    "scale": [
+        50.0,
+        1.0,
+        50.0,
+        1.0
+    ],
+    "type": "GameObjectBase"
+}
