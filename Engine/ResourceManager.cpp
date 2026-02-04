@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "ResourceManager.h"
+
 using namespace std;
 using namespace DirectX;
 
@@ -50,8 +51,6 @@ void ResourceManager::Initialize(com_ptr<ID3D11Device> device, com_ptr<ID3D11Dev
 	SetAllSamplerStates();
 
 	CacheAllTexture();
-	
-	
 }
 
 void ResourceManager::SetDepthStencilState(DepthStencilState state)
@@ -253,9 +252,33 @@ com_ptr<ID3D11PixelShader> ResourceManager::GetPixelShader(const string& shaderN
 
 com_ptr<ID3D11ShaderResourceView> ResourceManager::GetTexture(const string& fileName, TextureType type)
 {
+	#ifdef _DEBUG
+	// 디버그 모드에서는 매번 새로 생성 (텍스처 변경 감지 용이)
+	const filesystem::path fullPath = "../Asset/Texture/" + fileName;
+	if (!filesystem::exists(fullPath)) cerr << "텍스처 파일이 존재하지 않습니다: " << fullPath.string() << endl;
+
+	// 기존에 생성된 텍스처가 있으면 삭제
+	auto it = m_textures.find(fileName);
+	if (it != m_textures.end()) m_textures.erase(it);
+
+	ifstream file(fullPath, ios::binary | ios::ate);
+
+	if (file)
+	{
+		const streamsize size = file.tellg();
+		file.seekg(0, ios::beg);
+		vector<char> buffer(static_cast<size_t>(size));
+
+		if (file.read(buffer.data(), size)) m_textureCaches[fileName] = vector<uint8_t>(buffer.begin(), buffer.end());
+		else cerr << "텍스처 파일 읽기 실패: " << fileName << endl;
+	}
+	else cerr << "텍스처 파일 열기 실패: " << fileName << endl;
+
+	#else
 	// 기존에 생성된 텍스처가 있으면 재사용
 	auto it = m_textures.find(fileName);
 	if (it != m_textures.end()) return it->second;
+	#endif
 
 	HRESULT hr = S_OK;
 
@@ -356,8 +379,10 @@ std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> ResourceManager:
 
 const Model* ResourceManager::LoadModel(const string& fileName)
 {
+	#ifdef NDEBUG
 	auto it = m_models.find(fileName);
 	if (it != m_models.end()) return &it->second;
+	#endif
 
 	Assimp::Importer importer;
 	importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);

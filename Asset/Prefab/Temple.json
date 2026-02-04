@@ -1,0 +1,62 @@
+{
+    "childGameObjects": [],
+    "components": [
+        {
+            "NoiseIndex": 0,
+            "blendState": 0,
+            "materialFactorData": {
+                "DissolveEdgeColor": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "DissolveEdgeIntensity": 1.0,
+                "DissolveEdgeWidth": 1.0,
+                "DissolvePadding": 1.0,
+                "DissolveThreshold": 0.20000000298023224,
+                "ambientOcclusionFactor": 1.0,
+                "baseColorFactor": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "emissionFactor": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "metallicFactor": 1.0,
+                "normalScale": 1.0,
+                "roughnessFactor": 1.0
+            },
+            "modelFileName": "temple.fbx",
+            "psShaderName": "PSModel.hlsl",
+            "rasterState": 1,
+            "type": "ModelComponent",
+            "vsShaderName": "VSModel.hlsl"
+        }
+    ],
+    "name": "Temple",
+    "position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+    ],
+    "scale": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "type": "GameObjectBase"
+}
