@@ -6,7 +6,11 @@ enum class BillboardType
 {
 	None,		// 빌보드 안 함 (일반 메쉬처럼 월드 회전 적용)
 	Spherical,		// 구형 빌보드 (항상 카메라 정면 응시)
-	Cylindrical		// 원통형 빌보드 (Y축은 고정, 나무/풀 등에 적합)
+	Cylindrical,		// 원통형 빌보드 (Y축은 고정, 나무/풀 등에 적합)
+
+	FountainNone,
+	FountainSpherical,
+	FountainCylindrical
 };
 
 class ParticleComponent : public ComponentBase
