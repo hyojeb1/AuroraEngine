@@ -71,14 +71,6 @@ SceneBase* SceneManager::GetCurrentScene()
 	return dynamic_cast<SceneBase*>(m_currentScene.get());
 }
 
-const nlohmann::json* SceneManager::GetPrefabData(const string& prefabName)
-{
-	auto it = m_prefabCache.find(prefabName);
-	if (it != m_prefabCache.end()) return &it->second;
-
-	return nullptr;
-}
-
 void SceneManager::LoadAllPrefabs()
 {
 	const filesystem::path prefabDirectory = "../Asset/Prefab/";
@@ -95,4 +87,12 @@ void SceneManager::LoadAllPrefabs()
 			m_prefabCache[entry.path().filename().string()] = prefabData;
 		}
 	}
+}
+
+const nlohmann::json* SceneManager::GetPrefabData(const string& prefabName)
+{
+	auto it = m_prefabCache.find(prefabName);
+	if (it != m_prefabCache.end()) return &it->second;
+
+	return nullptr;
 }

@@ -26,10 +26,9 @@ public:
 
 	class SceneBase* GetCurrentScene();
 
+	void LoadAllPrefabs();
 	const nlohmann::json* GetPrefabData(const std::string& prefabName);
 
 private:
 	SceneManager() = default;
-
-	void LoadAllPrefabs();
 };

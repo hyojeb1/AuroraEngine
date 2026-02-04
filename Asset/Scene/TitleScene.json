@@ -1,5 +1,5 @@
 {
-    "environmentMapFileName": "Skybox.dds",
+    "environmentMapFileName": "Skybox0.dds",
     "lightColor": [
         1.0,
         1.0,
@@ -15,10 +15,11 @@
     "navPolyIndices": [],
     "navVertices": [],
     "postProcessing": {
-        "bloomIntensity": 20.700000762939453,
-        "flags": 17,
+        "bloomIntensity": 1.0,
+        "flags": 0,
         "gammaIntensity": 1.0,
         "grayScaleIntensity": 0.0,
+        "lutLerpFactor": 0.0,
         "radialBlurParam": [
             0.5,
             0.5,
@@ -32,92 +33,5 @@
             0.0
         ]
     },
-    "rootGameObjects": [
-        {
-            "childGameObjects": [],
-            "components": [
-                {
-                    "farZ": 1000.0,
-                    "fovY": 0.7853981852531433,
-                    "nearZ": 0.10000000149011612,
-                    "type": "CameraComponent"
-                }
-            ],
-            "name": "MainCam",
-            "position": [
-                0.0,
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            ],
-            "type": "GameObjectBase"
-        },
-        {
-            "childGameObjects": [],
-            "components": [
-                {
-                    "KillOwnerAfterFinish": false,
-                    "billboardType": 1,
-                    "blendState": 1,
-                    "imageScale": 0.10000000149011612,
-                    "particleAmount": 307,
-                    "particleConstTime": 2.4700000286102295,
-                    "particleEmissionColor": [
-                        0.0,
-                        0.0,
-                        0.0,
-                        1.0
-                    ],
-                    "particleTotalTime": 0.36000001430511475,
-                    "psShaderName": "PSParticle.hlsl",
-                    "rasterState": 2,
-                    "spreadDistance": 14.5,
-                    "spreadRadius": 10.0,
-                    "textureFileName": "Smoke.png",
-                    "type": "ParticleComponent",
-                    "uvOffset": [
-                        0.0,
-                        0.0
-                    ],
-                    "uvScale": [
-                        1.0,
-                        1.0
-                    ],
-                    "vsShaderName": "VSParticle.hlsl"
-                }
-            ],
-            "name": "Smoke",
-            "position": [
-                0.0,
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rotation": [
-                0.021809693425893784,
-                -0.021809693425893784,
-                0.00047588918823748827,
-                0.9995240569114685
-            ],
-            "scale": [
-                0.05000000074505806,
-                0.05000000074505806,
-                1.0,
-                1.0
-            ],
-            "type": "GemParticle"
-        }
-    ]
+    "rootGameObjects": []
 }

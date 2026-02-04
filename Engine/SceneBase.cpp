@@ -116,8 +116,6 @@ void SceneBase::OnResizeEvent()
 	}
 }
 
-
-
 void SceneBase::BaseInitialize()
 {
 	m_deviceContext = Renderer::GetInstance().GetDeviceContext();
@@ -335,6 +333,13 @@ void SceneBase::BaseRenderImGui()
 
 	ImGui::Checkbox("NavMesh Creating", &m_isNavMeshCreating);
 	ImGui::DragFloat("NavMesh Creation Height", &m_navMeshCreationHeight, 0.1f, 0.1f, 100.0f);
+
+	ImGui::Separator();
+	array<char, 256> skyboxFileNameBuffer = {};
+	strcpy_s(skyboxFileNameBuffer.data(), skyboxFileNameBuffer.size(), m_environmentMapFileName.c_str());
+
+	if (ImGui::InputText("Skybox File Name", skyboxFileNameBuffer.data(), sizeof(skyboxFileNameBuffer))) m_environmentMapFileName = skyboxFileNameBuffer.data();
+	if (ImGui::Button("Load Skybox")) m_environmentMapSRV = ResourceManager::GetInstance().GetTexture(m_environmentMapFileName);
 
 	ImGui::Separator();
 	ImGui::Text("[Post Processing]");
