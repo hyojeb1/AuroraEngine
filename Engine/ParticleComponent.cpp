@@ -126,7 +126,7 @@ void ParticleComponent::RenderImGui()
 	// 3. 렌더링 옵션 섹션
 	if (ImGui::CollapsingHeader("Rendering Options", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		const char* billboardItems[] = { "None", "Spherical", "Cylindrical" };
+		const char* billboardItems[] = { "None", "Spherical", "Cylindrical", "Fountain None", "Fountain Spherical", "Fountain Cylindrical" };
 		int currentBillboard = static_cast<int>(billboard_type_);
 		if (ImGui::Combo("Billboard Type", &currentBillboard, billboardItems, IM_ARRAYSIZE(billboardItems)))
 		{
@@ -239,6 +239,7 @@ void ParticleComponent::Deserialize(const nlohmann::json& jsonData)
 void ParticleComponent::CreateShaders()
 {
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
+
 	m_vsShaderName = GetBillboardVSName(billboard_type_);
 	m_vertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout(m_vsShaderName, m_inputElements);
 	m_pixelShader = resourceManager.GetPixelShader(m_psShaderName);
@@ -275,6 +276,15 @@ string ParticleComponent::GetBillboardVSName(BillboardType type)
 	case BillboardType::Cylindrical:
 		return "VSParticle_Cylindrical.hlsl";
 	case BillboardType::Spherical:
+		return "VSParticle.hlsl";
+
+	case BillboardType::FountainNone:
+		return "VSParticleFountain_None.hlsl";
+	case BillboardType::FountainCylindrical:
+		return "VSParticleFountain_Cylindrical.hlsl";
+	case BillboardType::FountainSpherical:
+		return "VSParticleFountain.hlsl";
+
 	default:
 		return "VSParticle.hlsl";
 	}

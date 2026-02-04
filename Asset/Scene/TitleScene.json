@@ -16,7 +16,7 @@
     "navVertices": [],
     "postProcessing": {
         "bloomIntensity": 1.0,
-        "flags": 0,
+        "flags": 1,
         "gammaIntensity": 1.0,
         "grayScaleIntensity": 0.0,
         "lutLerpFactor": 0.0,
@@ -33,5 +33,91 @@
             0.0
         ]
     },
-    "rootGameObjects": []
+    "rootGameObjects": [
+        {
+            "childGameObjects": [],
+            "components": [],
+            "name": "Fog",
+            "position": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "GameObjectBase"
+        },
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "RestartOnFinish": true,
+                    "billboardType": 4,
+                    "blendState": 1,
+                    "imageScale": 4.820000171661377,
+                    "particleAmount": 307,
+                    "particleColor": [
+                        1.0,
+                        0.7960784435272217,
+                        0.5803921818733215,
+                        1.0
+                    ],
+                    "particleConstTime": -1.0,
+                    "particleEmissionColor": [
+                        0.0,
+                        0.027450980618596077,
+                        0.0,
+                        1.0
+                    ],
+                    "particleTotalTime": 29.030000686645508,
+                    "psShaderName": "PSParticle.hlsl",
+                    "rasterState": 2,
+                    "spreadDistance": 2.200000047683716,
+                    "spreadRadius": 0.0,
+                    "textureFileName": "Smoke.png",
+                    "type": "ParticleComponent",
+                    "uvOffset": [
+                        0.0,
+                        0.0
+                    ],
+                    "uvScale": [
+                        1.0,
+                        1.0
+                    ],
+                    "vsShaderName": "VSParticleFountain.hlsl"
+                }
+            ],
+            "name": "Fog",
+            "position": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                1.0,
+                10.0,
+                1.0
+            ],
+            "type": "GameObjectBase"
+        }
+    ]
 }
