@@ -189,29 +189,28 @@ void SceneBase::BaseUpdate()
 
 
 	#ifdef _DEBUG
-	// ?��비게?��?�� 메시 ?��?�� 모드?�� ?�� 링크 배치 처리
+	if (inputManager.GetKeyUp(KeyCode::MouseLeft)) SaveState();
+
 	if (m_isNavMeshCreating) NavigationManager::GetInstance().HandlePlaceLink(m_navMeshCreationHeight);
 
-	// Ctrl + S ?��?�� ?�� ?�� ????��
-	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::S))
+	if (inputManager.GetKey(KeyCode::Control))
 	{
-		cout << "?��: " << m_type << " ????�� �?..." << endl;
+		if (inputManager.GetKeyDown(KeyCode::S))
+		{
+			cout << "?��: " << m_type << " ????�� �?..." << endl;
 
-		const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
+			const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
 
-		ofstream sceneFile(sceneFilePath);
-		sceneFile << BaseSerialize().dump(4);
-		sceneFile.close();
+			ofstream sceneFile(sceneFilePath);
+			sceneFile << BaseSerialize().dump(4);
+			sceneFile.close();
 
-		cout << "?��: " << m_type << " ????�� ?���?!" << endl;
+			cout << "?��: " << m_type << " ????�� ?���?!" << endl;
+		}
+
+		if (inputManager.GetKeyDown(KeyCode::Z)) Undo();
+		if (inputManager.GetKeyDown(KeyCode::MouseLeft)) PickObjectDebugCamera();
 	}
-
-	if (inputManager.GetKeyUp(KeyCode::MouseLeft)) SaveState();
-	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::Z)) Undo();
-
-	// ?��버그 카메?���? ?��브젝?�� ?��?��
-
-	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::MouseLeft)) PickObjectDebugCamera();
 	#endif
 }
 
