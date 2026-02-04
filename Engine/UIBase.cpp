@@ -174,14 +174,28 @@ void Slider::SetRange(float min, float max)
 	m_value = std::clamp(m_value, m_min, m_max);
 }
 
-void Slider::SetValue(float value)
+void Slider::SetValue(float newValue)
 {
-	m_value = std::clamp(value, m_min, m_max);
-}
+	if (m_value == newValue)
+		return;
 
+	m_value = newValue;
+	NotifyValueChanged();
+}
 void Slider::SetHandleTexture(const std::string& tex)
 {
 	m_handleTex = ResourceManager::GetInstance().GetTextureAndOffset(tex);
+}
+
+void Slider::AddListener(std::function<void(float)> callback)
+{
+	listeners.push_back(callback);
+}
+
+void Slider::NotifyValueChanged()
+{
+	for (auto& cb : listeners)
+		cb(m_value);
 }
 
 void Slider::RenderUI(Renderer& renderer)

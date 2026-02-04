@@ -72,6 +72,9 @@
             "fovY": 0.7853981852531433,
             "nearZ": 0.10000000149011612,
             "type": "CameraComponent"
+        },
+        {
+            "type": "ListenerComponent"
         }
     ],
     "name": "Player",

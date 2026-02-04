@@ -5,6 +5,7 @@
 #include "CameraComponent.h"
 
 #include "UIBase.h"
+#include "SoundManager.h"
 
 REGISTER_TYPE(TitleScene);
 
@@ -34,6 +35,8 @@ void TitleScene::Initialize()
 	exitbutton->SetTextureAndOffset("IDLE.png", "HOVERD.png", "PRESSED.png", "CLICKED.png");
 	exitbutton->SetLocalPosition({ buttonX, 0.9f });
 	exitbutton->SetScale(0.3f);
+
+	SoundManager::GetInstance().Ambience_Shot(Config::Ambience);
 }
 
 void TitleScene::Update()

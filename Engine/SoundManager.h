@@ -50,6 +50,8 @@ public:
 
 	void Main_BGM_Shot(const std::string filename, float delay);
 	void Sub_BGM_Shot(const std::string filename, float delay);
+	void Ambience_Shot(const std::string filename);
+
 	void SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename);
 	void UI_Shot(const std::string filename);
 
@@ -63,6 +65,7 @@ public:
 	
 	void SetVolume_Main(float volume); //other volume = mainV * otherV;
 	void SetVolume_BGM(float volume);
+	void SetVolume_AMB(float volume);
 	void SetVolume_SFX(float volume);
 	void SetVolume_UI(float volume);
 
@@ -104,17 +107,20 @@ private:
 
 	FMOD::Channel* m_BGMChannel1 = nullptr;
 	FMOD::Channel* m_BGMChannel2 = nullptr;
+	FMOD::Channel* m_AmbienceCh  = nullptr;
 
 	std::unordered_map<std::string, std::vector<std::pair<float, float>>> m_NodeData;
 	std::unordered_map<std::string, std::vector<std::pair<float, float>>> m_SubNodeData;
 
 	FMOD::ChannelGroup* m_MainGroup = nullptr;
 	FMOD::ChannelGroup* m_BGMGroup = nullptr;
+	FMOD::ChannelGroup* m_AMBGroup = nullptr;
 	FMOD::ChannelGroup* m_SFXGroup = nullptr;
 	FMOD::ChannelGroup* m_UIGroup = nullptr;
 
 	float m_Volume_Main = 1.0f;
 	float m_Volume_BGM = 1.0f;
+	float m_Volume_AMB = 1.0f;
 	float m_Volume_SFX = 1.0f;
 	float m_Volume_UI = 1.0f;
 

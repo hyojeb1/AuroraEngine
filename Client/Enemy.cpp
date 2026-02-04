@@ -12,6 +12,7 @@
 #include "NavigationManager.h"
 #include "RNG.h"
 #include "ScoreManager.h"
+#include "SoundManager.h"
 
 REGISTER_TYPE(Enemy)
 
@@ -42,6 +43,8 @@ void Enemy::Die()
 	if (m_fsm) m_fsm->ChangeState(FSMComponentEnemy::EDead);
 	
 	ScoreManager::GetInstance().AddKill();
+
+	SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Enemy_Die);
 }
 
 void Enemy::Update()

@@ -10,10 +10,11 @@ constexpr size_t ChannelCount = 64; //profiling
 
 void SoundManager::Initialize()
 {
-	m_Volume_Main = 1.0f;
-	m_Volume_BGM = 1.0f;
-	m_Volume_SFX = 1.0f;
-	m_Volume_UI = 1.0f;
+	m_Volume_Main = Config::Master_Volume;
+	m_Volume_BGM = Config::BGM_Volume;
+	m_Volume_AMB = Config::AMB_Volume;
+	m_Volume_SFX = Config::SFX_Volume;
+	m_Volume_UI = Config::UI_Volume;
 
 	FMOD_RESULT result;
 	if (!m_CoreSystem)
@@ -39,10 +40,12 @@ void SoundManager::Initialize()
 		m_CoreSystem->getMasterChannelGroup(&m_MainGroup);
 
 		if (!m_BGMGroup) m_CoreSystem->createChannelGroup("BGM", &m_BGMGroup);
+		if (!m_AMBGroup) m_CoreSystem->createChannelGroup("AMB", &m_AMBGroup);
 		if (!m_SFXGroup) m_CoreSystem->createChannelGroup("SFX", &m_SFXGroup);
 		if (!m_UIGroup)  m_CoreSystem->createChannelGroup("UI", &m_UIGroup);
 
 		m_MainGroup->addGroup(m_BGMGroup);
+		m_MainGroup->addGroup(m_AMBGroup);
 		m_MainGroup->addGroup(m_SFXGroup);
 		m_MainGroup->addGroup(m_UIGroup);
 
@@ -151,6 +154,38 @@ void SoundManager::ConvertBGMSource()
 			temp->getFormat(nullptr, &format, nullptr, nullptr);
 			if (format != FMOD_SOUND_FORMAT_PCM16)
 			{
+				std::string err{};
+				switch (format)
+				{
+				case FMOD_SOUND_FORMAT_NONE:
+					err = "FMOD_SOUND_FORMAT_NONE";
+					break;
+				case FMOD_SOUND_FORMAT_PCM8:
+					err = "FMOD_SOUND_FORMAT_PCM8";
+					break;
+				case FMOD_SOUND_FORMAT_PCM16:
+					err = "FMOD_SOUND_FORMAT_PCM16";
+					break;
+				case FMOD_SOUND_FORMAT_PCM24:
+					err = "FMOD_SOUND_FORMAT_PCM24";
+					break;
+				case FMOD_SOUND_FORMAT_PCM32:
+					err = "FMOD_SOUND_FORMAT_PCM32";
+					break;
+				case FMOD_SOUND_FORMAT_PCMFLOAT:
+					err = "FMOD_SOUND_FORMAT_PCMFLOAT";
+					break;
+				case FMOD_SOUND_FORMAT_BITSTREAM:
+					err = "FMOD_SOUND_FORMAT_BITSTREAM";
+					break;
+				case FMOD_SOUND_FORMAT_MAX:
+					err = "FMOD_SOUND_FORMAT_MAX";
+					break;
+				case FMOD_SOUND_FORMAT_FORCEINT:
+					err = "FMOD_SOUND_FORMAT_FORCEINT";
+					break;
+				}
+				std::cerr << "Error format incompatible, Name: " << fileName << " Format: " << err << std::endl;
 				continue;
 			}
 
@@ -519,11 +554,11 @@ InputType SoundManager::CheckRhythm(float correction)
 
 	const float time = GetCurrentPlaybackTime();
 
-	// c - s < time > s = ealry
+	// c - s < time > s = Early
 	if (m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first - correction + m_RhythmOffSet < time && m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first + m_RhythmOffSet > time)
 	{
-		//std::cout << "Ealry!" << std::endl;
-		std::cout << "Ealry!\t";
+		//std::cout << "Early!" << std::endl;
+		std::cout << "Early!\t";
 		return InputType::Early;
 	}
 	// s < time > e  = perfect
@@ -599,7 +634,7 @@ void SoundManager::Sub_BGM_Shot(const std::string filename, float delay)
 	auto it = BGM_List.find(filename);
 	if (it == BGM_List.end())
 	{
-		std::cerr << "Cannot play: invalid track name." << std::endl;
+		std::cerr << "Cannot play: invalid track name : " << filename << std::endl;
 		CheckResult(-1, "invalid track name");
 	}
 
@@ -617,6 +652,26 @@ void SoundManager::Sub_BGM_Shot(const std::string filename, float delay)
 	m_BGMChannel2->setDelay(nowDSP + delaySamples, 0, false);
 
 	m_BGMChannel2->setPaused(false);
+}
+
+void SoundManager::Ambience_Shot(const std::string filename)
+{
+	if (filename.empty())
+	{
+		std::cerr << "Cannot play: Ambience filename is empty" << std::endl;
+		return;
+	}
+
+	auto it = BGM_List.find(filename);
+	if (it == BGM_List.end())
+	{
+		std::cerr << "Cannot play: invalid track name : " << filename << std::endl;
+		CheckResult(-1, "invalid track name");
+	}
+	it->second->setMode(FMOD_LOOP_NORMAL);
+	it->second->setLoopCount(-1);
+
+	m_CoreSystem->playSound(it->second, m_BGMGroup, false, &m_AmbienceCh);
 }
 
 void SoundManager::SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename)
@@ -864,39 +919,32 @@ void SoundManager::UpdateListener(ListenerComponent* listener)
 	m_CoreSystem->set3DListenerAttributes(0, &pos, &vel, &fwd, &up);
 }
 
-void SoundManager::SetVolume_Main(float volume)
+void SoundManager::SetVolume_Main(float v)
 {
-	if (volume < 0) { volume = 0; }
-	else if (volume > 1.0f) { volume = 1.0f; }
-	m_Volume_Main = volume;
-
+	m_Volume_Main = std::clamp(v, 0.0f, 1.0f);
 	m_MainGroup->setVolume(m_Volume_Main);
 }
 
-void SoundManager::SetVolume_BGM(float volume)
+void SoundManager::SetVolume_BGM(float v)
 {
-	if (volume < 0) { volume = 0; }
-	else if (volume > 1.0f) { volume = 1.0f; }
-	m_Volume_BGM = m_Volume_Main * volume;
-
+	m_Volume_BGM = std::clamp(v, 0.0f, 1.0f);
 	m_BGMGroup->setVolume(m_Volume_BGM);
 }
 
-void SoundManager::SetVolume_SFX(float volume)
+void SoundManager::SetVolume_AMB(float v)
 {
-	if (volume < 0) { volume = 0; }
-	else if (volume > 1.0f) { volume = 1.0f; }
-	m_Volume_SFX = m_Volume_Main * volume;
+	m_Volume_AMB = std::clamp(v, 0.0f, 1.0f);
+	m_AMBGroup->setVolume(m_Volume_AMB);
+}
 
+void SoundManager::SetVolume_SFX(float v)
+{
+	m_Volume_SFX = std::clamp(v, 0.0f, 1.0f);
 	m_SFXGroup->setVolume(m_Volume_SFX);
 }
 
-void SoundManager::SetVolume_UI(float volume)
+void SoundManager::SetVolume_UI(float v)
 {
-	if (volume < 0) { volume = 0; }
-	else if (volume > 1.0f) { volume = 1.0f; }
-	m_Volume_UI = m_Volume_Main * volume;
-
+	m_Volume_UI = std::clamp(v, 0.0f, 1.0f);
 	m_UIGroup->setVolume(m_Volume_UI);
 }
-
