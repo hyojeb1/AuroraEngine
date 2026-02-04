@@ -379,8 +379,10 @@ std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> ResourceManager:
 
 const Model* ResourceManager::LoadModel(const string& fileName)
 {
+	#ifdef NDEBUG
 	auto it = m_models.find(fileName);
 	if (it != m_models.end()) return &it->second;
+	#endif
 
 	Assimp::Importer importer;
 	importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
