@@ -7,12 +7,18 @@ namespace Config
 	//Render
 
 
-	//etc.
+//etc.
+	//청각 입력 보정
+	inline constexpr float BeatHumanOffset = 0.24f;
+	
+	//오차 보정
+	inline constexpr float InputCorrection = 0.08f;
+	
+	//노드 생성 -> 도착 시간
+	inline constexpr float travelTime      = 1.2f;
 
-
-
-
-
+	//시각적 보정
+	inline constexpr float visualLead	   = 0.2f;
 
 
 
@@ -26,7 +32,7 @@ namespace Config
 
 
 //BGM
-	inline constexpr const char* Main_BGM = "10S_Sample";									//Node 생성은(Main_BGM + "_Beat")으로 자동 결정 ex) DOB Music_test2_Beat 
+	inline constexpr const char* Main_BGM = "1.DOB_IngameBGM_1_Beat";									//Node 생성은(Main_BGM + "_Beat")으로 자동 결정 ex) DOB Music_test2_Beat 
 	inline constexpr const char* Ambience = "1.DOB_AMB";
 //SFX
 	//Player

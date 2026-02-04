@@ -10,6 +10,8 @@ constexpr size_t ChannelCount = 64; //profiling
 
 void SoundManager::Initialize()
 {
+	m_RhythmOffSet = Config::travelTime;
+
 	m_Volume_Main = Config::Master_Volume;
 	m_Volume_BGM = Config::BGM_Volume;
 	m_Volume_AMB = Config::AMB_Volume;
@@ -72,7 +74,6 @@ void SoundManager::Initialize()
 
 		m_CoreSystem->createDSPByType(FMOD_DSP_TYPE_LOWPASS, &m_lowpass);
 		m_lowpass->setParameterFloat(FMOD_DSP_LOWPASS_CUTOFF, 22000.0f);
-		m_BGMChannel1->addDSP(0, m_lowpass);
 
 		m_CurrentTrackName = "";
 		m_CurrentNodeDataName = "";
@@ -84,6 +85,8 @@ void SoundManager::Initialize()
 void SoundManager::Update()
 {
 	m_CoreSystem->update();
+
+	UpdateAudioClock();
 
 	UpdateLowpass();
 
@@ -528,7 +531,7 @@ void SoundManager::LoadNodeData()
 void SoundManager::UpdateNodeIndex() //raw time
 {
 	if (m_rhythmTimerIndex < m_NodeData[m_CurrentNodeDataName].size() &&
-		m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + m_RhythmOffSet < GetCurrentPlaybackTime())
+		m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + m_RhythmOffSet < GetAudioTime())
 	{
 		m_rhythmTimerIndex++;
 
@@ -539,7 +542,7 @@ void SoundManager::UpdateNodeIndex() //raw time
 void SoundManager::UpdateUINodeIndexAndGenerated()
 {
 	if (m_rhythmUIIndex < m_NodeData[m_CurrentNodeDataName].size() &&
-		m_NodeData[m_CurrentNodeDataName][m_rhythmUIIndex].first < GetCurrentPlaybackTime())
+		m_NodeData[m_CurrentNodeDataName][m_rhythmUIIndex].first < GetAudioTime())
 	{
 		m_rhythmUIIndex++;
 		m_OnNodeGenerated = true;
@@ -552,30 +555,26 @@ InputType SoundManager::CheckRhythm(float correction)
 {
 	if (m_CurrentNodeDataName.empty() || m_CurrentNodeDataName == "") return InputType::Fatal;
 
-	const float time = GetCurrentPlaybackTime();
+	const float time = GetCurrentPlaybackTime() + Config::BeatHumanOffset;
 
+	std::cout << " C Time : " << GetAudioTime() << std::endl;
 	// c - s < time > s = Early
 	if (m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first - correction + m_RhythmOffSet < time && m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first + m_RhythmOffSet > time)
 	{
-		//std::cout << "Early!" << std::endl;
-		std::cout << "Early!\t";
 		return InputType::Early;
 	}
 	// s < time > e  = perfect
 	else if (m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first + m_RhythmOffSet < time && m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + m_RhythmOffSet > time)
 	{
-		std::cout << "Perfect\t";
 		return InputType::Perfect;
 	}
 	// e < time > e + c = late
 	else if (m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + m_RhythmOffSet < time && m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + correction + m_RhythmOffSet > time)
 	{
-		std::cout << "late\t";
 		return InputType::Late;
 	}
 	else
 	{
-		std::cout << "Miss!\t";
 		return InputType::Miss;
 	}
 }
@@ -584,7 +583,7 @@ void SoundManager::UpdateUINodeDestroyed()
 {
 	if (m_CurrentNodeDataName.empty() || m_CurrentNodeDataName == "" && m_rhythmDestroyIndex < m_NodeData[m_CurrentNodeDataName].size()) return;
 
-	if (m_NodeData[m_CurrentNodeDataName][m_rhythmDestroyIndex].first + m_RhythmOffSet < GetCurrentPlaybackTime())
+	if (m_NodeData[m_CurrentNodeDataName][m_rhythmDestroyIndex].first + m_RhythmOffSet < GetAudioTime())
 	{
 		static int cnt = 0;
 
@@ -604,25 +603,26 @@ void SoundManager::Main_BGM_Shot(const std::string filename,float delay)
 	}
 
 	m_CurrentTrackName = it->first;
-	m_CurrentNodeDataName = it->first + "_Beat";
+	m_CurrentNodeDataName = it->first;// +"_Beat";
 	m_rhythmTimerIndex = 0;
 	m_rhythmUIIndex = 0;
 	m_rhythmDestroyIndex = 0;
 
 	m_CoreSystem->playSound(it->second, m_BGMGroup, true, &m_BGMChannel1);
-
-	m_BGMChannel1->getPosition(&m_MainBGM_StartTime, FMOD_TIMEUNIT_MS);
+	m_BGMChannel1->addDSP(0, m_lowpass);
 
 	unsigned long long nowDSP;
 	m_MainGroup->getDSPClock(&nowDSP, nullptr);
 
 	int sampleRate;
-	m_CoreSystem->getSoftwareFormat(&sampleRate, nullptr, nullptr);
+	m_CoreSystem->getSoftwareFormat(&m_DspSampleRate, nullptr, nullptr);
 
 	unsigned long long delaySamples =
-		static_cast<unsigned long long>(delay * sampleRate);
+		static_cast<unsigned long long>(delay * m_DspSampleRate);
 
-	m_BGMChannel1->setDelay(nowDSP + delaySamples, 0, false);
+	m_BGMStartDSP = nowDSP + delaySamples;
+
+	m_BGMChannel1->setDelay(m_BGMStartDSP, 0, false);
 
 	m_BGMChannel1->setPaused(false);
 	m_BGMChannel1->setVolume(m_Volume_BGM);
@@ -642,13 +642,14 @@ void SoundManager::Sub_BGM_Shot(const std::string filename, float delay)
 	unsigned long long nowDSP;
 	m_MainGroup->getDSPClock(&nowDSP, nullptr);
 
-	int sampleRate;
-	m_CoreSystem->getSoftwareFormat(&sampleRate, nullptr, nullptr);
+	m_CoreSystem->getSoftwareFormat(&m_DspSampleRate, nullptr, nullptr);
 
 	unsigned long long delaySamples =
-		static_cast<unsigned long long>(delay * sampleRate);
+		static_cast<unsigned long long>(delay * m_DspSampleRate);
 
-	m_BGMChannel2->setDelay(nowDSP + delaySamples, 0, false);
+	m_BGMStartDSP = nowDSP + delaySamples;
+
+	m_BGMChannel2->setDelay(m_BGMStartDSP, 0, false);
 
 	m_BGMChannel2->setPaused(false);
 }
@@ -769,25 +770,78 @@ void SoundManager::FadeOut(FMOD::Channel* chan, float sec, bool stopAfter)
 }
 
 
-float SoundManager::GetCurrentPlaybackTime()
+//float SoundManager::GetCurrentPlaybackTime() //position ver
+//{
+//	if (!m_BGMChannel1)
+//		return 0.0f;
+//
+//	unsigned int nowSongTime;
+//	m_BGMChannel1->getPosition(&nowSongTime, FMOD_TIMEUNIT_MS);
+//
+//	/*if (nowSongTime < m_MainBGM_StartTime)
+//		return 0.0f;*/
+//
+//	//int dspSampleRate = 0;
+//	//m_CoreSystem->getSoftwareFormat(&dspSampleRate, nullptr, nullptr);
+//
+//	/*double songTime =
+//		(double)(nowDSP - m_MainBGM_StartTime)
+//		/ (double)dspSampleRate;*/
+//
+//	return static_cast<float>(nowSongTime) / 1000.0f;
+//}
+
+float SoundManager::GetCurrentPlaybackTime() //DSP ver
 {
 	if (!m_BGMChannel1)
 		return 0.0f;
 
-	unsigned int nowSongTime;
-	m_BGMChannel1->getPosition(&nowSongTime, FMOD_TIMEUNIT_MS);
+	unsigned long long nowDSP;
+	m_MainGroup->getDSPClock(&nowDSP, nullptr);
 
-	/*if (nowSongTime < m_MainBGM_StartTime)
-		return 0.0f;*/
+	if (nowDSP < m_BGMStartDSP)
+		return 0.0f;
 
-	//int dspSampleRate = 0;
-	//m_CoreSystem->getSoftwareFormat(&dspSampleRate, nullptr, nullptr);
+	double dspElapsed =
+		static_cast<double>(nowDSP - m_BGMStartDSP) /
+		static_cast<double>(m_DspSampleRate);
 
-	/*double songTime =
-		(double)(nowDSP - m_MainBGM_StartTime)
-		/ (double)dspSampleRate;*/
+	return static_cast<float>(dspElapsed);
+}
 
-	return static_cast<float>(nowSongTime) / 1000.0f;
+void SoundManager::UpdateAudioClock()
+{
+	// 누적 오디오 시간
+	const float now = GetCurrentPlaybackTime();
+
+	// 아직 재생 전(0)일 때는 델타 0으로
+	if (now <= 0.0f)
+	{
+		m_AudioTime = 0.0f;
+		m_PrevAudioTime = 0.0f;
+		m_AudioDeltaTime = 0.0f;
+		m_AudioClockInited = false;
+		return;
+	}
+
+	if (!m_AudioClockInited)
+	{
+		m_AudioTime = now;
+		m_PrevAudioTime = now;
+		m_AudioDeltaTime = 0.0f;
+		m_AudioClockInited = true;
+		return;
+	}
+
+	float dt = now - m_PrevAudioTime;
+
+	// 안전장치: 음수/비정상 스파이크(일시정지, seek, 드랍 등) 처리
+	if (dt < 0.0f) dt = 0.0f;
+	if (dt > 0.25f) dt = 0.25f; // 프레임 드랍 시 과도한 점프 방지(원하면 제거)
+
+	m_AudioDeltaTime = dt;
+	m_PrevAudioTime = now;
+	m_AudioTime = now;
 }
 
 FMOD_VECTOR SoundManager::ToFMOD(DirectX::XMVECTOR vector)

@@ -44,8 +44,11 @@ void CrossHairAndNode::Update()
 
 	GenerateNode();
 
-	for_each(m_UINode.begin(), m_UINode.end(), [&](auto& time) { time -= TimeManager::GetInstance().GetNSDeltaTime(); });
-	if (!m_UINode.empty() && m_UINode.front() < 0.0f) m_UINode.pop_front();
+	for_each(m_UINode.begin(), m_UINode.end(), [&](auto& time) { time -= SoundManager::GetInstance().GetAudioDeltaTime(); });
+	if (!m_UINode.empty() && m_UINode.front() < 0.0f)
+	{
+		m_UINode.pop_front();
+	}
 }
 
 void CrossHairAndNode::Render()
@@ -146,6 +149,6 @@ void CrossHairAndNode::GenerateNode()
 
 	/*if (!sm.ConsumeNodeChanged())
 		return;*/
-	SoundManager::GetInstance().AddNodeGeneratedListenerOnce([&]() { m_UINode.push_back(sm.GetRhythmOffset()); });
+	sm.AddNodeGeneratedListenerOnce([&]() { m_UINode.push_back(sm.GetRhythmOffset() - Config::visualLead); });
 
 }
