@@ -5,13 +5,13 @@
             "RestartOnFinish": true,
             "billboardType": 4,
             "blendState": 1,
-            "imageScale": 4.820000171661377,
-            "particleAmount": 639,
+            "imageScale": 1.3600000143051147,
+            "particleAmount": 8168,
             "particleColor": [
                 1.0,
                 0.7960784435272217,
                 0.5058823823928833,
-                1.0
+                0.7333333492279053
             ],
             "particleConstTime": -1.0,
             "particleEmissionColor": [
