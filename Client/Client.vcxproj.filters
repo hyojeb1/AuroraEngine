@@ -41,6 +41,7 @@
     <ClCompile Include="ParticleObject.cpp">
       <Filter>ParticleObject</Filter>
     </ClCompile>
+    <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
