@@ -116,8 +116,6 @@ void SceneBase::OnResizeEvent()
 	}
 }
 
-
-
 void SceneBase::BaseInitialize()
 {
 	m_deviceContext = Renderer::GetInstance().GetDeviceContext();

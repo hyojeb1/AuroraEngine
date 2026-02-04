@@ -476,6 +476,8 @@ void GameObjectBase::SaveAsPrefab()
 	prefabFile << BaseSerialize().dump(4);
 	prefabFile.close();
 
+	SceneManager::GetInstance().LoadAllPrefabs();
+
 	cout << "게임 오브젝트 '" << m_name << " 저장 완료!" << endl;
 }
 
