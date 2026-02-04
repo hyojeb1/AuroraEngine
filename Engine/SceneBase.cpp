@@ -210,7 +210,8 @@ void SceneBase::BaseUpdate()
 	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::Z)) Undo();
 
 	// ?��버그 카메?���? ?��브젝?�� ?��?��
-	PickObjectDebugCamera();
+
+	if (inputManager.GetKey(KeyCode::Control) && inputManager.GetKeyDown(KeyCode::MouseLeft)) PickObjectDebugCamera();
 	#endif
 }
 
@@ -775,10 +776,7 @@ void SceneBase::RenderSkybox()
 #ifdef _DEBUG
 void SceneBase::PickObjectDebugCamera()
 {
-	InputManager& inputManager = InputManager::GetInstance();
-	if (!inputManager.GetKeyDown(KeyCode::MouseRight)) return;
-
-	const POINT& mouse = inputManager.GetMousePosition();
+	const POINT& mouse = InputManager::GetInstance().GetMousePosition();
 	pair<XMVECTOR, XMVECTOR> ray = CameraComponent::GetMainCamera().RayCast(static_cast<float>(mouse.x), static_cast<float>(mouse.y));
 	GameObjectBase::SetSelectedObject(ModelComponent::CheckCollision(ray.first, ray.second));
 }
