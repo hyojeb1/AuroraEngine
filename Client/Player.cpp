@@ -55,9 +55,9 @@ void Player::Update()
 	UpdateRotation(input, deltaTime);
 	UpdateMoveDirection(input);
 	
-	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerShoot();
-	if (!m_isDashing && input.GetKeyDown(KeyCode::Space) && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerTriggerDash();
-	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerDeadEyeStart();
+	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.0f) < InputType::Miss) PlayerShoot();
+	if (!m_isDashing && input.GetKeyDown(KeyCode::Space) && sm.CheckRhythm(0.0f) < InputType::Miss) PlayerTriggerDash();
+	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.0f) < InputType::Miss) PlayerDeadEyeStart();
 	
 
 	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime, input);
@@ -66,7 +66,7 @@ void Player::Update()
 
 	if (input.GetKeyDown(KeyCode::R))
 	{
-		switch (sm.CheckRhythm(0.1f))
+		switch (sm.CheckRhythm(0.0f))
 		{
 		case InputType::Early:
 			PlayerReload(1);

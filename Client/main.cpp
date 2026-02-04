@@ -29,7 +29,7 @@ int main()
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
 	sceneManager.Initialize();
-	sceneManager.ChangeScene("TitleScene");
+	sceneManager.ChangeScene("TestScene");
 	//sceneManager.ChangeScene("EndingScene");
 
 	RNG::GetInstance().Initialize();

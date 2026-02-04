@@ -576,7 +576,6 @@ InputType SoundManager::CheckRhythm(float correction)
 	else
 	{
 		std::cout << "Miss!\t";
-
 		return InputType::Miss;
 	}
 }
