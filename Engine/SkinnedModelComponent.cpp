@@ -17,7 +17,8 @@ REGISTER_TYPE(SkinnedModelComponent)
 SkinnedModelComponent::SkinnedModelComponent()
 {
 	m_vsShaderName = "VSModelSkinAnim.hlsl";
-	m_modelAndMaterialFileNames.push_back({ "test5.fbx", "test5" });
+	//m_modelAndMaterialFileNames.push_back({ "test5.fbx", "test5" });
+	m_modelAndMaterialFileNames.push_back({ "mob_attack_2.fbx", "test5" });
 
 	m_inputElements.push_back(InputElement::Blendindex);  
 	m_inputElements.push_back(InputElement::Blendweight); 

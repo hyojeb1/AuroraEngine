@@ -259,6 +259,9 @@ void ModelComponent::RenderImGui()
 					UpdateBoundingBox();
 				}
 
+				ImGui::SameLine();
+				bool removeThis = ImGui::Button("Remove");
+
 				// 텍스처 미리보기
 				ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Material Textures");
 				auto ShowTextureSlot = [](const char* name, ID3D11ShaderResourceView* srv)
@@ -301,6 +304,14 @@ void ModelComponent::RenderImGui()
 				ImGui::ColorEdit3("Emission Factor", &material.m_materialFactor.emissionFactor.x);
 
 				ImGui::TreePop();
+
+				if (removeThis)
+				{
+					m_modelsAndMaterials.erase(m_modelsAndMaterials.begin() + i);
+					m_modelAndMaterialFileNames.erase(m_modelAndMaterialFileNames.begin() + i);
+					UpdateBoundingBox();
+					break;
+				}
 			}
 		}
 
