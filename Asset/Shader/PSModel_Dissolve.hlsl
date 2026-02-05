@@ -62,7 +62,7 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     // 섀도우 맵 샘플링 // TODO: 나중에 함수로 빼야함
     float4 lightSpacePos = mul(input.WorldPosition, LightViewProjectionMatrix);
     float2 shadowTexCoord = float2(lightSpacePos.x * 0.5f + 0.5f, -lightSpacePos.y * 0.5f + 0.5f);
-    float currentDepth = lightSpacePos.z * 0.999f;
+    float currentDepth = lightSpacePos.z * 0.9909f;
     float shadow = directionalShadowMapTexture.SampleCmpLevelZero(SamplerComparisonClamp, shadowTexCoord, currentDepth);
     
     // 조명 계산
@@ -81,8 +81,8 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     // 환경 맵에서 디퓨즈 샘플링 (높은 MIP 레벨 사용)
     float3 envDiffuse = environmentMapTexture.SampleLevel(SamplerLinearWrap, N, orm.g * 32.0f).rgb;
     
-    float3 indirectDiffuse = envDiffuse * kD_env * orm.r; // 환경광 디퓨즈
     float3 indirectSpecular = envReflection * F_env; // 환경광 스페큘러
+    float3 indirectDiffuse = envDiffuse * kD_env * orm.r; // 환경광 디퓨즈
     
     // IBL 최종 기여도
     float3 ibl = (indirectDiffuse + indirectSpecular) * baseColor.rgb * LightColor.w;
