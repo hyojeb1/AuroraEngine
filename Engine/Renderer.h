@@ -87,6 +87,24 @@ public:
 
 	// UI 렌더링 함수
 	constexpr std::vector<std::function<void()>>& UI_RENDER_FUNCTIONS() { return m_UIRenderFunctions; }
+	// 월드 좌표 -> 스크린 좌표 변환
+	DirectX::XMFLOAT2 ToScreenPosition(const DirectX::XMFLOAT2& worldPosition)
+	{
+		return DirectX::XMFLOAT2
+		{
+			worldPosition.x * static_cast<float>(m_swapChainDesc.Width),
+			worldPosition.y * static_cast<float>(m_swapChainDesc.Height)
+		};
+	}
+	// 월드 좌표 -> UI 좌표 변환
+	DirectX::XMFLOAT2 ToUIPosition(const DirectX::XMFLOAT2& worldPosition)
+	{
+		return DirectX::XMFLOAT2
+		{
+			worldPosition.x / static_cast<float>(m_swapChainDesc.Width),
+			worldPosition.y / static_cast<float>(m_swapChainDesc.Height)
+		};
+	}
 	// UI 텍스트 렌더링
 	// 스크린 좌표계
 	void RenderTextScreenPosition(const wchar_t* text, DirectX::XMFLOAT2 position, float depth = 0.0f, const DirectX::XMVECTOR& color = DirectX::XMVECTOR{ 1.0f, 1.0f, 1.0f, 1.0f }, float scale = 1.0f, const std::wstring& fontName = L"Gugi");

@@ -9,13 +9,7 @@
 
 void Button::UpdateRect()
 {
-	Renderer& renderer = Renderer::GetInstance();
-	const DXGI_SWAP_CHAIN_DESC1& swapChainDesc = renderer.GetSwapChainDesc();
-
-	const auto worldPos = GetWorldPosition();
-
-	const DirectX::XMFLOAT2 windowPos = { static_cast<float>(swapChainDesc.Width) * worldPos.x, static_cast<float>(swapChainDesc.Height) * worldPos.y };
-
+	const DirectX::XMFLOAT2 windowPos = Renderer::GetInstance().ToScreenPosition(GetWorldPosition());
 	const DirectX::XMFLOAT2 offset = { m_textureIdle.second.x * m_scale, m_textureIdle.second.y * m_scale };
 
 	m_UIRect =
@@ -141,16 +135,7 @@ void UIBase::SetTextureAndOffset(const std::string& idle)
 
 void Panel::UpdateRect()
 {
-	Renderer& renderer = Renderer::GetInstance();
-	const auto& desc = renderer.GetSwapChainDesc();
-
-	const auto worldPos = GetWorldPosition();
-
-	const DirectX::XMFLOAT2 windowPos =
-	{
-		desc.Width * worldPos.x,
-		desc.Height * worldPos.y
-	};
+	const DirectX::XMFLOAT2 windowPos = Renderer::GetInstance().ToScreenPosition(GetWorldPosition());
 
 	const DirectX::XMFLOAT2 offset =
 	{
@@ -221,17 +206,10 @@ void Slider::RenderUI(Renderer& renderer)
 	float t = (m_value - m_min) / (m_max - m_min);
 	t = std::clamp(t, 0.0f, 1.0f);
 
-	float handleX =
-		m_UIRect.left + t * (m_UIRect.right - m_UIRect.left);
-	float handleY =
-		(m_UIRect.top + m_UIRect.bottom) * 0.5f;
+	float handleX = m_UIRect.left + t * (m_UIRect.right - m_UIRect.left);
+	float handleY = (m_UIRect.top + m_UIRect.bottom) * 0.5f;
 
-	const auto& desc = Renderer::GetInstance().GetSwapChainDesc();
-	DirectX::XMFLOAT2 handlePos =
-	{
-		handleX / desc.Width,
-		handleY / desc.Height
-	};
+	DirectX::XMFLOAT2 handlePos = Renderer::GetInstance().ToUIPosition({ handleX, handleY });
 
 	auto handleTex = m_handleTex.first;
 	auto handleOff = m_handleTex.second;
@@ -290,16 +268,7 @@ void Slider::RenderUI(Renderer& renderer)
 
 void Slider::UpdateRect()
 {
-	Renderer& renderer = Renderer::GetInstance();
-	const auto& desc = renderer.GetSwapChainDesc();
-
-	const auto worldPos = GetWorldPosition();
-
-	const DirectX::XMFLOAT2 windowPos =
-	{
-		desc.Width * worldPos.x,
-		desc.Height * worldPos.y
-	};
+	const DirectX::XMFLOAT2 windowPos = Renderer::GetInstance().ToScreenPosition(GetWorldPosition());
 
 	const DirectX::XMFLOAT2 offset =
 	{

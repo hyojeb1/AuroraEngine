@@ -244,14 +244,14 @@ void SceneBase::BaseRender()
 			// �?-?��?�� ?��?�� 버퍼 방향�? 기�???���? ?��?��?��?��
 			const float cameraFarPlane = mainCamera.GetFarZ();
 
-			XMVECTOR lightPosition = (m_globalLightData.lightDirection * -cameraFarPlane) + mainCamera.GetPosition();
+			XMVECTOR lightPosition = (m_globalLightData.lightDirection * -cameraFarPlane * 0.25f) + mainCamera.GetPosition();
 			lightPosition = XMVectorSetW(lightPosition, 1.0f);
 			renderer.SetRenderSortPoint(lightPosition); // ?��?�� 기�???��?�� ?��?��?�� ?��치로 ?��?��
 
 			constexpr XMVECTOR LIGHT_UP = { 0.0f, 1.0f, 0.0f, 0.0f };
 			m_viewProjectionData.viewMatrix = XMMatrixLookAtLH(lightPosition, mainCamera.GetPosition(), LIGHT_UP);
 
-			const float lightRange = cameraFarPlane * 2.0f;
+			const float lightRange = cameraFarPlane * 0.5f; // TODO: 나중에 조금 줄일수도 있음
 			m_viewProjectionData.projectionMatrix = XMMatrixOrthographicLH(lightRange, lightRange, 0.1f, lightRange);
 
 			m_viewProjectionData.VPMatrix = XMMatrixTranspose(m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix);
@@ -408,8 +408,8 @@ void SceneBase::BaseRenderImGui()
 	ImGui::DragFloat("Lut Lerp Factor", &m_postProcessingData.lutLerpFactor, 0.01f, 0.0f, 1.0f);
 
 	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Light");
-	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);
 	ImGui::DragFloat("IBL Intensity", &m_globalLightData.lightColor.w, 0.001f, 0.0f, 1.0f);
+	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);
 
 	if (ImGui::DragFloat3("Light Direction", &m_globalLightData.lightDirection.m128_f32[0], 0.001f, -1.0f, 1.0f))
 	{
