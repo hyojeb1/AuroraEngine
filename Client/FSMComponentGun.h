@@ -35,7 +35,7 @@ protected:
 
 private:
 
-	float timer_ = 0.0f;
-	DirectX::XMVECTOR origin_rotation_{0,0,0,0};
+	float m_timer = 0.0f;
+	DirectX::XMVECTOR m_originRotation{0,0,0,0};
 };
 ///EOF FSMComponentGun.h

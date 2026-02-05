@@ -14,18 +14,20 @@ class Enemy : public GameObjectBase
 	class FSMComponentEnemy* m_fsm = nullptr;
 	class ColliderComponent* m_collider = nullptr;
 
+	float m_deathTimer = 0.0f;
+	const float m_deathDuration = 2.0f;
+	const float m_attackRangeSquare = 2.56f;
+
+public:
 	enum class AIState
 	{
 		Idle,
-
-		Dying
+		Chase,
+		Attack,
+		Dead
 	};
 	AIState m_state = AIState::Idle;
 
-	float m_deathTimer = 0.0f;
-	const float m_deathDuration = 2.0f;
-
-public:
 	Enemy() = default;
 	~Enemy() override = default;
 	Enemy(const Enemy&) = default;
@@ -34,6 +36,8 @@ public:
 	Enemy& operator=(Enemy&&) = default;
 
 	void Die();
+	void OnAttackFinished();
+	class Player* GetTargetPlayer() const { return m_player; }
 
 private:
 	void Initialize() override;

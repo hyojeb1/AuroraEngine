@@ -5,16 +5,14 @@
 #include "FSMComponent.h"
 #include <DirectXMath.h>
 
-class SkinnedModelComponent;
-
 class FSMComponentEnemy : public FSMComponent
 {
 public:
 	enum EState
 	{
 		EIdle,
-		ERun,     // Chase 상태일 때 재생
-		EAttack,  // PreAttack 시점에 재생 시작
+		EChase,
+		EAttack,
 		EDead,
 		ECount
 	};
@@ -26,7 +24,7 @@ public:
 	std::string StateToString(StateID state) const override;
 	StateID StringToState(const std::string& str) const override;
 
-	void SetModelComponent(SkinnedModelComponent* model) { model_ = model; }
+	void SetModelComponent(class SkinnedModelComponent* model) { model_ = model; }
 
 protected:
 	void OnEnterState(StateID state) override;
@@ -39,7 +37,26 @@ protected:
 	#endif
 
 private:
-	SkinnedModelComponent* model_ = nullptr;
+	class SkinnedModelComponent* model_ = nullptr;
+	class Enemy* owner_enemy_ = nullptr;	
+	class Player* player_ = nullptr;
+
 	float death_timer_ = 0.0f;
+
+	float attack_timer_ = 0.0f;
+	bool  attack_has_hit_ = false; //?
+
+
+
+	const float kAttackRange = 1.6f;
+	const float kAttackAnticipation = 0.35f; // 선딜
+	const float kAttackTotalTime = 0.9f;     // 전체 모션 시간
+	const int   kDamage = 1;
+
+	const float kFadeStartTime = 0.5f;
+	const float kFadeDuration = 1.5f;
+
 };
+
+
 ///EOF FSMComponentEnemy.h

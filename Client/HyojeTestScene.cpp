@@ -35,6 +35,7 @@ void HyojeTestScene::Update()
 	time += TimeManager::GetInstance().GetDeltaTime();
 
 	if (time > 1.0f) {
+	//if (time > 30.0f) {
 		time = 0.0f;
 
 		constexpr float SPREAD = 10.0f;

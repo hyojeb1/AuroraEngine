@@ -5,6 +5,8 @@
 #include "SkinnedModelComponent.h"
 #include "TimeManager.h"
 #include "../Engine/Animator.h"
+#include "Enemy.h" 
+#include "Player.h"
 
 REGISTER_TYPE(FSMComponentEnemy)
 
@@ -12,10 +14,14 @@ using namespace std;
 using namespace DirectX;
 
 
+
 void FSMComponentEnemy::Initialize()
 {
 	model_ = GetOwner()->GetComponent<SkinnedModelComponent>();
+	owner_enemy_ = dynamic_cast<Enemy*>(GetOwner());
+	if(player_ == nullptr) player_ = owner_enemy_->GetTargetPlayer();
 	FSMComponent::Initialize();
+
 }
 
 std::string FSMComponentEnemy::StateToString(StateID state) const
@@ -23,7 +29,7 @@ std::string FSMComponentEnemy::StateToString(StateID state) const
 	switch (state)
 	{
 	case EIdle:   return "Idle";
-	case ERun:    return "Run";
+	case EChase:    return "Chase";
 	case EAttack: return "Attack";
 	case EDead:   return "Dead";
 	default:     return "Unknown";
@@ -33,7 +39,7 @@ std::string FSMComponentEnemy::StateToString(StateID state) const
 FSMComponent::StateID FSMComponentEnemy::StringToState(const std::string& str) const
 {
 	if (str == "Idle")   return EIdle;
-	if (str == "Run")    return ERun;
+	if (str == "Chase")    return EChase;
 	if (str == "Attack") return EAttack;
 	if (str == "Dead")   return EDead;
 	return EIdle;
@@ -48,29 +54,35 @@ void FSMComponentEnemy::OnEnterState(StateID state)
 	{
 	case EIdle:
 		model_->GetAnimator()->SetPlaybackSpeed(100.0f);
-		//model_->GetAnimator()->PlayAnimation("rig|rigAction", true);
-		//model_->GetAnimator()->PlayAnimation("rArmature|Armature|Armature|mixamo.com|Layer0", true);
 		model_->GetAnimator()->PlayAnimation();
 		model_->SetBlendState(BlendState::Opaque);
 		break;
+
+	case EChase:
+		model_->GetAnimator()->SetPlaybackSpeed(30.0f);
+		//model_->GetAnimator()->PlayAnimation("Run", true);
+		model_->GetAnimator()->PlayAnimation();
+		break;
+
+	case EAttack: 
+		attack_timer_ = 0.0f;
+		attack_has_hit_ = false;
+
+		model_->GetAnimator()->SetPlaybackSpeed(1.0f);
+		model_->GetAnimator()->RestartCurrentAnimation(false);
+		//model_->GetAnimator()->PlayAnimation("Attack", true);
+		model_->GetAnimator()->PlayAnimation();
+		break;
+
 	case EDead:
 		death_timer_ = 0.0f;
 		model_->GetAnimator()->SetPlaybackSpeed(0.1f);
-		//model_->GetAnimator()->PlayAnimation("rig|PlaneAction", false);
-		//model_->GetAnimator()->PlayAnimation("Armature|Armature|Armature|mixamo.com|Layer0", false);
-		model_->GetAnimator()->PlayAnimation(0,false);
+		model_->GetAnimator()->PlayAnimation(0, false);
 
 		model_->SetBlendState(BlendState::AlphaBlend);
 		break;
-	case ERun:
-	case EAttack:
-		if (state == EAttack)
-		{
-			model_->GetAnimator()->SetPlaybackSpeed(1.25f);
-			model_->GetAnimator()->RestartCurrentAnimation(false);
-		}
-		break;
 	}
+
 }
 
 void FSMComponentEnemy::OnUpdateState(StateID state)
@@ -79,14 +91,31 @@ void FSMComponentEnemy::OnUpdateState(StateID state)
 
 	switch (state)
 	{
+	case EAttack:
+		attack_timer_ += dt;
+		
+		if (attack_timer_ >= kAttackAnticipation && ! attack_has_hit_) {
+			attack_has_hit_ = true;
+		
+			if (owner_enemy_&& player_) {
+				XMVECTOR diff = player_->GetPosition() - owner_enemy_->GetPosition();
+				float distSq = XMVectorGetX(XMVector3LengthSq(diff));
+
+				if (distSq <= kAttackRange * kAttackRange) {
+					// player->TakeDamage(kDamage); 
+					cout << "Player Hit! Damage: " << kDamage << endl;
+				}
+			}
+		}
+
+		if (attack_timer_ >= kAttackTotalTime && owner_enemy_) {
+			owner_enemy_->OnAttackFinished();
+		}
+
+		break;
 	case EDead:
 	{
 		death_timer_ += dt;
-
-		// 1.5초 후부터 0.5초간 서서히 투명해지기 (총 2초)
-		// Enemy.h의 m_deathDuration(2.0f)과 타이밍을 맞춰야 함
-		constexpr float kFadeStartTime = 0.5f;
-		constexpr float kFadeDuration = 1.5f;
 
 		if (death_timer_ >= kFadeStartTime)
 		{

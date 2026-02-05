@@ -35,9 +35,9 @@ void Enemy::Initialize()
 
 void Enemy::Die()
 {
-	if (m_state == AIState::Dying) return;
+	if (m_state == AIState::Dead) return;
 
-	m_state = AIState::Dying;
+	m_state = AIState::Dead;
 	m_deathTimer = 0.0f;
 
 	if (m_collider) m_collider->SetAlive(false);
@@ -53,20 +53,37 @@ void Enemy::Update()
 {
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 
-	if (m_state == AIState::Dying)
-	{
+	if (m_state == AIState::Dead) {
 		m_deathTimer += deltaTime;
-
 		if (m_deathTimer >= m_deathDuration) SetAlive(false);
-
 		return;
 	}
+	
+	if (m_state == AIState::Attack){return;}
+
+	if (m_state == AIState::Chase && m_player) {
+		// 거리 제곱 계산
+		XMVECTOR toPlayer = m_player->GetPosition() - GetPosition();
+		float distSq = XMVectorGetX(XMVector3LengthSq(toPlayer));
+
+		// 사거리 안에 들어왔다면? -> 공격 상태로 전환
+		if (distSq <= m_attackRangeSquare) {
+			m_state = AIState::Attack; // 논리 상태 변경
+
+			// FSM에게 연출 시작 명령
+			if (m_fsm) m_fsm->ChangeState(FSMComponentEnemy::EAttack);
+
+			return;
+		}
+	}
+
 
 	m_pathFindTimer += deltaTime;
 	if (m_pathFindTimer >= m_pathFindInterval - m_pathFindIntervalRandomOffset) { m_path.clear(); m_pathFindTimer = -m_pathFindIntervalRandomOffset; }
 
 	MoveAlongPath();
 }
+
 
 void Enemy::MoveAlongPath()
 {
@@ -83,4 +100,15 @@ void Enemy::MoveAlongPath()
 		XMVECTOR deltaPosition = XMVectorScale(direction, m_moveSpeedSquared * TimeManager::GetInstance().GetDeltaTime());
 		MovePosition(deltaPosition);
 	}
+}
+
+void Enemy::OnAttackFinished()
+{
+	if (m_state == AIState::Dead) return;
+
+	// 공격이 끝났으니 다시 추적 상태로 복귀
+	// (만약 튜토리얼용 허수아비라면 여기서 Idle로 보내는 분기 추가 가능)
+	m_state = AIState::Chase;
+
+	if (m_fsm) m_fsm->ChangeState(FSMComponentEnemy::EChase);
 }
