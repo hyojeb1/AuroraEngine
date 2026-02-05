@@ -4,6 +4,12 @@
 
 #include "Shared/Config/Option.h"
 
+void GameManager::Initialize()
+{
+	ScoreReset();
+	m_multiplier = 1;
+}
+
 void GameManager::AddKill()
 {
 	const float now = TimeManager::GetInstance().GetTotalTime();

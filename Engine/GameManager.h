@@ -68,7 +68,7 @@ class GameManager : public Singleton<GameManager>
 
     void TempPrint();   // UI에 넣기 전에 저장할 위치
 public:
-    void Initailize();
+    void Initialize();
     void Update();              // SceneManager.cpp - Run()
     void ScoreUpdate();
     void AddKill();             // Enemy.cpp - Die()

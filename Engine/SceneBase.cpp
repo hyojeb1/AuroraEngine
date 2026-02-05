@@ -230,10 +230,9 @@ void SceneBase::BaseRender()
 {
 	Renderer& renderer = Renderer::GetInstance();
 
-	// 방향?�� 광원 그림?�� �? ?��?���?
 	renderer.RENDER_FUNCTION(RenderStage::DirectionalLightShadow, BlendState::Opaque).emplace_back
 	(
-		numeric_limits<float>::lowest(), // ?��?��?��?�� �??�� ?��?��
+		numeric_limits<float>::lowest(),
 		[&]()
 		{
 			Renderer& renderer = Renderer::GetInstance();
@@ -241,12 +240,11 @@ void SceneBase::BaseRender()
 
 			renderer.SetViewport(static_cast<FLOAT>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE), static_cast<FLOAT>(DIRECTIAL_LIGHT_SHADOW_MAP_SIZE));
 
-			// �?-?��?�� ?��?�� 버퍼 방향�? 기�???���? ?��?��?��?��
 			const float cameraFarPlane = mainCamera.GetFarZ();
 
 			XMVECTOR lightPosition = (m_globalLightData.lightDirection * -cameraFarPlane * 0.25f) + mainCamera.GetPosition();
 			lightPosition = XMVectorSetW(lightPosition, 1.0f);
-			renderer.SetRenderSortPoint(lightPosition); // ?��?�� 기�???��?�� ?��?��?�� ?��치로 ?��?��
+			renderer.SetRenderSortPoint(lightPosition);
 
 			constexpr XMVECTOR LIGHT_UP = { 0.0f, 1.0f, 0.0f, 0.0f };
 			m_viewProjectionData.viewMatrix = XMMatrixLookAtLH(lightPosition, mainCamera.GetPosition(), LIGHT_UP);

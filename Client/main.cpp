@@ -39,7 +39,7 @@ int main()
 	soundManager.Initialize();
 
 	GameManager& gameManager = GameManager::GetInstance();
-	gameManager.Initailize();
+	gameManager.Initialize();
 
 	while (windowManager.ProcessMessages())
 	{
