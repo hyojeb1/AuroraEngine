@@ -47,7 +47,7 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     
     // IBL 계산
     // 환경 맵에서 반사광 샘플링
-    float3 envReflection = environmentMapTexture.SampleLevel(SamplerLinearWrap, H, orm.g * 32.0f).rgb;
+    float3 envReflection = environmentMapTexture.SampleLevel(SamplerLinearWrap, R, orm.g * 32.0f).rgb;
     
     // 프레넬로 반사 강도 조절 (시야각에 따라 반사 강도 변화)
     float3 F_env = FresnelSchlickRoughness(NdotV, F0, orm.g);
