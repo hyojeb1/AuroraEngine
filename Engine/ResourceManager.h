@@ -94,8 +94,10 @@ public:
 	// 텍스처 파일로부터 텍스처 로드
 	com_ptr<ID3D11ShaderResourceView> GetTexture(const std::string& fileName, TextureType type = TextureType::BaseColor);
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> GetTextureAndOffset(const std::string& fileName);
+
 	// 모델 파일로부터 모델 로드
 	const Model* LoadModel(const std::string& fileName);
+	Material LoadMaterial(const std::string& materialName);
 
 	DirectX::SpriteBatch* GetSpriteBatch() { return m_spriteBatch.get(); }
 	DirectX::SpriteFont* GetSpriteFont(const std::wstring& fontName);

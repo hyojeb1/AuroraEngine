@@ -17,7 +17,8 @@ REGISTER_TYPE(SkinnedModelComponent)
 SkinnedModelComponent::SkinnedModelComponent()
 {
 	m_vsShaderName = "VSModelSkinAnim.hlsl";
-	m_modelFileName = "test5.fbx";
+	//m_modelAndMaterialFileNames.push_back({ "test5.fbx", "test5" });
+	m_modelAndMaterialFileNames.push_back({ "mob_attack_2.fbx", "test5" });
 
 	m_inputElements.push_back(InputElement::Blendindex);  
 	m_inputElements.push_back(InputElement::Blendweight); 
@@ -31,14 +32,11 @@ void SkinnedModelComponent::Initialize()
 
 	m_boneConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Bone);
 
-	if (m_model)
+	if (!m_modelsAndMaterials.empty())
 	{
-		animator_ = make_shared<Animator>(m_model);
-		if (!m_model->animations.empty())
-		{
-			animator_->PlayAnimation(m_model->animations.front().name);
-			//animator_->PlayAnimation("rig|rigAction");
-		}
+		const auto& [model, material] = m_modelsAndMaterials.front();
+		animator_ = make_shared<Animator>(model);
+		if (!model->animations.empty()) animator_->PlayAnimation(model->animations.front().name);
 	}
 }
 
@@ -70,7 +68,6 @@ void SkinnedModelComponent::Render()
 	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 
 	BoundingBox transformedBoundingBox = {};
-	m_model->boundingBox.Transform(transformedBoundingBox, m_owner->GetWorldMatrix());
 	XMVECTOR boxCenter = XMLoadFloat3(&transformedBoundingBox.Center);
 	XMVECTOR boxExtents = XMLoadFloat3(&transformedBoundingBox.Extents);
 
@@ -81,43 +78,73 @@ void SkinnedModelComponent::Render()
 		XMVectorGetX(XMVector3LengthSq(sortPoint - XMVectorClamp(sortPoint, boxCenter - boxExtents, boxCenter + boxExtents))),
 		[&]()
 		{
-			if (!m_model) return;
-			// 프러스텀 컬링 (필요시 추가)
-			// if (transformedBoundingBox.Intersects(mainCamera.GetBoundingFrustum()) == false) return;
-
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 			resourceManager.SetRasterState(m_rasterState);
+
+			m_deviceContext->UpdateSubresource(m_worldNormalConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
+			m_deviceContext->UpdateSubresource(m_boneConstantBuffer.Get(), 0, nullptr, &m_boneBufferData, 0, 0);
+			m_deviceContext->UpdateSubresource(m_dissolveConstantBuffer.Get(), 0, nullptr, &m_dissolveData, 0, 0);
+
+			m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
+			m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
+			m_deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
+
+			for (const auto& [model, material] : m_modelsAndMaterials)
+			{
+				// 재질 텍스처 셰이더에 설정
+				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::BaseColor), 1, material.baseColorTextureSRV.GetAddressOf());
+				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, material.ORMTextureSRV.GetAddressOf());
+				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, material.normalTextureSRV.GetAddressOf());
+				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Emission), 1, material.emissionTextureSRV.GetAddressOf());
+				m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Noise), 1, resourceManager.GetNoise(m_selectedNoiseIndex).GetAddressOf());
+
+				// 재질 팩터 설정
+				m_deviceContext->UpdateSubresource(m_materialFactorConstantBuffer.Get(), 0, nullptr, &material.m_materialFactor, 0, 0);
+
+				for (const Mesh& mesh : model->meshes)
+				{
+					resourceManager.SetPrimitiveTopology(mesh.topology);
+					constexpr UINT stride = sizeof(Vertex);
+					constexpr UINT offset = 0;
+
+					m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+					m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+					m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
+				}
+			}
+		}
+	);
+
+
+	renderer.RENDER_FUNCTION(RenderStage::DirectionalLightShadow, m_blendState).emplace_back
+	(
+		XMVectorGetX(XMVector3LengthSq(sortPoint - XMVectorClamp(sortPoint, boxCenter - boxExtents, boxCenter + boxExtents))),
+		[&]()
+		{
+			ResourceManager& resourceManager = ResourceManager::GetInstance();
+			resourceManager.SetRasterState(RasterState::Solid);
 
 			m_deviceContext->UpdateSubresource(m_worldNormalConstantBuffer.Get(), 0, nullptr, m_worldNormalData, 0, 0);
 			m_deviceContext->UpdateSubresource(m_boneConstantBuffer.Get(), 0, nullptr, &m_boneBufferData, 0, 0);
 
 			m_deviceContext->IASetInputLayout(m_vertexShaderAndInputLayout.second.Get());
 			m_deviceContext->VSSetShader(m_vertexShaderAndInputLayout.first.Get(), nullptr, 0);
-			m_deviceContext->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 
-			// 재질 텍스처 셰이더에 설정
-			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::BaseColor), 1, m_model->materialTexture.baseColorTextureSRV.GetAddressOf());
-			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::ORM), 1, m_model->materialTexture.ORMTextureSRV.GetAddressOf());
-			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Normal), 1, m_model->materialTexture.normalTextureSRV.GetAddressOf());
-			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Emission), 1, m_model->materialTexture.emissionTextureSRV.GetAddressOf());
-			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Noise), 1, resourceManager.GetNoise(m_selectedNoiseIndex).GetAddressOf());
-
-			for (const Mesh& mesh : m_model->meshes)
+			for (const auto& [model, material] : m_modelsAndMaterials)
 			{
-				resourceManager.SetPrimitiveTopology(mesh.topology);
+				for (const Mesh& mesh : model->meshes)
+				{
+					resourceManager.SetPrimitiveTopology(mesh.topology);
+					constexpr UINT stride = sizeof(Vertex);
+					constexpr UINT offset = 0;
 
-				constexpr UINT stride = sizeof(Vertex);
-				constexpr UINT offset = 0;
-				m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
-				m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
-				m_deviceContext->UpdateSubresource(m_materialFactorConstantBuffer.Get(), 0, nullptr, &m_materialFactorData, 0, 0);
-
-				m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
+					m_deviceContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+					m_deviceContext->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+					m_deviceContext->DrawIndexed(mesh.indexCount, 0, 0);
+				}
 			}
 		}
 	);
-
 
 	#ifdef _DEBUG
 	renderer.RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
@@ -126,7 +153,7 @@ void SkinnedModelComponent::Render()
 		[&]()
 		{
 			// 프러스텀 컬링
-			if (m_boundingBox.Intersects(mainCamera.GetBoundingFrustum()) == false) return;
+			if (m_transformedbBoundingBox.Intersects(mainCamera.GetBoundingFrustum()) == false) return;
 
 			ResourceManager& resourceManager = ResourceManager::GetInstance();
 
@@ -138,7 +165,7 @@ void SkinnedModelComponent::Render()
 
 			// 경계 상자 그리기
 			array<XMFLOAT3, 8> boxVertices = {};
-			m_boundingBox.GetCorners(boxVertices.data());
+			m_transformedbBoundingBox.GetCorners(boxVertices.data());
 
 			LineBuffer lineBufferData = {};
 			if (m_renderBoundingBox)
@@ -156,24 +183,27 @@ void SkinnedModelComponent::Render()
 
 			if (m_renderSubMeshBoundingBoxes)
 			{
-				for (const Mesh& mesh : m_model->meshes)
+				for (const auto& [model, material] : m_modelsAndMaterials)
 				{
-					BoundingBox meshTransformedBox = {};
-					mesh.boundingBox.Transform(meshTransformedBox, m_owner->GetWorldMatrix());
-					array<XMFLOAT3, 8> meshBoxVertices = {};
-					meshTransformedBox.GetCorners(meshBoxVertices.data());
-
-					for (const auto& [startIndex, endIndex] : BOX_LINE_INDICES)
+					for (const Mesh& mesh : model->meshes)
 					{
-						lineBufferData.linePoints[0] = XMFLOAT4{ meshBoxVertices[startIndex].x, meshBoxVertices[startIndex].y, meshBoxVertices[startIndex].z, 1.0f };
-						lineBufferData.linePoints[1] = XMFLOAT4{ meshBoxVertices[endIndex].x, meshBoxVertices[endIndex].y, meshBoxVertices[endIndex].z, 1.0f };
-						lineBufferData.lineColors[0] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
-						lineBufferData.lineColors[1] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
-						m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
-						m_deviceContext->Draw(2, 0);
+						BoundingBox meshTransformedBox = {};
+						mesh.boundingBox.Transform(meshTransformedBox, m_owner->GetWorldMatrix());
+						meshTransformedBox.GetCorners(boxVertices.data());
+
+						for (const auto& [startIndex, endIndex] : BOX_LINE_INDICES)
+						{
+							lineBufferData.linePoints[0] = XMFLOAT4{ boxVertices[startIndex].x, boxVertices[startIndex].y, boxVertices[startIndex].z, 1.0f };
+							lineBufferData.linePoints[1] = XMFLOAT4{ boxVertices[endIndex].x, boxVertices[endIndex].y, boxVertices[endIndex].z, 1.0f };
+							lineBufferData.lineColors[0] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
+							lineBufferData.lineColors[1] = XMFLOAT4{ 1.0f, 0.0f, 0.0f, 1.0f };
+							m_deviceContext->UpdateSubresource(resourceManager.GetConstantBuffer(VSConstBuffers::Line).Get(), 0, nullptr, &lineBufferData, 0, 0);
+							m_deviceContext->Draw(2, 0);
+						}
 					}
 				}
 			}
+
 		}
 	);
 	#endif
@@ -184,7 +214,7 @@ void SkinnedModelComponent::RenderImGui()
 {
 	ModelComponent::RenderImGui();
 
-	if (!m_model || !animator_)		return;
+	if (m_modelsAndMaterials.empty() || !animator_) return;
 
 	if (ImGui::CollapsingHeader("Animator Settings", ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -196,7 +226,7 @@ void SkinnedModelComponent::RenderImGui()
 
 		if (ImGui::BeginCombo("Play Animation", currentAnimName.c_str()))
 		{
-			for (const auto& clip : m_model->animations)
+			for (const auto& clip : m_modelsAndMaterials.front().first->animations)
 			{
 				bool isSelected = (currentAnimName == clip.name);
 				if (ImGui::Selectable(clip.name.c_str(), isSelected))

@@ -21,24 +21,24 @@
     ],
     "navVertices": [
         [
-            1.638338565826416,
+            3.3921356201171875,
             0.0,
-            4.247105598449707
+            5.181408882141113
         ],
         [
-            3.638338565826416,
+            5.3921356201171875,
             0.0,
-            4.247105598449707
+            5.181408882141113
         ],
         [
-            2.638338565826416,
+            4.3921356201171875,
             0.0,
-            6.247105598449707
+            7.181408882141113
         ]
     ],
     "postProcessing": {
-        "bloomIntensity": 10.0,
-        "flags": 33,
+        "bloomIntensity": 21.0,
+        "flags": 32,
         "gammaIntensity": 1.0,
         "grayScaleIntensity": 0.0,
         "lutLerpFactor": 0.0,
@@ -62,7 +62,7 @@
                 {
                     "NoiseIndex": 0,
                     "blendState": 0,
-                    "materialFactorData": {
+                    "dissolveData": {
                         "DissolveEdgeColor": [
                             1.0,
                             1.0,
@@ -71,26 +71,9 @@
                         ],
                         "DissolveEdgeIntensity": 1.0,
                         "DissolveEdgeWidth": 1.0,
-                        "DissolvePadding": 1.0,
-                        "DissolveThreshold": 0.20000000298023224,
-                        "ambientOcclusionFactor": 1.0,
-                        "baseColorFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "emissionFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "metallicFactor": 1.0,
-                        "normalScale": 5.0,
-                        "roughnessFactor": 1.0
+                        "DissolveThreshold": 0.20000000298023224
                     },
-                    "modelFileName": "Sand.fbx",
+                    "modelAndMaterialFileNames": [],
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
                     "type": "ModelComponent",
@@ -119,135 +102,12 @@
             "type": "GameObjectBase"
         },
         {
-            "childGameObjects": [
-                {
-                    "childGameObjects": [
-                        {
-                            "childGameObjects": [],
-                            "components": [
-                                {
-                                    "NoiseIndex": 0,
-                                    "blendState": 0,
-                                    "materialFactorData": {
-                                        "DissolveEdgeColor": [
-                                            1.0,
-                                            1.0,
-                                            1.0,
-                                            1.0
-                                        ],
-                                        "DissolveEdgeIntensity": 1.0,
-                                        "DissolveEdgeWidth": 1.0,
-                                        "DissolvePadding": 1.0,
-                                        "DissolveThreshold": 0.20000000298023224,
-                                        "ambientOcclusionFactor": 1.0,
-                                        "baseColorFactor": [
-                                            1.0,
-                                            1.0,
-                                            1.0,
-                                            1.0
-                                        ],
-                                        "emissionFactor": [
-                                            1.0,
-                                            1.0,
-                                            1.0,
-                                            1.0
-                                        ],
-                                        "metallicFactor": 1.0,
-                                        "normalScale": 1.0,
-                                        "roughnessFactor": 1.0
-                                    },
-                                    "modelFileName": "box.fbx",
-                                    "psShaderName": "PSModel.hlsl",
-                                    "rasterState": 1,
-                                    "type": "ModelComponent",
-                                    "vsShaderName": "VSModel.hlsl"
-                                }
-                            ],
-                            "name": "Gun",
-                            "position": [
-                                0.44999998807907104,
-                                -0.4000000059604645,
-                                2.299999952316284,
-                                0.0
-                            ],
-                            "rotation": [
-                                0.0,
-                                0.0,
-                                0.0,
-                                1.0
-                            ],
-                            "scale": [
-                                0.10000000149011612,
-                                0.09000000357627869,
-                                0.38999998569488525,
-                                1.0
-                            ],
-                            "type": "GameObjectBase"
-                        }
-                    ],
-                    "components": [
-                        {
-                            "farZ": 1000.0,
-                            "fovY": 0.7853981852531433,
-                            "nearZ": 0.10000000149011612,
-                            "type": "CameraComponent"
-                        }
-                    ],
-                    "name": "CamRotObject_2",
-                    "position": [
-                        0.0,
-                        1.7000000476837158,
-                        0.0,
-                        0.0
-                    ],
-                    "rotation": [
-                        0.0,
-                        0.0,
-                        0.0,
-                        1.0
-                    ],
-                    "scale": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "type": "CamRotObject"
-                }
-            ],
-            "components": [
-                {
-                    "type": "CrossHairAndNode"
-                }
-            ],
-            "name": "Player",
-            "position": [
-                0.0,
-                1.0,
-                -7.099999904632568,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            ],
-            "type": "Player"
-        },
-        {
             "childGameObjects": [],
             "components": [
                 {
                     "NoiseIndex": 0,
                     "blendState": 0,
-                    "materialFactorData": {
+                    "dissolveData": {
                         "DissolveEdgeColor": [
                             1.0,
                             1.0,
@@ -256,26 +116,14 @@
                         ],
                         "DissolveEdgeIntensity": 1.0,
                         "DissolveEdgeWidth": 1.0,
-                        "DissolvePadding": 1.0,
-                        "DissolveThreshold": 0.20000000298023224,
-                        "ambientOcclusionFactor": 1.0,
-                        "baseColorFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "emissionFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "metallicFactor": 1.0,
-                        "normalScale": 1.0,
-                        "roughnessFactor": 1.0
+                        "DissolveThreshold": 0.20000000298023224
                     },
-                    "modelFileName": "Box_Red_Ani_SRT.fbx",
+                    "modelAndMaterialFileNames": [
+                        {
+                            "materialFileName": "test5",
+                            "modelFileName": "mob_attack_2.fbx"
+                        }
+                    ],
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
                     "type": "SkinnedModelComponent",
@@ -302,6 +150,143 @@
                 0.0
             ],
             "type": "GameObjectBase"
+        },
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "NoiseIndex": 0,
+                    "blendState": 0,
+                    "dissolveData": {
+                        "DissolveEdgeColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "DissolveEdgeIntensity": 1.0,
+                        "DissolveEdgeWidth": 1.0,
+                        "DissolveThreshold": 0.20000000298023224
+                    },
+                    "modelAndMaterialFileNames": [
+                        {
+                            "materialFileName": "test5",
+                            "modelFileName": "mob_attack_2.fbx"
+                        }
+                    ],
+                    "psShaderName": "PSModel.hlsl",
+                    "rasterState": 1,
+                    "type": "SkinnedModelComponent",
+                    "vsShaderName": "VSModelSkinAnim.hlsl"
+                }
+            ],
+            "name": "GameObjectBase_6",
+            "position": [
+                5.361666679382324,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
+                0.0
+            ],
+            "type": "GameObjectBase"
+        },
+        {
+            "childGameObjects": [
+                {
+                    "childGameObjects": [],
+                    "components": [
+                        {
+                            "NoiseIndex": 0,
+                            "blendState": 0,
+                            "dissolveData": {
+                                "DissolveEdgeColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "DissolveEdgeIntensity": 1.0,
+                                "DissolveEdgeWidth": 1.0,
+                                "DissolveThreshold": 0.20000000298023224
+                            },
+                            "modelAndMaterialFileNames": [
+                                {
+                                    "materialFileName": "",
+                                    "modelFileName": "box.fbx"
+                                }
+                            ],
+                            "psShaderName": "PSModel.hlsl",
+                            "rasterState": 1,
+                            "type": "ModelComponent",
+                            "vsShaderName": "VSModel.hlsl"
+                        },
+                        {
+                            "current_state": "Idle",
+                            "start_state": "Idle",
+                            "type": "FSMComponentGun"
+                        }
+                    ],
+                    "name": "Gun",
+                    "position": [
+                        0.08257798105478287,
+                        0.0,
+                        0.11419250071048737,
+                        1.0
+                    ],
+                    "rotation": [
+                        -0.0,
+                        0.0,
+                        -0.0,
+                        1.0
+                    ],
+                    "scale": [
+                        0.014047972857952118,
+                        0.010471194051206112,
+                        0.02501317672431469,
+                        0.0
+                    ],
+                    "type": "GameObjectBase"
+                }
+            ],
+            "components": [
+                {
+                    "farZ": 1000.0,
+                    "fovY": 0.7853981852531433,
+                    "nearZ": 0.10000000149011612,
+                    "type": "CameraComponent"
+                }
+            ],
+            "name": "Player",
+            "position": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "Player"
         }
     ]
 }
