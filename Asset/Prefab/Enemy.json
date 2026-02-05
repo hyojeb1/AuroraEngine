@@ -32,7 +32,7 @@
                 "normalScale": 1.0,
                 "roughnessFactor": 1.0
             },
-            "modelFileName": "test5.fbx",
+            "modelFileName": "mob_attack_2.fbx",
             "psShaderName": "PSModel_Dissolve.hlsl",
             "rasterState": 1,
             "type": "SkinnedModelComponent",

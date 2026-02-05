@@ -94,8 +94,10 @@ public:
 	// 텍스처 파일로부터 텍스처 로드
 	com_ptr<ID3D11ShaderResourceView> GetTexture(const std::string& fileName, TextureType type = TextureType::BaseColor);
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> GetTextureAndOffset(const std::string& fileName);
+
 	// 모델 파일로부터 모델 로드
 	const Model* LoadModel(const std::string& fileName);
+	Material LoadMaterial(const std::string& materialName);
 
 	DirectX::SpriteBatch* GetSpriteBatch() { return m_spriteBatch.get(); }
 	DirectX::SpriteFont* GetSpriteFont(const std::wstring& fontName);
@@ -150,11 +152,6 @@ private:
 	static bool SceneHasBones(const aiScene* scene);
 
 	// 셰이더 컴파일 함수
-	com_ptr<ID3DBlob> CompileShader(const std::string& shaderName, const char* shaderModel);
-
-	std::string FindTextureFromCache(const std::string& rawPath);
-	com_ptr<ID3D11ShaderResourceView> LoadTextureHybrid(const aiMaterial* material, const std::string& model_name,  aiTextureType aiType, const std::string& suffix, TextureType engine_type);
-
-	
+	com_ptr<ID3DBlob> CompileShader(const std::string& shaderName, const char* shaderModel);	
 };
 ///eof ResourceManager.h

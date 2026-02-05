@@ -1,4 +1,6 @@
 ///BOF FSMComponentEnemy.h
+///얜 판정을 하는 애가 아니야. 
+///연출에 한정하는 애임
 #pragma once
 #include "FSMComponent.h"
 #include <DirectXMath.h>

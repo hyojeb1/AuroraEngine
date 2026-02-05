@@ -10,10 +10,13 @@ constexpr size_t ChannelCount = 64; //profiling
 
 void SoundManager::Initialize()
 {
-	m_Volume_Main = 1.0f;
-	m_Volume_BGM = 1.0f;
-	m_Volume_SFX = 1.0f;
-	m_Volume_UI = 1.0f;
+	m_RhythmOffSet = Config::travelTime;
+
+	m_Volume_Main = Config::Master_Volume;
+	m_Volume_BGM = Config::BGM_Volume;
+	m_Volume_AMB = Config::AMB_Volume;
+	m_Volume_SFX = Config::SFX_Volume;
+	m_Volume_UI = Config::UI_Volume;
 
 	FMOD_RESULT result;
 	if (!m_CoreSystem)
@@ -39,10 +42,12 @@ void SoundManager::Initialize()
 		m_CoreSystem->getMasterChannelGroup(&m_MainGroup);
 
 		if (!m_BGMGroup) m_CoreSystem->createChannelGroup("BGM", &m_BGMGroup);
+		if (!m_AMBGroup) m_CoreSystem->createChannelGroup("AMB", &m_AMBGroup);
 		if (!m_SFXGroup) m_CoreSystem->createChannelGroup("SFX", &m_SFXGroup);
 		if (!m_UIGroup)  m_CoreSystem->createChannelGroup("UI", &m_UIGroup);
 
 		m_MainGroup->addGroup(m_BGMGroup);
+		m_MainGroup->addGroup(m_AMBGroup);
 		m_MainGroup->addGroup(m_SFXGroup);
 		m_MainGroup->addGroup(m_UIGroup);
 
@@ -69,7 +74,6 @@ void SoundManager::Initialize()
 
 		m_CoreSystem->createDSPByType(FMOD_DSP_TYPE_LOWPASS, &m_lowpass);
 		m_lowpass->setParameterFloat(FMOD_DSP_LOWPASS_CUTOFF, 22000.0f);
-		m_BGMChannel1->addDSP(0, m_lowpass);
 
 		m_CurrentTrackName = "";
 		m_CurrentNodeDataName = "";
@@ -81,6 +85,8 @@ void SoundManager::Initialize()
 void SoundManager::Update()
 {
 	m_CoreSystem->update();
+
+	UpdateAudioClock();
 
 	UpdateLowpass();
 
@@ -151,6 +157,38 @@ void SoundManager::ConvertBGMSource()
 			temp->getFormat(nullptr, &format, nullptr, nullptr);
 			if (format != FMOD_SOUND_FORMAT_PCM16)
 			{
+				std::string err{};
+				switch (format)
+				{
+				case FMOD_SOUND_FORMAT_NONE:
+					err = "FMOD_SOUND_FORMAT_NONE";
+					break;
+				case FMOD_SOUND_FORMAT_PCM8:
+					err = "FMOD_SOUND_FORMAT_PCM8";
+					break;
+				case FMOD_SOUND_FORMAT_PCM16:
+					err = "FMOD_SOUND_FORMAT_PCM16";
+					break;
+				case FMOD_SOUND_FORMAT_PCM24:
+					err = "FMOD_SOUND_FORMAT_PCM24";
+					break;
+				case FMOD_SOUND_FORMAT_PCM32:
+					err = "FMOD_SOUND_FORMAT_PCM32";
+					break;
+				case FMOD_SOUND_FORMAT_PCMFLOAT:
+					err = "FMOD_SOUND_FORMAT_PCMFLOAT";
+					break;
+				case FMOD_SOUND_FORMAT_BITSTREAM:
+					err = "FMOD_SOUND_FORMAT_BITSTREAM";
+					break;
+				case FMOD_SOUND_FORMAT_MAX:
+					err = "FMOD_SOUND_FORMAT_MAX";
+					break;
+				case FMOD_SOUND_FORMAT_FORCEINT:
+					err = "FMOD_SOUND_FORMAT_FORCEINT";
+					break;
+				}
+				std::cerr << "Error format incompatible, Name: " << fileName << " Format: " << err << std::endl;
 				continue;
 			}
 
@@ -493,7 +531,7 @@ void SoundManager::LoadNodeData()
 void SoundManager::UpdateNodeIndex() //raw time
 {
 	if (m_rhythmTimerIndex < m_NodeData[m_CurrentNodeDataName].size() &&
-		m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + m_RhythmOffSet < GetCurrentPlaybackTime())
+		m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + m_RhythmOffSet < GetAudioTime())
 	{
 		m_rhythmTimerIndex++;
 
@@ -504,7 +542,7 @@ void SoundManager::UpdateNodeIndex() //raw time
 void SoundManager::UpdateUINodeIndexAndGenerated()
 {
 	if (m_rhythmUIIndex < m_NodeData[m_CurrentNodeDataName].size() &&
-		m_NodeData[m_CurrentNodeDataName][m_rhythmUIIndex].first < GetCurrentPlaybackTime())
+		m_NodeData[m_CurrentNodeDataName][m_rhythmUIIndex].first < GetAudioTime())
 	{
 		m_rhythmUIIndex++;
 		m_OnNodeGenerated = true;
@@ -517,31 +555,26 @@ InputType SoundManager::CheckRhythm(float correction)
 {
 	if (m_CurrentNodeDataName.empty() || m_CurrentNodeDataName == "") return InputType::Fatal;
 
-	const float time = GetCurrentPlaybackTime();
+	const float time = GetCurrentPlaybackTime() + Config::BeatHumanOffset;
 
-	// c - s < time > s = ealry
+	std::cout << " C Time : " << GetAudioTime() << std::endl;
+	// c - s < time > s = Early
 	if (m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first - correction + m_RhythmOffSet < time && m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first + m_RhythmOffSet > time)
 	{
-		//std::cout << "Ealry!" << std::endl;
-		std::cout << "Ealry!\t";
 		return InputType::Early;
 	}
 	// s < time > e  = perfect
 	else if (m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first + m_RhythmOffSet < time && m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + m_RhythmOffSet > time)
 	{
-		std::cout << "Perfect\t";
 		return InputType::Perfect;
 	}
 	// e < time > e + c = late
 	else if (m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + m_RhythmOffSet < time && m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].second + correction + m_RhythmOffSet > time)
 	{
-		std::cout << "late\t";
 		return InputType::Late;
 	}
 	else
 	{
-		std::cout << "Miss!\t";
-
 		return InputType::Miss;
 	}
 }
@@ -550,7 +583,7 @@ void SoundManager::UpdateUINodeDestroyed()
 {
 	if (m_CurrentNodeDataName.empty() || m_CurrentNodeDataName == "" && m_rhythmDestroyIndex < m_NodeData[m_CurrentNodeDataName].size()) return;
 
-	if (m_NodeData[m_CurrentNodeDataName][m_rhythmDestroyIndex].first + m_RhythmOffSet < GetCurrentPlaybackTime())
+	if (m_NodeData[m_CurrentNodeDataName][m_rhythmDestroyIndex].first + m_RhythmOffSet < GetAudioTime())
 	{
 		static int cnt = 0;
 
@@ -570,25 +603,26 @@ void SoundManager::Main_BGM_Shot(const std::string filename,float delay)
 	}
 
 	m_CurrentTrackName = it->first;
-	m_CurrentNodeDataName = it->first + "_Beat";
+	m_CurrentNodeDataName = it->first;// +"_Beat";
 	m_rhythmTimerIndex = 0;
 	m_rhythmUIIndex = 0;
 	m_rhythmDestroyIndex = 0;
 
 	m_CoreSystem->playSound(it->second, m_BGMGroup, true, &m_BGMChannel1);
-
-	m_BGMChannel1->getPosition(&m_MainBGM_StartTime, FMOD_TIMEUNIT_MS);
+	m_BGMChannel1->addDSP(0, m_lowpass);
 
 	unsigned long long nowDSP;
 	m_MainGroup->getDSPClock(&nowDSP, nullptr);
 
 	int sampleRate;
-	m_CoreSystem->getSoftwareFormat(&sampleRate, nullptr, nullptr);
+	m_CoreSystem->getSoftwareFormat(&m_DspSampleRate, nullptr, nullptr);
 
 	unsigned long long delaySamples =
-		static_cast<unsigned long long>(delay * sampleRate);
+		static_cast<unsigned long long>(delay * m_DspSampleRate);
 
-	m_BGMChannel1->setDelay(nowDSP + delaySamples, 0, false);
+	m_BGMStartDSP = nowDSP + delaySamples;
+
+	m_BGMChannel1->setDelay(m_BGMStartDSP, 0, false);
 
 	m_BGMChannel1->setPaused(false);
 	m_BGMChannel1->setVolume(m_Volume_BGM);
@@ -599,7 +633,7 @@ void SoundManager::Sub_BGM_Shot(const std::string filename, float delay)
 	auto it = BGM_List.find(filename);
 	if (it == BGM_List.end())
 	{
-		std::cerr << "Cannot play: invalid track name." << std::endl;
+		std::cerr << "Cannot play: invalid track name : " << filename << std::endl;
 		CheckResult(-1, "invalid track name");
 	}
 
@@ -608,15 +642,36 @@ void SoundManager::Sub_BGM_Shot(const std::string filename, float delay)
 	unsigned long long nowDSP;
 	m_MainGroup->getDSPClock(&nowDSP, nullptr);
 
-	int sampleRate;
-	m_CoreSystem->getSoftwareFormat(&sampleRate, nullptr, nullptr);
+	m_CoreSystem->getSoftwareFormat(&m_DspSampleRate, nullptr, nullptr);
 
 	unsigned long long delaySamples =
-		static_cast<unsigned long long>(delay * sampleRate);
+		static_cast<unsigned long long>(delay * m_DspSampleRate);
 
-	m_BGMChannel2->setDelay(nowDSP + delaySamples, 0, false);
+	m_BGMStartDSP = nowDSP + delaySamples;
+
+	m_BGMChannel2->setDelay(m_BGMStartDSP, 0, false);
 
 	m_BGMChannel2->setPaused(false);
+}
+
+void SoundManager::Ambience_Shot(const std::string filename)
+{
+	if (filename.empty())
+	{
+		std::cerr << "Cannot play: Ambience filename is empty" << std::endl;
+		return;
+	}
+
+	auto it = BGM_List.find(filename);
+	if (it == BGM_List.end())
+	{
+		std::cerr << "Cannot play: invalid track name : " << filename << std::endl;
+		CheckResult(-1, "invalid track name");
+	}
+	it->second->setMode(FMOD_LOOP_NORMAL);
+	it->second->setLoopCount(-1);
+
+	m_CoreSystem->playSound(it->second, m_BGMGroup, false, &m_AmbienceCh);
 }
 
 void SoundManager::SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename)
@@ -715,25 +770,78 @@ void SoundManager::FadeOut(FMOD::Channel* chan, float sec, bool stopAfter)
 }
 
 
-float SoundManager::GetCurrentPlaybackTime()
+//float SoundManager::GetCurrentPlaybackTime() //position ver
+//{
+//	if (!m_BGMChannel1)
+//		return 0.0f;
+//
+//	unsigned int nowSongTime;
+//	m_BGMChannel1->getPosition(&nowSongTime, FMOD_TIMEUNIT_MS);
+//
+//	/*if (nowSongTime < m_MainBGM_StartTime)
+//		return 0.0f;*/
+//
+//	//int dspSampleRate = 0;
+//	//m_CoreSystem->getSoftwareFormat(&dspSampleRate, nullptr, nullptr);
+//
+//	/*double songTime =
+//		(double)(nowDSP - m_MainBGM_StartTime)
+//		/ (double)dspSampleRate;*/
+//
+//	return static_cast<float>(nowSongTime) / 1000.0f;
+//}
+
+float SoundManager::GetCurrentPlaybackTime() //DSP ver
 {
 	if (!m_BGMChannel1)
 		return 0.0f;
 
-	unsigned int nowSongTime;
-	m_BGMChannel1->getPosition(&nowSongTime, FMOD_TIMEUNIT_MS);
+	unsigned long long nowDSP;
+	m_MainGroup->getDSPClock(&nowDSP, nullptr);
 
-	/*if (nowSongTime < m_MainBGM_StartTime)
-		return 0.0f;*/
+	if (nowDSP < m_BGMStartDSP)
+		return 0.0f;
 
-	//int dspSampleRate = 0;
-	//m_CoreSystem->getSoftwareFormat(&dspSampleRate, nullptr, nullptr);
+	double dspElapsed =
+		static_cast<double>(nowDSP - m_BGMStartDSP) /
+		static_cast<double>(m_DspSampleRate);
 
-	/*double songTime =
-		(double)(nowDSP - m_MainBGM_StartTime)
-		/ (double)dspSampleRate;*/
+	return static_cast<float>(dspElapsed);
+}
 
-	return static_cast<float>(nowSongTime) / 1000.0f;
+void SoundManager::UpdateAudioClock()
+{
+	// 누적 오디오 시간
+	const float now = GetCurrentPlaybackTime();
+
+	// 아직 재생 전(0)일 때는 델타 0으로
+	if (now <= 0.0f)
+	{
+		m_AudioTime = 0.0f;
+		m_PrevAudioTime = 0.0f;
+		m_AudioDeltaTime = 0.0f;
+		m_AudioClockInited = false;
+		return;
+	}
+
+	if (!m_AudioClockInited)
+	{
+		m_AudioTime = now;
+		m_PrevAudioTime = now;
+		m_AudioDeltaTime = 0.0f;
+		m_AudioClockInited = true;
+		return;
+	}
+
+	float dt = now - m_PrevAudioTime;
+
+	// 안전장치: 음수/비정상 스파이크(일시정지, seek, 드랍 등) 처리
+	if (dt < 0.0f) dt = 0.0f;
+	if (dt > 0.25f) dt = 0.25f; // 프레임 드랍 시 과도한 점프 방지(원하면 제거)
+
+	m_AudioDeltaTime = dt;
+	m_PrevAudioTime = now;
+	m_AudioTime = now;
 }
 
 FMOD_VECTOR SoundManager::ToFMOD(DirectX::XMVECTOR vector)
@@ -858,45 +966,38 @@ void SoundManager::UpdateListener(ListenerComponent* listener)
 {
 	FMOD_VECTOR pos = ToFMOD(listener->GetOwner()->GetPosition());
 	FMOD_VECTOR vel{ 0,0,0 };
-	FMOD_VECTOR fwd{ 0,0,1 };
-	FMOD_VECTOR up{ 0,1,0 };
+	FMOD_VECTOR fwd = ToFMOD(listener->GetOwner()->GetWorldDirectionVector(Direction::Forward));
+	FMOD_VECTOR up  = ToFMOD(listener->GetOwner()->GetWorldDirectionVector(Direction::Up));
 
 	m_CoreSystem->set3DListenerAttributes(0, &pos, &vel, &fwd, &up);
 }
 
-void SoundManager::SetVolume_Main(float volume)
+void SoundManager::SetVolume_Main(float v)
 {
-	if (volume < 0) { volume = 0; }
-	else if (volume > 1.0f) { volume = 1.0f; }
-	m_Volume_Main = volume;
-
+	m_Volume_Main = std::clamp(v, 0.0f, 1.0f);
 	m_MainGroup->setVolume(m_Volume_Main);
 }
 
-void SoundManager::SetVolume_BGM(float volume)
+void SoundManager::SetVolume_BGM(float v)
 {
-	if (volume < 0) { volume = 0; }
-	else if (volume > 1.0f) { volume = 1.0f; }
-	m_Volume_BGM = m_Volume_Main * volume;
-
+	m_Volume_BGM = std::clamp(v, 0.0f, 1.0f);
 	m_BGMGroup->setVolume(m_Volume_BGM);
 }
 
-void SoundManager::SetVolume_SFX(float volume)
+void SoundManager::SetVolume_AMB(float v)
 {
-	if (volume < 0) { volume = 0; }
-	else if (volume > 1.0f) { volume = 1.0f; }
-	m_Volume_SFX = m_Volume_Main * volume;
+	m_Volume_AMB = std::clamp(v, 0.0f, 1.0f);
+	m_AMBGroup->setVolume(m_Volume_AMB);
+}
 
+void SoundManager::SetVolume_SFX(float v)
+{
+	m_Volume_SFX = std::clamp(v, 0.0f, 1.0f);
 	m_SFXGroup->setVolume(m_Volume_SFX);
 }
 
-void SoundManager::SetVolume_UI(float volume)
+void SoundManager::SetVolume_UI(float v)
 {
-	if (volume < 0) { volume = 0; }
-	else if (volume > 1.0f) { volume = 1.0f; }
-	m_Volume_UI = m_Volume_Main * volume;
-
+	m_Volume_UI = std::clamp(v, 0.0f, 1.0f);
 	m_UIGroup->setVolume(m_Volume_UI);
 }
-

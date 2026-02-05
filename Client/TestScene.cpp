@@ -22,6 +22,7 @@ void TestScene::Initialize()
 	ShowCursor(FALSE);
 
 	SoundManager::GetInstance().Main_BGM_Shot(Config::Main_BGM,1.0f);
+	SoundManager::GetInstance().Ambience_Shot(Config::Ambience);
 }
 
 void TestScene::Update()

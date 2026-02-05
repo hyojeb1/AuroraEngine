@@ -508,6 +508,7 @@ enum class PSConstBuffers
 	CameraPosition, // CameraPositionBuffer
 	GlobalLight, // GlobalLightBuffer
 	MaterialFactor, // MaterialFactorBuffer
+	Dissolve, // DissolveBuffer
 	ParticleColor, // ParticleColorBuffer
 
 	Count
@@ -559,11 +560,13 @@ struct MaterialFactorBuffer
 	float normalScale = 1.0f; // 법선 맵 스케일
 
 	DirectX::XMFLOAT4 emissionFactor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 자가 발광 색상
-
+};
+struct DissolveBuffer
+{
 	float DissolveThreshold = 0.2f; // 디졸브 진행도 0% ~ 100%
-	float DissolveEdgeWidth = 1.0f; 
+	float DissolveEdgeWidth = 1.0f;
 	float DissolveEdgeIntensity = 1.0f;
-	float DissolvePadding = 1.0f;
+	float DissolvePadding = 0.0f;
 	DirectX::XMFLOAT4 DissolveEdgeColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // 자가 발광 색상
 };
 struct ParticleColorBuffer
@@ -610,6 +613,17 @@ constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(PSConstBuffers::Coun
 	D3D11_BUFFER_DESC
 	{
 		.ByteWidth = sizeof(MaterialFactorBuffer),
+		.Usage = D3D11_USAGE_DEFAULT,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = 0,
+		.MiscFlags = 0,
+		.StructureByteStride = 0
+	},
+
+	// DissolveBuffer
+	D3D11_BUFFER_DESC
+	{
+		.ByteWidth = sizeof(DissolveBuffer),
 		.Usage = D3D11_USAGE_DEFAULT,
 		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
 		.CPUAccessFlags = 0,
@@ -712,12 +726,14 @@ struct AnimationClip
 	std::unordered_map<std::string, BoneAnimationChannel> channels = {};
 };
 
-struct MaterialTexture
+struct Material
 {
 	com_ptr<ID3D11ShaderResourceView> baseColorTextureSRV = nullptr;
 	com_ptr<ID3D11ShaderResourceView> ORMTextureSRV = nullptr;
 	com_ptr<ID3D11ShaderResourceView> normalTextureSRV = nullptr;
 	com_ptr<ID3D11ShaderResourceView> emissionTextureSRV = nullptr;
+
+	MaterialFactorBuffer m_materialFactor = {}; // 재질 상수 버퍼 데이터
 };
 
 struct Mesh
@@ -746,7 +762,6 @@ struct Model
 {
 	ModelType type = ModelType::Static;
 	std::vector<Mesh> meshes = {};
-	MaterialTexture materialTexture = {};
 	DirectX::BoundingBox boundingBox = {};
 
 	Skeleton skeleton = {};

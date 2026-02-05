@@ -50,6 +50,8 @@ public:
 
 	void Main_BGM_Shot(const std::string filename, float delay);
 	void Sub_BGM_Shot(const std::string filename, float delay);
+	void Ambience_Shot(const std::string filename);
+
 	void SFX_Shot(const DirectX::XMVECTOR pos, const std::string filename);
 	void UI_Shot(const std::string filename);
 
@@ -63,6 +65,7 @@ public:
 	
 	void SetVolume_Main(float volume); //other volume = mainV * otherV;
 	void SetVolume_BGM(float volume);
+	void SetVolume_AMB(float volume);
 	void SetVolume_SFX(float volume);
 	void SetVolume_UI(float volume);
 
@@ -71,7 +74,11 @@ public:
 	float GetVolume_SFX() const { return m_Volume_SFX; }
 	float GetVolume_UI() const { return m_Volume_UI; }
 
+	float GetAudioDeltaTime() const { return m_AudioDeltaTime; } // sec
+	float GetAudioTime() const { return m_AudioTime; }          // sec
+
 	float GetCurrentPlaybackTime();
+	void UpdateAudioClock();
 
 	size_t GetRhythmTimerIndex() { return m_rhythmTimerIndex; };
 	void   ResetRhythmIndex() { m_rhythmTimerIndex = 0; }
@@ -104,17 +111,20 @@ private:
 
 	FMOD::Channel* m_BGMChannel1 = nullptr;
 	FMOD::Channel* m_BGMChannel2 = nullptr;
+	FMOD::Channel* m_AmbienceCh  = nullptr;
 
 	std::unordered_map<std::string, std::vector<std::pair<float, float>>> m_NodeData;
 	std::unordered_map<std::string, std::vector<std::pair<float, float>>> m_SubNodeData;
 
 	FMOD::ChannelGroup* m_MainGroup = nullptr;
 	FMOD::ChannelGroup* m_BGMGroup = nullptr;
+	FMOD::ChannelGroup* m_AMBGroup = nullptr;
 	FMOD::ChannelGroup* m_SFXGroup = nullptr;
 	FMOD::ChannelGroup* m_UIGroup = nullptr;
 
 	float m_Volume_Main = 1.0f;
 	float m_Volume_BGM = 1.0f;
+	float m_Volume_AMB = 1.0f;
 	float m_Volume_SFX = 1.0f;
 	float m_Volume_UI = 1.0f;
 
@@ -135,9 +145,7 @@ private:
 	bool m_IsLowpass = false;
 	float m_lowpassCutOff = 22000.0f;
 
-	unsigned int m_MainBGM_StartTime = 0;
-
-	float m_RhythmOffSet = 1.28f;
+	float m_RhythmOffSet = 1.0f;
 
 	bool m_OnNodeGenerated = false;
 	bool m_OnNodeDestroyed = false;
@@ -145,5 +153,14 @@ private:
 	//std::vector<std::function<void()>> m_NodeChangedListeners;
 	std::vector<std::function<void()>> m_NodeGeneratedListenerOnce;
 	std::vector<std::function<bool()>> m_NodeDestroyedListenerOnce;
+
+	unsigned long long m_BGMStartDSP = 0;
+	int m_DspSampleRate = 0;
+
+	float m_AudioTime = 0.0f;
+	float m_PrevAudioTime = 0.0f;
+	float m_AudioDeltaTime = 0.0f;
+
+	bool  m_AudioClockInited = false;
 };
 

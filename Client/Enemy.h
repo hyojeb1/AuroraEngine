@@ -16,10 +16,11 @@ class Enemy : public GameObjectBase
 
 	enum class AIState
 	{
-		Alive,
+		Idle,
+
 		Dying
 	};
-	AIState m_state = AIState::Alive;
+	AIState m_state = AIState::Idle;
 
 	float m_deathTimer = 0.0f;
 	const float m_deathDuration = 2.0f;

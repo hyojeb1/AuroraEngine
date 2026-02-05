@@ -55,9 +55,9 @@ void Player::Update()
 	UpdateRotation(input, deltaTime);
 	UpdateMoveDirection(input);
 	
-	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerShoot();
-	if (!m_isDashing && input.GetKeyDown(KeyCode::Space) && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerTriggerDash();
-	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(0.1f) < InputType::Miss) PlayerDeadEyeStart();
+	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(Config::InputCorrection) < InputType::Miss) PlayerShoot();
+	if (!m_isDashing && input.GetKeyDown(KeyCode::Space) && sm.CheckRhythm(Config::InputCorrection) < InputType::Miss) PlayerTriggerDash();
+	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(Config::InputCorrection) < InputType::Miss) PlayerDeadEyeStart();
 	
 
 	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime, input);
@@ -66,7 +66,7 @@ void Player::Update()
 
 	if (input.GetKeyDown(KeyCode::R))
 	{
-		switch (sm.CheckRhythm(0.1f))
+		switch (sm.CheckRhythm(Config::InputCorrection))
 		{
 		case InputType::Early:
 			PlayerReload(1);
@@ -184,7 +184,7 @@ void Player::PlayerShoot()
 
 	if (m_gunFSM) m_gunFSM->Fire();
 	--m_bulletCnt;
-	SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Shoot);
+	SoundManager::GetInstance().UI_Shot(Config::Player_Shoot);
 
 	const XMVECTOR& origin = GetPosition();
 	const XMVECTOR& direction = GetWorldDirectionVector(Direction::Forward);
@@ -220,7 +220,7 @@ void Player::PlayerReload(int cnt)
 
 	m_bulletCnt = m_MaxBullet;
 
-	SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Reload_Spin);
+	SoundManager::GetInstance().UI_Shot(Config::Player_Reload_Spin);
 
 	int reloadCount = Config::Player_Reload_Cocking_Count + cnt;
 	SoundManager::GetInstance().AddNodeDestroyedListenerOnce([this, cnt = reloadCount]()mutable ->bool
@@ -229,7 +229,7 @@ void Player::PlayerReload(int cnt)
 			{
 				return false;
 			}
-			SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_Reload_Cocking);
+			SoundManager::GetInstance().UI_Shot(Config::Player_Reload_Cocking);
 			return true;
 		});
 }
