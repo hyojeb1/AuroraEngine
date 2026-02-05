@@ -40,7 +40,7 @@
                 {
                     "NoiseIndex": 0,
                     "blendState": 0,
-                    "materialFactorData": {
+                    "dissolveData": {
                         "DissolveEdgeColor": [
                             1.0,
                             1.0,
@@ -49,26 +49,9 @@
                         ],
                         "DissolveEdgeIntensity": 1.0,
                         "DissolveEdgeWidth": 1.0,
-                        "DissolvePadding": 1.0,
-                        "DissolveThreshold": 0.20000000298023224,
-                        "ambientOcclusionFactor": 1.0,
-                        "baseColorFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "emissionFactor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "metallicFactor": 1.0,
-                        "normalScale": 1.0,
-                        "roughnessFactor": 1.0
+                        "DissolveThreshold": 0.20000000298023224
                     },
-                    "modelFileName": "box.fbx",
+                    "modelAndMaterialFileNames": [],
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
                     "type": "ModelComponent",
@@ -95,6 +78,37 @@
                 1.0
             ],
             "type": "GameObjectBase"
+        },
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "farZ": 1000.0,
+                    "fovY": 0.7853981852531433,
+                    "nearZ": 0.10000000149011612,
+                    "type": "CameraComponent"
+                }
+            ],
+            "name": "MainCam",
+            "position": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "CamRotObject"
         }
     ]
 }

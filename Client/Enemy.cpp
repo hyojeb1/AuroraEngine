@@ -14,6 +14,8 @@
 #include "GameManager.h"
 #include "SoundManager.h"
 
+#include "Shared/Config/Option.h"
+
 REGISTER_TYPE(Enemy)
 
 using namespace std;

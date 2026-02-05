@@ -13,6 +13,7 @@
 #include "Enemy.h"
 #include "RNG.h"
 
+#include "Shared/Config/Option.h"
 
 using namespace std;
 using namespace DirectX;

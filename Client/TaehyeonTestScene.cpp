@@ -7,6 +7,8 @@
 #include "TimeManager.h"
 #include "SoundManager.h"
 
+#include "Shared/Config/Option.h"
+
 using namespace std;
 using namespace DirectX;
 

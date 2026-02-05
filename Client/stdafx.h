@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <random>
+#include <memory>
 
 // 윈도우 헤더
 #include <winsock2.h>
@@ -69,8 +70,6 @@
 #include <fmod/fmod.hpp>
 #include <fmod/fmod_error_wrap.h>
 #include <fftw3.h>
-
-#include <Shared/Config/Option.h>
 
 // 메크로 정의
 // com_ptr 매크로

@@ -10,6 +10,8 @@
 #include "CrossHairAndNode.h"
 #include "Player.h"
 
+#include "Shared/Config/Option.h"
+
 REGISTER_TYPE(CrossHairAndNode)
 
 void CrossHairAndNode::Initialize()
@@ -31,13 +33,11 @@ void CrossHairAndNode::Initialize()
 
 	m_linePos = 0.45f;
 	m_lineScl = 0.04f;
-
-
 }
 
 void CrossHairAndNode::Update()
 {
-	float delta = TimeManager::GetInstance().GetNSDeltaTime();
+	float delta = TimeManager::GetInstance().GetDeltaTime();
 	InputManager& input = InputManager::GetInstance();
 
 	ResizeMiddleCH(input, delta);

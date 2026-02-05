@@ -12,6 +12,8 @@
 #include "Enemy.h"
 #include "RNG.h"
 
+#include "Shared/Config/Option.h"
+
 REGISTER_TYPE(TestScene)
 
 using namespace std;

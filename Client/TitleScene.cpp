@@ -7,6 +7,8 @@
 #include "UIBase.h"
 #include "SoundManager.h"
 
+#include "Shared/Config/Option.h"
+
 REGISTER_TYPE(TitleScene);
 
 void TitleScene::Initialize()
@@ -18,7 +20,7 @@ void TitleScene::Initialize()
 	Button* startButton = CreateUI<Button>();
 	startButton->SetTextureAndOffset("IDLE.png", "HOVERD.png", "PRESSED.png", "CLICKED.png");
 	startButton->SetLocalPosition({ buttonX, 0.3f });
-	startButton->SetOnClick([]() { SceneManager::GetInstance().ChangeScene("TestScene"); });
+	startButton->SetOnClick([]() { SceneManager::GetInstance().ChangeScene("TaehyeonTestScene"); });
 	startButton->SetScale(0.3f);
 
 	Button* optionButton = CreateUI<Button>();

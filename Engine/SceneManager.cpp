@@ -39,7 +39,7 @@ void SceneManager::Run()
 		steps++;
 	}
 
-	GameManager::GetInstance().Update(dt);
+	GameManager::GetInstance().Update();
 
 	m_currentScene->BaseUpdate();
 

@@ -15,6 +15,8 @@
 
 #include "FSMComponentGun.h"
 
+#include "Shared/Config/Option.h"
+
 REGISTER_TYPE(Player)
 
 using namespace std;
@@ -51,7 +53,6 @@ void Player::Update()
 	InputManager& input = InputManager::GetInstance();
 	auto& sm = SoundManager::GetInstance();
 
-
 	UpdateRotation(input, deltaTime);
 	UpdateMoveDirection(input);
 	
@@ -79,7 +80,6 @@ void Player::Update()
 			break;
 		}
 	}
-//Reload end
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
 	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();

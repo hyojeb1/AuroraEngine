@@ -101,9 +101,9 @@ public:
 #endif
 	template<typename T> T* CreateUI()
 	{
-		unique_ptr<T> UI = make_unique<T>();
-		T* UIPtr = UI.get();
-		m_UIList.push_back(move(UI));
+		std::unique_ptr<T> ui = std::make_unique<T>();
+		T* UIPtr = ui.get();
+		m_UIList.push_back(move(ui));
 
 		return UIPtr;
 	}

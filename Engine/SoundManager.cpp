@@ -6,6 +6,8 @@
 #include "SoundManager.h"
 #include "TimeManager.h"
 
+#include "Shared/Config/Option.h"
+
 constexpr size_t ChannelCount = 64; //profiling
 
 void SoundManager::Initialize()
@@ -59,7 +61,7 @@ void SoundManager::Initialize()
 		{
 			std::cerr << "Not Found _Beat Source" << std::endl;
 		}
-		
+
 
 		for (auto& n : BGM_List)
 		{
@@ -149,7 +151,7 @@ void SoundManager::ConvertBGMSource()
 				continue;
 
 			hasfile = true;
-			
+
 			std::string fileName = std::filesystem::path(dirEntry).stem().string();
 
 			FMOD::Sound* temp;
@@ -200,8 +202,8 @@ void SoundManager::ConvertBGMSource()
 
 			BGM_List.emplace(fileName, temp);
 		}
-		
-		if(!hasfile)
+
+		if (!hasfile)
 		{
 			std::cerr << "BGM resource not found" << std::endl;
 		}
@@ -234,7 +236,7 @@ void SoundManager::ConvertSFXSource()
 			m_CoreSystem->createSound(fullPath.c_str(), FMOD_DEFAULT | FMOD_3D, nullptr, &temp);
 
 			SFX_List.emplace(fileName, temp);
-			
+
 		}
 
 		if (!hasfile)
@@ -287,7 +289,7 @@ bool SoundManager::CheckMainBGMBeatver()
 {
 	for (auto& m : BGM_List)
 	{
-		if(m.first.find("_Beat"))
+		if (m.first.find("_Beat"))
 		{
 			return true;
 		}
@@ -373,7 +375,7 @@ void SoundManager::CreateNodeData(const std::string& filename)
 	}
 	else
 	{
-		std::string msg = "\"" +  it->first  + "\""  + " format is Not PCM16";
+		std::string msg = "\"" + it->first + "\"" + " format is Not PCM16";
 		MessageBoxA(nullptr, msg.c_str(), "Error", MB_OK | MB_ICONERROR);
 	}
 
@@ -576,7 +578,7 @@ InputType SoundManager::CheckRhythm(float correction)
 {
 	if (m_CurrentNodeDataName.empty() || m_CurrentNodeDataName == "") return InputType::Fatal;
 
-	const float time = GetCurrentPlaybackTime() + Config::BeatHumanOffset;
+	const float time = GetAudioTime() + Config::BeatHumanOffset;
 
 	std::cout << " C Time : " << GetAudioTime() << std::endl;
 	// c - s < time > s = Early
@@ -614,17 +616,17 @@ void SoundManager::UpdateUINodeDestroyed()
 	}
 }
 
-void SoundManager::Main_BGM_Shot(const std::string filename,float delay)
+void SoundManager::Main_BGM_Shot(const std::string filename, float delay)
 {
 	auto it = BGM_List.find(filename);
 	if (it == BGM_List.end())
 	{
-		std::cerr << "Cannot play: invalid track name." << it->first << " : " << filename << std::endl;
+		std::cerr << "Cannot play: invalid track name." << filename << std::endl;
 		CheckResult(-1, "invalid track name");
 	}
 
 	m_CurrentTrackName = it->first;
-	m_CurrentNodeDataName = it->first +"_Beat";
+	m_CurrentNodeDataName = it->first + "_Beat";
 	m_rhythmTimerIndex = 0;
 	m_rhythmUIIndex = 0;
 	m_rhythmDestroyIndex = 0;
@@ -633,15 +635,18 @@ void SoundManager::Main_BGM_Shot(const std::string filename,float delay)
 	m_BGMChannel1->addDSP(0, m_lowpass);
 
 	unsigned long long nowDSP;
-	m_MainGroup->getDSPClock(&nowDSP, nullptr);
+	m_BGMGroup->getDSPClock(&nowDSP, nullptr);
 
-	int sampleRate;
 	m_CoreSystem->getSoftwareFormat(&m_DspSampleRate, nullptr, nullptr);
 
 	unsigned long long delaySamples =
 		static_cast<unsigned long long>(delay * m_DspSampleRate);
 
 	m_BGMStartDSP = nowDSP + delaySamples;
+
+	m_PrevAudioTime = 0.0f;
+	m_AudioTime = 0.0f;
+	m_AudioDeltaTime = 0.0f;
 
 	m_BGMChannel1->setDelay(m_BGMStartDSP, 0, false);
 
@@ -658,7 +663,7 @@ void SoundManager::Sub_BGM_Shot(const std::string filename, float delay)
 		CheckResult(-1, "invalid track name");
 	}
 
-	m_CoreSystem->playSound(it->second, m_BGMGroup, true , &m_BGMChannel2);
+	m_CoreSystem->playSound(it->second, m_BGMGroup, true, &m_BGMChannel2);
 
 	unsigned long long nowDSP;
 	m_MainGroup->getDSPClock(&nowDSP, nullptr);
@@ -812,57 +817,35 @@ void SoundManager::FadeOut(FMOD::Channel* chan, float sec, bool stopAfter)
 //	return static_cast<float>(nowSongTime) / 1000.0f;
 //}
 
-float SoundManager::GetCurrentPlaybackTime() //DSP ver
-{
-	if (!m_BGMChannel1)
-		return 0.0f;
-
-	unsigned long long nowDSP;
-	m_MainGroup->getDSPClock(&nowDSP, nullptr);
-
-	if (nowDSP < m_BGMStartDSP)
-		return 0.0f;
-
-	double dspElapsed =
-		static_cast<double>(nowDSP - m_BGMStartDSP) /
-		static_cast<double>(m_DspSampleRate);
-
-	return static_cast<float>(dspElapsed);
-}
-
 void SoundManager::UpdateAudioClock()
 {
-	// 누적 오디오 시간
-	const float now = GetCurrentPlaybackTime();
 
-	// 아직 재생 전(0)일 때는 델타 0으로
-	if (now <= 0.0f)
+
+	unsigned long long nowDSP;
+	m_BGMGroup->getDSPClock(&nowDSP, nullptr);
+
+	if (nowDSP <= m_BGMStartDSP)
 	{
 		m_AudioTime = 0.0f;
+		m_AudioDeltaTime = 0.0f;
 		m_PrevAudioTime = 0.0f;
-		m_AudioDeltaTime = 0.0f;
-		m_AudioClockInited = false;
 		return;
 	}
 
-	if (!m_AudioClockInited)
-	{
-		m_AudioTime = now;
-		m_PrevAudioTime = now;
-		m_AudioDeltaTime = 0.0f;
-		m_AudioClockInited = true;
-		return;
-	}
+	const float now =
+		static_cast<float>(nowDSP - m_BGMStartDSP) /
+		static_cast<float>(m_DspSampleRate);
 
-	float dt = now - m_PrevAudioTime;
+	const float nowF = static_cast<float>(now);
 
-	// 안전장치: 음수/비정상 스파이크(일시정지, seek, 드랍 등) 처리
-	if (dt < 0.0f) dt = 0.0f;
-	if (dt > 0.25f) dt = 0.25f; // 프레임 드랍 시 과도한 점프 방지(원하면 제거)
+	float dt = nowF - m_PrevAudioTime;
+
+	if (dt < 0.0f)  dt = 0.0f;
+	if (dt > 0.25f) dt = 0.25f;
 
 	m_AudioDeltaTime = dt;
-	m_PrevAudioTime = now;
-	m_AudioTime = now;
+	m_PrevAudioTime = nowF;
+	m_AudioTime = nowF;
 }
 
 FMOD_VECTOR SoundManager::ToFMOD(DirectX::XMVECTOR vector)
@@ -913,9 +896,6 @@ void SoundManager::AddNodeDestroyedListenerOnce(std::function<bool()> cb)
 
 void SoundManager::NotifyNodeGenerated()
 {
-	/*for (auto& cb : m_NodeChangedListeners)
-		cb();*/ // only insert로 인한 memory leak 발생
-
 	for (auto& cb : m_NodeGeneratedListenerOnce)
 		cb();
 
@@ -935,7 +915,7 @@ void SoundManager::NotifyNodeDestroyed()
 	}
 }
 
-	void SoundManager::UpdateLowpass()
+void SoundManager::UpdateLowpass()
 {
 	float delta = TimeManager::GetInstance().GetNSDeltaTime();
 	float speed = 60000.0f;
@@ -988,7 +968,7 @@ void SoundManager::UpdateListener(ListenerComponent* listener)
 	FMOD_VECTOR pos = ToFMOD(listener->GetOwner()->GetPosition());
 	FMOD_VECTOR vel{ 0,0,0 };
 	FMOD_VECTOR fwd = ToFMOD(listener->GetOwner()->GetWorldDirectionVector(Direction::Forward));
-	FMOD_VECTOR up  = ToFMOD(listener->GetOwner()->GetWorldDirectionVector(Direction::Up));
+	FMOD_VECTOR up = ToFMOD(listener->GetOwner()->GetWorldDirectionVector(Direction::Up));
 
 	m_CoreSystem->set3DListenerAttributes(0, &pos, &vel, &fwd, &up);
 }

@@ -79,7 +79,6 @@ public:
 	float GetAudioDeltaTime() const { return m_AudioDeltaTime; } // sec
 	float GetAudioTime() const { return m_AudioTime; }          // sec
 
-	float GetCurrentPlaybackTime();
 	void UpdateAudioClock();
 
 	size_t GetRhythmTimerIndex() { return m_rhythmTimerIndex; };
