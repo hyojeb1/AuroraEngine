@@ -372,8 +372,5 @@ void ColliderComponent::LoadFromModelMesh()
 	ModelComponent* modelComp = m_owner->GetComponent<ModelComponent>();
 	if (!modelComp) return;
 
-	const Model* model = modelComp->GetModel();
-	if (!model) return;
-
-	for (const Mesh& mesh : model->meshes)AddBoundingBox(mesh.boundingBox);
+	for (const auto& [model, material] : modelComp->GetModelsAndMaterials()) for (const Mesh& mesh : model->meshes) AddBoundingBox(mesh.boundingBox);
 }

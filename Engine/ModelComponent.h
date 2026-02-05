@@ -27,13 +27,17 @@ protected:
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_vertexShaderAndInputLayout = {}; // 정점 셰이더 및 입력 레이아웃
 	com_ptr<ID3D11PixelShader> m_pixelShader = nullptr; // 픽셀 셰이더
 
-	std::string m_modelFileName = "box.fbx"; // 기본 모델 파일 이름
-
-	const Model* m_model = nullptr;
-	DirectX::BoundingBox m_boundingBox = {}; // 변환된 경계 상자
-
-	MaterialFactorBuffer m_materialFactorData = {}; // 재질 상수 버퍼 데이터
+	//std::string m_modelFileName = "box.fbx"; // 기본 모델 파일 이름
+	//const Model* m_model = nullptr;
+	std::vector<std::pair<std::string, std::string>> m_modelAndMaterialFileNames = {}; // 모델 및 재질 파일 이름 쌍 배열
+	std::vector<std::pair<const Model*, Material>> m_modelsAndMaterials = {}; // 모델 및 재질 쌍 배열
 	com_ptr<ID3D11Buffer> m_materialFactorConstantBuffer = nullptr; // 재질 상수 버퍼
+
+	DissolveBuffer m_dissolveData = {}; // 디졸브 상수 버퍼 데이터
+	com_ptr<ID3D11Buffer> m_dissolveConstantBuffer = nullptr; // 디졸브 상수 버퍼
+
+	DirectX::BoundingBox m_boundingBox = {}; // 원본 경계 상자
+	DirectX::BoundingBox m_transformedbBoundingBox = {}; // 변환된 경계 상자
 
 	BlendState m_blendState = BlendState::Opaque; // 기본 블렌드 상태
 	RasterState m_rasterState = RasterState::Solid; // 기본 래스터 상태
@@ -62,20 +66,20 @@ public:
 	const std::string& GetPixelShaderName() const { return m_psShaderName; }
 	void SetPixelShaderName(const std::string& psShaderName) { m_psShaderName = psShaderName; }
 
-	const std::string& GetModelFileName() const { return m_modelFileName; }
-	void SetModelFileName(const std::string& modelFileName) { m_modelFileName = modelFileName; }
-	const Model* GetModel() const { return m_model; }
+	const std::vector<std::pair<std::string, std::string>>& GetModelAndMaterialFileNames() const { return m_modelAndMaterialFileNames; }
+	const std::vector<std::pair<const Model*, Material>>& GetModelsAndMaterials() const { return m_modelsAndMaterials; }
 
 	void SetBlendState(BlendState blendState) { m_blendState = blendState; }
-	void SetAlpha(const float& alpha) { m_materialFactorData.baseColorFactor.w = alpha; }
-	void SetDissolveThreshold(float threshold) { m_materialFactorData.DissolveThreshold = threshold; }
+	void SetAlpha(const float& alpha) { for (auto& [model, material] : m_modelsAndMaterials) material.m_materialFactor.baseColorFactor.w = alpha; }
+	void SetDissolveThreshold(float threshold) { m_dissolveData.DissolveThreshold = threshold; }
 
 	bool NeedsFixedUpdate() const override { return false; }
-	bool NeedsUpdate() const override { return false; }
+	bool NeedsUpdate() const override { return true; }
 	bool NeedsRender() const override { return true; }
 
 protected:
 	void Initialize() override;
+	void Update() override;
 	void Render() override;
 	#ifdef _DEBUG
 	void RenderImGui() override;
@@ -87,4 +91,7 @@ protected:
 
 	// 셰이더 생성
 	virtual void CreateShaders();
+
+	// 경계 상자 갱신
+	void UpdateBoundingBox();
 };

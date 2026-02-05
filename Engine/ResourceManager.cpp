@@ -117,6 +117,8 @@ void ResourceManager::SetAllConstantBuffers()
 	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::GlobalLight), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::GlobalLight)].GetAddressOf());
 	// 재질 팩터 상수 버퍼
 	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::MaterialFactor), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::MaterialFactor)].GetAddressOf());
+	// 디졸브 상수 버퍼
+	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::Dissolve), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::Dissolve)].GetAddressOf());
 	// 파티클 에미션 상수 버퍼
 	m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(PSConstBuffers::ParticleColor), 1, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::ParticleColor)].GetAddressOf());
 }
@@ -447,11 +449,6 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 
 	// 3. 이름
 	const string modelName = filesystem::path(fileName).stem().string();
-
-	model.materialTexture.baseColorTextureSRV = GetTexture(modelName + "_BaseColor.png", TextureType::BaseColor);
-	model.materialTexture.normalTextureSRV = GetTexture(modelName + "_Normal.png", TextureType::Normal);
-	model.materialTexture.emissionTextureSRV = GetTexture(modelName + "_Emissive.png", TextureType::Emissive);
-	model.materialTexture.ORMTextureSRV = GetTexture(modelName + "_OcclusionRoughnessMetallic.png", TextureType::ORM);
 	
 	// 4. 본 정보가 있다면 스켈레톤 구축
 	if (model.type == ModelType::Skinned){
@@ -468,6 +465,18 @@ const Model* ResourceManager::LoadModel(const string& fileName)
 	if (scene->HasAnimations()) LoadAnimations(scene, model);
 
 	return &m_models[fileName];
+}
+
+Material ResourceManager::LoadMaterial(const string& materialName)
+{
+	Material material = {};
+
+	material.baseColorTextureSRV = GetTexture(materialName + "_BaseColor.png", TextureType::BaseColor);
+	material.ORMTextureSRV = GetTexture(materialName + "_OcclusionRoughnessMetallic.png", TextureType::ORM);
+	material.normalTextureSRV = GetTexture(materialName + "_Normal.png", TextureType::Normal);
+	material.emissionTextureSRV = GetTexture(materialName + "_Emissive.png", TextureType::Emissive);
+
+	return material;
 }
 
 SpriteFont* ResourceManager::GetSpriteFont(const wstring& fontName)
@@ -557,6 +566,9 @@ void ResourceManager::CreateConstantBuffers()
 	// 재질 팩터 상수 버퍼
 	hr = m_device->CreateBuffer(&PS_CONST_BUFFER_DESCS[static_cast<size_t>(PSConstBuffers::MaterialFactor)], nullptr, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::MaterialFactor)].GetAddressOf());
 	CheckResult(hr, "MaterialFactor 상수 버퍼 생성 실패.");
+	// 디졸브 상수 버퍼
+	hr = m_device->CreateBuffer(&PS_CONST_BUFFER_DESCS[static_cast<size_t>(PSConstBuffers::Dissolve)], nullptr, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::Dissolve)].GetAddressOf());
+	CheckResult(hr, "Dissolve 상수 버퍼 생성 실패.");
 	// 파티클 에미션 상수 버퍼
 	hr = m_device->CreateBuffer(&PS_CONST_BUFFER_DESCS[static_cast<size_t>(PSConstBuffers::ParticleColor)], nullptr, m_psConstantBuffers[static_cast<size_t>(PSConstBuffers::ParticleColor)].GetAddressOf());
 	CheckResult(hr, "ParticleEmission 상수 버퍼 생성 실패.");
