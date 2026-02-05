@@ -26,7 +26,7 @@ public:
 		Attack,
 		Dead
 	};
-	AIState m_state = AIState::Idle;
+	AIState m_state = AIState::Chase;
 
 	Enemy() = default;
 	~Enemy() override = default;
