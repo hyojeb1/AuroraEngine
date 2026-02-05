@@ -603,7 +603,7 @@ void SoundManager::Main_BGM_Shot(const std::string filename,float delay)
 	}
 
 	m_CurrentTrackName = it->first;
-	m_CurrentNodeDataName = it->first;// +"_Beat";
+	m_CurrentNodeDataName = it->first +"_Beat";
 	m_rhythmTimerIndex = 0;
 	m_rhythmUIIndex = 0;
 	m_rhythmDestroyIndex = 0;

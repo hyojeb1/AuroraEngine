@@ -4,7 +4,7 @@
 #include "SceneBase.h"
 #include "Renderer.h"
 #include "TimeManager.h"
-#include "ScoreManager.h"
+#include "GameManager.h"
 
 using namespace std;
 
@@ -39,7 +39,7 @@ void SceneManager::Run()
 		steps++;
 	}
 
-	ScoreManager::GetInstance().Update(dt);
+	GameManager::GetInstance().Update(dt);
 
 	m_currentScene->BaseUpdate();
 

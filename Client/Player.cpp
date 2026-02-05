@@ -148,7 +148,7 @@ void Player::PlayerTriggerDash()
 	const float inputX = XMVectorGetX(XMVector3Normalize(m_inputDirection));
 
 	// 카메?�� ?��?��
-	m_playerRotation.z = -10.0f * inputX;
+	m_playerRotation.z = -Config::Player_Dash_Tilt * inputX;
 
 	// Radial Blur ?��?��
 	SceneBase::SetRadialBlurCenter({ inputX * 0.5f + 0.5f, 0.5f });

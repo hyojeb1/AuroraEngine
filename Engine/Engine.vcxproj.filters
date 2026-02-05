@@ -114,7 +114,7 @@
     <ClCompile Include="UIBase.cpp">
       <Filter>Base</Filter>
     </ClCompile>
-    <ClCompile Include="ScoreManager.cpp">
+    <ClCompile Include="GameManager.cpp">
       <Filter>Manager</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp" />
@@ -208,7 +208,7 @@
     <ClInclude Include="UIBase.h">
       <Filter>Base</Filter>
     </ClInclude>
-    <ClInclude Include="ScoreManager.h">
+    <ClInclude Include="GameManager.h">
       <Filter>Manager</Filter>
     </ClInclude>
   </ItemGroup>

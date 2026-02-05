@@ -2,13 +2,20 @@
 
 
 
-class ScoreManager : public Singleton<ScoreManager>
+class GameManager : public Singleton<GameManager>
 {
-	friend class Singleton<ScoreManager>;
+	friend class Singleton<GameManager>;
 	
+    enum class GameState
+    {
+        Title,
+        EnterMainScene,
+        
+    };
+
     // 상태 변수
     int     currentScore = 0;
-    int     multiplier = 1;         // 1, 2, 4, 8
+    int     multiplier = 0;         // 1, 2, 4, 8
     int     killCountForNextLevel = 0;
     float   lastKillTime = 0.0f;
     bool    isCombatStarted = false;
@@ -20,8 +27,11 @@ public:
     void AddKill();             // Enemy.cpp - Die()
     void OnPlayerHit();         // Player.cpp - 뭐임
     void OnRhythmMiss();        // 리듬 미스 시 호출 (스택 초기화)
-    void Reset();               // 씬 바뀔때?
+    void ScoreReset();          // 씬 바뀔때?
 
     const int GetScore() { return currentScore; }
+    void SetScore(int num) { currentScore = num; }
+
     const int GetMultiplier() { return multiplier; }
+    void SetMultiplier(int num) { multiplier = num; }
 };

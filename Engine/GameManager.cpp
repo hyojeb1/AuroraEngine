@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "ScoreManager.h"
+#include "GameManager.h"
 #include "TimeManager.h"
 
 namespace
@@ -13,7 +13,7 @@ namespace
 	constexpr int kScoreDecayAmount = 1;
 }
 
-void ScoreManager::AddKill()
+void GameManager::AddKill()
 {
 	const float now = TimeManager::GetInstance().GetTotalTime();
 
@@ -44,7 +44,7 @@ void ScoreManager::AddKill()
 	}
 }
 
-void ScoreManager::OnPlayerHit()
+void GameManager::OnPlayerHit()
 {
 	if (multiplier == 8) multiplier = 4;
 	else if (multiplier == 4) multiplier = 2;
@@ -53,12 +53,12 @@ void ScoreManager::OnPlayerHit()
 	killCountForNextLevel = 0;
 }
 
-void ScoreManager::OnRhythmMiss()
+void GameManager::OnRhythmMiss()
 {
 	killCountForNextLevel = 0;
 }
 
-void ScoreManager::Update(float dt)
+void GameManager::Update(float dt)
 {
 	if (!isCombatStarted)
 		return;
@@ -83,26 +83,26 @@ void ScoreManager::Update(float dt)
 	TempPrint(dt);
 }
 
-void ScoreManager::Reset() 
+void GameManager::ScoreReset()
 {
 	currentScore = 0;
-	multiplier = 1;
+	multiplier = 0;
 	killCountForNextLevel = 0;
 	lastKillTime = 0.0f;
 	isCombatStarted = false;
 	decayTimer = 0.0f;
 }
 
-void ScoreManager::TempPrint(float dt) 
+void GameManager::TempPrint(float dt) 
 {
 	static float scorePrintTimer = 0.0f;
 	scorePrintTimer += dt;
 	if (scorePrintTimer >= 0.5f) {
 		scorePrintTimer = 0.0f;
 		std::cout << std::endl << "[Score] "
-			<< ScoreManager::GetInstance().GetScore()
+			<< GameManager::GetInstance().GetScore()
 			<< " x"
-			<< ScoreManager::GetInstance().GetMultiplier()
+			<< GameManager::GetInstance().GetMultiplier()
 			<< std::endl;
 	}
 }
