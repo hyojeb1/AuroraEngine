@@ -71,7 +71,6 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     float3 Lo = (kD * baseColor.rgb * INV_PI + specular) * radiance * NdotL * shadow; // PBR 직접광
     
     // IBL 계산
-    
     // 프레넬로 반사 강도 조절 (시야각에 따라 반사 강도 변화)
     float3 F_env = FresnelSchlickRoughness(NdotV, F0, orm.g); // 환경광 프레넬
     float3 kD_env = 1.0f - F_env; // 디퓨즈 기여도
