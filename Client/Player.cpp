@@ -236,10 +236,6 @@ void Player::PlayerReload(int cnt)
 
 void Player::PlayerDeadEyeStart()
 {
-	const DXGI_SWAP_CHAIN_DESC1& swapChainDesc = Renderer::GetInstance().GetSwapChainDesc();
-	float halfWidth = static_cast<float>(swapChainDesc.Width) * 0.5f;
-	float halfHeight = static_cast<float>(swapChainDesc.Height) * 0.5f;
-
 	vector<GameObjectBase*> hits = ColliderComponent::CheckCollision(m_cameraComponent->GetBoundingFrustum());
 	if (hits.empty()) return;
 
@@ -256,8 +252,8 @@ void Player::PlayerDeadEyeStart()
 			if (!dynamic_cast<Enemy*>(ColliderComponent::CheckCollision(origin, XMVectorSubtract(targetPos, origin), distance))) continue;
 
 			hasEnemy = true;
-			XMFLOAT2 distancePair = m_cameraComponent->WorldToScreenPosition(targetPos);
-			m_deadEyeTargets.emplace_back(powf(distancePair.x - halfWidth, 2) + powf(distancePair.y - halfHeight, 2), enemy);
+			XMFLOAT2 distancePair = Renderer::GetInstance().ToUIPosition(m_cameraComponent->WorldToScreenPosition(targetPos));
+			m_deadEyeTargets.emplace_back(powf(distancePair.x - 0.5f, 2) + powf(distancePair.y - 0.5f, 2), enemy);
 		}
 	}
 	if (hasEnemy)
@@ -269,6 +265,8 @@ void Player::PlayerDeadEyeStart()
 		m_cameraSensitivity = 0.01f;
 
 		SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, true);
+		SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::RadialBlur, true);
+		SceneBase::SetRadialBlurDist(0.33f);
 
 		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
 		if (m_deadEyeTargets.size() > 6) m_deadEyeTargets.resize(6);
@@ -292,20 +290,24 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 
 	m_deadEyeDuration += deltaTime;
 	m_deadEyeMoveTimer += deltaTime * m_deadEyeMoveSpeed;
-	SceneBase::SetGrayScaleIntensity((m_deadEyeDuration / m_deadEyeTotalDuration) * 16.0f);
+
+	float effectIntensity = min((m_deadEyeDuration / m_deadEyeTotalDuration) * 16.0f, 1.0f);
+	SceneBase::SetGrayScaleIntensity(effectIntensity);
+	SceneBase::SetRadialBlurStrength(effectIntensity);
+
+	const XMVECTOR& targetPos = m_deadEyeTargets.back().second->GetWorldPosition();
+	m_nextDeadEyePos = m_cameraComponent->WorldToScreenPosition(targetPos);
+	SceneBase::SetRadialBlurCenter(m_nextDeadEyePos);
 
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
-		const XMVECTOR& targetPos = m_deadEyeTargets.back().second->GetWorldPosition();
-
-		m_prevDeadEyePos = m_cameraComponent->WorldToScreenPosition(targetPos);
+		m_prevDeadEyePos = m_nextDeadEyePos;
 		m_deadEyeTargets.back().second->Die();
 		if (m_deadEyeTargets.size() > 1)
 		{
 			m_nextDeadEyePos = m_cameraComponent->WorldToScreenPosition(m_deadEyeTargets[m_deadEyeTargets.size() - 2].second->GetWorldPosition());
 			m_deadEyeMoveTimer = 0.0f;
 		}
-		else m_nextDeadEyePos = m_prevDeadEyePos;
 
 		const XMVECTOR& gunPos = m_gunObject->GetWorldPosition();
 		ParticleObject* smoke = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Smoke.json"));
@@ -338,6 +340,8 @@ void Player::PlayerDeadEyeEnd()
 
 	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, false);
 	SceneBase::SetGrayScaleIntensity(0.0f);
+	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::RadialBlur, true);
+	SceneBase::SetRadialBlurStrength(0.0f);
 
 	SoundManager::GetInstance().ChangeLowpass();
 
@@ -380,8 +384,8 @@ void Player::RenderDeadEyeTargetsUI(Renderer& renderer)
 			(
 				m_deadEyeTextureAndOffset.first,
 				{
-					m_prevDeadEyePos.x + (m_nextDeadEyePos.x - m_prevDeadEyePos.x) * min(m_deadEyeMoveTimer, 1.0f),
-					m_prevDeadEyePos.y + (m_nextDeadEyePos.y - m_prevDeadEyePos.y) * min(m_deadEyeMoveTimer, 1.0f)
+					lerp(m_prevDeadEyePos.x, m_nextDeadEyePos.x, min(m_deadEyeMoveTimer, 1.0f)),
+					lerp(m_prevDeadEyePos.y, m_nextDeadEyePos.y, min(m_deadEyeMoveTimer, 1.0f))
 				},
 				m_deadEyeTextureAndOffset.second, 0.5f
 			);
@@ -395,7 +399,6 @@ void Player::RenderEnemyHitUI(Renderer& renderer)
 	(
 		[&]()
 		{
-			const DXGI_SWAP_CHAIN_DESC1& swapChainDesc = Renderer::GetInstance().GetSwapChainDesc();
 			Renderer::GetInstance().RenderImageUIPosition(m_enemyHitTextureAndOffset.first, { 0.5f, 0.5f }, m_enemyHitTextureAndOffset.second, 0.5f);
 		}
 	);
