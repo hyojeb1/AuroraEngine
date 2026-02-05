@@ -71,22 +71,21 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     float3 Lo = (kD * baseColor.rgb * INV_PI + specular) * radiance * NdotL * shadow; // PBR 직접광
     
     // IBL 계산
-    // 환경 맵에서 반사광 샘플링
-    float3 envReflection = environmentMapTexture.SampleLevel(SamplerLinearWrap, R, orm.g * 32.0f).rgb;
     
     // 프레넬로 반사 강도 조절 (시야각에 따라 반사 강도 변화)
-    float3 F_env = FresnelSchlickRoughness(NdotV, F0, orm.g);
+    float3 F_env = FresnelSchlickRoughness(NdotV, F0, orm.g); // 환경광 프레넬
+    float3 kD_env = 1.0f - F_env; // 디퓨즈 기여도
     
-    float3 kD_env = (1.0f - F_env) * (1.0f - orm.b); // 디퓨즈 기여도
-    
+    // 환경 맵에서 반사광 샘플링
+    float3 envReflection = environmentMapTexture.SampleLevel(SamplerLinearWrap, R, orm.g * 32.0f).rgb;
     // 환경 맵에서 디퓨즈 샘플링 (높은 MIP 레벨 사용)
     float3 envDiffuse = environmentMapTexture.SampleLevel(SamplerLinearWrap, N, orm.g * 32.0f).rgb;
     
-    float3 indirectDiffuse = envDiffuse * baseColor.rgb * kD_env * orm.r; // 환경광 디퓨즈
+    float3 indirectDiffuse = envDiffuse * kD_env * orm.r; // 환경광 디퓨즈
     float3 indirectSpecular = envReflection * F_env; // 환경광 스페큘러
     
     // IBL 최종 기여도
-    float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w;
+    float3 ibl = (indirectDiffuse + indirectSpecular) * baseColor.rgb * LightColor.w;
     
     PS_SCENE_OUTPUT output;
     output.Color = float4(Lo + ibl + emission, baseColor.a);

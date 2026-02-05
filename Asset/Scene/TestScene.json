@@ -179,7 +179,7 @@
                             ],
                             "metallicFactor": 1.0,
                             "normalScale": 1.0,
-                            "roughnessFactor": 1.0
+                            "roughnessFactor": 0.0
                         }
                     ],
                     "modelAndMaterialFileNames": [
