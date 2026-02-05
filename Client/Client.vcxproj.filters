@@ -104,6 +104,9 @@
     <Filter Include="ParticleObject">
       <UniqueIdentifier>{61332d8f-e6a1-409e-8b33-7cf2b36ccabe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GameObject\Prefab">
+      <UniqueIdentifier>{c06de892-b72a-4def-b4e2-dbcc4b0ac41a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Asset\Scene\HyojeTestScene.json">
@@ -120,6 +123,9 @@
     </None>
     <None Include="..\Asset\Scene\EndingScene.json">
       <Filter>Scene\JSON</Filter>
+    </None>
+    <None Include="..\Asset\Prefab\Enemy.json">
+      <Filter>GameObject\Prefab</Filter>
     </None>
   </ItemGroup>
 </Project>
