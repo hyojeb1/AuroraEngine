@@ -3,6 +3,8 @@
 
 class Enemy : public GameObjectBase
 {
+	bool m_isTutorialDummy = false;
+
 	class Player* m_player = nullptr;
 
 	float m_moveSpeedSquared = 4.0f;
@@ -17,6 +19,7 @@ class Enemy : public GameObjectBase
 	float m_deathTimer = 0.0f;
 	const float m_deathDuration = 2.0f;
 	const float m_attackRangeSquare = 2.56f;
+	float m_rotationSpeed = 10.0f;
 
 public:
 	enum class AIState
@@ -39,9 +42,11 @@ public:
 	void OnAttackFinished();
 	class Player* GetTargetPlayer() const { return m_player; }
 
+	void SetAsTutorialDummy();
+
 private:
 	void Initialize() override;
 	void Update() override;
 
-	void MoveAlongPath();
+	void MoveAlongPath(float dt);
 };

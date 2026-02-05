@@ -57,151 +57,6 @@
     },
     "rootGameObjects": [
         {
-            "childGameObjects": [],
-            "components": [
-                {
-                    "NoiseIndex": 0,
-                    "blendState": 0,
-                    "dissolveData": {
-                        "DissolveEdgeColor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "DissolveEdgeIntensity": 1.0,
-                        "DissolveEdgeWidth": 1.0,
-                        "DissolveThreshold": 0.20000000298023224
-                    },
-                    "modelAndMaterialFileNames": [],
-                    "psShaderName": "PSModel.hlsl",
-                    "rasterState": 1,
-                    "type": "ModelComponent",
-                    "vsShaderName": "VSModel.hlsl"
-                }
-            ],
-            "name": "GameObjectBase_1",
-            "position": [
-                0.0,
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rotation": [
-                -0.0,
-                0.0,
-                -0.0,
-                1.0
-            ],
-            "scale": [
-                100.0,
-                1.0,
-                100.0,
-                1.0
-            ],
-            "type": "GameObjectBase"
-        },
-        {
-            "childGameObjects": [],
-            "components": [
-                {
-                    "NoiseIndex": 0,
-                    "blendState": 0,
-                    "dissolveData": {
-                        "DissolveEdgeColor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "DissolveEdgeIntensity": 1.0,
-                        "DissolveEdgeWidth": 1.0,
-                        "DissolveThreshold": 0.20000000298023224
-                    },
-                    "modelAndMaterialFileNames": [
-                        {
-                            "materialFileName": "test5",
-                            "modelFileName": "mob_attack_2.fbx"
-                        }
-                    ],
-                    "psShaderName": "PSModel.hlsl",
-                    "rasterState": 1,
-                    "type": "SkinnedModelComponent",
-                    "vsShaderName": "VSModelSkinAnim.hlsl"
-                }
-            ],
-            "name": "GameObjectBase_4",
-            "position": [
-                0.0,
-                1.2223339080810547,
-                0.0,
-                1.0
-            ],
-            "rotation": [
-                -0.0,
-                0.0,
-                -0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0,
-                0.0
-            ],
-            "type": "GameObjectBase"
-        },
-        {
-            "childGameObjects": [],
-            "components": [
-                {
-                    "NoiseIndex": 0,
-                    "blendState": 0,
-                    "dissolveData": {
-                        "DissolveEdgeColor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "DissolveEdgeIntensity": 1.0,
-                        "DissolveEdgeWidth": 1.0,
-                        "DissolveThreshold": 0.20000000298023224
-                    },
-                    "modelAndMaterialFileNames": [
-                        {
-                            "materialFileName": "test5",
-                            "modelFileName": "mob_attack_2.fbx"
-                        }
-                    ],
-                    "psShaderName": "PSModel.hlsl",
-                    "rasterState": 1,
-                    "type": "SkinnedModelComponent",
-                    "vsShaderName": "VSModelSkinAnim.hlsl"
-                }
-            ],
-            "name": "GameObjectBase_6",
-            "position": [
-                5.361666679382324,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "rotation": [
-                -0.0,
-                0.0,
-                -0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0,
-                0.0
-            ],
-            "type": "GameObjectBase"
-        },
-        {
             "childGameObjects": [
                 {
                     "childGameObjects": [],
@@ -285,6 +140,154 @@
                 1.0
             ],
             "type": "Player"
+        },
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "NoiseIndex": 1,
+                    "blendState": 0,
+                    "dissolveData": {
+                        "DissolveEdgeColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "DissolveEdgeIntensity": 1.0,
+                        "DissolveEdgeWidth": 1.0,
+                        "DissolveThreshold": 0.20000000298023224
+                    },
+                    "modelAndMaterialFileNames": [
+                        {
+                            "materialFileName": "test5",
+                            "modelFileName": "mob_attack_2.fbx"
+                        }
+                    ],
+                    "psShaderName": "PSModel_Dissolve.hlsl",
+                    "rasterState": 1,
+                    "type": "SkinnedModelComponent",
+                    "vsShaderName": "VSModelSkinAnim.hlsl"
+                },
+                {
+                    "boundingBoxes": [
+                        {
+                            "center": [
+                                0.0,
+                                1.399999976158142,
+                                0.0
+                            ],
+                            "extents": [
+                                0.800000011920929,
+                                1.2000000476837158,
+                                0.800000011920929
+                            ]
+                        }
+                    ],
+                    "boundingFrustums": [],
+                    "boundingOrientedBoxes": [],
+                    "type": "ColliderComponent"
+                },
+                {
+                    "current_state": "Idle",
+                    "start_state": "Idle",
+                    "type": "FSMComponentEnemy"
+                }
+            ],
+            "name": "Enemy",
+            "position": [
+                0.0,
+                0.0,
+                9.350000381469727,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "Enemy"
+        },
+        {
+            "childGameObjects": [],
+            "components": [
+                {
+                    "NoiseIndex": 1,
+                    "blendState": 0,
+                    "dissolveData": {
+                        "DissolveEdgeColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "DissolveEdgeIntensity": 1.0,
+                        "DissolveEdgeWidth": 1.0,
+                        "DissolveThreshold": 0.20000000298023224
+                    },
+                    "modelAndMaterialFileNames": [
+                        {
+                            "materialFileName": "test5",
+                            "modelFileName": "mob_attack_2.fbx"
+                        }
+                    ],
+                    "psShaderName": "PSModel_Dissolve.hlsl",
+                    "rasterState": 1,
+                    "type": "SkinnedModelComponent",
+                    "vsShaderName": "VSModelSkinAnim.hlsl"
+                },
+                {
+                    "boundingBoxes": [
+                        {
+                            "center": [
+                                0.0,
+                                1.399999976158142,
+                                0.0
+                            ],
+                            "extents": [
+                                0.800000011920929,
+                                1.2000000476837158,
+                                0.800000011920929
+                            ]
+                        }
+                    ],
+                    "boundingFrustums": [],
+                    "boundingOrientedBoxes": [],
+                    "type": "ColliderComponent"
+                },
+                {
+                    "current_state": "Idle",
+                    "start_state": "Idle",
+                    "type": "FSMComponentEnemy"
+                }
+            ],
+            "name": "Enemy",
+            "position": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "Enemy"
         }
     ]
 }

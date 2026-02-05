@@ -31,6 +31,8 @@ void Enemy::Initialize()
 
 	m_pathFindIntervalRandomOffset = RANDOM(0.0f, m_pathFindInterval);
 	m_pathFindTimer = -m_pathFindIntervalRandomOffset;
+
+	if (m_state == AIState::Chase && m_fsm) { m_fsm->ChangeState(FSMComponentEnemy::EChase); }
 }
 
 void Enemy::Die()
@@ -56,6 +58,7 @@ void Enemy::Update()
 	switch (m_state) {
 	case Enemy::AIState::Idle: 
 		//1. 튜토리얼 허수아비용 
+		if (m_isTutorialDummy) { return; }
 		//2. Attack후 잠깐 후딜용으로 쓰기 (이건 애니메이션 받고 테스트해봐야 함)
 		break;
 	case Enemy::AIState::Chase:
@@ -71,7 +74,7 @@ void Enemy::Update()
 
 			m_pathFindTimer += deltaTime;
 			if (m_pathFindTimer >= m_pathFindInterval - m_pathFindIntervalRandomOffset) { m_path.clear(); m_pathFindTimer = -m_pathFindIntervalRandomOffset; }
-			MoveAlongPath();
+			MoveAlongPath(deltaTime);
 		}
 		break;
 	case Enemy::AIState::Attack: // 여기서 업데이트 안하고 FSMComponent에서 애니메이션을 진행함
@@ -85,8 +88,16 @@ void Enemy::Update()
 	}
 }
 
+void Enemy::SetAsTutorialDummy()
+{
+	m_isTutorialDummy = true;
+	m_state = AIState::Idle;
+	
+	if (m_fsm) m_fsm->ChangeState(FSMComponentEnemy::EIdle);
+}
 
-void Enemy::MoveAlongPath()
+
+void Enemy::MoveAlongPath(float dt)
 {
 	// 플레이어까지 경로 계산
 	if (m_path.empty()) m_path = NavigationManager::GetInstance().FindPath(GetPosition(), m_player->GetPosition());
@@ -98,6 +109,23 @@ void Enemy::MoveAlongPath()
 	else
 	{
 		XMVECTOR direction = XMVector3Normalize(toTarget);
+
+		//회전 - 모델이 돌아가 있을 것이라고 추정함
+		float targetYawRad = atan2f(XMVectorGetX(direction), XMVectorGetZ(direction));
+		targetYawRad += XM_PI;
+		float targetYawDeg = XMConvertToDegrees(targetYawRad);
+		XMFLOAT3 currentEuler;
+		XMStoreFloat3(&currentEuler, GetRotation());
+		float currentYawDeg = currentEuler.y;
+		float diff = targetYawDeg - currentYawDeg;
+		while (diff > 180.0f)  diff -= 360.0f;
+		while (diff < -180.0f) diff += 360.0f;
+		float step = m_rotationSpeed * 50.0f * dt; 
+		float nextYawDeg = 0.0f;
+		if (abs(diff) <= step) {nextYawDeg = targetYawDeg;} 
+		else {nextYawDeg = currentYawDeg + (diff > 0 ? step : -step);}
+		SetRotation(XMVectorSet(0.0f, nextYawDeg, 0.0f, 0.0f));
+
 		XMVECTOR deltaPosition = XMVectorScale(direction, m_moveSpeedSquared * TimeManager::GetInstance().GetDeltaTime());
 		MovePosition(deltaPosition);
 	}
