@@ -37,7 +37,7 @@
         ]
     ],
     "postProcessing": {
-        "bloomIntensity": 64.0999984741211,
+        "bloomIntensity": 24.5,
         "flags": 33,
         "gammaIntensity": 1.0,
         "grayScaleIntensity": 0.0,

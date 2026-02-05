@@ -14,6 +14,7 @@ private:
 	struct AnimationClip* current_clip_	= nullptr;
 	float	current_time_									= 0.0f;		
 	bool	is_loop_										= true; 
+	float	playback_speed_								= 1.0f;
 
 	AnimationClip* previous_clip_	= nullptr;
 	float	previous_time_									= 0.0f;
@@ -30,6 +31,9 @@ public:
 	
 	void UpdateAnimation(float delta_time);
 	void PlayAnimation(const std::string& clip_name, bool is_loop = true, float blend_time = 0.5f);
+	void RestartCurrentAnimation(bool is_loop = true);
+	void SetPlaybackSpeed(float speed);
+	float GetPlaybackSpeed() const { return playback_speed_; }
 
 	const std::vector<DirectX::XMFLOAT4X4>& GetFinalBoneMatrices() const { return final_bone_matrices_; }
 

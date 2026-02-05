@@ -123,7 +123,7 @@ void Animator::UpdateAnimation(float delta_time)
 
 	// 현재 애니메이션 시간 갱신 : 블랜더 24fps
 	const float current_ticks = (current_clip_->ticks_per_second > 0.0f) ? current_clip_->ticks_per_second : AnimationClip::DEFAULT_FPS;
-	current_time_ += delta_time * current_ticks;
+	current_time_ += delta_time * playback_speed_ * current_ticks;
 	
 	if (is_loop_)										current_time_ = WrapAnimationTime(current_time_, current_clip_->duration);
 	else if (current_time_ > current_clip_->duration)	current_time_ = current_clip_->duration;
@@ -186,6 +186,27 @@ void Animator::PlayAnimation(const std::string& clip_name, bool is_loop, float b
 		previous_clip_ = nullptr;
 	}
 	
+}
+
+void Animator::RestartCurrentAnimation(bool is_loop)
+{
+	if (!current_clip_) return;
+
+	previous_clip_ = nullptr;
+	previous_time_ = 0.0f;
+	is_previous_loop_ = false;
+	is_blending_ = false;
+	blend_factor_ = 1.0f;
+	blend_duration_ = 0.0f;
+
+	current_time_ = 0.0f;
+	is_loop_ = is_loop;
+}
+
+void Animator::SetPlaybackSpeed(float speed)
+{
+	if (speed < 0.0f) speed = 0.0f;
+	playback_speed_ = speed;
 }
 
 const std::string Animator::GetCurrentAnimationName() const

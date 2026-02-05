@@ -32,7 +32,7 @@ namespace Config
 
 
 //BGM
-	inline constexpr const char* Main_BGM = "1.DOB_IngameBGM_1_Beat";									//Node 생성은(Main_BGM + "_Beat")으로 자동 결정 ex) DOB Music_test2_Beat 
+	inline constexpr const char* Main_BGM = "1.DOB_IngameBGM_1";									//Node 생성은(Main_BGM + "_Beat")으로 자동 결정 ex) DOB Music_test2_Beat 
 	inline constexpr const char* Ambience = "1.DOB_AMB";
 //SFX
 	//Player
