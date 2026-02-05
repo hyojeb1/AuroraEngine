@@ -766,7 +766,6 @@ void SceneBase::RenderSkybox()
 
 	resourceManager.SetDepthStencilState(DepthStencilState::Skybox);
 
-	resourceManager.SetBlendState(BlendState::Opaque);
 	resourceManager.SetRasterState(RasterState::Solid);
 	resourceManager.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -808,6 +807,6 @@ void SceneBase::RenderDebugCoordinates()
 	constexpr ID3D11Buffer* nullBuffer = nullptr;
 	m_deviceContext->IASetVertexBuffers(0, 1, &nullBuffer, &STRIDE, &OFFSET);
 
-	m_deviceContext->DrawInstanced(2, 204, 0, 0);
+	m_deviceContext->DrawInstanced(2, 2004, 0, 0);
 }
 #endif

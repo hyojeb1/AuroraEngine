@@ -37,8 +37,8 @@
         ]
     ],
     "postProcessing": {
-        "bloomIntensity": 64.0999984741211,
-        "flags": 32,
+        "bloomIntensity": 1.0,
+        "flags": 33,
         "gammaIntensity": 1.0,
         "grayScaleIntensity": 0.0,
         "lutLerpFactor": 1.0,
@@ -55,56 +55,5 @@
             0.0
         ]
     },
-    "rootGameObjects": [
-        {
-            "childGameObjects": [],
-            "components": [
-                {
-                    "NoiseIndex": 0,
-                    "blendState": 0,
-                    "dissolveData": {
-                        "DissolveEdgeColor": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "DissolveEdgeIntensity": 0.0,
-                        "DissolveEdgeWidth": 0.019999999552965164,
-                        "DissolveThreshold": 1.0
-                    },
-                    "modelAndMaterialFileNames": [
-                        {
-                            "materialFileName": "",
-                            "modelFileName": "box.fbx"
-                        }
-                    ],
-                    "psShaderName": "PSModel.hlsl",
-                    "rasterState": 1,
-                    "type": "ModelComponent",
-                    "vsShaderName": "VSModel.hlsl"
-                }
-            ],
-            "name": "GameObjectBase_1",
-            "position": [
-                0.0,
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            ],
-            "type": "GameObjectBase"
-        }
-    ]
+    "rootGameObjects": []
 }
