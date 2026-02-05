@@ -56,9 +56,5 @@ Engine/VcpkgLocal.props
 # Other
 *.ini
 
-#sound
-*.mp3
-*.wav
-
 #BeatMapData
 Asset/BeatMapData
