@@ -408,8 +408,8 @@ void SceneBase::BaseRenderImGui()
 	ImGui::DragFloat("Lut Lerp Factor", &m_postProcessingData.lutLerpFactor, 0.01f, 0.0f, 1.0f);
 
 	ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Light");
-	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);
 	ImGui::DragFloat("IBL Intensity", &m_globalLightData.lightColor.w, 0.001f, 0.0f, 1.0f);
+	ImGui::ColorEdit3("Light Color", &m_globalLightData.lightColor.x);
 
 	if (ImGui::DragFloat3("Light Direction", &m_globalLightData.lightDirection.m128_f32[0], 0.001f, -1.0f, 1.0f))
 	{
