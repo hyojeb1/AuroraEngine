@@ -38,6 +38,8 @@ public:
 	void ConvertSFXSource();
 	void ConvertUISource();
 
+	bool CheckMainBGMBeatver();
+
 	void CreateNodeData(const std::string& filename);
 	void LoadNodeData();
 

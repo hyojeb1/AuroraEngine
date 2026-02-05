@@ -55,6 +55,12 @@ void SoundManager::Initialize()
 		ConvertSFXSource();
 		ConvertUISource();
 
+		if (CheckMainBGMBeatver())
+		{
+			std::cerr << "Not Found _Beat Source" << std::endl;
+		}
+		
+
 		for (auto& n : BGM_List)
 		{
 			std::cout << n.first << std::endl;
@@ -274,6 +280,21 @@ void SoundManager::ConvertUISource()
 	else
 	{
 		std::cerr << "UI path not found" << std::endl;
+	}
+}
+
+bool SoundManager::CheckMainBGMBeatver()
+{
+	for (auto& m : BGM_List)
+	{
+		if(m.first.find("_Beat"))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 }
 
