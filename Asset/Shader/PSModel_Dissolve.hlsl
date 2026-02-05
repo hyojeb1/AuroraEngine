@@ -27,32 +27,8 @@ float3 CalcDissolveEdge(float noiseVal, float threshold, float width, float3 col
     return color * edgeFactor * intensity;
 }
 
-
-
 PS_SCENE_OUTPUT main(PS_INPUT_STD input)
 {
-    // --- [Dissolve Logic Start] ---
-    // PBR 연산 전에 먼저 처리하여 불필요한 픽셀은 빨리 버림 (Early Discard)
-    
-    // 노이즈 텍스처 샘플링 (보통 타일링을 위해 UV에 스케일을 곱하기도 함)
-    float noiseValue =  noiseTexture.Sample(SamplerLinearWrap, input.UV).r;
-   
-    // 디졸브 엣지 발광 색상 계산
-    float3 dissolveEmission = float3(0, 0, 0);
-    
-    // DissolveThreshold가 0보다 클 때만 계산 (성능 최적화 및 기본 상태 유지)
-    if (DissolveThreshold > 0.0f)
-    {
-        dissolveEmission = CalcDissolveEdge(
-            noiseValue,
-            DissolveThreshold,
-            DissolveEdgeWidth,
-            DissolveEdgeColor.rgb,
-            DissolveEdgeIntensity
-        );
-    }
-    // --- [Dissolve Logic End] ---
-    
     float3 cameraToPixel = CameraPosition.xyz - input.WorldPosition.xyz;
     float distanceFromCamera = length(cameraToPixel) * 0.05f;
     
@@ -64,10 +40,7 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     // 노말 텍스처
     float4 normal = normalTexture.SampleLevel(SamplerLinearWrap, input.UV, distanceFromCamera);
     // 방출 텍스처
-    float3 emission = emissionTexture.SampleLevel(SamplerLinearWrap, input.UV, distanceFromCamera).rgb * EmissionFactor.rgb; // 나중에 w값 LOD로 쓸까?
-    
-    // [중요] 디졸브 발광을 최종 Emission에 추가
-    emission += dissolveEmission;
+    float3 emission = emissionTexture.SampleLevel(SamplerLinearWrap, input.UV, distanceFromCamera).rgb * EmissionFactor.rgb;
     
     float3 V = normalize(cameraToPixel); // 뷰 벡터
     float3 L = -LightDirection.xyz; // 라이트 벡터
@@ -112,7 +85,7 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     // 환경 맵에서 디퓨즈 샘플링 (높은 MIP 레벨 사용)
     float3 envDiffuse = environmentMapTexture.SampleLevel(SamplerLinearWrap, N, orm.g * 32.0f).rgb;
     
-    float3 indirectDiffuse = lerp(envDiffuse, LightColor.rgb, orm.r) * baseColor.rgb * kD_env; // 환경광 디퓨즈
+    float3 indirectDiffuse = envDiffuse * baseColor.rgb * kD_env * orm.r; // 환경광 디퓨즈
     float3 indirectSpecular = envReflection * F_env; // 환경광 스페큘러
     
     // IBL 최종 기여도
@@ -120,8 +93,7 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     
     PS_SCENE_OUTPUT output;
     output.Color = float4(Lo + ibl + emission, baseColor.a);
-    //output.Color = float4(noiseValue, noiseValue, noiseValue,1 );
     output.ThresholdColor = float4(output.Color.rgb - 0.75f, baseColor.a);
-    
+   
     return output;
 }

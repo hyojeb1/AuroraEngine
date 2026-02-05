@@ -60,7 +60,7 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     // 환경 맵에서 디퓨즈 샘플링 (높은 MIP 레벨 사용)
     float3 envDiffuse = environmentMapTexture.SampleLevel(SamplerLinearWrap, N, orm.g * 32.0f).rgb;
     
-    float3 indirectDiffuse = lerp(envDiffuse, LightColor.rgb, orm.r) * baseColor.rgb * kD_env; // 환경광 디퓨즈
+    float3 indirectDiffuse = envDiffuse * baseColor.rgb * kD_env * orm.r; // 환경광 디퓨즈
     float3 indirectSpecular = envReflection * F_env; // 환경광 스페큘러
     
     // IBL 최종 기여도
