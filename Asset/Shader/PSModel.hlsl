@@ -4,20 +4,17 @@
 
 PS_SCENE_OUTPUT main(PS_INPUT_STD input)
 {
-    float3 cameraToPixel = CameraPosition.xyz - input.WorldPosition.xyz;
-    float distanceFromCamera = length(cameraToPixel) * 0.05f;
-    
     // 텍스처 샘플링
     // 베이스 컬러 텍스처
-    float4 baseColor = baseColorTexture.SampleLevel(SamplerLinearWrap, input.UV, distanceFromCamera) * BaseColorFactor;
+    float4 baseColor = baseColorTexture.Sample(SamplerLinearWrap, input.UV) * BaseColorFactor;
     // ORM 텍스처
-    float3 orm = ORMTexture.SampleLevel(SamplerLinearWrap, input.UV, distanceFromCamera).xyz * float3(AmbientOcclusionFactor, RoughnessFactor, MetallicFactor);
+    float3 orm = ORMTexture.Sample(SamplerLinearWrap, input.UV).xyz * float3(AmbientOcclusionFactor, RoughnessFactor, MetallicFactor);
     // 노말 텍스처
-    float4 normal = normalTexture.SampleLevel(SamplerLinearWrap, input.UV, distanceFromCamera);
+    float4 normal = normalTexture.Sample(SamplerLinearWrap, input.UV);
     // 방출 텍스처
-    float3 emission = emissionTexture.SampleLevel(SamplerLinearWrap, input.UV, distanceFromCamera).rgb * EmissionFactor.rgb;
+    float3 emission = emissionTexture.Sample(SamplerLinearWrap, input.UV).rgb * EmissionFactor.rgb;
     
-    float3 V = normalize(cameraToPixel); // 뷰 벡터
+    float3 V = normalize(CameraPosition.xyz - input.WorldPosition.xyz); // 뷰 벡터
     float3 L = -LightDirection.xyz; // 라이트 벡터
     float3 H = normalize(V + L); // 하프 벡터
     float3 N = UnpackNormal(normal.rgb, input.TBN, NormalScale); // 노말 벡터
@@ -40,8 +37,8 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     // 섀도우 맵 샘플링 // TODO: 나중에 함수로 빼야함
     float4 lightSpacePos = mul(input.WorldPosition, LightViewProjectionMatrix);
     float2 shadowTexCoord = float2(lightSpacePos.x * 0.5f + 0.5f, -lightSpacePos.y * 0.5f + 0.5f);
-    float currentDepth = lightSpacePos.z * 0.999f;
-    float shadow = directionalShadowMapTexture.SampleCmpLevelZero(SamplerComparisonClamp, shadowTexCoord, currentDepth);
+    float currentDepth = lightSpacePos.z * 0.9995f;
+    float shadow = SampleShadowPCF(directionalShadowMapTexture, SamplerComparisonClamp, shadowTexCoord, currentDepth);
     
     // 조명 계산
     float3 radiance = LightColor.rgb * LightDirection.w; // 조명 세기
@@ -49,22 +46,21 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     float3 Lo = (kD * baseColor.rgb * INV_PI + specular) * radiance * NdotL * shadow; // PBR 직접광
     
     // IBL 계산
-    // 환경 맵에서 반사광 샘플링
-    float3 envReflection = environmentMapTexture.SampleLevel(SamplerLinearWrap, R, orm.g * 32.0f).rgb;
-    
     // 프레넬로 반사 강도 조절 (시야각에 따라 반사 강도 변화)
-    float3 F_env = FresnelSchlickRoughness(NdotV, F0, orm.g);
+    float3 F_env = FresnelSchlickRoughness(NdotV, F0, orm.g); // 환경광 프레넬
+    float3 kD_env = 1.0f - F_env; // 디퓨즈 기여도
     
-    float3 kD_env = (1.0f - F_env) * (1.0f - orm.b); // 디퓨즈 기여도
-    
+    // 환경 맵에서 반사광 샘플링
+    float3 envReflection = environmentMapTexture.SampleLevel(SamplerLinearWrap, R, orm.g * 16.0f).rgb;
     // 환경 맵에서 디퓨즈 샘플링 (높은 MIP 레벨 사용)
-    float3 envDiffuse = environmentMapTexture.SampleLevel(SamplerLinearWrap, N, orm.g * 32.0f).rgb;
+    float3 envDiffuse = environmentMapTexture.SampleLevel(SamplerLinearWrap, N, orm.g * 16.0f).rgb;
     
-    float3 indirectDiffuse = lerp(envDiffuse, LightColor.rgb, orm.r) * baseColor.rgb * kD_env; // 환경광 디퓨즈
     float3 indirectSpecular = envReflection * F_env; // 환경광 스페큘러
+    float3 indirectDiffuse = envDiffuse * kD_env * orm.r; // 환경광 디퓨즈
+    float iblShadow = shadow * 0.5f + 0.5f; // IBL 섀도우 팩터 (섀도우가 있어도 어느정도는 IBL이 기여하도록)
     
     // IBL 최종 기여도
-    float3 ibl = (indirectDiffuse + indirectSpecular) * LightColor.w;
+    float3 ibl = (indirectDiffuse + indirectSpecular) * baseColor.rgb * iblShadow * LightColor.w;
     
     PS_SCENE_OUTPUT output;
     output.Color = float4(Lo + ibl + emission, baseColor.a);

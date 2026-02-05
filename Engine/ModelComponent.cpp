@@ -44,15 +44,6 @@ void ModelComponent::Initialize()
 
 	CreateShaders();
 
-	// 모델 및 재질 로드
-	for (const auto& [modelName, materialName] : m_modelAndMaterialFileNames)
-	{
-		const Model* model = resourceManager.LoadModel(modelName);
-		Material material = resourceManager.LoadMaterial(materialName);
-		m_modelsAndMaterials.emplace_back(model, material);
-	}
-	UpdateBoundingBox();
-
 	m_worldNormalConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::WorldNormal);
 	m_materialFactorConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::MaterialFactor);
 	m_dissolveConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::Dissolve);
@@ -393,6 +384,22 @@ nlohmann::json ModelComponent::Serialize()
 		jsonData["modelAndMaterialFileNames"].push_back(pairJson);
 	}
 
+	jsonData["materialFactor"] = nlohmann::json::array();
+	for (const auto& [model, material] : m_modelsAndMaterials)
+	{
+		nlohmann::json materialJson;
+
+		materialJson["baseColorFactor"] = { material.m_materialFactor.baseColorFactor.x, material.m_materialFactor.baseColorFactor.y, material.m_materialFactor.baseColorFactor.z, material.m_materialFactor.baseColorFactor.w };
+		materialJson["ambientOcclusionFactor"] = material.m_materialFactor.ambientOcclusionFactor;
+		materialJson["roughnessFactor"] = material.m_materialFactor.roughnessFactor;
+		materialJson["metallicFactor"] = material.m_materialFactor.metallicFactor;
+		materialJson["normalScale"] = material.m_materialFactor.normalScale;
+		materialJson["emissionFactor"] = { material.m_materialFactor.emissionFactor.x, material.m_materialFactor.emissionFactor.y, material.m_materialFactor.emissionFactor.z };
+
+		jsonData["materialFactor"].push_back(materialJson);
+	}
+
+
 	jsonData["blendState"] = static_cast<int>(m_blendState);
 	jsonData["rasterState"] = static_cast<int>(m_rasterState);
 
@@ -413,6 +420,7 @@ void ModelComponent::Deserialize(const nlohmann::json& jsonData)
 	if (jsonData.contains("vsShaderName")) m_vsShaderName = jsonData["vsShaderName"].get<string>();
 	if (jsonData.contains("psShaderName")) m_psShaderName = jsonData["psShaderName"].get<string>();
 
+	// 모델 및 재질 로드
 	if (jsonData.contains("modelAndMaterialFileNames"))
 	{
 		m_modelAndMaterialFileNames.clear();
@@ -421,6 +429,48 @@ void ModelComponent::Deserialize(const nlohmann::json& jsonData)
 			string modelFileName = pairJson["modelFileName"].get<string>();
 			string materialFileName = pairJson["materialFileName"].get<string>();
 			m_modelAndMaterialFileNames.emplace_back(modelFileName, materialFileName);
+		}
+	}
+	ResourceManager& resourceManager = ResourceManager::GetInstance();
+	for (const auto& [modelName, materialName] : m_modelAndMaterialFileNames)
+	{
+		const Model* model = resourceManager.LoadModel(modelName);
+		Material material = resourceManager.LoadMaterial(materialName);
+
+		m_modelsAndMaterials.emplace_back(model, material);
+	}
+	UpdateBoundingBox();
+
+	for (size_t i = 0; i < m_modelsAndMaterials.size(); ++i)
+	{
+		if (jsonData.contains("materialFactor") && i < jsonData["materialFactor"].size())
+		{
+			const auto& materialJson = jsonData["materialFactor"][i];
+			Material& material = m_modelsAndMaterials[i].second;
+			if (materialJson.contains("baseColorFactor"))
+			{
+				material.m_materialFactor.baseColorFactor = XMFLOAT4
+				(
+					materialJson["baseColorFactor"][0].get<float>(),
+					materialJson["baseColorFactor"][1].get<float>(),
+					materialJson["baseColorFactor"][2].get<float>(),
+					materialJson["baseColorFactor"][3].get<float>()
+				);
+			}
+			if (materialJson.contains("ambientOcclusionFactor")) material.m_materialFactor.ambientOcclusionFactor = materialJson["ambientOcclusionFactor"].get<float>();
+			if (materialJson.contains("roughnessFactor")) material.m_materialFactor.roughnessFactor = materialJson["roughnessFactor"].get<float>();
+			if (materialJson.contains("metallicFactor")) material.m_materialFactor.metallicFactor = materialJson["metallicFactor"].get<float>();
+			if (materialJson.contains("normalScale")) material.m_materialFactor.normalScale = materialJson["normalScale"].get<float>();
+			if (materialJson.contains("emissionFactor"))
+			{
+				material.m_materialFactor.emissionFactor = XMFLOAT4
+				(
+					materialJson["emissionFactor"][0].get<float>(),
+					materialJson["emissionFactor"][1].get<float>(),
+					materialJson["emissionFactor"][2].get<float>(),
+					0.0f
+				);
+			}
 		}
 	}
 
