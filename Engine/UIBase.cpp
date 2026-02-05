@@ -209,7 +209,7 @@ void Slider::RenderUI(Renderer& renderer)
 	float handleX = m_UIRect.left + t * (m_UIRect.right - m_UIRect.left);
 	float handleY = (m_UIRect.top + m_UIRect.bottom) * 0.5f;
 
-	DirectX::XMFLOAT2 handlePos = Renderer::GetInstance().ToScreenPosition({ handleX, handleY });
+	DirectX::XMFLOAT2 handlePos = Renderer::GetInstance().ToUIPosition({ handleX, handleY });
 
 	auto handleTex = m_handleTex.first;
 	auto handleOff = m_handleTex.second;
@@ -268,16 +268,7 @@ void Slider::RenderUI(Renderer& renderer)
 
 void Slider::UpdateRect()
 {
-	Renderer& renderer = Renderer::GetInstance();
-	const auto& desc = renderer.GetSwapChainDesc();
-
-	const auto worldPos = GetWorldPosition();
-
-	const DirectX::XMFLOAT2 windowPos =
-	{
-		desc.Width * worldPos.x,
-		desc.Height * worldPos.y
-	};
+	const DirectX::XMFLOAT2 windowPos = Renderer::GetInstance().ToScreenPosition(GetWorldPosition());
 
 	const DirectX::XMFLOAT2 offset =
 	{
