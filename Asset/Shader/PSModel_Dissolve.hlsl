@@ -62,8 +62,8 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     // 섀도우 맵 샘플링 // TODO: 나중에 함수로 빼야함
     float4 lightSpacePos = mul(input.WorldPosition, LightViewProjectionMatrix);
     float2 shadowTexCoord = float2(lightSpacePos.x * 0.5f + 0.5f, -lightSpacePos.y * 0.5f + 0.5f);
-    float currentDepth = lightSpacePos.z * 0.999f;
-    float shadow = directionalShadowMapTexture.SampleCmpLevelZero(SamplerComparisonClamp, shadowTexCoord, currentDepth);
+    float currentDepth = lightSpacePos.z * 0.9995f;
+    float shadow = SampleShadowPCF(directionalShadowMapTexture, SamplerComparisonClamp, shadowTexCoord, currentDepth);
     
     // 조명 계산
     float3 radiance = LightColor.rgb * LightDirection.w; // 조명 세기
@@ -81,10 +81,11 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     float3 envDiffuse = environmentMapTexture.SampleLevel(SamplerLinearWrap, N, orm.g * 32.0f).rgb;
     
     float3 indirectSpecular = envReflection * F_env; // 환경광 스페큘러
-    float3 indirectDiffuse = envDiffuse * kD_env * orm.r * shadow; // 환경광 디퓨즈
+    float3 indirectDiffuse = envDiffuse * kD_env * orm.r; // 환경광 디퓨즈
+    float iblShadow = shadow * 0.5f + 0.5f; // IBL 섀도우 팩터 (섀도우가 있어도 어느정도는 IBL이 기여하도록)
     
     // IBL 최종 기여도
-    float3 ibl = (indirectDiffuse + indirectSpecular) * baseColor.rgb * LightColor.w;
+    float3 ibl = (indirectDiffuse + indirectSpecular) * baseColor.rgb * iblShadow * LightColor.w;
     
     PS_SCENE_OUTPUT output;
     output.Color = float4(Lo + ibl + emission, baseColor.a);

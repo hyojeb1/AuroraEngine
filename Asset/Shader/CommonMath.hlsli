@@ -65,6 +65,26 @@ float3 UnpackNormal(float3 packedNormal, float3x3 TBN, float intensity = 1.0f)
     return normalize(mul(localNormal, TBN));
 }
 
+float SampleShadowPCF(Texture2D shadowMap, SamplerComparisonState cmpSampler, float2 shadowUV, float depth)
+{
+    float shadow = 0.0f;
+    
+    [unroll]
+    for (int x = -1; x <= 1; ++x)
+    {
+        [unroll]
+        for (int y = -1; y <= 1; ++y)
+        {
+            static const float2 MAP_SIZE = 1.0f / float2(float(1 << 14), float(1 << 14)); // 섀도우 맵 크기
+            float2 offset = float2(x, y) * MAP_SIZE;
+            
+            shadow += shadowMap.SampleCmpLevelZero(cmpSampler, shadowUV + offset, depth);
+        }
+    }
+    
+    return shadow / 9.0f;
+}
+
 // PBR 관련 수학 함수
 
 // 프레넬 효과 (Schlick 근사)

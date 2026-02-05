@@ -251,7 +251,7 @@ void SceneBase::BaseRender()
 			constexpr XMVECTOR LIGHT_UP = { 0.0f, 1.0f, 0.0f, 0.0f };
 			m_viewProjectionData.viewMatrix = XMMatrixLookAtLH(lightPosition, mainCamera.GetPosition(), LIGHT_UP);
 
-			const float lightRange = cameraFarPlane * 2.0f;
+			const float lightRange = cameraFarPlane * 2.0f; // TODO: 나중에 조금 줄일수도 있음
 			m_viewProjectionData.projectionMatrix = XMMatrixOrthographicLH(lightRange, lightRange, 0.1f, lightRange);
 
 			m_viewProjectionData.VPMatrix = XMMatrixTranspose(m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix);
