@@ -276,18 +276,21 @@ void ModelComponent::RenderImGui()
 								ImGui::EndTooltip();
 							}
 						}
-						else
-						{
-							ImGui::Button("(Empty)", ImVec2(64, 64));
-						}
+						else ImGui::Button("(Empty)", ImVec2(64, 64));
 						ImGui::PopID();
 					};
 
 				Material& material = m_modelsAndMaterials[i].second;
+
+				ImGui::Columns(4, "textureSlots");
 				ShowTextureSlot("Base Color", material.baseColorTextureSRV.Get());
+				ImGui::NextColumn();
 				ShowTextureSlot("Normal", material.normalTextureSRV.Get());
+				ImGui::NextColumn();
 				ShowTextureSlot("ORM (Occl/Rough/Met)", material.ORMTextureSRV.Get());
+				ImGui::NextColumn();
 				ShowTextureSlot("Emission", material.emissionTextureSRV.Get());
+				ImGui::Columns(1);
 
 				// 재질 팩터
 				ImGui::ColorEdit4("BaseColor Factor", &material.m_materialFactor.baseColorFactor.x);
