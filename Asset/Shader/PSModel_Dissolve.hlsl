@@ -29,20 +29,17 @@ float3 CalcDissolveEdge(float noiseVal, float threshold, float width, float3 col
 
 PS_SCENE_OUTPUT main(PS_INPUT_STD input)
 {
-    float3 cameraToPixel = CameraPosition.xyz - input.WorldPosition.xyz;
-    float distanceFromCamera = length(cameraToPixel) * 0.05f;
-    
     // 텍스처 샘플링
     // 베이스 컬러 텍스처
-    float4 baseColor = baseColorTexture.SampleLevel(SamplerLinearWrap, input.UV, distanceFromCamera) * BaseColorFactor;
+    float4 baseColor = baseColorTexture.Sample(SamplerLinearWrap, input.UV) * BaseColorFactor;
     // ORM 텍스처
-    float3 orm = ORMTexture.SampleLevel(SamplerLinearWrap, input.UV, distanceFromCamera).xyz * float3(AmbientOcclusionFactor, RoughnessFactor, MetallicFactor);
+    float3 orm = ORMTexture.Sample(SamplerLinearWrap, input.UV).xyz * float3(AmbientOcclusionFactor, RoughnessFactor, MetallicFactor);
     // 노말 텍스처
-    float4 normal = normalTexture.SampleLevel(SamplerLinearWrap, input.UV, distanceFromCamera);
+    float4 normal = normalTexture.Sample(SamplerLinearWrap, input.UV);
     // 방출 텍스처
-    float3 emission = emissionTexture.SampleLevel(SamplerLinearWrap, input.UV, distanceFromCamera).rgb * EmissionFactor.rgb;
+    float3 emission = emissionTexture.Sample(SamplerLinearWrap, input.UV).rgb * EmissionFactor.rgb;
     
-    float3 V = normalize(cameraToPixel); // 뷰 벡터
+    float3 V = normalize(CameraPosition.xyz - input.WorldPosition.xyz); // 뷰 벡터
     float3 L = -LightDirection.xyz; // 라이트 벡터
     float3 H = normalize(V + L); // 하프 벡터
     float3 N = UnpackNormal(normal.rgb, input.TBN, NormalScale); // 노말 벡터
