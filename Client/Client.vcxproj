@@ -230,6 +230,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Asset\Prefab\Enemy.json" />
+    <None Include="..\Asset\Prefab\Player.json" />
     <None Include="..\Asset\Scene\EndingScene.json" />
     <None Include="..\Asset\Scene\HyojeTestScene.json" />
     <None Include="..\Asset\Scene\TaehyeonTestScene.json" />

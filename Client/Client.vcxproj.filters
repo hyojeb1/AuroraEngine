@@ -127,5 +127,8 @@
     <None Include="..\Asset\Prefab\Enemy.json">
       <Filter>GameObject\Prefab</Filter>
     </None>
+    <None Include="..\Asset\Prefab\Player.json">
+      <Filter>GameObject\Prefab</Filter>
+    </None>
   </ItemGroup>
 </Project>
