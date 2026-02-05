@@ -47,16 +47,19 @@ void FSMComponentEnemy::OnEnterState(StateID state)
 	switch (state)
 	{
 	case EIdle:
-		model_->GetAnimator()->SetPlaybackSpeed(2.0f);
+		model_->GetAnimator()->SetPlaybackSpeed(100.0f);
 		//model_->GetAnimator()->PlayAnimation("rig|rigAction", true);
-		model_->GetAnimator()->PlayAnimation("rArmature|Armature|Armature|mixamo.com|Layer0", true);
+		//model_->GetAnimator()->PlayAnimation("rArmature|Armature|Armature|mixamo.com|Layer0", true);
+		model_->GetAnimator()->PlayAnimation();
 		model_->SetBlendState(BlendState::Opaque);
 		break;
 	case EDead:
 		death_timer_ = 0.0f;
 		model_->GetAnimator()->SetPlaybackSpeed(0.1f);
 		//model_->GetAnimator()->PlayAnimation("rig|PlaneAction", false);
-		model_->GetAnimator()->PlayAnimation("Armature|Armature|Armature|mixamo.com|Layer0", false);
+		//model_->GetAnimator()->PlayAnimation("Armature|Armature|Armature|mixamo.com|Layer0", false);
+		model_->GetAnimator()->PlayAnimation(0,false);
+
 		model_->SetBlendState(BlendState::AlphaBlend);
 		break;
 	case ERun:

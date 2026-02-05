@@ -31,6 +31,7 @@ public:
 	
 	void UpdateAnimation(float delta_time);
 	void PlayAnimation(const std::string& clip_name, bool is_loop = true, float blend_time = 0.5f);
+	void PlayAnimation(int clip_index = 0, bool is_loop = true, float blend_time = 0.5f);
 	void RestartCurrentAnimation(bool is_loop = true);
 	void SetPlaybackSpeed(float speed);
 	float GetPlaybackSpeed() const { return playback_speed_; }

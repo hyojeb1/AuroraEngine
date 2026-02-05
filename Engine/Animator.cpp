@@ -188,6 +188,13 @@ void Animator::PlayAnimation(const std::string& clip_name, bool is_loop, float b
 	
 }
 
+void Animator::PlayAnimation(int clip_index, bool is_loop, float blend_time) {
+	if (!model_context_)	return;
+
+	if (clip_index < 0 || clip_index >= static_cast<int>(model_context_->animations.size())) return;
+	PlayAnimation(model_context_->animations[static_cast<size_t>(clip_index)].name, is_loop, blend_time);
+}
+
 void Animator::RestartCurrentAnimation(bool is_loop)
 {
 	if (!current_clip_) return;
