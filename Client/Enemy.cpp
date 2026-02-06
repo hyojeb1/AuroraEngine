@@ -21,10 +21,14 @@ REGISTER_TYPE(Enemy)
 using namespace std;
 using namespace DirectX;
 
+vector<Enemy*> Enemy::s_enemies = {};
+
 void Enemy::Initialize()
 {
 	m_fsm = GetComponent<FSMComponentEnemy>();
 	m_collider = GetComponent<ColliderComponent>();
+
+	s_enemies.push_back(this);
 
 	m_player = static_cast<Player*>(SceneManager::GetInstance().GetCurrentScene()->GetGameObjectRecursive("Player"));
 	if (!m_player) cout << "Enemy 초기화 오류: Player 게임 오브젝트를 찾을 수 없습니다." << endl;
@@ -78,7 +82,7 @@ void Enemy::Update()
 		}
 		break;
 	case Enemy::AIState::Attack: // 여기서 업데이트 안하고 FSMComponent에서 애니메이션을 진행함
-		return;
+		break;
 	case Enemy::AIState::Dead:
 		m_deathTimer += deltaTime;
 		if (m_deathTimer >= m_deathDuration) SetAlive(false);
@@ -86,6 +90,8 @@ void Enemy::Update()
 	default:
 		break;
 	}
+
+	ApplySeparation(deltaTime);
 }
 
 void Enemy::SetAsTutorialDummy()
@@ -140,4 +146,57 @@ void Enemy::OnAttackFinished()
 	m_state = AIState::Chase;
 
 	if (m_fsm) m_fsm->ChangeState(FSMComponentEnemy::EChase);
+}
+
+void Enemy::Finalize()
+{
+	auto it = find(s_enemies.begin(), s_enemies.end(), this);
+	if (it != s_enemies.end()) s_enemies.erase(it);
+}
+
+void Enemy::ApplySeparation(float dt)
+{
+	if (m_state == AIState::Dead || !GetAlive()) return;
+	if (s_enemies.size() <= 1) return;
+
+	const float radius = m_separationRadius;
+	const float radiusSq = radius * radius;
+
+	XMVECTOR myPos = GetPosition();
+	XMVECTOR push = XMVectorZero();
+
+	for (Enemy* other : s_enemies)
+	{
+		if (!other || other == this) continue;
+		if (!other->GetAlive()) continue;
+		if (other->m_state == AIState::Dead) continue;
+
+		XMVECTOR diff = XMVectorSubtract(myPos, other->GetPosition());
+		diff = XMVectorSetY(diff, 0.0f);
+
+		float distSq = XMVectorGetX(XMVector3LengthSq(diff));
+		if (distSq < numeric_limits<float>::epsilon() || distSq > radiusSq) continue;
+
+		float dist = sqrtf(distSq);
+		float strength = (radius - dist) / radius;
+
+		XMVECTOR dir = XMVectorScale(diff, 1.0f / dist);
+		push = XMVectorAdd(push, XMVectorScale(dir, strength));
+	}
+
+	float pushLenSq = XMVectorGetX(XMVector3LengthSq(push));
+	if (pushLenSq < numeric_limits<float>::epsilon()) return;
+
+	XMVECTOR pushDir = XMVector3Normalize(push);
+	XMVECTOR delta = XMVectorScale(pushDir, m_separationStrength * dt);
+
+	float maxPush = m_separationMaxPush * dt;
+	float deltaLen = XMVectorGetX(XMVector3Length(delta));
+	if (deltaLen > maxPush)
+	{
+		delta = XMVectorScale(pushDir, maxPush);
+	}
+
+	delta = XMVectorSet(XMVectorGetX(delta), 0.0f, XMVectorGetZ(delta), 0.0f);
+	MovePosition(delta);
 }

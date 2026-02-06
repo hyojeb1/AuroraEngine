@@ -3,6 +3,8 @@
 
 class Enemy : public GameObjectBase
 {
+	static std::vector<Enemy*> s_enemies;
+
 	bool m_isTutorialDummy = false;
 
 	class Player* m_player = nullptr;
@@ -20,6 +22,9 @@ class Enemy : public GameObjectBase
 	const float m_deathDuration = 2.0f;
 	const float m_attackRangeSquare = 2.56f;
 	float m_rotationSpeed = 10.0f;
+	const float m_separationRadius = 0.8f;
+	const float m_separationStrength = 3.5f;
+	const float m_separationMaxPush = 2.0f;
 
 public:
 	enum class AIState
@@ -47,6 +52,8 @@ public:
 private:
 	void Initialize() override;
 	void Update() override;
+	void Finalize() override;
 
 	void MoveAlongPath(float dt);
+	void ApplySeparation(float dt);
 };
