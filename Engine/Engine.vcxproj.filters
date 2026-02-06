@@ -31,6 +31,9 @@
     <Filter Include="Base\Component\Model">
       <UniqueIdentifier>{0871ba25-6187-468b-9cf2-5256db0e88f6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{60942843-d49f-4de0-b234-cd2d3d8ebac4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Renderer.cpp">
@@ -111,10 +114,19 @@
     <ClCompile Include="Resource.cpp">
       <Filter>Resource</Filter>
     </ClCompile>
-    <ClCompile Include="UIBase.cpp">
-      <Filter>Base</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="UIBase.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Button.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Panel.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Slider.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -203,7 +215,16 @@
       <Filter>Manager</Filter>
     </ClInclude>
     <ClInclude Include="UIBase.h">
-      <Filter>Base</Filter>
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Button.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Panel.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Slider.h">
+      <Filter>UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

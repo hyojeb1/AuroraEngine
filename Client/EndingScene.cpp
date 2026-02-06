@@ -9,6 +9,9 @@
 #include "CameraComponent.h"
 
 #include "UIBase.h"
+#include "Panel.h"
+#include "Button.h"
+#include "Slider.h"
 
 REGISTER_TYPE(EndingScene)
 
@@ -24,7 +27,7 @@ void EndingScene::Initialize()
 	ShowCursor(TRUE);
 
 	Panel* TestPanel = CreateUI<Panel>();
-	TestPanel->SetTextureAndOffset("test_wood2_BaseColor.png");
+	TestPanel->SetTextureAndOffset("Gem.png");
 	TestPanel->SetLocalPosition({ 0.5f,0.5f });
 	TestPanel->SetScale(0.5f);
 
@@ -45,7 +48,7 @@ void EndingScene::Initialize()
 	Slider* volume = CreateUI<Slider>();
 	volume->SetRange(0.0f, 1.0f);
 	volume->SetValue(0.5f);
-	volume->SetTextureAndOffset("Sand_BaseColor.png");
+	volume->SetTextureAndOffset("Crosshair.png");
 	volume->SetHandleTexture("bullet.png");
 	volume->SetLocalPosition({ 0.5f, 0.5f });
 }

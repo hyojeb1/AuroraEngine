@@ -54,7 +54,7 @@ public:
 	#endif
 
 	// 가장 가까운 폴리곤 찾기
-	int FindNearestPoly(const DirectX::XMVECTOR& point) const;
+	int FindNearestPoly(const DirectX::XMVECTOR& point, float maxDist = std::numeric_limits<float>::max()) const;
 	// 경로 찾기
 	std::deque<DirectX::XMVECTOR> FindPath(const DirectX::XMVECTOR& start, const DirectX::XMVECTOR& end) const;
 

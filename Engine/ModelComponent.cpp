@@ -354,7 +354,7 @@ void ModelComponent::RenderImGui()
 	int blendStateInt = static_cast<int>(m_blendState);
 	if (ImGui::Combo("Blend State", &blendStateInt, "Opaque\0AlphaToCoverage\0AlphaBlend\0")) m_blendState = static_cast<BlendState>(blendStateInt);
 	int rasterStateInt = static_cast<int>(m_rasterState);
-	if (ImGui::Combo("Raster State", &rasterStateInt, "BackBuffer\0Solid\0Wireframe\0")) m_rasterState = static_cast<RasterState>(rasterStateInt);
+	if (ImGui::Combo("Raster State", &rasterStateInt, "BackBuffer\0Solid\0SolidNoCull\0Wireframe\0")) m_rasterState = static_cast<RasterState>(rasterStateInt);
 
 	ImGui::Separator();
 	ImGui::Checkbox("Render Bounding Box", &m_renderBoundingBox);

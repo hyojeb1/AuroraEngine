@@ -17,6 +17,25 @@
                         "DissolveEdgeWidth": 1.0,
                         "DissolveThreshold": 0.20000000298023224
                     },
+                    "materialFactor": [
+                        {
+                            "ambientOcclusionFactor": 1.0,
+                            "baseColorFactor": [
+                                1.0,
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "emissionFactor": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "metallicFactor": 1.0,
+                            "normalScale": 1.0,
+                            "roughnessFactor": 1.0
+                        }
+                    ],
                     "modelAndMaterialFileNames": [
                         {
                             "materialFileName": "",
@@ -58,7 +77,7 @@
     ],
     "components": [
         {
-            "farZ": 1000.0,
+            "farZ": 250.0,
             "fovY": 0.7853981852531433,
             "nearZ": 0.10000000149011612,
             "type": "CameraComponent"
@@ -70,7 +89,7 @@
     "name": "Player",
     "position": [
         0.0,
-        1.0,
+        1.600000023841858,
         0.0,
         0.0
     ],

@@ -106,7 +106,11 @@ void Enemy::SetAsTutorialDummy()
 void Enemy::MoveAlongPath(float dt)
 {
 	// 플레이어까지 경로 계산
-	if (m_path.empty()) m_path = NavigationManager::GetInstance().FindPath(GetPosition(), m_player->GetPosition());
+	if (m_path.empty())
+	{
+		m_path = NavigationManager::GetInstance().FindPath(GetPosition(), m_player->GetPosition());
+		for (auto& point : m_path) point = XMVectorSetY(point, 0.0f);
+	}
 
 	// 경로 따라 이동
 	XMVECTOR toTarget = XMVectorSubtract(m_path.front(), GetPosition());
@@ -120,7 +124,7 @@ void Enemy::MoveAlongPath(float dt)
 		float targetYawRad = atan2f(XMVectorGetX(direction), XMVectorGetZ(direction));
 		targetYawRad += XM_PI;
 		float targetYawDeg = XMConvertToDegrees(targetYawRad);
-		XMFLOAT3 currentEuler;
+		XMFLOAT3 currentEuler = {};
 		XMStoreFloat3(&currentEuler, GetRotation());
 		float currentYawDeg = currentEuler.y;
 		float diff = targetYawDeg - currentYawDeg;

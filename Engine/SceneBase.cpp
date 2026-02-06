@@ -11,7 +11,8 @@
 #include "ModelComponent.h"
 #include "InputManager.h"
 #include "SceneManager.h"
-#include "UIBase.h"
+#include "Button.h"
+#include "Slider.h"
 
 using namespace std;
 using namespace DirectX;
@@ -101,6 +102,7 @@ void SceneBase::Undo()
 	nlohmann::json previousScene = BaseSerialize().patch(inversePatch);
 
 	BaseDeserialize(previousScene);
+	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseInitialize();
 
 	m_lastSavedSnapshot = previousScene;
 }
@@ -135,6 +137,7 @@ void SceneBase::BaseInitialize()
 		file.close();
 		BaseDeserialize(sceneData);
 	}
+	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseInitialize();
 
 	GetResources();
 
@@ -286,9 +289,8 @@ void SceneBase::BaseRender()
 			#ifdef _DEBUG
 			// ?��버그 좌표�? ?��?���? (?��버그 모드?��?���?)
 			if (m_isRenderDebugCoordinates) RenderDebugCoordinates();
-			#else
-			Render();
 			#endif
+			Render();
 		}
 	);
 
@@ -675,8 +677,6 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 		unique_ptr<Base> gameObjectPtr = TypeRegistry::GetInstance().CreateGameObject(typeName);
 
 		gameObjectPtr->BaseDeserialize(gameObjectData);
-		gameObjectPtr->BaseInitialize();
-
 		m_gameObjects.push_back(move(gameObjectPtr));
 	}
 }

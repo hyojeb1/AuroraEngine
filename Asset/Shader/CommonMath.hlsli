@@ -75,7 +75,7 @@ float SampleShadowPCF(Texture2D shadowMap, SamplerComparisonState cmpSampler, fl
         [unroll]
         for (int y = -1; y <= 1; ++y)
         {
-            static const float2 MAP_SIZE = 1.0f / float2(float(1 << 14), float(1 << 14)); // 섀도우 맵 크기
+            static const float2 MAP_SIZE = 1.0f / float2(float(1 << 13), float(1 << 13)); // 섀도우 맵 크기
             float2 offset = float2(x, y) * MAP_SIZE;
             
             shadow += shadowMap.SampleCmpLevelZero(cmpSampler, shadowUV + offset, depth);
