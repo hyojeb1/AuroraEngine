@@ -859,76 +859,89 @@ void ResourceManager::LoadAnimations(const aiScene* scene, Model& model)
 
 	model.animations.reserve(scene->mNumAnimations);
 
-	//1. 애니메이션 순회 (겉 포장지 뜯기)
-	for (UINT anim_index = 0; anim_index < scene->mNumAnimations; ++anim_index)
-	{
-		//aiAnimation: Assimp에서 애니메이션 하나(예: "Run", "Walk", "Attack")를 의미하는 구조체입니다.
+	// 1. 애니메이션 순회
+	for (UINT anim_index = 0; anim_index < scene->mNumAnimations; ++anim_index) {
 		const aiAnimation* animation = scene->mAnimations[anim_index];
 		if (!animation) continue;
 
 		AnimationClip clip = {};
-		clip.name					= animation->mName.C_Str();
+		clip.name = animation->mName.C_Str();
 		if (clip.name.empty()) clip.name = "Animation_" + to_string(anim_index);
-		clip.duration				= static_cast<float>(animation->mDuration);
-		clip.ticks_per_second		= static_cast<float>(animation->mTicksPerSecond);
-		if (clip.ticks_per_second <= 0.0f) clip.ticks_per_second = AnimationClip::DEFAULT_FPS;
-		
 
-		//2. 채널 순회 (누가 움직이는가?)
-		//aiNodeAnim (Channel): 이게 핵심입니다. "특정 뼈 하나에 대한 움직임 데이터 묶음"입니다.
-		//하나의 애니메이션(예: 달리기) 안에는 수십 개의 채널(왼팔 채널, 오른다리 채널, 머리 채널...)이 들어있습니다.
-		for (UINT channel_index = 0; channel_index < animation->mNumChannels; ++channel_index)
-		{
+		clip.duration = static_cast<float>(animation->mDuration);
+		clip.ticks_per_second = static_cast<float>(animation->mTicksPerSecond);
+		if (clip.ticks_per_second <= 0.0f) clip.ticks_per_second = AnimationClip::DEFAULT_FPS;
+
+		// [Duration 보정용 변수]
+		float last_keyframe_time = 0.0f;
+
+		// 2. 채널 순회
+		for (UINT channel_index = 0; channel_index < animation->mNumChannels; ++channel_index) {
 			const aiNodeAnim* node_anim = animation->mChannels[channel_index];
 			if (!node_anim) continue;
 
 			BoneAnimationChannel channel = {};
 			channel.boneName = node_anim->mNodeName.C_Str();
 
-			//3. 본 매핑(이름표 확인)
+			// 3. 본 매핑
 			auto mapping_iter = model.skeleton.boneMapping.find(channel.boneName);
-			if (mapping_iter != model.skeleton.boneMapping.end())
-			{
+			if (mapping_iter != model.skeleton.boneMapping.end()) {
 				channel.boneIndex = static_cast<int>(mapping_iter->second);
 			}
 
-
-			//4. 키프레임 복사 (움직임 기록)
-			//(1)
+			// 4. 키프레임 복사 및 마지막 시간 추적
+			// (1) Position
 			channel.position_keys.reserve(node_anim->mNumPositionKeys);
-			for (UINT i = 0; i < node_anim->mNumPositionKeys; ++i)
-			{
+			for (UINT i = 0; i < node_anim->mNumPositionKeys; ++i) {
 				VectorKeyframe key = {};
-				key.time_position	= static_cast<float>(node_anim->mPositionKeys[i].mTime);
-				key.value			= ToXMFLOAT3(node_anim->mPositionKeys[i].mValue);
+				key.time_position = static_cast<float>(node_anim->mPositionKeys[i].mTime);
+				key.value = ToXMFLOAT3(node_anim->mPositionKeys[i].mValue);
 				channel.position_keys.push_back(key);
 			}
+			if (!channel.position_keys.empty()) {
+				last_keyframe_time = max(last_keyframe_time, channel.position_keys.back().time_position);
+			}
 
-			//(2)
+			// (2) Rotation
 			channel.rotation_keys.reserve(node_anim->mNumRotationKeys);
-			for (UINT i = 0; i < node_anim->mNumRotationKeys; ++i)
-			{
+			for (UINT i = 0; i < node_anim->mNumRotationKeys; ++i) {
 				QuaternionKeyframe key = {};
-				key.time_position	= static_cast<float>(node_anim->mRotationKeys[i].mTime);
-				key.value			= ToXMFLOAT4(node_anim->mRotationKeys[i].mValue);
+				key.time_position = static_cast<float>(node_anim->mRotationKeys[i].mTime);
+				key.value = ToXMFLOAT4(node_anim->mRotationKeys[i].mValue);
 				channel.rotation_keys.push_back(key);
 			}
-
-			//(3)
-			channel.scale_keys.reserve(node_anim->mNumScalingKeys);
-			for (UINT i = 0; i < node_anim->mNumScalingKeys; ++i)
-			{
-				VectorKeyframe key = {};
-				key.time_position	= static_cast<float>(node_anim->mScalingKeys[i].mTime);
-				key.value			= ToXMFLOAT3(node_anim->mScalingKeys[i].mValue);
-				channel.scale_keys.push_back(key);
+			if (!channel.rotation_keys.empty()) {
+				last_keyframe_time = max(last_keyframe_time, channel.rotation_keys.back().time_position);
 			}
 
-			string keyName = channel.boneName; // 이름을 미리 복사
-			clip.channels[keyName] = move(channel); // 안전하게 이동
+			// (3) Scale
+			channel.scale_keys.reserve(node_anim->mNumScalingKeys);
+			for (UINT i = 0; i < node_anim->mNumScalingKeys; ++i) {
+				VectorKeyframe key = {};
+				key.time_position = static_cast<float>(node_anim->mScalingKeys[i].mTime);
+				key.value = ToXMFLOAT3(node_anim->mScalingKeys[i].mValue);
+				channel.scale_keys.push_back(key);
+			}
+			if (!channel.scale_keys.empty()) {
+				last_keyframe_time = max(last_keyframe_time, channel.scale_keys.back().time_position);
+			}
+
+			string keyName = channel.boneName;
+			clip.channels[keyName] = move(channel);
 		}
-		
-		//5. 저장 (가방에 넣기)
+
+		// [Duration 최종 보정] // Assimp가 제공한 Duration이 실제 키프레임보다 불필요하게 길거나(블렌더 타임라인 전체 등), 혹은 0으로 잘못 들어온 경우, 실제 키프레임의 끝 시간으로 덮어씁니다.
+		if (clip.duration > last_keyframe_time || clip.duration <= 0.0f) {
+			if (last_keyframe_time > 0.0f) {
+				clip.duration = last_keyframe_time;
+			}
+		}
+
+		#ifdef _DEBUG
+		cout << "[LoadAnim] Name: " << clip.name << " | Original Duration: " << animation->mDuration<< " -> Fixed: " << clip.duration << " (FPS: " << clip.ticks_per_second << ")" << endl;
+		#endif
+
+		// 5. 저장
 		model.animations.push_back(move(clip));
 	}
 }

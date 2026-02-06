@@ -58,7 +58,9 @@ void GameManager::OnRhythmMiss()
 void GameManager::Update()
 {
 	ScoreUpdate();
+#ifndef _DEBUG
 	TempPrint();
+#endif
 }
 
 void GameManager::ScoreUpdate()

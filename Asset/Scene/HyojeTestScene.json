@@ -227,7 +227,7 @@
                     "type": "ColliderComponent"
                 },
                 {
-                    "current_state": "Attack",
+                    "current_state": "Idle",
                     "start_state": "Idle",
                     "type": "FSMComponentEnemy"
                 }
