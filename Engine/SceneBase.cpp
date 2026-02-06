@@ -11,7 +11,8 @@
 #include "ModelComponent.h"
 #include "InputManager.h"
 #include "SceneManager.h"
-#include "UIBase.h"
+#include "Button.h"
+#include "Slider.h"
 
 using namespace std;
 using namespace DirectX;

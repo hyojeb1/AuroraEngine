@@ -9,6 +9,9 @@
 #include "CameraComponent.h"
 
 #include "UIBase.h"
+#include "Panel.h"
+#include "Button.h"
+#include "Slider.h"
 
 REGISTER_TYPE(EndingScene)
 

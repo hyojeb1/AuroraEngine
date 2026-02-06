@@ -5,6 +5,7 @@
 #include "CameraComponent.h"
 
 #include "UIBase.h"
+#include "Button.h"
 #include "SoundManager.h"
 
 #include "Shared/Config/Option.h"
