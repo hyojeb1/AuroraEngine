@@ -196,6 +196,7 @@
     <ClInclude Include="TimeManager.h" />
     <ClInclude Include="TypeRegistry.h" />
     <ClInclude Include="UIBase.h" />
+    <ClInclude Include="UIManager.h" />
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
@@ -234,6 +235,7 @@
     <ClCompile Include="TimeManager.cpp" />
     <ClCompile Include="TypeRegistry.cpp" />
     <ClCompile Include="UIBase.cpp" />
+    <ClCompile Include="UIManager.cpp" />
     <ClCompile Include="WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>

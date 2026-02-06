@@ -7,6 +7,7 @@
 #include "ResourceManager.h"
 #include "TimeManager.h"
 #include "NavigationManager.h"
+#include "UIManager.h"
 #include "WindowManager.h"
 #include "ModelComponent.h"
 #include "InputManager.h"
@@ -127,7 +128,6 @@ void SceneBase::BaseInitialize()
 	m_debugCamera->Initialize();
 	#endif
 
-	// ????��?�� ?�� ?��?�� 불러?���?
 	const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
 	if (filesystem::exists(sceneFilePath))
 	{
@@ -164,7 +164,6 @@ void SceneBase::BaseUpdate()
 	#endif
 
 	RemovePending();
-	// 게임 ?��브젝?�� ?��?��?��?��
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseUpdate();
 
 	InputManager& inputManager = InputManager::GetInstance();
@@ -601,8 +600,6 @@ nlohmann::json SceneBase::BaseSerialize()
 
 void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 {
-	// 기본 ?�� ?��?��?�� 로드
-	// ?�� 조명 ?���?
 	if (jsonData.contains("lightColor"))
 	{
 		m_globalLightData.lightColor = XMFLOAT4
@@ -624,7 +621,6 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 		);
 	}
 
-	// ?��처리 ?���?
 	if (jsonData.contains("postProcessing"))
 	{
 		const nlohmann::json& ppData = jsonData["postProcessing"];
@@ -655,22 +651,18 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 		if (ppData.contains("lutLerpFactor")) m_postProcessingData.lutLerpFactor = ppData["lutLerpFactor"].get<float>();
 	}
 
-	// ?���? �? ?��?�� ?���?
 	if (jsonData.contains("environmentMapFileName")) m_environmentMapFileName = jsonData["environmentMapFileName"].get<string>();
 
-	// ?��비게?��?�� 메시 로드
 	NavigationManager::GetInstance().Deserialize(jsonData);
 
-	// ?��?�� ?��?��?��?�� ?��?��?�� 로드
+	UIManager::GetInstance().Deserialize(jsonData);
+
 	Deserialize(jsonData);
 
-	// ?��?��?�� 게임 ?��브젝?�� 초기?��
 	GameObjectBase::SetSelectedObject(nullptr);
-	// 기존 게임 ?��브젝?��?�� 종료 �? ?���?
 	BaseFinalize();
 	m_gameObjects.clear();
 
-	// 게임 ?��브젝?��?�� 로드
 	for (const auto& gameObjectData : jsonData["rootGameObjects"])
 	{
 		string typeName = gameObjectData["type"].get<string>();

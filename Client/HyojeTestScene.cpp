@@ -26,6 +26,8 @@ void HyojeTestScene::Initialize()
 
 	SoundManager::GetInstance().Main_BGM_Shot(Config::Main_BGM, 1.0f);
 	SoundManager::GetInstance().Ambience_Shot(Config::Ambience);
+
+
 }
 
 
@@ -35,7 +37,6 @@ void HyojeTestScene::Update()
 	time += TimeManager::GetInstance().GetDeltaTime();
 
 	if (time > 1.0f) {
-	//if (time > 30.0f) {
 		time = 0.0f;
 
 		constexpr float SPREAD = 10.0f;
@@ -50,6 +51,7 @@ void HyojeTestScene::Update()
 	if (SoundManager::GetInstance().CheckBGMEnd()) {
 		SoundManager::GetInstance().Main_BGM_Shot(SoundManager::GetInstance().GetCurrentTrackName(), 3.0f);
 	}
+
 
 }
 
