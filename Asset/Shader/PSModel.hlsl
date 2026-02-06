@@ -34,16 +34,20 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     float denominator = 4.0f * NdotV * NdotL + 0.0001f; // 분모
     float3 specular = numerator / denominator; // 스페큘러 반사
     
-    // 섀도우 맵 샘플링 // TODO: 나중에 함수로 빼야함
+    // 섀도우 맵 샘플링
     float4 lightSpacePos = mul(input.WorldPosition, LightViewProjectionMatrix);
     float2 shadowTexCoord = float2(lightSpacePos.x * 0.5f + 0.5f, -lightSpacePos.y * 0.5f + 0.5f);
-    float currentDepth = lightSpacePos.z * 0.995f;
-    float shadow = SampleShadowPCF(directionalShadowMapTexture, SamplerComparisonClamp, shadowTexCoord, currentDepth);
+    float currentDepth = lightSpacePos.z - 0.005f;
+    
+    float shadowFactor = 1.0f;
+    // 그림자 맵이 유효한 경우에만 섀도우 샘플링 수행
+    float3 coords = float3(shadowTexCoord, currentDepth);
+    if (all(coords >= 0.0f && coords <= 1.0f)) shadowFactor = SampleShadowPCF(directionalShadowMapTexture, SamplerComparisonBorder, shadowTexCoord, currentDepth);
     
     // 조명 계산
     float3 radiance = LightColor.rgb * LightDirection.w; // 조명 세기
     float3 kD = (float3(1.0f, 1.0f, 1.0f) - F) * (1.0f - orm.b); // 디퓨즈 반사
-    float3 Lo = (kD * baseColor.rgb * INV_PI + specular) * radiance * NdotL * shadow; // PBR 직접광
+    float3 Lo = (kD * baseColor.rgb * INV_PI + specular) * radiance * NdotL * shadowFactor; // PBR 직접광
     
     // IBL 계산
     // 프레넬로 반사 강도 조절 (시야각에 따라 반사 강도 변화)
@@ -57,7 +61,7 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     
     float3 indirectSpecular = envReflection * F_env; // 환경광 스페큘러
     float3 indirectDiffuse = envDiffuse * kD_env * orm.r; // 환경광 디퓨즈
-    float iblShadow = shadow * 0.5f + 0.5f; // IBL 섀도우 팩터 (섀도우가 있어도 어느정도는 IBL이 기여하도록)
+    float iblShadow = shadowFactor * 0.5f + 0.5f; // IBL 섀도우 팩터 (섀도우가 있어도 어느정도는 IBL이 기여하도록)
     
     // IBL 최종 기여도
     float3 ibl = (indirectDiffuse + indirectSpecular) * baseColor.rgb * iblShadow * LightColor.w;

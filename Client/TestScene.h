@@ -6,7 +6,7 @@ class TestScene : public SceneBase
 {
 	class Player* m_player = nullptr;
 
-	float m_spawnInterval = 1.0f;
+	float m_spawnInterval = 3.0f;
 	std::vector<DirectX::XMVECTOR> m_spawnPoints = {};
 
 public:

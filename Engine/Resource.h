@@ -6,7 +6,7 @@ struct RenderTarget
 	std::pair<com_ptr<ID3D11Texture2D>, com_ptr<ID3D11DepthStencilView>> depthStencil = {}; // 깊이-스텐실 텍스처와 뷰
 };
 
-constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 1 << 12; // 4096
+constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 1 << 13; // 8192
 enum class RenderStage
 {
 	DirectionalLightShadow,
