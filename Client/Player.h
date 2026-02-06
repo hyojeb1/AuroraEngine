@@ -1,8 +1,31 @@
 #pragma once
 #include "GameObjectBase.h"
 
+enum class Action
+{
+	Move,
+	Dash,
+	Reload,
+	Shoot,
+	AutoReload,
+	DeadEye,
+	All
+};
+
+struct ControlState
+{
+	bool CanMove = false;
+	bool CanDash = false;
+	bool CanReload = false;
+	bool CanShoot = false;
+	bool CanSkill = false;
+	bool CanAutoReload = false;
+};
+
 class Player : public GameObjectBase
 {
+	friend class GameManager;
+
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_lineVertexBufferAndShader = {};
 	com_ptr<ID3D11PixelShader> m_linePixelShader = nullptr;
 	std::deque<std::pair<LineBuffer, float>> m_lineBuffers = {};
@@ -56,6 +79,8 @@ class Player : public GameObjectBase
 	float m_lutCrossfadeElapsed = 0.0f;
 	float m_lutCrossfadeDuration = 0.18f;
 
+	ControlState m_ControlState = { false, };
+
 public:
 	Player() = default;
 	~Player() = default;
@@ -71,6 +96,8 @@ private:
 	void Update() override;
 	void Render() override;
 	void Finalize() override;
+
+	void SetAction(Action state, bool enabled);
 
 	void UpdateRotation(class InputManager& input, float deltaTime);
 	void UpdateMoveDirection(class InputManager& input);

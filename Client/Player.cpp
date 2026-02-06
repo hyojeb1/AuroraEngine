@@ -45,6 +45,8 @@ void Player::Initialize()
 
 	m_bulletUIpos = { 0.82f,0.9f };
 	m_bulletInterval = 0.03f;
+
+	SetAction(Action::All, true);
 }
 
 void Player::Update()
@@ -54,18 +56,20 @@ void Player::Update()
 	auto& sm = SoundManager::GetInstance();
 
 	UpdateRotation(input, deltaTime);
-	UpdateMoveDirection(input);
+
+	if (m_ControlState.CanMove)	UpdateMoveDirection(input);
 	
-	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(Config::InputCorrection) < InputType::Miss) PlayerShoot();
-	if (!m_isDashing && input.GetKeyDown(KeyCode::Space) && sm.CheckRhythm(Config::InputCorrection) < InputType::Miss) PlayerTriggerDash();
-	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(Config::InputCorrection) < InputType::Miss) PlayerDeadEyeStart();
+	if (input.GetKeyDown(KeyCode::MouseLeft)	&& m_ControlState.CanShoot	&& m_bulletCnt > 0		&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerShoot();
+	if (input.GetKeyDown(KeyCode::Space)		&& m_ControlState.CanDash	&& !m_isDashing 		&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerTriggerDash();
+	if (input.GetKeyDown(KeyCode::MouseRight)	&& m_ControlState.CanSkill	&& !m_isDeadEyeActive	&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerDeadEyeStart();
 	
 
-	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime, input);
+	if (m_isDeadEyeActive)	PlayerDeadEye(deltaTime, input);
+
 	if (m_isDashing) PlayerDash(deltaTime);
-	else MovePosition(m_normalizedMoveDirection * m_moveSpeed * deltaTime); // ?���? ???직임
+	else			 MovePosition(m_normalizedMoveDirection * m_moveSpeed * deltaTime);
 
-	if (input.GetKeyDown(KeyCode::R))
+	if (input.GetKeyDown(KeyCode::R) && m_ControlState.CanReload && m_bulletCnt > 0)
 	{
 		switch (sm.CheckRhythm(Config::InputCorrection))
 		{
@@ -105,6 +109,27 @@ void Player::Render()
 void Player::Finalize()
 {
 	TimeManager::GetInstance().SetTimeScale(1.0f);
+}
+
+void Player::SetAction(Action state, bool enabled)
+{
+	switch (state)
+	{
+	case Action::Move:		 m_ControlState.CanMove			= enabled;		break;
+	case Action::Dash:		 m_ControlState.CanDash			= enabled;		break;
+	case Action::Reload:	 m_ControlState.CanReload		= enabled;		break;
+	case Action::Shoot:		 m_ControlState.CanShoot		= enabled;		break;
+	case Action::AutoReload: m_ControlState.CanAutoReload	= enabled;		break;
+	case Action::DeadEye:	 m_ControlState.CanSkill		= enabled;		break;
+
+	case Action::All:		 m_ControlState.CanMove = enabled;
+							 m_ControlState.CanDash = enabled;
+							 m_ControlState.CanReload = enabled;
+							 m_ControlState.CanShoot = enabled;
+							 m_ControlState.CanAutoReload = enabled;
+							 m_ControlState.CanSkill = enabled;
+							 break;
+	}
 }
 
 void Player::UpdateRotation(InputManager& input, float deltaTime)

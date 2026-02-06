@@ -1,7 +1,9 @@
 #pragma once
+#include "Player.h"
 
 enum class EScene
 {
+    
 	Title,
     Main,
 	Result,
@@ -15,37 +17,34 @@ enum class EMainState
     StageBoss
 };
 
-struct TutorialController
+enum class ETutorialStep
 {
-    bool CanMove = false;
-    bool CanDash = false;
-    bool CanRelaod = false;
-    bool CanShoot = false;
-    bool CanSkill = false;
-    bool CanAutoReload = false;
+	WASD,
+	Dash,
+	Reload,
+	Shoot,
+	AutoReload,
+	DeadEye,
+    End
 };
 
-enum class TutorialStep
-{
-    WASD,
-    Dash,
-    Reload,
-    Shoot,
-    AutoReload,
-    DeadEye
-};
 
 class GameManager : public Singleton<GameManager>
 {
 	friend class Singleton<GameManager>;
 	
+
+///GameFlow
+    Player* m_Player = nullptr;
+
     bool m_Pause = false;
 
-    TutorialController m_tutorialController{ false, };
-    TutorialController GetTutorialController() { return m_tutorialController; }
+    EScene m_CurrentScene = EScene::Title;
+    EMainState m_MainState = EMainState::Tutorial;
+    ETutorialStep m_TutorialStep = ETutorialStep::WASD;
+///GameFlowEnd
 
-    TutorialStep m_currnetTutorialSetp = TutorialStep::WASD;
-
+///SCORE
     //점수 관련 변수
 	int     m_currentScore = 0;
 	int     m_multiplier = 0;         // 1, 2, 4, 8
@@ -55,9 +54,30 @@ class GameManager : public Singleton<GameManager>
 	float   m_decayTimer = 0.0f;
 
     void TempPrint();   // UI에 넣기 전에 저장할 위치
+///SCORE END
+
+
 public:
     void Initialize();
-    void Update();              // SceneManager.cpp - Run()
+    void Update();
+    void Finalize();
+
+    Player* GetPlayerPtr();
+///GameFlow
+
+    void OnSceneEnter(EScene type);
+    void OnSceneUpdate();
+    void OnSceneExit(EScene type);
+
+
+    void MainSceneControl();
+    void TutorialControl();
+
+
+
+///GameFlowEND
+
+///SCORE
     void ScoreUpdate();
     void AddKill();             // Enemy.cpp - Die()
     void OnPlayerHit();         // Player.cpp - 뭐임
@@ -69,4 +89,5 @@ public:
 
     const int GetMultiplier() { return m_multiplier; }
     void SetMultiplier(int num) { m_multiplier = num; }
+///SCORE END
 };

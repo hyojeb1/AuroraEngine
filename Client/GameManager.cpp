@@ -1,39 +1,115 @@
 #include "stdafx.h"
 #include "GameManager.h"
 #include "TimeManager.h"
+#include "SceneManager.h"
+#include "SceneBase.h"
 
 #include "Shared/Config/Option.h"
 
 void GameManager::Initialize()
 {
-	ScoreReset();
-	m_multiplier = 1;
 }
 
 void GameManager::Update()
 {
-	switch (m_currnetTutorialSetp)
+	
+}
+
+void GameManager::Finalize()
+{
+
+}
+
+
+void GameManager::OnSceneEnter(EScene type)
+{
+	switch (type)
 	{
-	case TutorialStep::WASD:
-		m_tutorialController.CanMove = true;
+	case EScene::Title:
+						ScoreReset();
+
+
 		break;
-	case TutorialStep::Dash:
-		m_tutorialController.CanDash = true;
+
+	case EScene::Main:
+						GetPlayerPtr();
 		break;
-	case TutorialStep::Reload:
-		m_tutorialController.CanRelaod = true;
-		break;
-	case TutorialStep::Shoot:
-		m_tutorialController.CanShoot = true;
-		break;
-	case TutorialStep::AutoReload:
-		m_tutorialController.CanAutoReload = true;
-		break;
-	case TutorialStep::DeadEye:
-		m_tutorialController.CanSkill = true;
+
+	case EScene::Result:
 		break;
 	}
 }
+
+void GameManager::OnSceneUpdate()
+{
+	switch (m_CurrentScene)
+	{
+	case EScene::Title:
+		break;
+	case EScene::Main:
+						MainSceneControl();
+		break;
+	case EScene::Result:
+		break;
+	}
+}
+
+void GameManager::OnSceneExit(EScene type)
+{
+	switch (type)
+	{
+	case EScene::Title:
+		break;
+	case EScene::Main:
+		break;
+	case EScene::Result:
+		break;
+	}
+}
+
+void GameManager::MainSceneControl()
+{
+	switch (m_MainState)
+	{
+	case EMainState::Tutorial:		TutorialControl();						break;
+	case EMainState::Stage1:												break;
+	case EMainState::Stage2:												break;
+	case EMainState::StageBoss:												break;
+	}
+}
+
+void GameManager::TutorialControl()
+{
+    auto& p = m_Player;
+
+	p->SetAction(Action::All, false);
+
+    switch (m_TutorialStep)
+    {
+	case ETutorialStep::WASD:			p->SetAction(Action::Move, true);			break;
+
+    case ETutorialStep::Dash:			p->SetAction(Action::Move, true);
+										p->SetAction(Action::Dash, true);			break;
+
+    case ETutorialStep::Reload:			p->SetAction(Action::Reload, true);			break;
+
+    case ETutorialStep::Shoot:			p->SetAction(Action::Shoot, true);			break;
+
+	case ETutorialStep::AutoReload:		p->SetAction(Action::Shoot, true);			break;
+    									p->SetAction(Action::AutoReload, true);
+
+	case ETutorialStep::DeadEye:		p->SetAction(Action::DeadEye, true);		break;
+
+	case ETutorialStep::End:			p->SetAction(Action::All, true);			break;
+    }
+}
+
+Player* GameManager::GetPlayerPtr()
+{
+	Player* temp = dynamic_cast<Player*>(SceneManager::GetInstance().GetCurrentScene()->GetRootGameObject("Player"));
+	return temp;
+}
+
 
 void GameManager::ScoreUpdate()
 {
