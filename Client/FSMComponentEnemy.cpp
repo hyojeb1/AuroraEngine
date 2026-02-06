@@ -60,8 +60,7 @@ void FSMComponentEnemy::OnEnterState(StateID state)
 
 	case EChase:
 		model_->GetAnimator()->SetPlaybackSpeed(1.0f);
-		//model_->GetAnimator()->PlayAnimation("Run", true);
-		model_->GetAnimator()->PlayAnimation();
+		model_->GetAnimator()->PlayAnimation(1, true);
 		break;
 
 	case EAttack: 
@@ -71,6 +70,7 @@ void FSMComponentEnemy::OnEnterState(StateID state)
 		model_->GetAnimator()->SetPlaybackSpeed(1.0f);
 		model_->GetAnimator()->RestartCurrentAnimation(false);
 		//model_->GetAnimator()->PlayAnimation("Attack", true);
+		//model_->GetAnimator()->PlayAnimation(1, true);
 		model_->GetAnimator()->PlayAnimation();
 		break;
 
