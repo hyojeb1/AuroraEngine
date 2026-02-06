@@ -29,14 +29,14 @@
                         1.0,
                         1.0
                     ],
-                    "metallicFactor": 0.0,
+                    "metallicFactor": 1.0,
                     "normalScale": 1.0,
                     "roughnessFactor": 1.0
                 }
             ],
             "modelAndMaterialFileNames": [
                 {
-                    "materialFileName": "",
+                    "materialFileName": "temple",
                     "modelFileName": "plane.fbx"
                 }
             ],

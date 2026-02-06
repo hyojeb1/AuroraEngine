@@ -147,11 +147,6 @@
                     "childGameObjects": [],
                     "components": [
                         {
-                            "current_state": "Idle",
-                            "start_state": "Idle",
-                            "type": "FSMComponentGun"
-                        },
-                        {
                             "NoiseIndex": 0,
                             "blendState": 0,
                             "dissolveData": {
@@ -194,6 +189,11 @@
                             "rasterState": 1,
                             "type": "ModelComponent",
                             "vsShaderName": "VSModel.hlsl"
+                        },
+                        {
+                            "current_state": "Idle",
+                            "start_state": "Idle",
+                            "type": "FSMComponentGun"
                         }
                     ],
                     "name": "Gun",
@@ -281,14 +281,14 @@
                                 1.0,
                                 1.0
                             ],
-                            "metallicFactor": 0.0,
+                            "metallicFactor": 1.0,
                             "normalScale": 1.0,
                             "roughnessFactor": 1.0
                         }
                     ],
                     "modelAndMaterialFileNames": [
                         {
-                            "materialFileName": "",
+                            "materialFileName": "temple",
                             "modelFileName": "plane.fbx"
                         }
                     ],
@@ -338,5 +338,27 @@
             ],
             "type": "GameObjectBase"
         }
+    ],
+    "spawnPoints": [
+        [
+            -20.100000381469727,
+            0.0,
+            0.0
+        ],
+        [
+            14.300000190734863,
+            0.0,
+            0.0
+        ],
+        [
+            -1.0,
+            0.0,
+            -14.899999618530273
+        ],
+        [
+            0.0,
+            0.0,
+            22.299999237060547
+        ]
     ]
 }

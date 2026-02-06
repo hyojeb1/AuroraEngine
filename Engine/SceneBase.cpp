@@ -289,9 +289,8 @@ void SceneBase::BaseRender()
 			#ifdef _DEBUG
 			// ?��버그 좌표�? ?��?���? (?��버그 모드?��?���?)
 			if (m_isRenderDebugCoordinates) RenderDebugCoordinates();
-			#else
-			Render();
 			#endif
+			Render();
 		}
 	);
 
