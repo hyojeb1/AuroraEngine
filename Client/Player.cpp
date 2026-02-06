@@ -57,18 +57,16 @@ void Player::Update()
 	auto& sm = SoundManager::GetInstance();
 
 	UpdateRotation(input, deltaTime);
-
-	if (m_ControlState.CanMove)	UpdateMoveDirection(input);
+	UpdateMoveDirection(input);
 	
 	if (input.GetKeyDown(KeyCode::MouseLeft)	&& m_ControlState.CanShoot	&& m_bulletCnt > 0		&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerShoot();
 	if (input.GetKeyDown(KeyCode::Space)		&& m_ControlState.CanDash	&& !m_isDashing 		&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerTriggerDash();
 	if (input.GetKeyDown(KeyCode::MouseRight)	&& m_ControlState.CanSkill	&& !m_isDeadEyeActive	&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerDeadEyeStart();
 	
-	if (m_isDeadEyeActive)	PlayerDeadEye(deltaTime, input);	
+	if (m_isDeadEyeActive)				PlayerDeadEye(deltaTime, input);	
+	if (m_isDashing)					PlayerDash(deltaTime);
+	else if (m_ControlState.CanMove)	MovePosition(m_normalizedMoveDirection * m_moveSpeed * deltaTime);
 	
-	if (m_isDashing) PlayerDash(deltaTime);
-	else			 MovePosition(m_normalizedMoveDirection * m_moveSpeed * deltaTime);
-		
 	XMVECTOR previousPosition = GetPosition();
 	// 만약 이동한 위치가 네비게이션 메시 밖이면 이전 위치로 되돌림 // 월드 좌표계는 나중에 업데이트 됨으로 로컬 좌표계로 해햐함
 	if (NavigationManager::GetInstance().FindNearestPoly(GetPosition(), 1.0f) < 0) SetPosition(previousPosition);
