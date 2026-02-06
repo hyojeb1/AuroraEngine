@@ -105,6 +105,7 @@ private:
 	void PlayerDash(float deltaTime);
 	void PlayerShoot();
 	void PlayerReload(int cnt);
+	void PlayerAutoReload(int cnt);
 	void PlayerDeadEyeStart();
 	void PlayerDeadEye(float deltaTime, class InputManager& input);
 	void PlayerDeadEyeEnd();

@@ -153,7 +153,7 @@ private:
 
 	//std::vector<std::function<void()>> m_NodeChangedListeners;
 	std::vector<std::function<void()>> m_NodeGeneratedListenerOnce;
-	std::vector<std::function<bool()>> m_NodeDestroyedListenerOnce;
+	std::list<std::function<bool()>> m_NodeDestroyedListenerOnce;
 
 	unsigned long long m_BGMStartDSP = 0;
 	int m_DspSampleRate = 0;

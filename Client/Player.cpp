@@ -59,9 +59,10 @@ void Player::Update()
 	UpdateRotation(input, deltaTime);
 	UpdateMoveDirection(input);
 	
-	if (input.GetKeyDown(KeyCode::MouseLeft)	&& m_ControlState.CanShoot	&& m_bulletCnt > 0		&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerShoot();
-	if (input.GetKeyDown(KeyCode::Space)		&& m_ControlState.CanDash	&& !m_isDashing 		&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerTriggerDash();
-	if (input.GetKeyDown(KeyCode::MouseRight)	&& m_ControlState.CanSkill	&& !m_isDeadEyeActive	&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerDeadEyeStart();
+	if (										   m_ControlState.CanAutoReload && m_bulletCnt == 0 )																	PlayerAutoReload(1);
+	if (input.GetKeyDown(KeyCode::MouseLeft)	&& m_ControlState.CanShoot		&& m_bulletCnt > 0		&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerShoot();
+	if (input.GetKeyDown(KeyCode::Space)		&& m_ControlState.CanDash		&& !m_isDashing 		&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerTriggerDash();
+	if (input.GetKeyDown(KeyCode::MouseRight)	&& m_ControlState.CanSkill		&& !m_isDeadEyeActive	&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerDeadEyeStart();
 	
 	if (m_isDeadEyeActive)				PlayerDeadEye(deltaTime, input);	
 	if (m_isDashing)					PlayerDash(deltaTime);
@@ -76,12 +77,15 @@ void Player::Update()
 		switch (sm.CheckRhythm(Config::InputCorrection))
 		{
 		case InputType::Early:
-			PlayerReload(1);
+			//std::cout << "Early" << std::endl;
+			PlayerReload(0);
 			break;
 		case InputType::Perfect:
+			//std::cout << "Perfect" << std::endl;
 			PlayerReload(0);
 			break;
 		case InputType::Late:
+			//std::cout << "Late" << std::endl;
 			PlayerReload(0);
 			break;
 		}
@@ -246,8 +250,6 @@ void Player::PlayerReload(int cnt)
 
 	//Reload Anime + rhythm check
 
-	m_bulletCnt = m_MaxBullet;
-
 	SoundManager::GetInstance().UI_Shot(Config::Player_Reload_Spin);
 
 	int reloadCount = Config::Player_Reload_Cocking_Count + cnt;
@@ -258,6 +260,34 @@ void Player::PlayerReload(int cnt)
 				return false;
 			}
 			SoundManager::GetInstance().UI_Shot(Config::Player_Reload_Cocking);
+			m_bulletCnt = m_MaxBullet;
+			return true;
+		});
+}
+
+void Player::PlayerAutoReload(int cnt)
+{
+	m_ControlState.CanAutoReload = false;
+	m_ControlState.CanShoot = false;
+	SoundManager::GetInstance().AddNodeDestroyedListenerOnce([this,count = cnt]()mutable ->bool
+		{
+			if (count-- > 0) { return false; }
+
+			SoundManager::GetInstance().UI_Shot(Config::Player_Reload_Spin);
+
+			SoundManager::GetInstance().AddNodeDestroyedListenerOnce([this, secondcount = 1]()mutable ->bool
+				{
+					if (secondcount-- > 0) { return false; }
+
+					SoundManager::GetInstance().UI_Shot(Config::Player_Reload_Cocking);
+
+					m_bulletCnt = m_MaxBullet;
+					m_ControlState.CanAutoReload = true;
+					m_ControlState.CanShoot = true;
+
+					return true;
+				});
+
 			return true;
 		});
 }

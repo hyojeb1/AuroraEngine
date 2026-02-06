@@ -579,8 +579,6 @@ InputType SoundManager::CheckRhythm(float correction)
 	if (m_CurrentNodeDataName.empty() || m_CurrentNodeDataName == "") return InputType::Fatal;
 
 	const float time = GetAudioTime() + Config::BeatHumanOffset;
-
-	std::cout << " C Time : " << GetAudioTime() << std::endl;
 	// c - s < time > s = Early
 	if (m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first - correction + m_RhythmOffSet < time && m_NodeData[m_CurrentNodeDataName][m_rhythmTimerIndex].first + m_RhythmOffSet > time)
 	{

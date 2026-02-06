@@ -3,7 +3,6 @@
 
 enum class EScene
 {
-    
 	Title,
     Main,
 	Result,
