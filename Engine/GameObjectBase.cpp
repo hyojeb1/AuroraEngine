@@ -183,6 +183,10 @@ void GameObjectBase::BaseInitialize()
 	#ifdef NDEBUG
 	Initialize();
 	#endif
+
+	// 컴포넌트와 자식 오브젝트 초기화
+	for (auto& [typeIndex, component] : m_components) static_cast<Base*>(component.get())->BaseInitialize();
+	for (auto& child : m_childrens) child->BaseInitialize();
 }
 
 void GameObjectBase::BaseFixedUpdate()
@@ -443,8 +447,6 @@ void GameObjectBase::BaseDeserialize(const nlohmann::json& jsonData)
 
 		Base* basePtr = static_cast<Base*>(component.get());
 		basePtr->BaseDeserialize(componentData);
-		basePtr->BaseInitialize();
-
 		m_components[type_index(typeid(*component))] = move(component);
 	}
 	
@@ -456,8 +458,6 @@ void GameObjectBase::BaseDeserialize(const nlohmann::json& jsonData)
 
 		childGameObject->m_parent = this;
 		childGameObject->BaseDeserialize(childData);
-		childGameObject->BaseInitialize();
-
 		m_childrens.push_back(move(childGameObject));
 	}
 

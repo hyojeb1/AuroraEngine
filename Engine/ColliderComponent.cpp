@@ -66,6 +66,59 @@ GameObjectBase* ColliderComponent::CheckCollision(const XMVECTOR& origin, const 
 	return collidedObject;
 }
 
+vector<GameObjectBase*> ColliderComponent::CheckCollision(const BoundingBox& box)
+{
+	vector<GameObjectBase*> collidedObjects = {};
+
+	for (ColliderComponent* collider : s_colliders)
+	{
+		bool isCollided = false;
+		for (const auto& [otherBox, transformedBox] : collider->m_boundingBoxes)
+		{
+			if (box.Intersects(transformedBox))
+			{
+				isCollided = true;
+				break;
+			}
+		}
+		if (isCollided)
+		{
+			collidedObjects.push_back(collider->m_owner);
+			continue;
+		}
+
+		for (const auto& [obb, transformedOBB] : collider->m_boundingOrientedBoxes)
+		{
+			if (box.Intersects(transformedOBB))
+			{
+				isCollided = true;
+				break;
+			}
+		}
+		if (isCollided)
+		{
+			collidedObjects.push_back(collider->m_owner);
+			continue;
+		}
+
+		for (const auto& [frustum, transformedFrustum] : collider->m_boundingFrustums)
+		{
+			if (box.Intersects(transformedFrustum))
+			{
+				isCollided = true;
+				break;
+			}
+		}
+		if (isCollided)
+		{
+			collidedObjects.push_back(collider->m_owner);
+			continue;
+		}
+	}
+
+	return collidedObjects;
+}
+
 vector<GameObjectBase*> ColliderComponent::CheckCollision(const BoundingFrustum& frustum)
 {
 	vector<GameObjectBase*> collidedObjects = {};
@@ -117,6 +170,33 @@ vector<GameObjectBase*> ColliderComponent::CheckCollision(const BoundingFrustum&
 	}
 
 	return collidedObjects;
+}
+
+bool ColliderComponent::CheckCollisionWithObject(ColliderComponent* otherCollider)
+{
+	for (const auto& [box, transformedBox] : m_boundingBoxes)
+	{
+		for (const auto& [otherBox, otherTransformedBox] : otherCollider->m_boundingBoxes)
+		{
+			if (transformedBox.Intersects(otherTransformedBox)) return true;
+		}
+	}
+	for (const auto& [obb, transformedOBB] : m_boundingOrientedBoxes)
+	{
+		for (const auto& [otherOBB, otherTransformedOBB] : otherCollider->m_boundingOrientedBoxes)
+		{
+			if (transformedOBB.Intersects(otherTransformedOBB)) return true;
+		}
+	}
+	for (const auto& [frustum, transformedFrustum] : m_boundingFrustums)
+	{
+		for (const auto& [otherFrustum, otherTransformedFrustum] : otherCollider->m_boundingFrustums)
+		{
+			if (transformedFrustum.Intersects(otherTransformedFrustum)) return true;
+		}
+	}
+
+	return false;
 }
 
 void ColliderComponent::Initialize()

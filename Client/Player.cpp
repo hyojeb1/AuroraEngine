@@ -12,6 +12,7 @@
 #include "SceneBase.h"
 #include "Enemy.h"
 #include "ParticleObject.h"
+#include "NavigationManager.h"
 
 #include "FSMComponentGun.h"
 
@@ -59,11 +60,16 @@ void Player::Update()
 	if (input.GetKeyDown(KeyCode::MouseLeft) && m_bulletCnt > 0 && sm.CheckRhythm(Config::InputCorrection) < InputType::Miss) PlayerShoot();
 	if (!m_isDashing && input.GetKeyDown(KeyCode::Space) && sm.CheckRhythm(Config::InputCorrection) < InputType::Miss) PlayerTriggerDash();
 	if (!m_isDeadEyeActive && input.GetKeyDown(KeyCode::MouseRight) && sm.CheckRhythm(Config::InputCorrection) < InputType::Miss) PlayerDeadEyeStart();
-	
 
 	if (m_isDeadEyeActive) PlayerDeadEye(deltaTime, input);
+
+	XMVECTOR previousPosition = GetPosition();
+
 	if (m_isDashing) PlayerDash(deltaTime);
 	else MovePosition(m_normalizedMoveDirection * m_moveSpeed * deltaTime); // ?���? ???직임
+
+	// 만약 이동한 위치가 네비게이션 메시 밖이면 이전 위치로 되돌림 // 월드 좌표계는 나중에 업데이트 됨으로 로컬 좌표계로 해햐함
+	if (NavigationManager::GetInstance().FindNearestPoly(GetPosition(), 1.0f) < 0) SetPosition(previousPosition);
 
 	if (input.GetKeyDown(KeyCode::R))
 	{
@@ -190,6 +196,7 @@ void Player::PlayerShoot()
 	const XMVECTOR& direction = GetWorldDirectionVector(Direction::Forward);
 	float distance = 0.0f;
 	GameObjectBase* hit = ColliderComponent::CheckCollision(origin, direction, distance);
+	if (!hit) distance = 100.0f;
 	const XMVECTOR& hitPosition = XMVectorAdd(origin, XMVectorScale(direction, distance));
 
 	ParticleObject* smoke = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Smoke.json"));

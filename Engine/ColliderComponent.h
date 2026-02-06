@@ -33,8 +33,13 @@ public:
 	// 충돌 검사
 	// 선 충돌 검사
 	static GameObjectBase* CheckCollision(const DirectX::XMVECTOR& origin, const DirectX::XMVECTOR& direction, _Out_ float& distance);
+	// 상자 충돌 검사
+	static std::vector<GameObjectBase*> CheckCollision(const DirectX::BoundingBox& box);
 	// 절두체 충돌 검사 // 화면 안에 있는 오브젝트
 	static std::vector<GameObjectBase*> CheckCollision(const DirectX::BoundingFrustum& frustum);
+
+	// 객체 충돌 검사
+	bool CheckCollisionWithObject(ColliderComponent* otherCollider);
 
 	bool NeedsFixedUpdate() const override { return true; }
 	bool NeedsUpdate() const override { return true; }
