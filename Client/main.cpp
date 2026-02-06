@@ -30,7 +30,7 @@ int main()
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
 	sceneManager.Initialize();
-	sceneManager.ChangeScene("HyojeTestScene");
+	sceneManager.ChangeScene("TaehyeonTestScene");
 	//sceneManager.ChangeScene("EndingScene");
 
 	RNG::GetInstance().Initialize();
@@ -43,6 +43,7 @@ int main()
 
 	while (windowManager.ProcessMessages())
 	{
+		gameManager.Update();
 		soundManager.Update();
 		sceneManager.Run();
 	}

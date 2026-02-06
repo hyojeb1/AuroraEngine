@@ -4,7 +4,6 @@
 #include "SceneBase.h"
 #include "Renderer.h"
 #include "TimeManager.h"
-#include "GameManager.h"
 
 using namespace std;
 
@@ -38,8 +37,6 @@ void SceneManager::Run()
 		m_accumulator -= fixedDt;
 		steps++;
 	}
-
-	GameManager::GetInstance().Update();
 
 	m_currentScene->BaseUpdate();
 

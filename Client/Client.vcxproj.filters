@@ -42,6 +42,9 @@
       <Filter>ParticleObject</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="GameManager.cpp">
+      <Filter>Manager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -84,6 +87,9 @@
     <ClInclude Include="ParticleObject.h">
       <Filter>ParticleObject</Filter>
     </ClInclude>
+    <ClInclude Include="GameManager.h">
+      <Filter>Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Scene">
@@ -106,6 +112,9 @@
     </Filter>
     <Filter Include="GameObject\Prefab">
       <UniqueIdentifier>{c06de892-b72a-4def-b4e2-dbcc4b0ac41a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager">
+      <UniqueIdentifier>{884c26e4-583a-48f5-8c27-301c9c518aeb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

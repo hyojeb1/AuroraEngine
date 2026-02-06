@@ -197,6 +197,7 @@
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="FSMComponentEnemy.cpp" />
     <ClCompile Include="FSMComponentGun.cpp" />
+    <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="ParticleObject.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="HyojeTestScene.cpp" />
@@ -219,6 +220,7 @@
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="FSMComponentEnemy.h" />
     <ClInclude Include="FSMComponentGun.h" />
+    <ClInclude Include="GameManager.h" />
     <ClInclude Include="ParticleObject.h" />
     <ClInclude Include="HyojeTestScene.h" />
     <ClInclude Include="Player.h" />

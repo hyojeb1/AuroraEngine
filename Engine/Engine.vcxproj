@@ -186,7 +186,6 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SceneBase.h" />
     <ClInclude Include="SceneManager.h" />
-    <ClInclude Include="GameManager.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="SkinnedModelComponent.h" />
     <ClInclude Include="SoundManager.h" />
@@ -217,7 +216,6 @@
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="SceneBase.cpp" />
     <ClCompile Include="SceneManager.cpp" />
-    <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="SkinnedModelComponent.cpp" />
     <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="Animator.cpp" />

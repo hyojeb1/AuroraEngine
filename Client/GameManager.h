@@ -1,21 +1,5 @@
 #pragma once
 
-//enum class GameState
-//{
-//	Boot
-// 
-//	Tutorial, 
-// 
-//	MainPlaying,
-//	MainPaused,
-// 
-//	EnterBoss,
-// 
-//	MainClear,
-//	MainFail,
-//	ReturnTitle
-//};
-
 enum class EScene
 {
 	Title,
@@ -31,13 +15,12 @@ enum class EMainState
     StageBoss
 };
 
-
 struct TutorialController
 {
     bool CanMove = false;
     bool CanDash = false;
     bool CanRelaod = false;
-    bool CanShot = false;
+    bool CanShoot = false;
     bool CanSkill = false;
     bool CanAutoReload = false;
 };
@@ -57,6 +40,11 @@ class GameManager : public Singleton<GameManager>
 	friend class Singleton<GameManager>;
 	
     bool m_Pause = false;
+
+    TutorialController m_tutorialController{ false, };
+    TutorialController GetTutorialController() { return m_tutorialController; }
+
+    TutorialStep m_currnetTutorialSetp = TutorialStep::WASD;
 
     //점수 관련 변수
 	int     m_currentScore = 0;

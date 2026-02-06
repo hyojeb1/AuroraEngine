@@ -10,8 +10,7 @@
 #include "WindowManager.h"
 #include "ModelComponent.h"
 #include "InputManager.h"
-#include "SceneManager.h" 
-#include "GameManager.h"
+#include "SceneManager.h"
 #include "UIBase.h"
 
 using namespace std;
