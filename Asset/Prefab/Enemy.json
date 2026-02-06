@@ -18,7 +18,7 @@
             "modelAndMaterialFileNames": [
                 {
                     "materialFileName": "test5",
-                    "modelFileName": "mob_attack_2.fbx"
+                    "modelFileName": "mob_ani3.fbx"
                 }
             ],
             "psShaderName": "PSModel_Dissolve.hlsl",

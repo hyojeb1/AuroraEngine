@@ -53,13 +53,13 @@ void FSMComponentEnemy::OnEnterState(StateID state)
 	switch (state)
 	{
 	case EIdle:
-		model_->GetAnimator()->SetPlaybackSpeed(10.0f);
+		model_->GetAnimator()->SetPlaybackSpeed(1.0f);
 		model_->GetAnimator()->PlayAnimation();
 		model_->SetBlendState(BlendState::Opaque);
 		break;
 
 	case EChase:
-		model_->GetAnimator()->SetPlaybackSpeed(2.0f);
+		model_->GetAnimator()->SetPlaybackSpeed(1.0f);
 		//model_->GetAnimator()->PlayAnimation("Run", true);
 		model_->GetAnimator()->PlayAnimation();
 		break;
