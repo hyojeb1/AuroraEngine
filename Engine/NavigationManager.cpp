@@ -315,10 +315,10 @@ void NavigationManager::HandlePlaceLink(float height)
 }
 #endif
 
-int NavigationManager::FindNearestPoly(const XMVECTOR& point) const
+int NavigationManager::FindNearestPoly(const XMVECTOR& point, float maxDist) const
 {
 	int best = -1;
-	float bestDist = numeric_limits<float>::max();
+	float bestDist = maxDist;
 
 	for (int i = 0; i < static_cast<int>(m_navPolys.size()); ++i)
 	{
