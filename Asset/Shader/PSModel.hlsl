@@ -37,7 +37,7 @@ PS_SCENE_OUTPUT main(PS_INPUT_STD input)
     // 섀도우 맵 샘플링 // TODO: 나중에 함수로 빼야함
     float4 lightSpacePos = mul(input.WorldPosition, LightViewProjectionMatrix);
     float2 shadowTexCoord = float2(lightSpacePos.x * 0.5f + 0.5f, -lightSpacePos.y * 0.5f + 0.5f);
-    float currentDepth = lightSpacePos.z * 0.9995f;
+    float currentDepth = lightSpacePos.z * 0.995f;
     float shadow = SampleShadowPCF(directionalShadowMapTexture, SamplerComparisonClamp, shadowTexCoord, currentDepth);
     
     // 조명 계산

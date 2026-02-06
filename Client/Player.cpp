@@ -196,6 +196,7 @@ void Player::PlayerShoot()
 	const XMVECTOR& direction = GetWorldDirectionVector(Direction::Forward);
 	float distance = 0.0f;
 	GameObjectBase* hit = ColliderComponent::CheckCollision(origin, direction, distance);
+	if (!hit) distance = 100.0f;
 	const XMVECTOR& hitPosition = XMVectorAdd(origin, XMVectorScale(direction, distance));
 
 	ParticleObject* smoke = dynamic_cast<ParticleObject*>(CreatePrefabChildGameObject("Smoke.json"));

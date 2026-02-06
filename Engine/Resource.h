@@ -6,7 +6,7 @@ struct RenderTarget
 	std::pair<com_ptr<ID3D11Texture2D>, com_ptr<ID3D11DepthStencilView>> depthStencil = {}; // 깊이-스텐실 텍스처와 뷰
 };
 
-constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 1 << 14; // 16384
+constexpr UINT DIRECTIAL_LIGHT_SHADOW_MAP_SIZE = 1 << 12; // 4096
 enum class RenderStage
 {
 	DirectionalLightShadow,
@@ -186,7 +186,7 @@ constexpr std::array<D3D11_RASTERIZER_DESC, static_cast<size_t>(RasterState::Cou
 	D3D11_RASTERIZER_DESC
 	{
 		.FillMode = D3D11_FILL_WIREFRAME,
-		.CullMode = D3D11_CULL_BACK,
+		.CullMode = D3D11_CULL_NONE,
 		.FrontCounterClockwise = FALSE,
 		.DepthBias = 0,
 		.DepthBiasClamp = 0.0f,
