@@ -59,7 +59,7 @@ void Player::Update()
 	UpdateRotation(input, deltaTime);
 	UpdateMoveDirection(input);
 	
-	if (										   m_ControlState.CanAutoReload && m_bulletCnt == 0 )																	PlayerAutoReload(1);
+	if (										   m_ControlState.CanAutoReload && m_bulletCnt == 0 )																	PlayerAutoReload(0);
 	if (input.GetKeyDown(KeyCode::MouseLeft)	&& m_ControlState.CanShoot		&& m_bulletCnt > 0		&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerShoot();
 	if (input.GetKeyDown(KeyCode::Space)		&& m_ControlState.CanDash		&& !m_isDashing 		&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerTriggerDash();
 	if (input.GetKeyDown(KeyCode::MouseRight)	&& m_ControlState.CanSkill		&& !m_isDeadEyeActive	&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerDeadEyeStart();
