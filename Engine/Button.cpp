@@ -5,6 +5,11 @@
 #include "ResourceManager.h"
 #include "Renderer.h"
 
+Button::Button()
+{
+	SetTextureAndOffset("UI_IDLE.png", "UI_Hovered.png", "UI_Pressed.png", "UI_Cicked.png");
+	m_scale = 1.0f;
+}
 
 void Button::UpdateRect()
 {

@@ -1,4 +1,17 @@
 {
+    "UI": [
+        {
+            "active": true,
+            "name": "New Button",
+            "parentIdx": -1,
+            "pos": [
+                0.6700000166893005,
+                0.7699999809265137
+            ],
+            "scale": 0.44999998807907104,
+            "type": "Button"
+        }
+    ],
     "environmentMapFileName": "Skybox0.dds",
     "lightColor": [
         1.0,

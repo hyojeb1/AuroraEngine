@@ -5,6 +5,13 @@
 #include "ResourceManager.h"
 #include "Renderer.h"
 
+Slider::Slider()
+{
+	SetTextureAndOffset("UI_IDLE.png"); 
+	SetHandleTexture("UI_IDLE.png");    
+	m_scale = 2.0f;
+}
+
 void Slider::SetRange(float min, float max)
 {
 	m_min = min;

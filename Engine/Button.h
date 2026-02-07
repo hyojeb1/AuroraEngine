@@ -29,7 +29,7 @@ class Button : public UIBase
 
 	std::function<void()> m_onClick = nullptr;
 public:
-	Button() = default;
+	Button();
 	~Button() = default;
 	void SetTextureAndOffset(const std::string& idle, const std::string& hoverd, const std::string& pressed); //overroad
 	void SetTextureAndOffset(const std::string& idle, const std::string& hoverd, const std::string& pressed, const std::string& clicked);

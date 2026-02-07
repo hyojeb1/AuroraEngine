@@ -654,7 +654,7 @@ void SceneBase::RenderUITreeNode(UIBase* ui)
 	if (!hasChildren) flags |= ImGuiTreeNodeFlags_Leaf;
 
 	// 노드 그리기 (ID는 포인터 주소 사용)
-	bool nodeOpen = ImGui::TreeNodeEx((void*)ui, flags, "[%s] %s", ui->GetTypeName(), ui->GetName().c_str());
+	bool nodeOpen = ImGui::TreeNodeEx((void*)ui, flags, "[%s] %s", ui->GetTypeName().c_str(), ui->GetName().c_str());
 
 	// 1. 클릭 선택 처리
 	if (ImGui::IsItemClicked()) m_selectedUI = ui;

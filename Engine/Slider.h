@@ -3,7 +3,7 @@
 class Slider : public UIBase
 {
 public:
-	Slider() = default;
+	Slider();
 	~Slider() override = default;
 
 	void RenderUI(Renderer& renderer) override;

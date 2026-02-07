@@ -5,6 +5,12 @@
 #include "ResourceManager.h"
 #include "Renderer.h"
 
+Panel::Panel()
+{
+	SetTextureAndOffset("UI_Panel.png");
+	m_scale = 5.0f;
+}
+
 void Panel::OnResize()
 {
 	UpdateRect();
