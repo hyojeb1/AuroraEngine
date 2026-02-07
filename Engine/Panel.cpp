@@ -8,7 +8,7 @@
 Panel::Panel()
 {
 	SetTextureAndOffset("UI_Panel.png");
-	m_scale = 5.0f;
+	m_scale = 0.1f;
 }
 
 void Panel::OnResize()

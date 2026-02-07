@@ -532,7 +532,6 @@ void SceneBase::RenderImGui_UI()
 {
 	ImGui::Begin("UI Editor");
 
-	// 1. 상단: 생성 버튼들
 	if (ImGui::Button("Add Panel"))  CreateUI<Panel>()->SetName("New Panel");
 	ImGui::SameLine();
 	if (ImGui::Button("Add Button")) CreateUI<Button>()->SetName("New Button");
@@ -541,14 +540,12 @@ void SceneBase::RenderImGui_UI()
 
 	ImGui::Separator();
 
-	// 2. 좌측: 계층 구조 (Hierarchy Tree)
-	ImGui::Columns(2, "UIEditorColumns", true); // 컬럼 나누기
+	ImGui::Columns(2, "UIEditorColumns", true); 
 
 	ImGui::BeginChild("UI_Hierarchy", ImVec2(0, 0), true);
 	ImGui::Text("Hierarchy");
 	ImGui::Separator();
 
-	// (1) Root 노드들 렌더링
 	for (const auto& uiPtr : m_UIList) {
 		UIBase* ui = uiPtr.get();
 		if (ui && ui->GetParent() == nullptr) {
@@ -556,24 +553,21 @@ void SceneBase::RenderImGui_UI()
 		}
 	}
 
-	// (2) 빈 공간 클릭 시 선택 해제
 	if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsAnyItemHovered()) {
 		m_selectedUI = nullptr;
 	}
 
-	// (3) [수정됨] 빈 공간 드래그 앤 드롭 (Dummy 활용 - Public API)
-	// 남은 영역 전체를 투명한 더미(Dummy)로 채워서 드롭 타겟으로 만듭니다.
 	ImVec2 availSize = ImGui::GetContentRegionAvail();
-	if (availSize.y < 50.0f) availSize.y = 50.0f; // 너무 작으면 최소 크기 보장
+	if (availSize.y < 50.0f) availSize.y = 50.0f; 
 
-	ImGui::Dummy(availSize); // 투명 위젯 배치
+	ImGui::Dummy(availSize); 
 
-	if (ImGui::BeginDragDropTarget()) // 마지막 아이템(Dummy)을 타겟으로 설정
+	if (ImGui::BeginDragDropTarget()) 
 	{
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("UI_DRAG_DROP")) {
 			UIBase* droppedUI = *(UIBase**)payload->Data;
 			if (droppedUI) {
-				droppedUI->SetParent(nullptr); // 부모 해제 (Root로 이동)
+				droppedUI->SetParent(nullptr); 
 			}
 		}
 		ImGui::EndDragDropTarget();
@@ -581,23 +575,20 @@ void SceneBase::RenderImGui_UI()
 
 	ImGui::EndChild();
 
-	ImGui::NextColumn(); // 우측 컬럼으로 이동
+	ImGui::NextColumn();
 
-	// 3. 우측: 속성 편집 (Inspector)
 	ImGui::BeginChild("UI_Inspector", ImVec2(0, 0), true);
 
 	if (m_selectedUI) {
 		ImGui::TextColored(ImVec4(0, 1, 0, 1), "Inspector: %s", m_selectedUI->GetName().c_str());
 		ImGui::Separator();
 
-		// [이름]
 		static char nameBuf[128];
 		strcpy_s(nameBuf, m_selectedUI->GetName().c_str());
 		if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf))) {
 			m_selectedUI->SetName(nameBuf);
 		}
 
-		// [부모 정보 & 분리 버튼]
 		UIBase* parent = m_selectedUI->GetParent();
 		string parentName = parent ? parent->GetName() : "None (Root)";
 		ImGui::Text("Parent: %s", parentName.c_str());
@@ -608,7 +599,6 @@ void SceneBase::RenderImGui_UI()
 
 		ImGui::Separator();
 
-		// [공통 속성]
 		bool active = m_selectedUI->GetActive();
 		if (ImGui::Checkbox("Active", &active)) m_selectedUI->SetActive(active);
 
@@ -618,13 +608,74 @@ void SceneBase::RenderImGui_UI()
 		float scale = m_selectedUI->GetScale();
 		if (ImGui::DragFloat("Scale", &scale, 0.01f, 0.0f, 10.0f)) m_selectedUI->SetScale(scale);
 
-		// [타입별 속성]
 		ImGui::Separator();
+
+
+		auto TextureInput = [&](const char* label, std::string currentVal, std::string& outVal) {
+			char buf[128];
+			strcpy_s(buf, currentVal.c_str());
+
+			if (ImGui::InputText(label, buf, 128)) {
+				outVal = buf;
+				return true;
+			}
+			return false;
+			};
+
 		if (auto* btn = dynamic_cast<Button*>(m_selectedUI)) {
 			ImGui::Text("[Button Properties]");
-			// 텍스처 경로 등...
-		} else if (auto* slider = dynamic_cast<Slider*>(m_selectedUI)) {
+
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "OnClick()");
+			static char keyBuf[64];
+			strcpy_s(keyBuf, btn->GetActionKey().c_str());
+			if (ImGui::InputText("Action Key", keyBuf, sizeof(keyBuf))) {
+				btn->SetActionKey(keyBuf);
+			}
+			
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Texture ");
+
+			std::string idle = btn->GetIdlePath();
+			std::string hover =   btn->GetHoverPath();	  
+			std::string pressed = btn->GetPressedPath();
+			std::string clicked = btn->GetClickedPath();
+
+			bool changed = false;
+
+			changed |= TextureInput("Idle Tex", idle, idle);
+			changed |= TextureInput("Hover Tex", hover, hover);
+			changed |= TextureInput("Pressed Tex", pressed, pressed);
+			changed |= TextureInput("Clicked Tex", clicked, clicked);
+
+			if (changed) {
+				btn->SetButtonTextures(idle, hover, pressed, clicked);
+			}
+
+		}
+		else if (auto* slider = dynamic_cast<Slider*>(m_selectedUI)) {
 			ImGui::Text("[Slider Properties]");
+
+			static char keyBuf[64];
+			strcpy_s(keyBuf, slider->GetActionKey().c_str());
+			if (ImGui::InputText("Action Key", keyBuf, sizeof(keyBuf))) {
+				slider->SetActionKey(keyBuf);
+			}
+
+			float min = slider->GetMin();
+			float max = slider->GetMax();
+			float val = slider->GetValue();
+
+			bool changed = false;
+			changed |= ImGui::DragFloat("Min", &min, 0.1f);
+			changed |= ImGui::DragFloat("Max", &max, 0.1f);
+			changed |= ImGui::DragFloat("Value", &val, 0.1f, min, max);
+
+			if (changed) {
+				slider->SetRange(min, max);
+				slider->SetValue(val);
+			}
+
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Texture ");
+			static char hTexBuf[128]; 
 		}
 	} else {
 		ImGui::TextDisabled("Select UI to edit");
@@ -639,11 +690,9 @@ void SceneBase::RenderUITreeNode(UIBase* ui)
 {
 	if (!ui) return;
 
-	// 트리 노드 플래그
 	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_DefaultOpen;
 	if (m_selectedUI == ui) flags |= ImGuiTreeNodeFlags_Selected;
 
-	// 자식 존재 여부 확인 (Leaf 노드 처리)
 	bool hasChildren = false;
 	for (const auto& childPtr : m_UIList) {
 		if (childPtr && childPtr->GetParent() == ui) {
@@ -653,44 +702,34 @@ void SceneBase::RenderUITreeNode(UIBase* ui)
 	}
 	if (!hasChildren) flags |= ImGuiTreeNodeFlags_Leaf;
 
-	// 노드 그리기 (ID는 포인터 주소 사용)
 	bool nodeOpen = ImGui::TreeNodeEx((void*)ui, flags, "[%s] %s", ui->GetTypeName().c_str(), ui->GetName().c_str());
 
-	// 1. 클릭 선택 처리
 	if (ImGui::IsItemClicked()) m_selectedUI = ui;
 
-	// 2. Drag Source (이 노드를 끌기 시작)
 	if (ImGui::BeginDragDropSource()) {
 		ImGui::SetDragDropPayload("UI_DRAG_DROP", &ui, sizeof(UIBase*));
 		ImGui::Text("Move %s", ui->GetName().c_str());
 		ImGui::EndDragDropSource();
 	}
 
-	// 3. Drop Target (이 노드 위에 다른 노드를 놓기)
 	if (ImGui::BeginDragDropTarget()) {
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("UI_DRAG_DROP")) {
 			UIBase* droppedUI = *(UIBase**)payload->Data;
-			// 순환 참조(자신이 자신의 부모가 되는 등) 방지 체크
 			if (droppedUI != ui) {
-				// 실제로는 droppedUI가 ui의 부모나 조상인지 확인하는 로직이 있으면 더 좋습니다.
 				droppedUI->SetParent(ui);
 			}
 		}
 		ImGui::EndDragDropTarget();
 	}
 
-	// 4. 우클릭 컨텍스트 메뉴
 	if (ImGui::BeginPopupContextItem()) {
 		if (ImGui::MenuItem("Delete")) {
-			// 삭제 로직 (자식들의 부모 해제 + 리스트에서 제거)
 			for (auto& child : m_UIList) {
 				if (child && child->GetParent() == ui) child->SetParent(nullptr);
 			}
 
 			if (m_selectedUI == ui) m_selectedUI = nullptr;
 
-			// Iterator 무효화 방지를 위해 즉시 리턴하거나 지연 삭제를 해야 함
-			// 여기서는 가장 간단한 erase_if 사용
 			erase_if(m_UIList, [ui](const unique_ptr<UIBase>& ptr) { return ptr.get() == ui; });
 
 			ImGui::EndPopup();
@@ -700,7 +739,6 @@ void SceneBase::RenderUITreeNode(UIBase* ui)
 		ImGui::EndPopup();
 	}
 
-	// 자식 노드 재귀 호출
 	if (nodeOpen) {
 		for (const auto& childPtr : m_UIList) {
 			if (childPtr && childPtr->GetParent() == ui) {

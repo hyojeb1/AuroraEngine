@@ -9,7 +9,7 @@ Slider::Slider()
 {
 	SetTextureAndOffset("UI_IDLE.png"); 
 	SetHandleTexture("UI_IDLE.png");    
-	m_scale = 2.0f;
+	m_scale = 0.1f;
 }
 
 void Slider::SetRange(float min, float max)
@@ -30,6 +30,13 @@ void Slider::SetValue(float newValue)
 void Slider::SetHandleTexture(const std::string& tex)
 {
 	m_handleTex = ResourceManager::GetInstance().GetTextureAndOffset(tex);
+}
+
+void Slider::SetHandleTextureJSON(const std::string& path)
+{
+	m_handleTexturePath = path;
+	if (!path.empty())
+		m_handleTex = ResourceManager::GetInstance().GetTextureAndOffset(path);
 }
 
 void Slider::AddListener(std::function<void(float)> callback)
@@ -172,4 +179,37 @@ bool Slider::CheckInput(const POINT& mousePos, bool isMousePressed)
 	m_value = m_min + t * (m_max - m_min);
 
 	return true; // 입력 소비
+}
+
+nlohmann::json Slider::Serialize() const
+{
+	nlohmann::json data = UIBase::Serialize();
+
+	data["min"] = m_min;
+	data["max"] = m_max;
+	data["value"] = m_value;
+	data["textureHandle"] = m_handleTexturePath;
+	if (!m_onValueChangedActionKey.empty())
+		data["actionKey"] = m_onValueChangedActionKey;
+
+	return data;
+}
+
+void Slider::Deserialize(const nlohmann::json& jsonData)
+{
+	UIBase::Deserialize(jsonData);
+
+	if (jsonData.contains("min")) m_min = jsonData["min"];
+	if (jsonData.contains("max")) m_max = jsonData["max"];
+	if (jsonData.contains("value")) {
+		float val = jsonData["value"];
+		SetValue(val);
+	}
+
+	if (jsonData.contains("textureHandle")) {
+		std::string handlePath = jsonData["textureHandle"];
+		if (!handlePath.empty()) { SetHandleTexture(handlePath);}
+	}
+
+	if (jsonData.contains("actionKey")) {m_onValueChangedActionKey = jsonData["actionKey"];	}
 }

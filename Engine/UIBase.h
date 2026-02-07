@@ -1,7 +1,5 @@
 #pragma once
 
-//enum X list
-
 class UIBase
 {
 public:
@@ -72,6 +70,10 @@ public:
 		m_textureIdle.second = offset;
 	}
 
+	// Editor 
+	virtual const std::string GetIdlePath() { return m_pathIdle; };
+	//void SetIdleOffset(const DirectX::XMFLOAT2& offset) { m_offsetIdle = offset; }
+	//const DirectX::XMFLOAT2& GetIdleOffset() const { return m_offsetIdle; }
 
 	// =========================================================
 	// Serialization
@@ -97,4 +99,6 @@ protected:
 	float m_depth = 0.0f;
 
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_textureIdle = {};
+	std::string m_pathIdle;
+	//DirectX::XMFLOAT2 m_offsetIdle = { 0.f, 0.f };
 };

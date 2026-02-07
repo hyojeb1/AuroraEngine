@@ -5,10 +5,14 @@
             "name": "New Button",
             "parentIdx": -1,
             "pos": [
-                0.6700000166893005,
-                0.7699999809265137
+                0.27000001072883606,
+                0.41999998688697815
             ],
-            "scale": 0.44999998807907104,
+            "scale": 0.3100000023841858,
+            "textureClicked": "",
+            "textureHover": "UI_logo.png",
+            "textureIdle": "",
+            "texturePressed": "",
             "type": "Button"
         }
     ],

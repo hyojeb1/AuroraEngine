@@ -142,6 +142,8 @@ private:
 	void UpdateConstantBuffers();
 	// 스카이박스 렌더링
 	void RenderSkybox();
+	// UI의 이벤트 함수 Binding 함수
+	virtual void BindUIActions() {}
 
 #ifdef _DEBUG
 	// 디버그 카메라로 오브젝트 선택

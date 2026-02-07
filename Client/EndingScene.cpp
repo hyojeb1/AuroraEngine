@@ -33,14 +33,14 @@ void EndingScene::Initialize()
 
 	Button* TitleButton = CreateUI<Button>();
 	//TitleButton->SetParent(TestPanel);
-	TitleButton->SetTextureAndOffset("UI_IDLE.png", "UI_Hovered.png", "UI_Pressed.png", "UI_Cicked.png");
+	TitleButton->SetTextureAndOffset("UI_IDLE.png", "UI_Hovered.png", "UI_Pressed.png", "UI_Clicked.png");
 	TitleButton->SetLocalPosition({ 0.0f, 0.0f });
 	TitleButton->SetOnClick([TestPanel]() { TestPanel->SetActive(true); });
 	TitleButton->SetScale(0.3f);
 
 	Button* PanelCloseButton = CreateUI<Button>();
 	PanelCloseButton->SetParent(TestPanel);
-	PanelCloseButton->SetTextureAndOffset("UI_IDLE.png", "UI_Hovered.png", "UI_Pressed.png", "UI_Cicked.png");
+	PanelCloseButton->SetTextureAndOffset("UI_IDLE.png", "UI_Hovered.png", "UI_Pressed.png", "UI_Clicked.png");
 	PanelCloseButton->SetLocalPosition({ 0.0f, 0.1f });
 	PanelCloseButton->SetOnClick([TestPanel]() { TestPanel->SetActive(false); });
 	PanelCloseButton->SetScale(0.3f);

@@ -19,15 +19,15 @@ void UIBase::SetTextureAndOffset(const std::string& idle)
 json UIBase::Serialize() const
 {
     json data;
-    data["type"] = GetTypeName(); // 중요: 내 타입이 뭔지 저장
+    data["type"] = GetTypeName();
     data["name"] = m_name;
     data["active"] = m_isActive;
 
-    // 위치 (XMFLOAT2 -> Array)
     data["pos"] = { m_localPosition.x, m_localPosition.y };
     data["scale"] = m_scale;
 
-    // 텍스처 경로나 Color 등 공통 속성이 있다면 여기서 저장
+    data["textureIdle"] = m_pathIdle;
+
     return data;
 }
 
@@ -42,7 +42,8 @@ void UIBase::Deserialize(const json& data)
     }
     if (data.contains("scale")) m_scale = data["scale"];
 
-    // 위치 등이 바뀌었으니 렉트 업데이트 필요
+    if (data.contains("textureIdle")) m_pathIdle = data.value("textureIdle", "");
+
     UpdateRect();
 }
 
@@ -53,6 +54,6 @@ UIBase* UIBase::CreateFactory(const std::string& typeName)
     if (typeName == "Slider")      return new Slider();
     // if (typeName == "MovingPanel") return new MovingPanel();
 
-    return nullptr; // 모르는 타입
+    return nullptr;
 }
 
