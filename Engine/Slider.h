@@ -19,6 +19,8 @@ public:
 	void AddListener(std::function<void(float)>);
 	void NotifyValueChanged();
 
+	std::string GetTypeName() const override { return "Slider"; }
+
 private:
 	void UpdateRect() override;
 

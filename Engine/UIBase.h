@@ -44,8 +44,15 @@ public:
 
 	virtual void OnResize() { UpdateRect(); }
 
+	//직렬화 
+	virtual nlohmann::json Serialize() const;
+	virtual void Deserialize(const nlohmann::json& data);
+	static UIBase* CreateFactory(const std::string& typeName);
+	virtual std::string GetTypeName() const = 0;
+
 protected:
 	virtual void UpdateRect() = 0;
+	std::string m_name = "UI";
 	RECT m_UIRect = {};
 	bool m_isActive = true;
 	UIBase* m_parent = nullptr;

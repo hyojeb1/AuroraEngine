@@ -209,7 +209,7 @@ void SceneBase::BaseUpdate()
 
 		if (inputManager.GetKeyDown(KeyCode::S))
 		{
-			cout << "?��: " << m_type << " ????�� �?..." << endl;
+			cout << "[System] Saving Scene: " << m_type << "..." << endl;
 
 			const filesystem::path sceneFilePath = "../Asset/Scene/" + m_type + ".json";
 
@@ -217,7 +217,7 @@ void SceneBase::BaseUpdate()
 			sceneFile << BaseSerialize().dump(4);
 			sceneFile.close();
 
-			cout << "?��: " << m_type << " ????�� ?���?!" << endl;
+			cout << "[System] Scene: " << m_type << " saved successfully!" << endl;
 		}
 
 		if (inputManager.GetKeyDown(KeyCode::Z)) Undo();
@@ -257,15 +257,13 @@ void SceneBase::BaseRender()
 
 			m_deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
 
-			// ?��?�� 버퍼 ?��?��
 			m_deviceContext->PSSetShader(m_shadowMapPixelShader.Get(), nullptr, 0);
 		}
 	);
 
-	// ?�� ?��?���?
 	renderer.RENDER_FUNCTION(RenderStage::Scene, BlendState::Opaque).emplace_back
 	(
-		numeric_limits<float>::lowest(), // ?��?��?��?�� �??�� ?��?��
+		numeric_limits<float>::lowest(), 
 		[&]()
 		{
 			Renderer& renderer = Renderer::GetInstance();

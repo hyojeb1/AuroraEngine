@@ -39,6 +39,8 @@ public:
 	void RenderUI(class Renderer& renderer) override;
 	bool CheckInput(const POINT& mousePosition, bool isMouseClicked, bool isMousePressed);
 
+	std::string GetTypeName() const override { return "Button"; }
+
 private:
 	void UpdateRect() override;
 };
