@@ -1,4 +1,4 @@
-///SceneBase.cpp?�� ?��?��
+///bof SceneBase.cpp
 #include "stdafx.h"
 #include "SceneBase.h"
 
@@ -7,7 +7,6 @@
 #include "ResourceManager.h"
 #include "TimeManager.h"
 #include "NavigationManager.h"
-#include "UIManager.h"
 #include "WindowManager.h"
 #include "ModelComponent.h"
 #include "InputManager.h"
@@ -654,8 +653,6 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 	if (jsonData.contains("environmentMapFileName")) m_environmentMapFileName = jsonData["environmentMapFileName"].get<string>();
 
 	NavigationManager::GetInstance().Deserialize(jsonData);
-
-	UIManager::GetInstance().Deserialize(jsonData);
 
 	Deserialize(jsonData);
 

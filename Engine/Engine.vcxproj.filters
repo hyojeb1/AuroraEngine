@@ -127,9 +127,6 @@
     <ClCompile Include="Slider.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="UIManager.cpp">
-      <Filter>Manager</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -228,9 +225,6 @@
     </ClInclude>
     <ClInclude Include="Slider.h">
       <Filter>UI</Filter>
-    </ClInclude>
-    <ClInclude Include="UIManager.h">
-      <Filter>Manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
