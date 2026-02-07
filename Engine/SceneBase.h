@@ -123,6 +123,7 @@ private:
 	// ImGui 렌더링
 	void BaseRenderImGui() override;
 	void RenderImGui_UI();
+	void RenderUITreeNode(UIBase* ui);
 #endif
 	// 씬 종료 // 씬 매니저가 씬을 교체할 때 호출
 	void BaseFinalize() override;
