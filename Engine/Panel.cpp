@@ -28,7 +28,7 @@ void Panel::RenderUI(Renderer& renderer)
 	auto pos = GetWorldPosition();
 	auto offset = m_textureIdle.second;
 	auto scale = m_scale;
-	auto color = m_color;
+	auto color = m_colorIdle;
 	auto depth = m_depth;
 
 	renderer.UI_RENDER_FUNCTIONS().emplace_back(

@@ -5,16 +5,18 @@
 #include "ResourceManager.h"
 #include "Renderer.h"
 
+using namespace DirectX;
+
 Button::Button()
 {
 	SetTextureAndOffset("UI_IDLE.png", "UI_Hovered.png", "UI_Pressed.png", "UI_Clicked.png");
-	m_scale = 0.1f;
+	m_scaleIdle = 0.1f;
 }
 
 void Button::UpdateRect()
 {
 	const DirectX::XMFLOAT2 windowPos = Renderer::GetInstance().ToScreenPosition(GetWorldPosition());
-	const DirectX::XMFLOAT2 offset = { m_textureIdle.second.x * m_scale, m_textureIdle.second.y * m_scale };
+	const DirectX::XMFLOAT2 offset = { m_textureIdle.second.x * m_scaleIdle, m_textureIdle.second.y * m_scale };
 
 	m_UIRect =
 	{
@@ -50,27 +52,33 @@ void Button::RenderUI(class Renderer& renderer)
 	auto texpressed	 = m_texturePressed.first;
 	auto texclicked	 = m_textureClicked.first;
 	auto pos = GetWorldPosition();
-	auto offset_idle = m_textureIdle.second;
-	auto offset_hoverd = m_textureHoverd.second;
+	auto offset_idle	= m_textureIdle.second;
+	auto offset_hoverd	= m_textureHoverd.second;
 	auto offset_pressed = m_texturePressed.second;
 	auto offset_clicked = m_textureClicked.second;
-	auto scale = m_scale;
-	auto color = m_color;
+	auto scale_idle	   = m_scale * m_scaleIdle;
+	auto scale_hoverd = m_scale * m_scaleHover  ;
+	auto scale_pressed = m_scale *m_scalePressed;
+	auto scale_clicked = m_scale *m_scaleClicked;
+	auto color_idle	   = m_colorIdle;
+	auto color_hoverd  =  m_colorHover ;
+	auto color_pressed =  m_colorPressed;
+	auto color_clicked =  m_colorClicked;
 	auto depth = m_depth;
 
 	switch (m_ButtonState)
 	{
 	case Button::ButtonState::Idle:
-		renderer.UI_RENDER_FUNCTIONS().emplace_back([texidle, pos, offset_idle, scale, color, depth]() { Renderer::GetInstance().RenderImageUIPosition(texidle, pos, offset_idle, scale, color, depth); });
+		renderer.UI_RENDER_FUNCTIONS().emplace_back([texidle, pos, offset_idle, scale_idle, color_idle, depth]() { Renderer::GetInstance().RenderImageUIPosition(texidle, pos, offset_idle, scale_idle, color_idle, depth); });
 		break;
 	case Button::ButtonState::Hoverd:
-		renderer.UI_RENDER_FUNCTIONS().emplace_back([texhoverd, pos, offset_hoverd, scale, color, depth]() { Renderer::GetInstance().RenderImageUIPosition(texhoverd, pos, offset_hoverd, scale, color, depth); });
+		renderer.UI_RENDER_FUNCTIONS().emplace_back([texhoverd, pos, offset_hoverd, scale_hoverd, color_hoverd, depth]() { Renderer::GetInstance().RenderImageUIPosition(texhoverd, pos, offset_hoverd, scale_hoverd, color_hoverd, depth); });
 		break;
 	case Button::ButtonState::Pressed:
-		renderer.UI_RENDER_FUNCTIONS().emplace_back([texpressed, pos, offset_pressed, scale, color, depth]() { Renderer::GetInstance().RenderImageUIPosition(texpressed, pos, offset_pressed, scale, color, depth); });
+		renderer.UI_RENDER_FUNCTIONS().emplace_back([texpressed, pos, offset_pressed, scale_pressed, color_pressed, depth]() { Renderer::GetInstance().RenderImageUIPosition(texpressed, pos, offset_pressed, scale_pressed, color_pressed, depth); });
 		break;
 	case Button::ButtonState::Clicked:
-		renderer.UI_RENDER_FUNCTIONS().emplace_back([texclicked, pos, offset_clicked, scale, color, depth]() { Renderer::GetInstance().RenderImageUIPosition(texclicked, pos, offset_clicked, scale, color, depth); });
+		renderer.UI_RENDER_FUNCTIONS().emplace_back([texclicked, pos, offset_clicked, scale_clicked, color_clicked, depth]() { Renderer::GetInstance().RenderImageUIPosition(texclicked, pos, offset_clicked, scale_clicked, color_clicked, depth); });
 		break;
 	}
 }
@@ -132,9 +140,20 @@ nlohmann::json Button::Serialize() const
 {
 	nlohmann::json data = UIBase::Serialize();
 
-	data["textureHover"] = m_pathHover;
-	data["texturePressed"] = m_pathPressed;
-	data["textureClicked"] = m_pathClicked;
+	data["pathHover"] = m_pathHover;
+	data["pathPressed"] = m_pathPressed;
+	data["pathClicked"] = m_pathClicked;
+
+	data["scaleHover"] = m_scaleHover;
+	data["scalePressed"] = m_scalePressed;
+	data["scaleClicked"] = m_scaleClicked;
+
+	XMFLOAT4 c_h; XMStoreFloat4(&c_h , m_colorHover);
+	XMFLOAT4 c_p; XMStoreFloat4(&c_p , m_colorPressed);
+	XMFLOAT4 c_c; XMStoreFloat4(&c_c , m_colorClicked);
+	data["colorHover"] = { c_h.x, c_h.y, c_h.z, c_h.w };
+	data["colorPressed"] = { c_p.x, c_p.y, c_p.z, c_p.w };
+	data["colorClicked"] = { c_c.x, c_c.y, c_c.z, c_c.w };
 
 	if (!m_onClickActionKey.empty()) data["actionKey"] = m_onClickActionKey;
 
@@ -158,5 +177,27 @@ void Button::Deserialize(const nlohmann::json& jsonData)
 	if (jsonData.contains("actionKey")) {
 		m_onClickActionKey = jsonData["actionKey"];
 	}
+
+	auto ReadColor = [&](const char* key, DirectX::XMFLOAT4& target) {
+		if (jsonData.contains(key)) {
+			target.x = jsonData[key][0]; target.y = jsonData[key][1];
+			target.z = jsonData[key][2]; target.w = jsonData[key][3];
+		}
+		};
+
+	if (jsonData.contains("scaleHover")) m_scaleHover = jsonData["scaleHover"];
+	if (jsonData.contains("scalePressed")) m_scalePressed = jsonData["scalePressed"];
+	if (jsonData.contains("scaleClicked")) m_scaleClicked = jsonData["scaleClicked"];
+
+
+	XMFLOAT4 c_h;
+	XMFLOAT4 c_p;
+	XMFLOAT4 c_c;
+	ReadColor("colorHover", c_h);
+	ReadColor("colorPressed", c_p);
+	ReadColor("colorClicked", c_c);
+	m_colorHover = 	XMLoadFloat4(&c_h);
+	m_colorPressed = 	XMLoadFloat4(&c_p);
+	m_colorClicked = 	XMLoadFloat4(&c_c);
 
 }

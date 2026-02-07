@@ -2,17 +2,38 @@
     "UI": [
         {
             "active": true,
+            "colorClicked": [
+                -107374176.0,
+                -107374176.0,
+                -107374176.0,
+                -107374176.0
+            ],
+            "colorHover": [
+                0.5784313678741455,
+                0.3856208920478821,
+                0.3856208920478821,
+                0.0
+            ],
+            "colorPressed": [
+                -107374176.0,
+                -107374176.0,
+                -107374176.0,
+                -107374176.0
+            ],
             "name": "New Button",
             "parentIdx": -1,
+            "pathClicked": "",
+            "pathHover": "",
+            "pathPressed": "",
             "pos": [
                 0.27000001072883606,
                 0.41999998688697815
             ],
             "scale": 0.3100000023841858,
-            "textureClicked": "",
-            "textureHover": "UI_logo.png",
+            "scaleClicked": 1.0,
+            "scaleHover": 1.0,
+            "scalePressed": 0.949999988079071,
             "textureIdle": "",
-            "texturePressed": "",
             "type": "Button"
         }
     ],

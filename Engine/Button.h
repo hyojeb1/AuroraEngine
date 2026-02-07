@@ -2,6 +2,8 @@
 
 class Button : public UIBase
 {
+	friend class SceneBase;
+
 	enum class ButtonState
 	{
 		Idle,
@@ -12,20 +14,30 @@ class Button : public UIBase
 
 	ButtonState m_ButtonState = ButtonState::Idle;
 
+	// --- [텍스처 리소스] ---
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_textureHoverd = {};
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_texturePressed = {};
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_textureClicked = {};
 
+	// --- [직렬화 변수들] ---
+	// 1. 텍스처 경로
 	std::string m_pathHover = "";
 	std::string m_pathPressed = "";
 	std::string m_pathClicked = "";
 
-	//DirectX::XMFLOAT2 m_offsetHover = { 0.f, 0.f };
-	//DirectX::XMFLOAT2 m_offsetPressed = { 0.f, 0.f };
-	//DirectX::XMFLOAT2 m_offsetClicked = { 0.f, 0.f };
+	// 2. 스케일 (기본 Scale에 곱해지는 배율)
+	float m_scaleHover = 1.0f;
+	float m_scalePressed = 0.95f; // 눌렀을 때 살짝 작아지는 느낌
+	float m_scaleClicked = 1.0f;
+
+	// 3. 컬러 (틴트)
+	DirectX::XMVECTOR m_colorHover = { 0.9f, 0.9f, 0.9f, 1.0f };   // 살짝 어둡게
+	DirectX::XMVECTOR m_colorPressed = { 0.7f, 0.7f, 0.7f, 1.0f }; // 더 어둡게
+	DirectX::XMVECTOR m_colorClicked = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 	std::function<void()> m_onClick = nullptr;
 	std::string m_onClickActionKey = "";
+
 
 public:
 	Button();
@@ -56,20 +68,8 @@ public:
 
 	void SetButtonTextures(const std::string& idle, const std::string& hover, const std::string& pressed, const std::string& clicked);
 
-	//void SetHoverOffset(const DirectX::XMFLOAT2& offset) { m_offsetHover = offset; }
-	//void SetPressedOffset(const DirectX::XMFLOAT2& offset) { m_offsetPressed = offset; }
-	//void SetClickedOffset(const DirectX::XMFLOAT2& offset) { m_offsetClicked = offset; }
-
-	DirectX::XMFLOAT2& GetHoverOffset()		{ return  m_textureHoverd.second; }
-	DirectX::XMFLOAT2& GetPressedOffset()	{ return  m_texturePressed.second; }
-	DirectX::XMFLOAT2& GetClickedOffset()	{ return  m_textureClicked.second; }
-
 	nlohmann::json Serialize() const override;
 	void Deserialize(const nlohmann::json& jsonData) override;
-
-	const std::string GetHoverPath() { return m_pathHover;	};
-	const std::string GetPressedPath(){ return m_pathPressed; };
-	const std::string GetClickedPath(){ return m_pathClicked; };
 
 private:
 	void UpdateRect() override;

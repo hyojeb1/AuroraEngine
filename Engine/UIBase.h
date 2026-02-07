@@ -2,6 +2,8 @@
 
 class UIBase
 {
+	friend class SceneBase; // 에디터에서 private 변수 접근 허용
+
 public:
 	UIBase() = default;
 	virtual ~UIBase() = default;
@@ -43,10 +45,12 @@ public:
 	// --- Scale ---
 	void SetScale(float scale) { m_scale = scale; UpdateRect(); }
 	float GetScale() const { return m_scale; }
+	void SetScaleIdle(float scale) { m_scaleIdle = scale; UpdateRect(); }
+	float GetScaleIdle() const { return m_scaleIdle; }
 
 	// --- Color ---
-	void SetColor(const DirectX::XMVECTOR& color) { m_color = color; }
-	const DirectX::XMVECTOR& GetColor() const { return m_color; }
+	void SetColorIdle(const DirectX::XMVECTOR& color) { m_colorIdle = color; }
+	const DirectX::XMVECTOR& GetColorIdle() const { return m_colorIdle; }
 
 	// --- Depth ---
 	void SetDepth(float depth) { m_depth = depth; }
@@ -70,11 +74,6 @@ public:
 		m_textureIdle.second = offset;
 	}
 
-	// Editor 
-	virtual const std::string GetIdlePath() { return m_pathIdle; };
-	//void SetIdleOffset(const DirectX::XMFLOAT2& offset) { m_offsetIdle = offset; }
-	//const DirectX::XMFLOAT2& GetIdleOffset() const { return m_offsetIdle; }
-
 	// =========================================================
 	// Serialization
 	// =========================================================
@@ -95,7 +94,8 @@ protected:
 	UIBase* m_parent = nullptr;
 	DirectX::XMFLOAT2 m_localPosition = {};
 	float m_scale = 1.0f;
-	DirectX::XMVECTOR m_color = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float m_scaleIdle = 1.0f;
+	DirectX::XMVECTOR m_colorIdle = { 1.0f, 1.0f, 1.0f, 1.0f };
 	float m_depth = 0.0f;
 
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_textureIdle = {};

@@ -611,43 +611,80 @@ void SceneBase::RenderImGui_UI()
 		ImGui::Separator();
 
 
-		auto TextureInput = [&](const char* label, std::string currentVal, std::string& outVal) {
-			char buf[128];
-			strcpy_s(buf, currentVal.c_str());
-
-			if (ImGui::InputText(label, buf, 128)) {
-				outVal = buf;
-				return true;
+		// 텍스처 경로 입력 람다
+		auto TexPathInput = [&](const char* label, std::string current, std::string& out) {
+			char buf[128]; strcpy_s(buf, current.c_str());
+			if (ImGui::InputText(label, buf, 128, ImGuiInputTextFlags_EnterReturnsTrue)) {
+				out = buf; return true;
 			}
 			return false;
 			};
 
-		if (auto* btn = dynamic_cast<Button*>(m_selectedUI)) {
-			ImGui::Text("[Button Properties]");
 
-			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "OnClick()");
+		if (auto* btn = dynamic_cast<Button*>(m_selectedUI)) {
+			ImGui::TextColored(ImVec4(0.8f, 0.8f, 1.0f, 1.0f), "TYPE: BUTTON");
+
+			// --- Action Key ---
 			static char keyBuf[64];
 			strcpy_s(keyBuf, btn->GetActionKey().c_str());
 			if (ImGui::InputText("Action Key", keyBuf, sizeof(keyBuf))) {
 				btn->SetActionKey(keyBuf);
 			}
-			
-			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Texture ");
+			ImGui::Separator();
 
-			std::string idle = btn->GetIdlePath();
-			std::string hover =   btn->GetHoverPath();	  
-			std::string pressed = btn->GetPressedPath();
-			std::string clicked = btn->GetClickedPath();
 
-			bool changed = false;
 
-			changed |= TextureInput("Idle Tex", idle, idle);
-			changed |= TextureInput("Hover Tex", hover, hover);
-			changed |= TextureInput("Pressed Tex", pressed, pressed);
-			changed |= TextureInput("Clicked Tex", clicked, clicked);
 
-			if (changed) {
-				btn->SetButtonTextures(idle, hover, pressed, clicked);
+			// --- [Idle State] ---
+			if (ImGui::TreeNode("State: Idle")) {
+				bool pathChanged = TexPathInput("Path##Idle", btn->m_pathIdle, btn->m_pathIdle);
+				XMFLOAT4 c_i;
+				XMStoreFloat4(&c_i, btn->m_colorIdle);
+				ImGui::ColorEdit4("Color##Idle", &c_i.x);
+				btn->m_colorIdle = XMLoadFloat4(&c_i);
+				ImGui::DragFloat("Scale Multi##Idle", &btn->m_scaleIdle, 0.01f, 0.1f, 3.0f);
+
+				if (pathChanged) btn->SetButtonTextures(btn->m_pathIdle, btn->m_pathHover, btn->m_pathPressed, btn->m_pathClicked);
+				ImGui::TreePop();
+			}
+
+			// --- [Hover State] ---
+			if (ImGui::TreeNode("State: Hover")) {
+				bool pathChanged = TexPathInput("Path##Hover", btn->m_pathHover, btn->m_pathHover);
+				XMFLOAT4 c_h;
+				XMStoreFloat4(&c_h, btn->m_colorHover);
+				ImGui::ColorEdit4("Color##Hover", &c_h.x);
+				btn->m_colorHover = XMLoadFloat4(&c_h);
+				ImGui::DragFloat("Scale Multi##Hover", &btn->m_scaleHover, 0.01f, 0.1f, 3.0f);
+
+				if (pathChanged) btn->SetButtonTextures(btn->m_pathIdle, btn->m_pathHover, btn->m_pathPressed, btn->m_pathClicked);
+				ImGui::TreePop();
+			}
+
+			// --- [Pressed State] ---
+			if (ImGui::TreeNode("State: Pressed")) {
+				bool pathChanged = TexPathInput("Path##Pressed", btn->m_pathPressed, btn->m_pathPressed);
+				XMFLOAT4 c_p;
+				XMStoreFloat4(&c_p, btn->m_colorPressed);
+				ImGui::ColorEdit4("Color##Pressed", &c_p.x);
+				btn->m_colorPressed = XMLoadFloat4(&c_p);
+				ImGui::DragFloat("Scale Multi##Pressed", &btn->m_scalePressed, 0.01f, 0.1f, 3.0f);
+
+				if (pathChanged) btn->SetButtonTextures(btn->m_pathIdle, btn->m_pathHover, btn->m_pathPressed, btn->m_pathClicked);
+				ImGui::TreePop();
+			}
+
+			// --- [Clicked State] ---
+			if (ImGui::TreeNode("State: Clicked")) {
+				bool pathChanged = TexPathInput("Path##Clicked", btn->m_pathClicked, btn->m_pathClicked);
+				XMFLOAT4 c_c;
+				XMStoreFloat4(&c_c, btn->m_colorClicked);
+				ImGui::ColorEdit4("Color##Clicked", &c_c.x);
+				btn->m_colorClicked = XMLoadFloat4(&c_c);
+				ImGui::DragFloat("Scale Multi##Clicked", &btn->m_scaleClicked, 0.01f, 0.1f, 3.0f);
+
+				if (pathChanged) btn->SetButtonTextures(btn->m_pathIdle, btn->m_pathHover, btn->m_pathPressed, btn->m_pathClicked);
+				ImGui::TreePop();
 			}
 
 		}
