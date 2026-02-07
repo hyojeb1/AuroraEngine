@@ -13,6 +13,7 @@
 #include "SceneManager.h"
 #include "Button.h"
 #include "Slider.h"
+#include "Panel.h"
 
 using namespace std;
 using namespace DirectX;
@@ -271,19 +272,14 @@ void SceneBase::BaseRender()
 
 			renderer.SetViewport();
 
-			// ?��?�� 기�???�� 카메?�� ?��치로 ?��?��
 			renderer.SetRenderSortPoint(mainCamera.GetPosition());
 
-			// ?��?�� 버퍼 ?��?��?��?�� �? ?��?��?��?�� ?��?��
 			UpdateConstantBuffers();
 
-			// ?���? �? ?��?��
 			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Environment), 1, m_environmentMapSRV.GetAddressOf());
-			// ?��카이박스 ?��?���?
 			RenderSkybox();
 
 			#ifdef _DEBUG
-			// ?��버그 좌표�? ?��?���? (?��버그 모드?��?���?)
 			if (m_isRenderDebugCoordinates) RenderDebugCoordinates();
 			#endif
 			Render();
@@ -316,10 +312,8 @@ void SceneBase::BaseRender()
 		);
 	}
 
-	// 게임 ?��브젝?�� ?��?���?
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseRender();
 
-	// UI ?��?���?
 	for (const unique_ptr<UIBase>& ui : m_UIList) ui->RenderUI(renderer);
 
 	#ifdef _DEBUG
@@ -530,7 +524,111 @@ void SceneBase::BaseRenderImGui()
 
 		if (ImGuizmo::IsUsing()) selectedObject->ApplyWorldMatrix(worldMatrix);
 	}
+
+	RenderImGui_UI();
 }
+
+void SceneBase::RenderImGui_UI()
+{
+	ImGui::Begin("UI Editor");
+
+	
+	// 1. UI 생성 버튼들 (가로 배치)
+	if (ImGui::Button("Add Panel"))  CreateUI<Panel>()->SetName("New Panel");
+	ImGui::SameLine();
+	if (ImGui::Button("Add Button")) CreateUI<Button>()->SetName("New Button");
+	ImGui::SameLine();
+	if (ImGui::Button("Add Slider")) CreateUI<Slider>()->SetName("New Slider");
+
+	ImGui::Separator();
+
+	// 2. UI 리스트 (좌측 패널 역할) - 높이 200px 제한
+	ImGui::BeginChild("UI_List", ImVec2(0, 200), true);
+
+	// 반복문을 돌며 리스트 출력
+	for (int i = 0; i < m_UIList.size(); ++i) {
+		UIBase* ui = m_UIList[i].get();
+		if (ui == nullptr) continue;
+
+		// 선택된 항목 하이라이트 처리
+		bool isSelected = (m_selectedUI == ui);
+
+		// "타입: 이름" 형태로 출력 (예: "[Button] StartBtn")
+		std::string label = "[" + ui->GetTypeName() + "] " + ui->GetName();
+
+		if (ImGui::Selectable(label.c_str(), isSelected)) {
+			m_selectedUI = ui; // 클릭 시 선택
+		}
+
+		// 우클릭 컨텍스트 메뉴 (삭제 기능)
+		if (ImGui::BeginPopupContextItem()) {
+			if (ImGui::MenuItem("Delete UI")) {
+				// 삭제 처리 (벡터에서 제거)
+				m_UIList.erase(m_UIList.begin() + i);
+				if (m_selectedUI == ui) m_selectedUI = nullptr;
+				ImGui::EndPopup();
+				break; // 반복문 탈출 (Iterator 무효화 방지)
+			}
+			ImGui::EndPopup();
+		}
+	}
+	ImGui::EndChild();
+
+	// 3. 속성 편집기 (선택된 UI가 있을 때만 표시)
+	if (m_selectedUI) {
+		ImGui::Separator();
+		ImGui::TextColored(ImVec4(0, 1, 0, 1), "Inspector: %s", m_selectedUI->GetName().c_str());
+
+		// --- [공통 속성 편집] ---
+
+		// 이름 변경
+		static char nameBuf[128];
+		strcpy_s(nameBuf, m_selectedUI->GetName().c_str());
+		if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf))) {
+			m_selectedUI->SetName(nameBuf);
+		}
+
+		// 활성화 여부
+		bool active = m_selectedUI->GetActive();
+		if (ImGui::Checkbox("Active", &active)) {
+			m_selectedUI->SetActive(active);
+		}
+
+		// 위치 (DragFloat2 사용)
+		// 주의: Engine의 좌표계에 맞춰 속도(0.01f) 조절 필요
+		DirectX::XMFLOAT2 pos = m_selectedUI->GetLocalPosition();
+		if (ImGui::DragFloat2("Position", &pos.x, 0.001f)) { // 0.0~1.0 좌표계라면 정밀하게
+			m_selectedUI->SetLocalPosition(pos);
+		}
+
+		// 스케일
+		float scale = m_selectedUI->GetScale();
+		if (ImGui::DragFloat("Scale", &scale, 0.01f, 0.0f, 10.0f)) {
+			m_selectedUI->SetScale(scale);
+		}
+
+		// --- [타입별 특수 속성 편집] ---
+		// dynamic_cast를 사용하여 타입별로 다른 UI를 보여줌
+
+		if (auto* btn = dynamic_cast<Button*>(m_selectedUI)) {
+			ImGui::Text("Button Properties");
+			// 텍스처 경로 편집 (단순 텍스트 입력)
+			// 실제로는 파일 다이얼로그가 좋지만, 지금은 InputText로 경로 수정
+			// (SetTextureAndOffset 함수가 경로를 인자로 받는다고 가정)
+			// 필요하다면 std::string 버퍼 래퍼 필요
+		} else if (auto* slider = dynamic_cast<Slider*>(m_selectedUI)) {
+			ImGui::Text("Slider Properties");
+			// 슬라이더 범위 편집 등
+			// float min = slider->GetMin(); ...
+			// ImGui::DragFloat("Min", &min); ...
+		}
+	}
+	
+	ImGui::End();
+
+}
+
+
 #endif
 
 void SceneBase::BaseFinalize()
@@ -539,7 +637,6 @@ void SceneBase::BaseFinalize()
 	Finalize();
 	#endif
 
-	// 게임 ?��브젝?�� 종료
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseFinalize();
 }
 
@@ -547,8 +644,6 @@ nlohmann::json SceneBase::BaseSerialize()
 {
 	nlohmann::json jsonData;
 
-	// 기본 ?�� ?��?��?�� ????��
-	// ?�� 조명 ?���?
 	jsonData["lightColor"] =
 	{
 		m_globalLightData.lightColor.x,
@@ -564,7 +659,6 @@ nlohmann::json SceneBase::BaseSerialize()
 		m_globalLightData.lightDirection.m128_f32[3]
 	};
 
-	// ?��처리 ?���?
 	jsonData["postProcessing"] =
 	{
 		{ "flags", m_postProcessingData.flags },
@@ -576,18 +670,23 @@ nlohmann::json SceneBase::BaseSerialize()
 		{ "lutLerpFactor", m_postProcessingData.lutLerpFactor}
 	};
 
-	// ?���? �? ?��?�� ?���?
 	jsonData["environmentMapFileName"] = m_environmentMapFileName;
 
-	// ?��비게?��?�� 메시 ????��
 	nlohmann::json navMeshData = NavigationManager::GetInstance().Serialize();
 	if (!navMeshData.is_null() && navMeshData.is_object()) jsonData.merge_patch(navMeshData);
 
-	// ?��?�� ?��?��?��?�� 직렬?�� ?���?
+	nlohmann::json uiArray = nlohmann::json::array();
+	for (size_t i = 0; i < m_UIList.size(); ++i) {
+		if (!m_UIList[i]) continue;
+		nlohmann::json uiData = m_UIList[i]->Serialize();
+		uiArray.push_back(uiData);
+	}
+
+	jsonData["UI"] = uiArray;
+
 	nlohmann::json derivedData = Serialize();
 	if (!derivedData.is_null() && derivedData.is_object()) jsonData.merge_patch(derivedData);
 
-	// 게임 ?��브젝?��?�� ????��
 	nlohmann::json gameObjectsData = nlohmann::json::array();
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObjectsData.push_back(gameObject->BaseSerialize());
 	jsonData["rootGameObjects"] = gameObjectsData;
@@ -651,6 +750,29 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 	if (jsonData.contains("environmentMapFileName")) m_environmentMapFileName = jsonData["environmentMapFileName"].get<string>();
 
 	NavigationManager::GetInstance().Deserialize(jsonData);
+
+	m_UIList.clear();
+	if (jsonData.contains("UI")) {
+		const nlohmann::json& uiArray = jsonData["UI"];
+
+		// 객체 생성 및 데이터 채우기
+		for (const auto& uiItem : uiArray) {
+			string type = uiItem["type"].get<string>();
+
+			// ★ 핵심: UIBase의 정적 팩토리 함수 사용
+			// (UIBase::CreateFactory 구현이 선행되어야 함)
+			UIBase* newUI = UIBase::CreateFactory(type);
+
+			if (newUI) {
+				newUI->Deserialize(uiItem);
+				m_UIList.push_back(unique_ptr<UIBase>(newUI));
+			} else {
+				// 타입을 모르면 nullptr라도 넣어서 인덱스 밀림 방지 (혹은 에러 로그)
+				// 여기서는 안전하게 건너뛰되, 인덱스 의존성이 있으므로 주의 필요
+				// 보통은 팩토리가 항상 성공한다고 가정
+			}
+		}
+	}
 
 	Deserialize(jsonData);
 
