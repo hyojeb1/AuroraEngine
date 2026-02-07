@@ -2,43 +2,11 @@
     "UI": [
         {
             "active": true,
-            "colorClicked": [
-                -107374176.0,
-                -107374176.0,
-                -107374176.0,
-                -107374176.0
-            ],
-            "colorHover": [
-                0.5784313678741455,
-                0.3856208920478821,
-                0.3856208920478821,
-                0.0
-            ],
-            "colorPressed": [
-                -107374176.0,
-                -107374176.0,
-                -107374176.0,
-                -107374176.0
-            ],
-            "depth": 0.8899999856948853,
-            "name": "New Button1",
-            "parentIdx": -1,
-            "pathClicked": "UI_Clicked.png",
-            "pathHover": "UI_Hovered.png",
-            "pathPressed": "UI_Pressed.png",
-            "pos": [
-                0.27000001072883606,
-                0.11999999731779099
-            ],
-            "scale": 0.3100000023841858,
-            "scaleClicked": 1.0,
-            "scaleHover": 1.0,
-            "scalePressed": 0.949999988079071,
-            "textureIdle": "",
-            "type": "Button"
-        },
-        {
-            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
             "colorClicked": [
                 1.0,
                 1.0,
@@ -57,17 +25,17 @@
                 0.699999988079071,
                 1.0
             ],
-            "depth": 0.9399999976158142,
-            "name": "New Button",
+            "depth": 0.0,
+            "name": "AnimationTest",
             "parentIdx": -1,
             "pathClicked": "UI_Clicked.png",
             "pathHover": "UI_Hovered.png",
             "pathPressed": "UI_Pressed.png",
             "pos": [
-                0.20999999344348907,
-                0.0
+                0.38999998569488525,
+                0.47999998927116394
             ],
-            "scale": 1.0,
+            "scale": 1.4299999475479126,
             "scaleClicked": 1.0,
             "scaleHover": 1.0,
             "scalePressed": 0.949999988079071,

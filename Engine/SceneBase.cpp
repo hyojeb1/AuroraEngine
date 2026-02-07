@@ -165,7 +165,7 @@ void SceneBase::BaseUpdate()
 
 	RemovePending();
 	for (unique_ptr<Base>& gameObject : m_gameObjects) gameObject->BaseUpdate();
-
+	
 	InputManager& inputManager = InputManager::GetInstance();
 
 	const POINT& mousePosition = inputManager.GetMousePosition();
@@ -185,6 +185,10 @@ void SceneBase::BaseUpdate()
 				break;
 		}
 	}
+	//for (auto& ui : m_UIList){
+	//	ui->Update();
+	//}
+
 
 
 	#ifdef _DEBUG
@@ -614,6 +618,8 @@ void SceneBase::RenderImGui_UI()
 		ImGui::Separator();
 
 
+
+
 		// 텍스처 경로 입력 람다
 		auto TexPathInput = [&](const char* label, std::string current, std::string& out) {
 			char buf[128]; strcpy_s(buf, current.c_str());
@@ -717,9 +723,75 @@ void SceneBase::RenderImGui_UI()
 			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Texture ");
 			static char hTexBuf[128]; 
 		}
+
+		ImGui::Separator();
+		ImGui::TextColored(ImVec4(0.8f, 1.f, .8f, 1.0f), "Animation");
+
+		bool changed = false;
+		changed |= ImGui::DragInt("Rows", &m_selectedUI->m_rows, 1, 1, 128);
+		changed |= ImGui::DragInt("Columns", &m_selectedUI->m_columns, 1, 1, 128);
+		changed |= ImGui::DragInt("Start Frame", &m_selectedUI->m_startFrame, 1, 0, 4095);
+		changed |= ImGui::DragInt("End Frame", &m_selectedUI->m_endFrame, 1, 1, 4096);
+		changed |= ImGui::DragFloat("FPS", &m_selectedUI->m_framesPerSecond, 0.1f, 0.0f, 120.0f);
+		changed |= ImGui::DragFloat("Playback Speed", &m_selectedUI->playback_speed_, 0.1f, 0.1f, 4.0f);
+		ImGui::Checkbox("Loop", &m_selectedUI->m_loop);
+		ImGui::Checkbox("Auto Play", &m_selectedUI->auto_play_);
+		ImGui::Checkbox("Destroy On Finish", &m_selectedUI->destroy_on_finish_);
+
+		ImGui::Text("Current Frame: %d / %d", m_selectedUI->m_currentFrame + 1, m_selectedUI->m_endFrame);
+
+		if (m_selectedUI->m_textureIdle.first) {
+			const ImVec2 previewSize(200.0f, 200.0f);
+			const ImTextureID textureId = reinterpret_cast<ImTextureID>(m_selectedUI->m_textureIdle.first.Get());
+			ImGui::Image(textureId, previewSize);
+
+			const ImVec2 p0 = ImGui::GetItemRectMin();
+			const ImVec2 p1 = ImGui::GetItemRectMax();
+			const ImVec2 imageSize(p1.x - p0.x, p1.y - p0.y);
+
+			int texW = 1;
+			int texH = 1;
+
+			{
+				com_ptr<ID3D11Resource> res;
+				m_selectedUI->GetTexture()->GetResource(res.GetAddressOf());
+				com_ptr<ID3D11Texture2D> tex2D;
+				if (res && SUCCEEDED(res.As(&tex2D))) {
+					D3D11_TEXTURE2D_DESC desc;
+					tex2D->GetDesc(&desc);
+					texW = static_cast<int>(desc.Width);
+					texH = static_cast<int>(desc.Height);
+				}
+			}
+
+			const RECT& currentRect = m_selectedUI->GetRect(); // 현재 프레임의 RECT
+
+			float uvLeft = (float)currentRect.left / (float)texW;
+			float uvTop = (float)currentRect.top / (float)texH;
+			float uvRight = (float)currentRect.right / (float)texW;
+			float uvBottom = (float)currentRect.bottom / (float)texH;
+
+			const ImVec2 rectMin
+			{
+				p0.x + uvLeft * imageSize.x,
+				p0.y + uvTop * imageSize.y
+			};
+			const ImVec2 rectMax
+			{
+				p0.x + uvRight * imageSize.x, // rectMin.x + width 대신 right 좌표 사용
+				p0.y + uvBottom * imageSize.y
+			};
+
+			const ImU32 rectColor = IM_COL32(255, 230, 0, 255);
+			ImGui::GetWindowDrawList()->AddRect(rectMin, rectMax, rectColor, 0.0f, 0, 2.0f);
+		} else ImGui::Text("Texture preview: (none)");
+		ImGui::Separator();
+
+
 	} else {
 		ImGui::TextDisabled("Select UI to edit");
 	}
+
 
 	ImGui::EndChild();
 	ImGui::Columns(1); // 컬럼 종료
@@ -982,25 +1054,25 @@ void SceneBase::GetResources()
 {
 	ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-	m_skyboxVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSSkybox.hlsl"); // ?��카이박스 ?��?�� ?��?��?�� ?���?
-	m_skyboxPixelShader = resourceManager.GetPixelShader("PSSkybox.hlsl"); // ?��카이박스 ?��??? ?��?��?�� ?���?
-	m_shadowMapPixelShader = resourceManager.GetPixelShader("PSShadow.hlsl"); // 그림?�� �? ?��?��?�� ?��??? ?��?��?�� ?���?
+	m_skyboxVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSSkybox.hlsl"); 
+	m_skyboxPixelShader = resourceManager.GetPixelShader("PSSkybox.hlsl");
+	m_shadowMapPixelShader = resourceManager.GetPixelShader("PSShadow.hlsl"); 
 
 	#ifdef _DEBUG
-	m_debugCoordinateVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSCoordinateLine.hlsl"); // ?��버그 좌표 ?��?�� ?��?��?�� ?���?
-	m_debugCoordinatePixelShader = resourceManager.GetPixelShader("PSColor.hlsl"); // ?��버그 좌표 ?��??? ?��?��?�� ?���?
+	m_debugCoordinateVertexShaderAndInputLayout = resourceManager.GetVertexShaderAndInputLayout("VSCoordinateLine.hlsl"); 
+	m_debugCoordinatePixelShader = resourceManager.GetPixelShader("PSColor.hlsl"); 
 	#endif
 
-	m_environmentMapSRV = resourceManager.GetTexture(m_environmentMapFileName); // ?���? �? 로드
+	m_environmentMapSRV = resourceManager.GetTexture(m_environmentMapFileName); 
 
-	m_viewProjectionConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::ViewProjection); // �?-?��?�� ?��?�� 버퍼 ?��?��
-	m_skyboxViewProjectionConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::SkyboxViewProjection); // ?��카이박스 �?-?��?�� ?��?��?�� ?��?�� 버퍼 ?��?��
-	m_timeConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Time); // ?���? ?��?�� 버퍼 ?��?��
+	m_viewProjectionConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::ViewProjection); 
+	m_skyboxViewProjectionConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::SkyboxViewProjection); 
+	m_timeConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::Time);
 
-	m_cameraPositionConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::CameraPosition); // 카메?�� ?���? ?��?�� 버퍼 ?��?��
-	m_globalLightConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::GlobalLight); // 방향�? ?��?�� 버퍼 ?��?��
+	m_cameraPositionConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::CameraPosition); 
+	m_globalLightConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::GlobalLight); 
 
-	m_postProcessingConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::PostProcessing); // ?��처리?�� ?��?�� 버퍼 ?��?��
+	m_postProcessingConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::PostProcessing); 
 
 	m_spriteFont = resourceManager.GetSpriteFont(L"Gugi");
 }
@@ -1009,32 +1081,26 @@ void SceneBase::UpdateConstantBuffers()
 {
 	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 
-	// �?-?��?�� ?��?�� 버퍼 ?��?��?��?�� �? ?��?��?��?�� ?��?��
 	m_viewProjectionData.viewMatrix = mainCamera.GetViewMatrix();
 	m_viewProjectionData.projectionMatrix = mainCamera.GetProjectionMatrix();
 	m_viewProjectionData.VPMatrix = XMMatrixTranspose(m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix);
 	m_deviceContext->UpdateSubresource(m_viewProjectionConstantBuffer.Get(), 0, nullptr, &m_viewProjectionData, 0, 0);
 
-	// ?��카이박스 �?-?��?�� ?��?��?�� ?��?�� 버퍼 ?��?��?��?�� �? ?��?��?��?�� ?��?�� // m_viewProjectionData ?��?��?��
-	m_viewProjectionData.viewMatrix.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // �? ?��?��?�� ?���? ?���? ?���?
+	m_viewProjectionData.viewMatrix.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 	m_skyboxViewProjectionData.skyboxVPMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, m_viewProjectionData.viewMatrix * m_viewProjectionData.projectionMatrix));
 	m_deviceContext->UpdateSubresource(m_skyboxViewProjectionConstantBuffer.Get(), 0, nullptr, &m_skyboxViewProjectionData, 0, 0);
 
-	// ?���? ?��?�� 버퍼 ?��?��?��?�� �? ?��?��?��?�� ?��?��
 	m_timeData.totalTime = TimeManager::GetInstance().GetTotalTime();
 	m_timeData.deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	m_timeData.sinTime = sinf(m_timeData.totalTime);
 	m_timeData.cosTime = cosf(m_timeData.totalTime);
 	m_deviceContext->UpdateSubresource(m_timeConstantBuffer.Get(), 0, nullptr, &m_timeData, 0, 0);
 
-	// 카메?�� ?���? ?��?�� 버퍼 ?��?��?��?�� �? ?��?��?��?�� ?��?��
 	m_cameraPositionData.cameraPosition = mainCamera.GetPosition();
 	m_deviceContext->UpdateSubresource(m_cameraPositionConstantBuffer.Get(), 0, nullptr, &m_cameraPositionData, 0, 0);
 
-	// ?��경광, 방향�? ?��?�� 버퍼 ?��?��?��?�� �? ?��?��?��?�� ?��?��
 	m_deviceContext->UpdateSubresource(m_globalLightConstantBuffer.Get(), 0, nullptr, &m_globalLightData, 0, 0);
 
-	// ?��처리?�� ?��?�� 버퍼 ?��?��?��?�� �? ?��?��?��?�� ?��?��
 	m_deviceContext->UpdateSubresource(m_postProcessingConstantBuffer.Get(), 0, nullptr, &m_postProcessingData, 0, 0);
 }
 

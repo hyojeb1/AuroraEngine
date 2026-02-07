@@ -10,8 +10,11 @@ public:
 
 	std::string GetTypeName() const override { return "Panel"; }
 
+
 private:
 	void UpdateRect() override;
+
+	void Update();
 
 	std::vector<std::unique_ptr<UIBase>> m_children;
 };

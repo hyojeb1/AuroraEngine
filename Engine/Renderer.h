@@ -36,7 +36,7 @@ class Renderer : public Singleton<Renderer>
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트
 	com_ptr<IDXGISwapChain1> m_swapChain = nullptr; // 스왑 체인
 
-	DirectX::XMVECTOR m_renderSortPoint = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // 랜저 정렬 기준점
+	DirectX::XMVECTOR m_renderSortPoint = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // 랜더 정렬 기준점
 	RenderPass m_renderPass = {};
 
 	DirectX::SpriteBatch* m_spriteBatch = nullptr; // 스프라이트 배치 // UI 렌더링용
@@ -112,9 +112,9 @@ public:
 	void RenderTextUIPosition(const wchar_t* text, DirectX::XMFLOAT2 position, float depth = 0.0f, const DirectX::XMVECTOR& color = DirectX::XMVECTOR{ 1.0f, 1.0f, 1.0f, 1.0f }, float scale = 1.0f, const std::wstring& fontName = L"Gugi");
 	// UI 이미지 렌더링
 	// 스크린 좌표계
-	void RenderImageScreenPosition(com_ptr<ID3D11ShaderResourceView> texture, DirectX::XMFLOAT2 position, DirectX::XMFLOAT2 offset, float scale = 1.0f, const DirectX::XMVECTOR& color = DirectX::XMVECTOR{ 1.0f, 1.0f, 1.0f, 1.0f }, float depth = 0.0f);
+	void RenderImageScreenPosition(com_ptr<ID3D11ShaderResourceView> texture, DirectX::XMFLOAT2 position, DirectX::XMFLOAT2 offset, float scale = 1.0f, const DirectX::XMVECTOR& color = DirectX::XMVECTOR{ 1.0f, 1.0f, 1.0f, 1.0f }, float depth = 0.0f, const RECT * srcRect = nullptr);
 	// UI 좌표계
-	void RenderImageUIPosition(com_ptr<ID3D11ShaderResourceView> texture, DirectX::XMFLOAT2 position, DirectX::XMFLOAT2 offset, float scale = 1.0f, const DirectX::XMVECTOR& color = DirectX::XMVECTOR{ 1.0f, 1.0f, 1.0f, 1.0f }, float depth = 0.0f);
+	void RenderImageUIPosition(com_ptr<ID3D11ShaderResourceView> texture, DirectX::XMFLOAT2 position, DirectX::XMFLOAT2 offset, float scale = 1.0f, const DirectX::XMVECTOR& color = DirectX::XMVECTOR{ 1.0f, 1.0f, 1.0f, 1.0f }, float depth = 0.0f, const RECT* srcRect = nullptr);
 
 	// 프레임 종료 // 화면에 내용 출력
 	void EndFrame();

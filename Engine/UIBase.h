@@ -85,6 +85,16 @@ public:
 	static UIBase* CreateFactory(const std::string& typeName);
 	virtual std::string GetTypeName() const = 0;
 
+	// =========================================================
+	// Animation
+	// =========================================================
+	void Update();
+	
+	void GetTextureResolution(int& outWidth, int& outHeight) const;
+	int GetMaxFrames() const;
+	void ClampFrame();
+	void UpdateFlipBookRect();
+
 protected:
 	virtual void UpdateRect() = 0;
 	
@@ -100,5 +110,19 @@ protected:
 
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_textureIdle = {};
 	std::string m_pathIdle = "UI_IDLE.png";
-	//DirectX::XMFLOAT2 m_offsetIdle = { 0.f, 0.f };
+
+	// Animation
+	RECT m_UIAnimationRect = {};
+	int m_rows = 1;
+	int m_columns = 1;
+	int m_startFrame = 0;
+	int m_endFrame = 1;
+	float m_framesPerSecond = 8.0f;
+	bool m_loop = true;
+	bool m_playing = true;
+	bool auto_play_ = true;
+	bool destroy_on_finish_ = false;
+	float playback_speed_ = 1.0f;
+	int m_currentFrame = 0;
+	float m_accumulatedTime = 0.0f;
 };

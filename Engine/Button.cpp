@@ -64,20 +64,36 @@ void Button::RenderUI(class Renderer& renderer)
 	auto color_pressed =  m_colorPressed;
 	auto color_clicked =  m_colorClicked;
 	auto depth = m_depth;
-
+	RECT currentAnimRect = m_UIAnimationRect;
 	switch (m_ButtonState)
 	{
 	case Button::ButtonState::Idle:
-		renderer.UI_RENDER_FUNCTIONS().emplace_back([texidle, pos, offset_idle, scale_idle, color_idle, depth]() { Renderer::GetInstance().RenderImageUIPosition(texidle, pos, offset_idle, scale_idle, color_idle, depth); });
+		renderer.UI_RENDER_FUNCTIONS().emplace_back([texidle, pos, offset_idle, scale_idle, color_idle, depth, currentAnimRect]() {
+			const RECT* pSrcRect =  &currentAnimRect;
+			//Renderer::GetInstance().RenderImageUIPosition(texidle, pos, offset_idle, scale_idle, color_idle, depth, pSrcRect);
+			Renderer::GetInstance().RenderImageUIPosition(texidle, pos, offset_idle, scale_idle, color_idle, depth, nullptr);
+			});
 		break;
 	case Button::ButtonState::Hoverd:
-		renderer.UI_RENDER_FUNCTIONS().emplace_back([texhoverd, pos, offset_hoverd, scale_hoverd, color_hoverd, depth]() { Renderer::GetInstance().RenderImageUIPosition(texhoverd, pos, offset_hoverd, scale_hoverd, color_hoverd, depth); });
+		renderer.UI_RENDER_FUNCTIONS().emplace_back([texhoverd, pos, offset_hoverd, scale_hoverd, color_hoverd, depth, currentAnimRect]() { 
+			const RECT* pSrcRect = &currentAnimRect;
+			//Renderer::GetInstance().RenderImageUIPosition(texhoverd, pos, offset_hoverd, scale_hoverd, color_hoverd, depth, pSrcRect);
+			Renderer::GetInstance().RenderImageUIPosition(texhoverd, pos, offset_hoverd, scale_hoverd, color_hoverd, depth, nullptr);
+			});
 		break;
 	case Button::ButtonState::Pressed:
-		renderer.UI_RENDER_FUNCTIONS().emplace_back([texpressed, pos, offset_pressed, scale_pressed, color_pressed, depth]() { Renderer::GetInstance().RenderImageUIPosition(texpressed, pos, offset_pressed, scale_pressed, color_pressed, depth); });
+		renderer.UI_RENDER_FUNCTIONS().emplace_back([texpressed, pos, offset_pressed, scale_pressed, color_pressed, depth, currentAnimRect]() {
+			const RECT* pSrcRect = &currentAnimRect;
+			//Renderer::GetInstance().RenderImageUIPosition(texpressed, pos, offset_pressed, scale_pressed, color_pressed, depth, pSrcRect);
+			Renderer::GetInstance().RenderImageUIPosition(texpressed, pos, offset_pressed, scale_pressed, color_pressed, depth, nullptr);
+			});
 		break;
 	case Button::ButtonState::Clicked:
-		renderer.UI_RENDER_FUNCTIONS().emplace_back([texclicked, pos, offset_clicked, scale_clicked, color_clicked, depth]() { Renderer::GetInstance().RenderImageUIPosition(texclicked, pos, offset_clicked, scale_clicked, color_clicked, depth); });
+		renderer.UI_RENDER_FUNCTIONS().emplace_back([texclicked, pos, offset_clicked, scale_clicked, color_clicked, depth, currentAnimRect]() { 
+			const RECT* pSrcRect = &currentAnimRect;
+			//Renderer::GetInstance().RenderImageUIPosition(texclicked, pos, offset_clicked, scale_clicked, color_clicked, depth, pSrcRect);
+			Renderer::GetInstance().RenderImageUIPosition(texclicked, pos, offset_clicked, scale_clicked, color_clicked, depth, nullptr);
+			});
 		break;
 	}
 }

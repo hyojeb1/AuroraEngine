@@ -64,3 +64,8 @@ void Panel::UpdateRect()
 		(LONG)(windowPos.y + offset.y)
 	};
 }
+
+void Panel::Update()
+{
+	UIBase::Update();
+}
