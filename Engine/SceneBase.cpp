@@ -679,6 +679,17 @@ nlohmann::json SceneBase::BaseSerialize()
 	for (size_t i = 0; i < m_UIList.size(); ++i) {
 		if (!m_UIList[i]) continue;
 		nlohmann::json uiData = m_UIList[i]->Serialize();
+		int parentIdx = -1;
+		UIBase* parent = m_UIList[i]->GetParent();
+		if (parent) {
+			for (size_t j = 0; j < m_UIList.size(); ++j) {
+				if (m_UIList[j].get() == parent) {
+					parentIdx = static_cast<int>(j);
+					break;
+				}
+			}
+		}
+		uiData["parentIdx"] = parentIdx;
 		uiArray.push_back(uiData);
 	}
 
@@ -754,22 +765,21 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 	m_UIList.clear();
 	if (jsonData.contains("UI")) {
 		const nlohmann::json& uiArray = jsonData["UI"];
-
-		// 객체 생성 및 데이터 채우기
 		for (const auto& uiItem : uiArray) {
 			string type = uiItem["type"].get<string>();
-
-			// ★ 핵심: UIBase의 정적 팩토리 함수 사용
-			// (UIBase::CreateFactory 구현이 선행되어야 함)
 			UIBase* newUI = UIBase::CreateFactory(type);
 
 			if (newUI) {
 				newUI->Deserialize(uiItem);
 				m_UIList.push_back(unique_ptr<UIBase>(newUI));
-			} else {
-				// 타입을 모르면 nullptr라도 넣어서 인덱스 밀림 방지 (혹은 에러 로그)
-				// 여기서는 안전하게 건너뛰되, 인덱스 의존성이 있으므로 주의 필요
-				// 보통은 팩토리가 항상 성공한다고 가정
+			} else {}
+		}
+		for (size_t i = 0; i < uiArray.size(); ++i) {			
+			if (i >= m_UIList.size()) break;
+			if (m_UIList[i] == nullptr) continue;
+			int parentIdx = uiArray[i].value("parentIdx", -1);
+			if (parentIdx >= 0 && parentIdx < static_cast<int>(m_UIList.size())) {
+				m_UIList[i]->SetParent(m_UIList[parentIdx].get());
 			}
 		}
 	}
