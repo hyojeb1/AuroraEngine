@@ -20,20 +20,58 @@
                 -107374176.0,
                 -107374176.0
             ],
-            "name": "New Button",
+            "depth": 0.8899999856948853,
+            "name": "New Button1",
             "parentIdx": -1,
-            "pathClicked": "",
-            "pathHover": "",
-            "pathPressed": "",
+            "pathClicked": "UI_Clicked.png",
+            "pathHover": "UI_Hovered.png",
+            "pathPressed": "UI_Pressed.png",
             "pos": [
                 0.27000001072883606,
-                0.41999998688697815
+                0.11999999731779099
             ],
             "scale": 0.3100000023841858,
             "scaleClicked": 1.0,
             "scaleHover": 1.0,
             "scalePressed": 0.949999988079071,
             "textureIdle": "",
+            "type": "Button"
+        },
+        {
+            "active": true,
+            "colorClicked": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "colorHover": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421,
+                1.0
+            ],
+            "colorPressed": [
+                0.699999988079071,
+                0.699999988079071,
+                0.699999988079071,
+                1.0
+            ],
+            "depth": 0.7300000190734863,
+            "name": "New Button",
+            "parentIdx": -1,
+            "pathClicked": "UI_Clicked.png",
+            "pathHover": "UI_Hovered.png",
+            "pathPressed": "UI_Pressed.png",
+            "pos": [
+                0.20999999344348907,
+                0.0
+            ],
+            "scale": 1.0,
+            "scaleClicked": 1.0,
+            "scaleHover": 1.0,
+            "scalePressed": 0.949999988079071,
+            "textureIdle": "UI_IDLE.png",
             "type": "Button"
         }
     ],

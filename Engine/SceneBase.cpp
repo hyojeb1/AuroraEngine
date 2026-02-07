@@ -607,6 +607,9 @@ void SceneBase::RenderImGui_UI()
 
 		float scale = m_selectedUI->GetScale();
 		if (ImGui::DragFloat("Scale", &scale, 0.01f, 0.0f, 10.0f)) m_selectedUI->SetScale(scale);
+		
+		float depth = m_selectedUI->GetDepth();
+		if (ImGui::DragFloat("Depth", &depth, 0.01f, 0.0f, 1.0f)) m_selectedUI->SetDepth(depth);
 
 		ImGui::Separator();
 
@@ -941,6 +944,7 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 			}
 		}
 	}
+	BindUIActions();
 
 	Deserialize(jsonData);
 

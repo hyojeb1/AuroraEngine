@@ -10,7 +10,6 @@ using namespace DirectX;
 Button::Button()
 {
 	SetTextureAndOffset("UI_IDLE.png", "UI_Hovered.png", "UI_Pressed.png", "UI_Clicked.png");
-	m_scaleIdle = 0.1f;
 }
 
 void Button::UpdateRect()

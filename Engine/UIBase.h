@@ -99,6 +99,6 @@ protected:
 	float m_depth = 0.0f;
 
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_textureIdle = {};
-	std::string m_pathIdle;
+	std::string m_pathIdle = "UI_IDLE.png";
 	//DirectX::XMFLOAT2 m_offsetIdle = { 0.f, 0.f };
 };

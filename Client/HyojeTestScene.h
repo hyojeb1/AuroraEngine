@@ -13,9 +13,12 @@ public:
 	HyojeTestScene(HyojeTestScene&&) = default;
 	HyojeTestScene& operator=(HyojeTestScene&&) = default;
 
+
 protected:
 	virtual void Initialize() override;
 	virtual void Update() override;
 	virtual void Finalize() override;
+
+	void BindUIActions() override;
 };
 /// HyojeTestScene.h의 끝

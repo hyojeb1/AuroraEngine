@@ -1,4 +1,4 @@
-/// HyojeTestScene.cpp의 시작
+///bof  HyojeTestScene.cpp
 #include "stdafx.h"
 #include "HyojeTestScene.h"
 
@@ -14,6 +14,10 @@
 #include "RNG.h"
 
 #include "Shared/Config/Option.h"
+
+#include "Button.h"
+#include "Panel.h"
+#include "Slider.h"
 
 using namespace std;
 using namespace DirectX;
@@ -57,4 +61,56 @@ void HyojeTestScene::Update()
 
 void HyojeTestScene::Finalize() {
 	SoundManager::GetInstance().Stop_ChannelGroup();
+}
+
+
+void  HyojeTestScene::BindUIActions()
+{
+    Panel* optionPanel = nullptr;
+    for (const auto& uiPtr : m_UIList) {
+        if (auto* panel = dynamic_cast<Panel*>(uiPtr.get())) {
+            if (panel->GetName() == "OptionPanel") {
+                optionPanel = panel;
+                break;
+            }
+        }
+    }
+
+    for (auto& uiPtr : m_UIList) {
+        // -------------------------------------------------------
+        // 1. Button bindings
+        // -------------------------------------------------------
+        if (auto* btn = dynamic_cast<Button*>(uiPtr.get())) {
+            std::string key = btn->GetActionKey();
+
+            if (key == "StartGame") {
+                btn->SetOnClick([]() { SceneManager::GetInstance().ChangeScene("TaehyeonTestScene"); });
+            } else if (key == "QuitGame") {
+                btn->SetOnClick([]() { PostQuitMessage(0); });
+            } else if (key == "OpenOption") {
+                if (optionPanel) btn->SetOnClick([optionPanel]() { optionPanel->SetActive(true); });
+            } else if (key == "CloseOption") {
+                if (optionPanel) btn->SetOnClick([optionPanel]() { optionPanel->SetActive(false); });
+            }
+        }
+
+        // -------------------------------------------------------
+        // 2. Slider bindings
+        // -------------------------------------------------------
+        else if (auto* slider = dynamic_cast<Slider*>(uiPtr.get())) {
+            std::string key = slider->GetActionKey();
+
+            if (key == "MasterVolume") {
+                slider->AddListener([](float val) {
+                    SoundManager::GetInstance().SetVolume_Main(val);
+                });
+                slider->NotifyValueChanged();
+            } else if (key == "Gamma") {
+                slider->AddListener([](float val) {
+                    SceneBase::SetGammaIntensity(val);
+                });
+                slider->NotifyValueChanged();
+            }
+        }
+    }
 }

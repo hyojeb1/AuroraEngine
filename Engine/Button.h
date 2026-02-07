@@ -21,9 +21,9 @@ class Button : public UIBase
 
 	// --- [직렬화 변수들] ---
 	// 1. 텍스처 경로
-	std::string m_pathHover = "";
-	std::string m_pathPressed = "";
-	std::string m_pathClicked = "";
+	std::string m_pathHover = "UI_Hovered.png";
+	std::string m_pathPressed = "UI_Pressed.png";
+	std::string m_pathClicked = "UI_Clicked.png";
 
 	// 2. 스케일 (기본 Scale에 곱해지는 배율)
 	float m_scaleHover = 1.0f;
