@@ -664,7 +664,8 @@ void Renderer::RenderXTKSpriteBatch()
 	m_deviceContext->VSGetConstantBuffers(0, cbSaveCount, savedVSCB.data());
 
 	// XTK SpriteBatch 렌더링
-	m_spriteBatch->Begin(SpriteSortMode_Deferred, nullptr, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
+	//m_spriteBatch->Begin(SpriteSortMode_Deferred, nullptr, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
+	m_spriteBatch->Begin(SpriteSortMode_BackToFront, nullptr, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
 	for (function<void()>& uiRenderFunction : m_UIRenderFunctions) uiRenderFunction();
 	m_UIRenderFunctions.clear();
 	m_spriteBatch->End();
