@@ -663,9 +663,11 @@ void Renderer::RenderXTKSpriteBatch()
 	m_deviceContext->PSGetConstantBuffers(0, cbSaveCount, savedPSCB.data());
 	m_deviceContext->VSGetConstantBuffers(0, cbSaveCount, savedVSCB.data());
 
-	// XTK SpriteBatch 렌더링
-	//m_spriteBatch->Begin(SpriteSortMode_Deferred, nullptr, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
-	m_spriteBatch->Begin(SpriteSortMode_BackToFront, nullptr, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
+	// XTK SpriteBatch 렌더링 
+	// depth로 그리게끔 : SpriteSortMode_Deferred -> SpriteSortMode_BackToFront
+	// 알파 블랜딩 적용하게끔 : auto* blend 
+	auto* blend = ResourceManager::GetInstance().GetBlendState(BlendState::AlphaBlend).Get();
+	m_spriteBatch->Begin(SpriteSortMode_BackToFront, blend, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
 	for (function<void()>& uiRenderFunction : m_UIRenderFunctions) uiRenderFunction();
 	m_UIRenderFunctions.clear();
 	m_spriteBatch->End();
