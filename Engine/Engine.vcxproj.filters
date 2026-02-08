@@ -127,6 +127,9 @@
     <ClCompile Include="Slider.cpp">
       <Filter>UI</Filter>
     </ClCompile>
+    <ClCompile Include="UITextBase.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -224,6 +227,9 @@
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="Slider.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UITextBase.h">
       <Filter>UI</Filter>
     </ClInclude>
   </ItemGroup>

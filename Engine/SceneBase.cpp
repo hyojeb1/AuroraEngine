@@ -11,9 +11,11 @@
 #include "ModelComponent.h"
 #include "InputManager.h"
 #include "SceneManager.h"
+
 #include "Button.h"
 #include "Slider.h"
 #include "Panel.h"
+#include "UITextBase.h"
 
 using namespace std;
 using namespace DirectX;
@@ -541,6 +543,8 @@ void SceneBase::RenderImGui_UI()
 	if (ImGui::Button("Add Button")) CreateUI<Button>()->SetName("New Button");
 	ImGui::SameLine();
 	if (ImGui::Button("Add Slider")) CreateUI<Slider>()->SetName("New Slider");
+	ImGui::SameLine();
+	if (ImGui::Button("Add Text")) CreateUI<UITextBase>()->SetName("New Text");
 
 	ImGui::Separator();
 
@@ -696,6 +700,28 @@ void SceneBase::RenderImGui_UI()
 				ImGui::TreePop();
 			}
 
+		}
+		else if (auto* text = dynamic_cast<UITextBase*>(m_selectedUI)) {
+			ImGui::TextColored(ImVec4(0.6f, 1.0f, 1.0f, 1.0f), "TYPE: TEXT");
+			ImGui::Separator();
+
+			static char textBuf[256];
+			strcpy_s(textBuf, text->GetText().c_str());
+			if (ImGui::InputText("Text", textBuf, sizeof(textBuf))) {
+				text->SetText(textBuf);
+			}
+
+			static char fontBuf[128];
+			strcpy_s(fontBuf, text->GetFontName().c_str());
+			if (ImGui::InputText("Font", fontBuf, sizeof(fontBuf))) {
+				text->SetFontName(fontBuf);
+			}
+
+			XMFLOAT4 color;
+			XMStoreFloat4(&color, text->GetColorIdle());
+			if (ImGui::ColorEdit4("Color", &color.x)) {
+				text->SetColorIdle(XMLoadFloat4(&color));
+			}
 		}
 		else if (auto* slider = dynamic_cast<Slider*>(m_selectedUI)) {
 			ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "TYPE: SLIDER");
