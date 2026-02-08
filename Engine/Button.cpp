@@ -179,10 +179,10 @@ void Button::Deserialize(const nlohmann::json& jsonData)
 {
 	UIBase::Deserialize(jsonData);
 
-	std::string idle = jsonData.value("textureIdle", "");
-	std::string hover = jsonData.value("textureHover", "");
-	std::string pressed = jsonData.value("texturePressed", "");
-	std::string clicked = jsonData.value("textureClicked", "");
+	std::string idle = jsonData.value("pathIdle", "");
+	std::string hover = jsonData.value("pathHover", "");  
+	std::string pressed = jsonData.value("pathPressed", ""); 
+	std::string clicked = jsonData.value("pathClicked", ""); 
 
 	if (!idle.empty()) {
 		if (clicked.empty() || clicked == idle) SetTextureAndOffset(idle, hover, pressed);

@@ -30,7 +30,7 @@ json UIBase::Serialize() const
 
     data["depth"] = m_depth;
 
-    data["textureIdle"] = m_pathIdle;
+    data["pathIdle"] = m_pathIdle;
 
     // Animation
     data["animRows"] = m_rows;
@@ -53,7 +53,7 @@ void UIBase::Deserialize(const json& data)
     }
     if (data.contains("scale")) m_scale = data["scale"];
     if (data.contains("depth")) m_depth = data["depth"];
-    if (data.contains("textureIdle")) m_pathIdle = data.value("textureIdle", "");
+    if (data.contains("pathIdle")) m_pathIdle = data.value("textureIdle", "");
 
     // Animation Data
     if (data.contains("animRows")) m_rows = data["animRows"];

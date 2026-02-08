@@ -26,20 +26,20 @@
                 1.0
             ],
             "depth": 0.0,
-            "name": "AnimationTest",
+            "name": "New Button",
             "parentIdx": -1,
             "pathClicked": "UI_Clicked.png",
             "pathHover": "UI_Hovered.png",
+            "pathIdle": "UI_IDLE.png",
             "pathPressed": "UI_Pressed.png",
             "pos": [
-                0.38999998569488525,
-                0.47999998927116394
+                0.3700000047683716,
+                0.5199999809265137
             ],
-            "scale": 1.4299999475479126,
+            "scale": 1.0,
             "scaleClicked": 1.0,
             "scaleHover": 1.0,
             "scalePressed": 0.949999988079071,
-            "textureIdle": "UI_IDLE.png",
             "type": "Button"
         }
     ],
