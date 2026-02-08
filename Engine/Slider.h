@@ -18,6 +18,7 @@ public:
 
 	void SetHandleTexture(const std::string& tex);
 	//void SetFillTexture(const std::string& tex) { m_fillTexture = ResourceManager::GetInstance().GetTextureAndOffset(tex); }
+	void SetHandleTextures(const std::string& idle, const std::string& hover, const std::string& pressed);
 	void SetHandleTextureJSON(const std::string& path);
 
 	void AddListener(std::function<void(float)>);
