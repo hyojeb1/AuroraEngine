@@ -18,8 +18,13 @@ class HyojeTestScene : public SceneBase
 {
 private:
 	int m_player_hp = kPlayerHP;
-	bool m_overlay = true;
+	
 	EHyojeState m_currentState = EHyojeState::Title;
+
+	class Panel* optionPanel = nullptr;
+	class Panel* titlePanel = nullptr;
+	class Panel* resultPanel = nullptr;
+
 
 public:
 	void ChangeState(EHyojeState newState);

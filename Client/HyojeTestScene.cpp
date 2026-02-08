@@ -3,7 +3,6 @@
 #include "HyojeTestScene.h"
 
 #include "InputManager.h"
-#include "SceneManager.h"
 #include "TimeManager.h"
 #include "SoundManager.h"
 
@@ -26,6 +25,7 @@ REGISTER_TYPE(HyojeTestScene)
 
 void HyojeTestScene::Initialize()
 {
+	ChangeState(EHyojeState::Title);
 }
 
 
@@ -54,6 +54,8 @@ void HyojeTestScene::OnHyojeStateEnter(EHyojeState type)
 	case EHyojeState::Title:
 		cout << "[HyojeTestScene] Title State Enter" << endl;
 		ShowCursor(TRUE);
+		if (titlePanel) titlePanel->SetActive(true);
+
 		break;
 
 	case EHyojeState::Main:
@@ -67,6 +69,7 @@ void HyojeTestScene::OnHyojeStateEnter(EHyojeState type)
 	case EHyojeState::Result:
 		cout << "[HyojeTestScene] Game Over / Result Show" << endl;
 		ShowCursor(TRUE);
+		if (resultPanel) resultPanel->SetActive(true);
 		break;
 	}
 }
@@ -112,7 +115,8 @@ void HyojeTestScene::OnHyojeStateExit(EHyojeState type)
 	switch (type) {
 	case EHyojeState::Title:
 		// [Title 정리]
-		// 예: 타이틀 UI 숨기기
+		if(titlePanel) titlePanel->SetActive(false);
+
 		break;
 
 	case EHyojeState::Main:
@@ -122,7 +126,8 @@ void HyojeTestScene::OnHyojeStateExit(EHyojeState type)
 
 	case EHyojeState::Result:
 		// [Result 정리]
-		// 예: 결과 UI 숨기기
+		if (resultPanel) resultPanel->SetActive(false);
+
 		break;
 	}
 }
@@ -132,12 +137,22 @@ void HyojeTestScene::OnHyojeStateExit(EHyojeState type)
 
 void  HyojeTestScene::BindUIActions()
 {
-    Panel* optionPanel = nullptr;
+    //Panel* optionPanel = nullptr;
+    //Panel* titlePanel = nullptr;
+    //Panel* resultPanel = nullptr;
 
     for (const auto& uiPtr : m_UIList) {
         if (auto* panel = dynamic_cast<Panel*>(uiPtr.get())) {
-            if (panel->GetName() == "Option") {
+            if (panel->GetName() == "option") {
                 optionPanel = panel;
+                break;
+            }
+            else if (panel->GetName() == "title") {
+				titlePanel = panel;
+                break;
+            }
+            else if (panel->GetName() == "result") {
+				resultPanel = panel;
                 break;
             }
         }
@@ -151,14 +166,14 @@ void  HyojeTestScene::BindUIActions()
         if (auto* btn = dynamic_cast<Button*>(uiPtr.get())) {
             std::string key = btn->GetActionKey();
 
-            if (key == "StartGame") {
-                btn->SetOnClick([]() { SceneManager::GetInstance().ChangeScene("TaehyeonTestScene"); });
-            } else if (key == "QuitGame") {
+            if (key == "start_game") {
+				btn->SetOnClick([this]() { ChangeState(EHyojeState::Main); });
+            } else if (key == "quit_game") {
                 btn->SetOnClick([]() { PostQuitMessage(0); });
-            } else if (key == "OpenOption") {
-                if (optionPanel) btn->SetOnClick([optionPanel]() { optionPanel->SetActive(true); });
-            } else if (key == "CloseOption") {
-                if (optionPanel) btn->SetOnClick([optionPanel]() { optionPanel->SetActive(false); });
+            } else if (key == "open_option") {
+                if (optionPanel) btn->SetOnClick([this]() { optionPanel->SetActive(true); });
+            } else if (key == "close_option") {
+                if (optionPanel) btn->SetOnClick([this]() { optionPanel->SetActive(false); });
             }
         }
 
