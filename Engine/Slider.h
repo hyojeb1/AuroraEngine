@@ -17,7 +17,6 @@ public:
 
 
 	void SetHandleTexture(const std::string& tex);
-	//void SetFillTexture(const std::string& tex) { m_fillTexture = ResourceManager::GetInstance().GetTextureAndOffset(tex); }
 	void SetHandleTextures(const std::string& idle, const std::string& hover, const std::string& pressed);
 	void SetHandleTextureJSON(const std::string& path);
 
@@ -32,9 +31,21 @@ public:
 	nlohmann::json Serialize() const override;
 	void Deserialize(const nlohmann::json& jsonData) override;
 
+public:
+	std::string m_handlePathIdle = "UI_IDLE.png";
+	std::string m_handlePathHover = "UI_IDLE.png";
+	std::string m_handlePathPressed = "UI_IDLE.png";
 
 private:
+	enum class HandleState
+	{
+		Idle,
+		Hover,
+		Pressed
+	};
+
 	void UpdateRect() override;
+	void UpdateHandleRect();
 
 	float m_min = 0.0f;
 	float m_max = 1.0f;
@@ -42,9 +53,12 @@ private:
 
 	bool m_dragging = false;
 
-	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_handleTex{};
-	//std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_fillTexture{};
-	std::string m_handleTexturePath;
+	HandleState m_handleState = HandleState::Idle;
+	RECT m_handleRect = {};
+
+	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_handleTexIdle{};
+	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_handleTexHover{};
+	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_handleTexPressed{};
 
 	std::vector<std::function<void(float)>> listeners;
 	std::string m_onValueChangedActionKey = "";

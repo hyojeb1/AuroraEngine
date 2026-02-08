@@ -667,7 +667,7 @@ void Renderer::RenderXTKSpriteBatch()
 	// depth로 그리게끔 : SpriteSortMode_Deferred -> SpriteSortMode_BackToFront
 	// 알파 블랜딩 적용하게끔 : auto* blend 
 	auto* blend = ResourceManager::GetInstance().GetBlendState(BlendState::AlphaBlend).Get();
-	m_spriteBatch->Begin(SpriteSortMode_BackToFront, blend, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
+	m_spriteBatch->Begin(SpriteSortMode_FrontToBack, blend, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
 	for (function<void()>& uiRenderFunction : m_UIRenderFunctions) uiRenderFunction();
 	m_UIRenderFunctions.clear();
 	m_spriteBatch->End();

@@ -720,8 +720,12 @@ void SceneBase::RenderImGui_UI()
 				slider->SetValue(val);
 			}
 
-			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Texture ");
-			static char hTexBuf[128]; 
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Handle Textures");
+			bool handleChanged = false;
+			handleChanged |= TexPathInput("Handle Idle", slider->m_handlePathIdle, slider->m_handlePathIdle);
+			handleChanged |= TexPathInput("Handle Hover", slider->m_handlePathHover, slider->m_handlePathHover);
+			handleChanged |= TexPathInput("Handle Pressed", slider->m_handlePathPressed, slider->m_handlePathPressed);
+			if (handleChanged) slider->SetHandleTextures(slider->m_handlePathIdle, slider->m_handlePathHover, slider->m_handlePathPressed);
 		}
 
 		ImGui::Separator();

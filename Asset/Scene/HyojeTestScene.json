@@ -30,7 +30,7 @@
             "parentIdx": -1,
             "pathClicked": "UI_Clicked.png",
             "pathHover": "UI_Hovered.png",
-            "pathIdle": "UI_IDLE.png",
+            "pathIdle": "",
             "pathPressed": "UI_Pressed.png",
             "pos": [
                 0.3700000047683716,
@@ -41,6 +41,31 @@
             "scaleHover": 1.0,
             "scalePressed": 0.949999988079071,
             "type": "Button"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "depth": 0.0,
+            "handlePathHover": "UI_Hovered.png",
+            "handlePathIdle": "UI_IDLE.png",
+            "handlePathPressed": "UI_Pressed.png",
+            "max": 1.0,
+            "min": 0.0,
+            "name": "New Slider",
+            "parentIdx": -1,
+            "pathIdle": "UI_IDLE.png",
+            "pos": [
+                0.2800000011920929,
+                0.18000000715255737
+            ],
+            "scale": 1.0,
+            "textureHandle": "UI_IDLE.png",
+            "type": "Slider",
+            "value": 0.998046875
         }
     ],
     "environmentMapFileName": "Skybox0.dds",
