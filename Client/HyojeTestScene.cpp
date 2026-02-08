@@ -115,17 +115,20 @@ void HyojeTestScene::OnHyojeStateExit(EHyojeState type)
 	switch (type) {
 	case EHyojeState::Title:
 		// [Title 정리]
+		cout << "[HyojeTestScene] OnHyojeStateExit(Title)" << endl;
 		if(titlePanel) titlePanel->SetActive(false);
 
 		break;
 
 	case EHyojeState::Main:
 		// [Main 정리]
+		cout << "[HyojeTestScene] OnHyojeStateExit(Main)" << endl;
 		SoundManager::GetInstance().Stop_ChannelGroup();
 		break;
 
 	case EHyojeState::Result:
 		// [Result 정리]
+		cout << "[HyojeTestScene] OnHyojeStateExit(Result)" << endl;
 		if (resultPanel) resultPanel->SetActive(false);
 
 		break;
@@ -143,18 +146,9 @@ void  HyojeTestScene::BindUIActions()
 
     for (const auto& uiPtr : m_UIList) {
         if (auto* panel = dynamic_cast<Panel*>(uiPtr.get())) {
-            if (panel->GetName() == "option") {
-                optionPanel = panel;
-                break;
-            }
-            else if (panel->GetName() == "title") {
-				titlePanel = panel;
-                break;
-            }
-            else if (panel->GetName() == "result") {
-				resultPanel = panel;
-                break;
-            }
+			if (panel->GetName() == "option") optionPanel = panel;
+			else if (panel->GetName() == "title") titlePanel = panel;
+			else if (panel->GetName() == "result") resultPanel = panel;
         }
     }
 

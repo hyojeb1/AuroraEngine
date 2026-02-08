@@ -336,7 +336,7 @@
             "type": "Button"
         },
         {
-            "active": true,
+            "active": false,
             "animAutoPlay": true,
             "animCols": 1,
             "animFPS": 8.0,
@@ -671,9 +671,9 @@
             ],
             "name": "Enemy",
             "position": [
+                -10.899999618530273,
                 0.0,
-                0.0,
-                0.0,
+                14.050000190734863,
                 0.0
             ],
             "rotation": [
