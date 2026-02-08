@@ -7,65 +7,43 @@
             "animFPS": 8.0,
             "animLoop": true,
             "animRows": 1,
-            "colorClicked": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            ],
-            "colorHover": [
-                0.8999999761581421,
-                0.8999999761581421,
-                0.8999999761581421,
-                1.0
-            ],
-            "colorPressed": [
-                0.699999988079071,
-                0.699999988079071,
-                0.699999988079071,
-                1.0
-            ],
             "depth": 0.0,
-            "name": "New Button",
-            "parentIdx": -1,
-            "pathClicked": "UI_Clicked.png",
-            "pathHover": "UI_Hovered.png",
-            "pathIdle": "",
-            "pathPressed": "UI_Pressed.png",
-            "pos": [
-                0.3700000047683716,
-                0.5199999809265137
+            "handleColorHover": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421,
+                1.0
             ],
-            "scale": 1.0,
-            "scaleClicked": 1.0,
-            "scaleHover": 1.0,
-            "scalePressed": 0.949999988079071,
-            "type": "Button"
-        },
-        {
-            "active": true,
-            "animAutoPlay": true,
-            "animCols": 1,
-            "animFPS": 8.0,
-            "animLoop": true,
-            "animRows": 1,
-            "depth": 0.0,
-            "handlePathHover": "UI_Hovered.png",
-            "handlePathIdle": "UI_IDLE.png",
-            "handlePathPressed": "UI_Pressed.png",
-            "max": 1.0,
+            "handleColorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "handleColorPressed": [
+                0.699999988079071,
+                0.699999988079071,
+                0.699999988079071,
+                1.0
+            ],
+            "handlePathHover": "UI_Slider.png",
+            "handlePathIdle": "UI_Slider.png",
+            "handlePathPressed": "UI_Slider.png",
+            "handleScaleHover": 0.7699999809265137,
+            "handleScaleIdle": 1.0,
+            "handleScalePressed": 1.0,
+            "max": 1.2999999523162842,
             "min": 0.0,
             "name": "New Slider",
             "parentIdx": -1,
-            "pathIdle": "UI_IDLE.png",
+            "pathIdle": "",
             "pos": [
-                0.2800000011920929,
-                0.18000000715255737
+                0.38999998569488525,
+                0.20999999344348907
             ],
             "scale": 1.0,
-            "textureHandle": "UI_IDLE.png",
             "type": "Slider",
-            "value": 0.998046875
+            "value": 0.7022987604141235
         }
     ],
     "environmentMapFileName": "Skybox0.dds",

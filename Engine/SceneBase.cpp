@@ -698,7 +698,8 @@ void SceneBase::RenderImGui_UI()
 
 		}
 		else if (auto* slider = dynamic_cast<Slider*>(m_selectedUI)) {
-			ImGui::Text("[Slider Properties]");
+			ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "TYPE: SLIDER");
+			ImGui::Separator();
 
 			static char keyBuf[64];
 			strcpy_s(keyBuf, slider->GetActionKey().c_str());
@@ -720,12 +721,47 @@ void SceneBase::RenderImGui_UI()
 				slider->SetValue(val);
 			}
 
-			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Handle Textures");
-			bool handleChanged = false;
-			handleChanged |= TexPathInput("Handle Idle", slider->m_handlePathIdle, slider->m_handlePathIdle);
-			handleChanged |= TexPathInput("Handle Hover", slider->m_handlePathHover, slider->m_handlePathHover);
-			handleChanged |= TexPathInput("Handle Pressed", slider->m_handlePathPressed, slider->m_handlePathPressed);
-			if (handleChanged) slider->SetHandleTextures(slider->m_handlePathIdle, slider->m_handlePathHover, slider->m_handlePathPressed);
+			ImGui::Separator();
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "[ Handle Settings ]");
+
+			if (ImGui::TreeNode("Handle: Idle")) {
+				bool pathChanged = TexPathInput("Path##H_Idle", slider->m_handlePathIdle, slider->m_handlePathIdle);
+
+				DirectX::XMFLOAT4 c;
+				DirectX::XMStoreFloat4(&c, slider->m_handleColorIdle);
+				if (ImGui::ColorEdit4("Color##H_Idle", &c.x)) slider->m_handleColorIdle = DirectX::XMLoadFloat4(&c);
+
+				ImGui::DragFloat("Scale##H_Idle", &slider->m_handleScaleIdle, 0.01f, 0.1f, 3.0f);
+
+				if (pathChanged) slider->SetHandleTextures(slider->m_handlePathIdle, slider->m_handlePathHover, slider->m_handlePathPressed);
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNode("Handle: Hover")) {
+				bool pathChanged = TexPathInput("Path##H_Hover", slider->m_handlePathHover, slider->m_handlePathHover);
+
+				DirectX::XMFLOAT4 c;
+				DirectX::XMStoreFloat4(&c, slider->m_handleColorHover);
+				if (ImGui::ColorEdit4("Color##H_Hover", &c.x)) slider->m_handleColorHover = DirectX::XMLoadFloat4(&c);
+
+				ImGui::DragFloat("Scale##H_Hover", &slider->m_handleScaleHover, 0.01f, 0.1f, 3.0f);
+
+				if (pathChanged) slider->SetHandleTextures(slider->m_handlePathIdle, slider->m_handlePathHover, slider->m_handlePathPressed);
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNode("Handle: Pressed")) {
+				bool pathChanged = TexPathInput("Path##H_Pressed", slider->m_handlePathPressed, slider->m_handlePathPressed);
+
+				DirectX::XMFLOAT4 c;
+				DirectX::XMStoreFloat4(&c, slider->m_handleColorPressed);
+				if (ImGui::ColorEdit4("Color##H_Pressed", &c.x)) slider->m_handleColorPressed = DirectX::XMLoadFloat4(&c);
+
+				ImGui::DragFloat("Scale##H_Pressed", &slider->m_handleScalePressed, 0.01f, 0.1f, 3.0f);
+
+				if (pathChanged) slider->SetHandleTextures(slider->m_handlePathIdle, slider->m_handlePathHover, slider->m_handlePathPressed);
+				ImGui::TreePop();
+			}
 		}
 
 		ImGui::Separator();

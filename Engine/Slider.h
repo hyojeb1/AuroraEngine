@@ -36,6 +36,14 @@ public:
 	std::string m_handlePathHover = "UI_IDLE.png";
 	std::string m_handlePathPressed = "UI_IDLE.png";
 
+	float m_handleScaleIdle = 1.0f;
+	float m_handleScaleHover = 1.0f;
+	float m_handleScalePressed = 1.0f;
+
+	DirectX::XMVECTOR m_handleColorIdle = { 1.0f, 1.0f, 1.0f, 1.0f };
+	DirectX::XMVECTOR m_handleColorHover = { 0.9f, 0.9f, 0.9f, 1.0f };
+	DirectX::XMVECTOR m_handleColorPressed = { 0.7f, 0.7f, 0.7f, 1.0f };
+
 private:
 	enum class HandleState
 	{

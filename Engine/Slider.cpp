@@ -13,6 +13,7 @@ Slider::Slider()
 
 void Slider::SetRange(float min, float max)
 {
+	if (min > max) std::swap(min, max);
 	m_min = min;
 	m_max = max;
 	m_value = std::clamp(m_value, m_min, m_max);
@@ -21,10 +22,14 @@ void Slider::SetRange(float min, float max)
 
 void Slider::SetValue(float newValue)
 {
-	if (m_value == newValue)
+	float safeMin = std::min(m_min, m_max);
+	float safeMax = std::max(m_min, m_max);
+	float clampedValue = std::clamp(newValue, safeMin, safeMax);
+
+	if (m_value == clampedValue)
 		return;
 
-	m_value = newValue;
+	m_value = clampedValue;
 	UpdateHandleRect();
 	NotifyValueChanged();
 }
@@ -69,6 +74,7 @@ void Slider::RenderUI(Renderer& renderer)
 	if (!IsActuallyActive())
 		return;
 
+	// --- [Background] ---
 	auto barTex = m_textureIdle.first;
 	auto barPos = GetWorldPosition();
 	auto barOff = m_textureIdle.second;
@@ -84,7 +90,8 @@ void Slider::RenderUI(Renderer& renderer)
 			);
 		});
 
-	float t = (m_value - m_min) / (m_max - m_min);
+	float range = m_max - m_min;
+	float t = (range != 0.0f) ? (m_value - m_min) / range : 0.0f;
 	t = std::clamp(t, 0.0f, 1.0f);
 
 	float handleX = m_UIRect.left + t * (m_UIRect.right - m_UIRect.left);
@@ -92,18 +99,42 @@ void Slider::RenderUI(Renderer& renderer)
 
 	DirectX::XMFLOAT2 handlePos = Renderer::GetInstance().ToUIPosition({ handleX, handleY });
 
-	const auto& handlePair =
-		(m_handleState == HandleState::Pressed) ? m_handleTexPressed :
-		(m_handleState == HandleState::Hover) ? m_handleTexHover :
-		m_handleTexIdle;
-	auto handleTex = handlePair.first;
-	auto handleOff = handlePair.second;
+	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> currentTexPair;
+	float currentHandleScaleMult = 1.0f;
+	DirectX::XMVECTOR currentHandleColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+	switch (m_handleState)
+	{
+	case HandleState::Pressed:
+		currentTexPair = m_handleTexPressed;
+		currentHandleScaleMult = m_handleScalePressed;
+		currentHandleColor = m_handleColorPressed;
+		break;
+	case HandleState::Hover:
+		currentTexPair = m_handleTexHover;
+		currentHandleScaleMult = m_handleScaleHover;
+		currentHandleColor = m_handleColorHover;
+		break;
+	case HandleState::Idle:
+	default:
+		currentTexPair = m_handleTexIdle;
+		currentHandleScaleMult = m_handleScaleIdle;
+		currentHandleColor = m_handleColorIdle;
+		break;
+	}
+
+	if (!currentTexPair.first) currentTexPair = m_handleTexIdle;
+
+	auto handleTex = currentTexPair.first;
+	auto handleOff = currentTexPair.second;
+
+	float finalScale = m_scale * currentHandleScaleMult;
 
 	renderer.UI_RENDER_FUNCTIONS().emplace_back(
-		[handleTex, handlePos, handleOff, scale, color, depth]()
+		[handleTex, handlePos, handleOff, finalScale, currentHandleColor, depth]()
 		{
 			Renderer::GetInstance().RenderImageUIPosition(
-				handleTex, handlePos, handleOff, scale, color, depth + 0.01f
+				handleTex, handlePos, handleOff, finalScale, currentHandleColor, depth + 0.01f
 			);
 		});
 
@@ -182,11 +213,8 @@ void Slider::UpdateHandleRect()
 	float handleY = (m_UIRect.top + m_UIRect.bottom) * 0.5f;
 
 	DirectX::XMFLOAT2 offset = m_handleTexIdle.second;
-	offset.x = std::max({ offset.x, m_handleTexHover.second.x, m_handleTexPressed.second.x });
-	offset.y = std::max({ offset.y, m_handleTexHover.second.y, m_handleTexPressed.second.y });
-
-	offset.x *= m_scale;
-	offset.y *= m_scale;
+	offset.x *= m_scale * m_handleScaleIdle;
+	offset.y *= m_scale * m_handleScaleIdle;
 
 	m_handleRect =
 	{
@@ -248,7 +276,18 @@ nlohmann::json Slider::Serialize() const
 	data["handlePathIdle"] = m_handlePathIdle;
 	data["handlePathHover"] = m_handlePathHover;
 	data["handlePathPressed"] = m_handlePathPressed;
-	data["textureHandle"] = m_handlePathIdle;
+
+	data["handleScaleIdle"] = m_handleScaleIdle;
+	data["handleScaleHover"] = m_handleScaleHover;
+	data["handleScalePressed"] = m_handleScalePressed;
+
+	DirectX::XMFLOAT4 c_i, c_h, c_p;
+	DirectX::XMStoreFloat4(&c_i, m_handleColorIdle);
+	DirectX::XMStoreFloat4(&c_h, m_handleColorHover);
+	DirectX::XMStoreFloat4(&c_p, m_handleColorPressed);
+	data["handleColorIdle"] = { c_i.x, c_i.y, c_i.z, c_i.w };
+	data["handleColorHover"] = { c_h.x, c_h.y, c_h.z, c_h.w };
+	data["handleColorPressed"] = { c_p.x, c_p.y, c_p.z, c_p.w };
 	if (!m_onValueChangedActionKey.empty())
 		data["actionKey"] = m_onValueChangedActionKey;
 
@@ -270,16 +309,35 @@ void Slider::Deserialize(const nlohmann::json& jsonData)
 	std::string handleHover = jsonData.value("handlePathHover", "");
 	std::string handlePressed = jsonData.value("handlePathPressed", "");
 
+	if (handleIdle.empty() && jsonData.contains("textureHandle"))
+	{
+		handleIdle = jsonData["textureHandle"];
+	}
+
 	if (!handleIdle.empty() || !handleHover.empty() || !handlePressed.empty())
 	{
 		if (handleIdle.empty()) handleIdle = handleHover.empty() ? handlePressed : handleHover;
 		SetHandleTextures(handleIdle, handleHover, handlePressed);
 	}
-	else if (jsonData.contains("textureHandle"))
+
+	if (jsonData.contains("handleScaleIdle")) m_handleScaleIdle = jsonData["handleScaleIdle"];
+	if (jsonData.contains("handleScaleHover")) m_handleScaleHover = jsonData["handleScaleHover"];
+	if (jsonData.contains("handleScalePressed")) m_handleScalePressed = jsonData["handleScalePressed"];
+
+	auto ReadColor = [&](const char* key, DirectX::XMVECTOR& target)
 	{
-		std::string handlePath = jsonData["textureHandle"];
-		if (!handlePath.empty()) { SetHandleTexture(handlePath); }
-	}
+		if (!jsonData.contains(key)) return;
+		DirectX::XMFLOAT4 f;
+		f.x = jsonData[key][0];
+		f.y = jsonData[key][1];
+		f.z = jsonData[key][2];
+		f.w = jsonData[key][3];
+		target = DirectX::XMLoadFloat4(&f);
+	};
+
+	ReadColor("handleColorIdle", m_handleColorIdle);
+	ReadColor("handleColorHover", m_handleColorHover);
+	ReadColor("handleColorPressed", m_handleColorPressed);
 
 	if (jsonData.contains("actionKey")) {m_onValueChangedActionKey = jsonData["actionKey"];	}
 }

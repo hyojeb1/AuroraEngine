@@ -664,7 +664,7 @@ void Renderer::RenderXTKSpriteBatch()
 	m_deviceContext->VSGetConstantBuffers(0, cbSaveCount, savedVSCB.data());
 
 	// XTK SpriteBatch 렌더링 
-	// depth로 그리게끔 : SpriteSortMode_Deferred -> SpriteSortMode_BackToFront
+	// depth로 그리게끔 : SpriteSortMode_Deferred -> SpriteSortMode_FrontToBack (슬라이더 우선순위를 위해서)
 	// 알파 블랜딩 적용하게끔 : auto* blend 
 	auto* blend = ResourceManager::GetInstance().GetBlendState(BlendState::AlphaBlend).Get();
 	m_spriteBatch->Begin(SpriteSortMode_FrontToBack, blend, nullptr, nullptr, nullptr, nullptr, XMMatrixIdentity());
