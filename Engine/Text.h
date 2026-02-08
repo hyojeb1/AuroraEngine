@@ -2,11 +2,11 @@
 
 #include "UIBase.h"
 
-class UITextBase : public UIBase
+class Text : public UIBase
 {
 public:
-	UITextBase();
-	~UITextBase() override = default;
+	Text();
+	~Text() override = default;
 
 	void RenderUI(class Renderer& renderer) override;
 

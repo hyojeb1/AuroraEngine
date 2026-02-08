@@ -7,7 +7,7 @@
 #include "Button.h"
 #include "Panel.h"
 #include "Slider.h"
-#include "UITextBase.h"
+#include "Text.h"
 
 #include "TimeManager.h"
 
@@ -75,7 +75,7 @@ UIBase* UIBase::CreateFactory(const std::string& typeName)
     if (typeName == "Button")      return new Button();
     if (typeName == "Panel")       return new Panel();
     if (typeName == "Slider")      return new Slider();
-    if (typeName == "Text")        return new UITextBase();
+    if (typeName == "Text")        return new Text();
     // if (typeName == "MovingPanel") return new MovingPanel();
 
     return nullptr;

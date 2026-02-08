@@ -1,17 +1,17 @@
 #include "stdafx.h"
-#include "UITextBase.h"
+#include "Text.h"
 
 #include "Renderer.h"
 #include "ResourceManager.h"
 
 using namespace DirectX;
 
-UITextBase::UITextBase()
+Text::Text()
 {
 	UpdateRect();
 }
 
-void UITextBase::RenderUI(Renderer& renderer)
+void Text::RenderUI(Renderer& renderer)
 {
 	if (!IsActuallyActive())
 		return;
@@ -34,19 +34,19 @@ void UITextBase::RenderUI(Renderer& renderer)
 		});
 }
 
-void UITextBase::SetText(const std::string& text)
+void Text::SetText(const std::string& text)
 {
 	m_textUtf8 = text;
 	UpdateRect();
 }
 
-void UITextBase::SetFontName(const std::string& fontName)
+void Text::SetFontName(const std::string& fontName)
 {
 	m_fontNameUtf8 = fontName;
 	UpdateRect();
 }
 
-nlohmann::json UITextBase::Serialize() const
+nlohmann::json Text::Serialize() const
 {
 	nlohmann::json data = UIBase::Serialize();
 	data["text"] = m_textUtf8;
@@ -59,7 +59,7 @@ nlohmann::json UITextBase::Serialize() const
 	return data;
 }
 
-void UITextBase::Deserialize(const nlohmann::json& data)
+void Text::Deserialize(const nlohmann::json& data)
 {
 	UIBase::Deserialize(data);
 
@@ -78,7 +78,7 @@ void UITextBase::Deserialize(const nlohmann::json& data)
 	UpdateRect();
 }
 
-void UITextBase::UpdateRect()
+void Text::UpdateRect()
 {
 	std::wstring text = GetTextWide();
 	std::wstring fontName = GetFontNameWide();
@@ -112,17 +112,17 @@ void UITextBase::UpdateRect()
 	};
 }
 
-std::wstring UITextBase::GetTextWide() const
+std::wstring Text::GetTextWide() const
 {
 	return Utf8ToWide(m_textUtf8);
 }
 
-std::wstring UITextBase::GetFontNameWide() const
+std::wstring Text::GetFontNameWide() const
 {
 	return Utf8ToWide(m_fontNameUtf8);
 }
 
-std::wstring UITextBase::Utf8ToWide(const std::string& text)
+std::wstring Text::Utf8ToWide(const std::string& text)
 {
 	if (text.empty()) return L"";
 
@@ -134,7 +134,7 @@ std::wstring UITextBase::Utf8ToWide(const std::string& text)
 	return result;
 }
 
-std::string UITextBase::WideToUtf8(const std::wstring& text)
+std::string Text::WideToUtf8(const std::wstring& text)
 {
 	if (text.empty()) return {};
 

@@ -15,7 +15,7 @@
 #include "Button.h"
 #include "Slider.h"
 #include "Panel.h"
-#include "UITextBase.h"
+#include "Text.h"
 
 using namespace std;
 using namespace DirectX;
@@ -544,7 +544,7 @@ void SceneBase::RenderImGui_UI()
 	ImGui::SameLine();
 	if (ImGui::Button("Add Slider")) CreateUI<Slider>()->SetName("New Slider");
 	ImGui::SameLine();
-	if (ImGui::Button("Add Text")) CreateUI<UITextBase>()->SetName("New Text");
+	if (ImGui::Button("Add Text")) CreateUI<Text>()->SetName("New Text");
 
 	ImGui::Separator();
 
@@ -701,7 +701,7 @@ void SceneBase::RenderImGui_UI()
 			}
 
 		}
-		else if (auto* text = dynamic_cast<UITextBase*>(m_selectedUI)) {
+		else if (auto* text = dynamic_cast<Text*>(m_selectedUI)) {
 			ImGui::TextColored(ImVec4(0.6f, 1.0f, 1.0f, 1.0f), "TYPE: TEXT");
 			ImGui::Separator();
 

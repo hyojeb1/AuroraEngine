@@ -44,6 +44,32 @@
             "scale": 1.0,
             "type": "Slider",
             "value": 0.7022987604141235
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "depth": 0.0,
+            "fontName": "Gugi",
+            "name": "New Text",
+            "parentIdx": -1,
+            "pathIdle": "UI_IDLE.png",
+            "pos": [
+                0.15000000596046448,
+                0.3199999928474426
+            ],
+            "scale": 1.0,
+            "text": "Text",
+            "textColor": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "Text"
         }
     ],
     "environmentMapFileName": "Skybox0.dds",
