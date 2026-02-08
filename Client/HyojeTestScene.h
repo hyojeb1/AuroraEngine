@@ -12,12 +12,14 @@ enum EHyojeState
 namespace
 {
 	constexpr int kPlayerHP = 3;
+	constexpr float kHitCooldownSec = 1.0f;
 }
 
 class HyojeTestScene : public SceneBase
 {
 private:
 	int m_player_hp = kPlayerHP;
+	float m_hitCooldownTimer = 0.0f;
 	
 	EHyojeState m_currentState = EHyojeState::Title;
 
@@ -33,6 +35,7 @@ public:
 	void OnHyojeStateUpdate();
 	void OnHyojeStateExit(EHyojeState type);
 
+	void OnPlayerHit(int damage);
 
 protected:
 	virtual void Initialize() override;

@@ -7,6 +7,8 @@
 #include "../Engine/Animator.h"
 #include "Enemy.h" 
 #include "Player.h"
+#include "SceneManager.h"
+#include "HyojeTestScene.h"
 
 REGISTER_TYPE(FSMComponentEnemy)
 
@@ -101,12 +103,16 @@ void FSMComponentEnemy::OnUpdateState(StateID state)
 				XMVECTOR diff = player_->GetPosition() - owner_enemy_->GetPosition();
 				float distSq = XMVectorGetX(XMVector3LengthSq(diff));
 
-				if (distSq <= kAttackRange * kAttackRange) {
-					// player->TakeDamage(kDamage); 
+					if (distSq <= kAttackRange * kAttackRange) {
 					cout << "Player Hit! Damage: " << kDamage << endl;
+
+					if (auto* scene = dynamic_cast<HyojeTestScene*>(SceneManager::GetInstance().GetCurrentScene()))
+					{
+						scene->OnPlayerHit(kDamage);
+					}
+					}
 				}
 			}
-		}
 
 		if (attack_timer_ >= kAttackTotalTime && owner_enemy_) {
 			owner_enemy_->OnAttackFinished();

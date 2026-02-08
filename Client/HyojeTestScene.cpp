@@ -47,6 +47,22 @@ void HyojeTestScene::ChangeState(EHyojeState newState)
     OnHyojeStateEnter(m_currentState);
 }
 
+void HyojeTestScene::OnPlayerHit(int damage)
+{
+	if (m_currentState != EHyojeState::Main)
+		return;
+	if (m_hitCooldownTimer > 0.0f)
+		return;
+
+	m_player_hp -= damage;
+	m_hitCooldownTimer = kHitCooldownSec;
+	if (m_player_hp <= 0)
+	{
+		m_player_hp = 0;
+		ChangeState(EHyojeState::Result);
+	}
+}
+
 
 void HyojeTestScene::OnHyojeStateEnter(EHyojeState type)
 {
@@ -85,6 +101,9 @@ void HyojeTestScene::OnHyojeStateUpdate()
 
 	case EHyojeState::Main:
 	{
+		if (m_hitCooldownTimer > 0.0f)
+			m_hitCooldownTimer -= TimeManager::GetInstance().GetDeltaTime();
+
 		static float time = 0.0f;
 		time += TimeManager::GetInstance().GetDeltaTime();
 

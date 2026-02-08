@@ -15,7 +15,7 @@
             ],
             "depth": 0.10000000149011612,
             "name": "option",
-            "parentIdx": 9,
+            "parentIdx": -1,
             "pathIdle": "",
             "pos": [
                 0.5,
@@ -434,6 +434,56 @@
             "scaleIdle": 1.0,
             "scalePressed": 0.949999988079071,
             "type": "Button"
+        },
+        {
+            "active": false,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "depth": 0.0,
+            "name": "result",
+            "parentIdx": -1,
+            "pathIdle": "UI__.png",
+            "pos": [
+                0.0,
+                0.0
+            ],
+            "scale": 0.10000000149011612,
+            "scaleIdle": 1.0,
+            "type": "Panel"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "depth": 0.0,
+            "name": "result_bg",
+            "parentIdx": 12,
+            "pathIdle": "UI_OptionBG.png",
+            "pos": [
+                0.5,
+                0.5
+            ],
+            "scale": 0.9900000095367432,
+            "scaleIdle": 1.0,
+            "type": "Panel"
         }
     ],
     "environmentMapFileName": "Skybox0.dds",
