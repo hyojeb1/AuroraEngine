@@ -26,40 +26,16 @@ REGISTER_TYPE(HyojeTestScene)
 
 void HyojeTestScene::Initialize()
 {
-	//ShowCursor(FALSE);
-
-	//SoundManager::GetInstance().Main_BGM_Shot(Config::Main_BGM, 1.0f);
-	//SoundManager::GetInstance().Ambience_Shot(Config::Ambience);
 }
 
 
 void HyojeTestScene::Update()
 {
-	//static float time = 0.0f;
-	//time += TimeManager::GetInstance().GetDeltaTime();
-
-	//if (time > 1.0f) {
-	//	time = 0.0f;
-
-	//	constexpr float SPREAD = 10.0f;
-
-	//	CreatePrefabRootGameObject("Enemy.json")->SetPosition(XMVectorSet(RNG::GetInstance().Range(-SPREAD, SPREAD), 0.0f, RNG::GetInstance().Range(-SPREAD, SPREAD), 1.0f));
-	//}
-
-	//if (InputManager::GetInstance().GetKeyDown(KeyCode::Num0)) {
-	//	SceneManager::GetInstance().ChangeScene("EndingScene");
-	//}
-
-	//if (SoundManager::GetInstance().CheckBGMEnd()) {
-	//	SoundManager::GetInstance().Main_BGM_Shot(SoundManager::GetInstance().GetCurrentTrackName(), 3.0f);
-	//}
-
     OnHyojeStateUpdate();
 }
 
 void HyojeTestScene::Finalize() 
 {
-	//SoundManager::GetInstance().Stop_ChannelGroup();
 }
 
 
@@ -99,10 +75,8 @@ void HyojeTestScene::OnHyojeStateUpdate()
 {
 	switch (m_currentState) {
 	case EHyojeState::Title:
-		// [Title 업데이트]
-		// 예: 스페이스바 누르면 게임 시작
 		if (InputManager::GetInstance().GetKeyDown(KeyCode::Space)) {
-			ChangeState(EHyojeState::Main); // Main 상태로 전환
+			ChangeState(EHyojeState::Main); 
 		}
 		break;
 
@@ -159,9 +133,10 @@ void HyojeTestScene::OnHyojeStateExit(EHyojeState type)
 void  HyojeTestScene::BindUIActions()
 {
     Panel* optionPanel = nullptr;
+
     for (const auto& uiPtr : m_UIList) {
         if (auto* panel = dynamic_cast<Panel*>(uiPtr.get())) {
-            if (panel->GetName() == "OptionPanel") {
+            if (panel->GetName() == "Option") {
                 optionPanel = panel;
                 break;
             }

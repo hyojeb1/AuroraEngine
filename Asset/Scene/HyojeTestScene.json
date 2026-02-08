@@ -1,6 +1,24 @@
 {
     "UI": [
         {
+            "active": false,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "depth": 0.0,
+            "name": "Option",
+            "parentIdx": -1,
+            "pathIdle": "",
+            "pos": [
+                0.5,
+                0.5
+            ],
+            "scale": 1.0,
+            "type": "Panel"
+        },
+        {
             "active": true,
             "animAutoPlay": true,
             "animCols": 1,
@@ -29,21 +47,21 @@
             "handlePathHover": "UI_Slider.png",
             "handlePathIdle": "UI_Slider.png",
             "handlePathPressed": "UI_Slider.png",
-            "handleScaleHover": 0.7699999809265137,
+            "handleScaleHover": 1.0,
             "handleScaleIdle": 1.0,
             "handleScalePressed": 1.0,
-            "max": 1.2999999523162842,
+            "max": 1.0,
             "min": 0.0,
-            "name": "New Slider",
-            "parentIdx": -1,
+            "name": "Sound1",
+            "parentIdx": 0,
             "pathIdle": "",
             "pos": [
-                0.38999998569488525,
-                0.20999999344348907
+                0.03999999910593033,
+                -0.23000000417232513
             ],
-            "scale": 1.0,
+            "scale": 0.9300000071525574,
             "type": "Slider",
-            "value": 0.7022987604141235
+            "value": 0.6713780760765076
         },
         {
             "active": true,
@@ -54,22 +72,82 @@
             "animRows": 1,
             "depth": 0.0,
             "fontName": "Gugi",
-            "name": "New Text",
-            "parentIdx": -1,
-            "pathIdle": "UI_IDLE.png",
+            "name": "Sound1",
+            "parentIdx": 1,
+            "pathIdle": "",
             "pos": [
-                0.15000000596046448,
-                0.3199999928474426
+                -0.3400000035762787,
+                -0.019999999552965164
             ],
-            "scale": 1.0,
-            "text": "Text",
+            "scale": 1.7200000286102295,
+            "text": "Sound1",
             "textColor": [
+                1.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "type": "Text"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorClicked": [
                 1.0,
                 1.0,
                 1.0,
                 1.0
             ],
-            "type": "Text"
+            "colorHover": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421,
+                1.0
+            ],
+            "colorPressed": [
+                0.699999988079071,
+                0.699999988079071,
+                0.699999988079071,
+                1.0
+            ],
+            "depth": 0.0,
+            "name": "Close",
+            "parentIdx": 0,
+            "pathClicked": "UI_Clicked.png",
+            "pathHover": "UI_Hovered.png",
+            "pathIdle": "",
+            "pathPressed": "UI_Pressed.png",
+            "pos": [
+                0.23999999463558197,
+                -0.36000001430511475
+            ],
+            "scale": 0.23000000417232513,
+            "scaleClicked": 1.0,
+            "scaleHover": 1.0,
+            "scalePressed": 0.949999988079071,
+            "type": "Button"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "depth": 0.0,
+            "name": "New Panel",
+            "parentIdx": -1,
+            "pathIdle": "UI_logo.png",
+            "pos": [
+                0.6000000238418579,
+                0.27000001072883606
+            ],
+            "scale": 0.2199999988079071,
+            "type": "Panel"
         }
     ],
     "environmentMapFileName": "Skybox0.dds",

@@ -2,6 +2,8 @@
 
 class Panel : public UIBase
 {
+	friend class SceneBase;
+
 public:
 	Panel();
 	void OnResize() override;

@@ -15,6 +15,7 @@ using namespace nlohmann;
 
 void UIBase::SetTextureAndOffset(const std::string& idle)
 {
+	m_pathIdle = idle;
 	m_textureIdle = ResourceManager::GetInstance().GetTextureAndOffset(idle);
 	UpdateRect();
 }
@@ -28,10 +29,15 @@ json UIBase::Serialize() const
 
     data["pos"] = { m_localPosition.x, m_localPosition.y };
     data["scale"] = m_scale;
+	data["scaleIdle"] = m_scaleIdle;
 
     data["depth"] = m_depth;
 
     data["pathIdle"] = m_pathIdle;
+
+	DirectX::XMFLOAT4 color;
+	DirectX::XMStoreFloat4(&color, m_colorIdle);
+	data["colorIdle"] = { color.x, color.y, color.z, color.w };
 
     // Animation
     data["animRows"] = m_rows;
@@ -53,8 +59,24 @@ void UIBase::Deserialize(const json& data)
         m_localPosition.y = data["pos"][1];
     }
     if (data.contains("scale")) m_scale = data["scale"];
+	if (data.contains("scaleIdle")) m_scaleIdle = data["scaleIdle"];
     if (data.contains("depth")) m_depth = data["depth"];
-    if (data.contains("pathIdle")) m_pathIdle = data.value("textureIdle", "");
+    if (data.contains("pathIdle"))
+	{
+		m_pathIdle = data.value("pathIdle", "");
+		if (!m_pathIdle.empty())
+			SetTextureAndOffset(m_pathIdle);
+	}
+
+	if (data.contains("colorIdle"))
+	{
+		DirectX::XMFLOAT4 color = {};
+		color.x = data["colorIdle"][0];
+		color.y = data["colorIdle"][1];
+		color.z = data["colorIdle"][2];
+		color.w = data["colorIdle"][3];
+		m_colorIdle = DirectX::XMLoadFloat4(&color);
+	}
 
     // Animation Data
     if (data.contains("animRows")) m_rows = data["animRows"];

@@ -627,7 +627,8 @@ void SceneBase::RenderImGui_UI()
 		// 텍스처 경로 입력 람다
 		auto TexPathInput = [&](const char* label, std::string current, std::string& out) {
 			char buf[128]; strcpy_s(buf, current.c_str());
-			if (ImGui::InputText(label, buf, 128, ImGuiInputTextFlags_EnterReturnsTrue)) {
+			//if (ImGui::InputText(label, buf, 128, ImGuiInputTextFlags_EnterReturnsTrue)) {
+			if (ImGui::InputText(label, buf, 128)) {
 				out = buf; return true;
 			}
 			return false;
@@ -701,6 +702,24 @@ void SceneBase::RenderImGui_UI()
 			}
 
 		}
+		else if (auto* panel = dynamic_cast<Panel*>(m_selectedUI)) {
+			ImGui::TextColored(ImVec4(0.6f, 1.0f, 1.0f, 1.0f), "TYPE: PANEL");
+			ImGui::Separator();
+
+			bool pathChanged = TexPathInput("Path", panel->m_pathIdle, panel->m_pathIdle);
+
+			XMFLOAT4 c;
+			XMStoreFloat4(&c, panel->m_colorIdle);
+			ImGui::ColorEdit4("Color", &c.x);
+			panel->m_colorIdle = XMLoadFloat4(&c);
+
+			ImGui::DragFloat("Scale Multi", &panel->m_scaleIdle, 0.01f, 0.1f, 3.0f);
+
+			if (pathChanged) panel->SetTextureAndOffset(panel->m_pathIdle);
+
+
+		}
+
 		else if (auto* text = dynamic_cast<Text*>(m_selectedUI)) {
 			ImGui::TextColored(ImVec4(0.6f, 1.0f, 1.0f, 1.0f), "TYPE: TEXT");
 			ImGui::Separator();
