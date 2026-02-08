@@ -17,6 +17,7 @@
 #include "Button.h"
 #include "Panel.h"
 #include "Slider.h"
+#include "Text.h"
 
 using namespace std;
 using namespace DirectX;
@@ -25,6 +26,9 @@ REGISTER_TYPE(HyojeTestScene)
 
 void HyojeTestScene::Initialize()
 {
+	if (titlePanel) titlePanel->SetActive(false);
+	if (resultPanel) resultPanel->SetActive(false);
+
 	ChangeState(EHyojeState::Title);
 }
 
@@ -76,6 +80,7 @@ void HyojeTestScene::OnHyojeStateEnter(EHyojeState type)
 
 	case EHyojeState::Main:
 		m_player_hp = kPlayerHP;
+		m_survivalTime = 0.0f;
 		cout << "[HyojeTestScene] Game Start! HP Reset" << endl;
 		ShowCursor(FALSE);
 		SoundManager::GetInstance().Main_BGM_Shot(Config::Main_BGM, 1.0f);
@@ -86,6 +91,13 @@ void HyojeTestScene::OnHyojeStateEnter(EHyojeState type)
 		cout << "[HyojeTestScene] Game Over / Result Show" << endl;
 		ShowCursor(TRUE);
 		if (resultPanel) resultPanel->SetActive(true);
+		if (resultTime)
+		{
+			std::ostringstream oss;
+			oss.setf(std::ios::fixed);
+			oss << std::setprecision(2) << "Survival Time: " << m_survivalTime << "s";
+			resultTime->SetText(oss.str());
+		}
 		break;
 	}
 }
@@ -101,11 +113,13 @@ void HyojeTestScene::OnHyojeStateUpdate()
 
 	case EHyojeState::Main:
 	{
+		const float dt = TimeManager::GetInstance().GetDeltaTime();
 		if (m_hitCooldownTimer > 0.0f)
-			m_hitCooldownTimer -= TimeManager::GetInstance().GetDeltaTime();
+			m_hitCooldownTimer -= dt;
+		m_survivalTime += dt;
 
 		static float time = 0.0f;
-		time += TimeManager::GetInstance().GetDeltaTime();
+		time += dt;
 
 		if (time > 1.0f) {
 			time = 0.0f;
@@ -169,6 +183,9 @@ void  HyojeTestScene::BindUIActions()
 			else if (panel->GetName() == "title") titlePanel = panel;
 			else if (panel->GetName() == "result") resultPanel = panel;
         }
+		else if (auto* text = dynamic_cast<Text*>(uiPtr.get())) {
+			if (text->GetName() == "result_time") resultTime = text;
+		}
     }
 
 

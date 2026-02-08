@@ -436,7 +436,7 @@
             "type": "Button"
         },
         {
-            "active": false,
+            "active": true,
             "animAutoPlay": true,
             "animCols": 1,
             "animFPS": 8.0,
@@ -484,6 +484,39 @@
             "scale": 0.9900000095367432,
             "scaleIdle": 1.0,
             "type": "Panel"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "depth": 0.0,
+            "fontName": "Gugi",
+            "name": "result_time",
+            "parentIdx": 12,
+            "pathIdle": "UI_IDLE.png",
+            "pos": [
+                0.05999999865889549,
+                0.25
+            ],
+            "scale": 3.0,
+            "scaleIdle": 1.0,
+            "text": "Text",
+            "textColor": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "Text"
         }
     ],
     "environmentMapFileName": "Skybox0.dds",

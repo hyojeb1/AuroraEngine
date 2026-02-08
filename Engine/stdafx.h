@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <random>
 #include <memory>
+#include <sstream>
 
 // 윈도우 헤더
 #include <winsock2.h>
@@ -24,6 +25,7 @@
 #include <windows.h>
 #include <mmsystem.h>
 #include <wrl/client.h>
+#include <iomanip>
 #pragma comment(lib, "winmm.lib") // timeGetTime
 
 // DirectX 헤더

@@ -18,15 +18,16 @@ namespace
 class HyojeTestScene : public SceneBase
 {
 private:
-	int m_player_hp = kPlayerHP;
-	float m_hitCooldownTimer = 0.0f;
-	
 	EHyojeState m_currentState = EHyojeState::Title;
 
 	class Panel* optionPanel = nullptr;
 	class Panel* titlePanel = nullptr;
 	class Panel* resultPanel = nullptr;
+	class Text* resultTime = nullptr;
 
+	int m_player_hp = kPlayerHP;
+	float m_hitCooldownTimer = 0.0f;
+	float m_survivalTime = 0.0f;
 
 public:
 	void ChangeState(EHyojeState newState);
