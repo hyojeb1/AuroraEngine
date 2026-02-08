@@ -26,42 +26,134 @@ REGISTER_TYPE(HyojeTestScene)
 
 void HyojeTestScene::Initialize()
 {
-	ShowCursor(FALSE);
+	//ShowCursor(FALSE);
 
-	SoundManager::GetInstance().Main_BGM_Shot(Config::Main_BGM, 1.0f);
-	SoundManager::GetInstance().Ambience_Shot(Config::Ambience);
-
-
+	//SoundManager::GetInstance().Main_BGM_Shot(Config::Main_BGM, 1.0f);
+	//SoundManager::GetInstance().Ambience_Shot(Config::Ambience);
 }
 
 
 void HyojeTestScene::Update()
 {
-	static float time = 0.0f;
-	time += TimeManager::GetInstance().GetDeltaTime();
+	//static float time = 0.0f;
+	//time += TimeManager::GetInstance().GetDeltaTime();
 
-	if (time > 1.0f) {
-		time = 0.0f;
+	//if (time > 1.0f) {
+	//	time = 0.0f;
 
-		constexpr float SPREAD = 10.0f;
+	//	constexpr float SPREAD = 10.0f;
 
-		CreatePrefabRootGameObject("Enemy.json")->SetPosition(XMVectorSet(RNG::GetInstance().Range(-SPREAD, SPREAD), 0.0f, RNG::GetInstance().Range(-SPREAD, SPREAD), 1.0f));
-	}
+	//	CreatePrefabRootGameObject("Enemy.json")->SetPosition(XMVectorSet(RNG::GetInstance().Range(-SPREAD, SPREAD), 0.0f, RNG::GetInstance().Range(-SPREAD, SPREAD), 1.0f));
+	//}
 
-	if (InputManager::GetInstance().GetKeyDown(KeyCode::Num0)) {
-		SceneManager::GetInstance().ChangeScene("EndingScene");
-	}
+	//if (InputManager::GetInstance().GetKeyDown(KeyCode::Num0)) {
+	//	SceneManager::GetInstance().ChangeScene("EndingScene");
+	//}
 
-	if (SoundManager::GetInstance().CheckBGMEnd()) {
-		SoundManager::GetInstance().Main_BGM_Shot(SoundManager::GetInstance().GetCurrentTrackName(), 3.0f);
-	}
+	//if (SoundManager::GetInstance().CheckBGMEnd()) {
+	//	SoundManager::GetInstance().Main_BGM_Shot(SoundManager::GetInstance().GetCurrentTrackName(), 3.0f);
+	//}
 
-
+    OnHyojeStateUpdate();
 }
 
-void HyojeTestScene::Finalize() {
-	SoundManager::GetInstance().Stop_ChannelGroup();
+void HyojeTestScene::Finalize() 
+{
+	//SoundManager::GetInstance().Stop_ChannelGroup();
 }
+
+
+
+void HyojeTestScene::ChangeState(EHyojeState newState)
+{
+    OnHyojeStateExit(m_currentState);
+    m_currentState = newState;
+    OnHyojeStateEnter(m_currentState);
+}
+
+
+void HyojeTestScene::OnHyojeStateEnter(EHyojeState type)
+{
+	switch (type) {
+	case EHyojeState::Title:
+		cout << "[HyojeTestScene] Title State Enter" << endl;
+		ShowCursor(TRUE);
+		break;
+
+	case EHyojeState::Main:
+		m_player_hp = kPlayerHP;
+		cout << "[HyojeTestScene] Game Start! HP Reset" << endl;
+		ShowCursor(FALSE);
+		SoundManager::GetInstance().Main_BGM_Shot(Config::Main_BGM, 1.0f);
+		SoundManager::GetInstance().Ambience_Shot(Config::Ambience);
+		break;
+
+	case EHyojeState::Result:
+		cout << "[HyojeTestScene] Game Over / Result Show" << endl;
+		ShowCursor(TRUE);
+		break;
+	}
+}
+
+void HyojeTestScene::OnHyojeStateUpdate()
+{
+	switch (m_currentState) {
+	case EHyojeState::Title:
+		// [Title 업데이트]
+		// 예: 스페이스바 누르면 게임 시작
+		if (InputManager::GetInstance().GetKeyDown(KeyCode::Space)) {
+			ChangeState(EHyojeState::Main); // Main 상태로 전환
+		}
+		break;
+
+	case EHyojeState::Main:
+	{
+		static float time = 0.0f;
+		time += TimeManager::GetInstance().GetDeltaTime();
+
+		if (time > 1.0f) {
+			time = 0.0f;
+			constexpr float SPREAD = 10.0f;
+			CreatePrefabRootGameObject("Enemy.json")->SetPosition(
+				XMVectorSet(RNG::GetInstance().Range(-SPREAD, SPREAD), 0.0f, RNG::GetInstance().Range(-SPREAD, SPREAD), 1.0f)
+			);
+		}
+
+		if (InputManager::GetInstance().GetKeyDown(KeyCode::Num0)) {
+			ChangeState(EHyojeState::Result);
+		}
+		break;
+	}
+
+	case EHyojeState::Result:
+		if (InputManager::GetInstance().GetKeyDown(KeyCode::R)) {
+			ChangeState(EHyojeState::Title);
+		}
+		break;
+	}
+}
+
+void HyojeTestScene::OnHyojeStateExit(EHyojeState type)
+{
+	switch (type) {
+	case EHyojeState::Title:
+		// [Title 정리]
+		// 예: 타이틀 UI 숨기기
+		break;
+
+	case EHyojeState::Main:
+		// [Main 정리]
+		SoundManager::GetInstance().Stop_ChannelGroup();
+		break;
+
+	case EHyojeState::Result:
+		// [Result 정리]
+		// 예: 결과 UI 숨기기
+		break;
+	}
+}
+
+
 
 
 void  HyojeTestScene::BindUIActions()
@@ -75,6 +167,7 @@ void  HyojeTestScene::BindUIActions()
             }
         }
     }
+
 
     for (auto& uiPtr : m_UIList) {
         // -------------------------------------------------------

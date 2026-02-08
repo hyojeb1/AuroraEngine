@@ -2,16 +2,31 @@
 #pragma once
 #include "SceneBase.h"
 
+enum EHyojeState
+{
+	Title,
+	Main,
+	Result,
+};
+
+namespace
+{
+	constexpr int kPlayerHP = 3;
+}
 
 class HyojeTestScene : public SceneBase
 {
+private:
+	int m_player_hp = kPlayerHP;
+	bool m_overlay = true;
+	EHyojeState m_currentState = EHyojeState::Title;
+
 public:
-	HyojeTestScene() = default;
-	~HyojeTestScene() override = default;
-	HyojeTestScene(const HyojeTestScene&) = default;
-	HyojeTestScene& operator=(const HyojeTestScene&) = default;
-	HyojeTestScene(HyojeTestScene&&) = default;
-	HyojeTestScene& operator=(HyojeTestScene&&) = default;
+	void ChangeState(EHyojeState newState);
+
+	void OnHyojeStateEnter(EHyojeState type);
+	void OnHyojeStateUpdate();
+	void OnHyojeStateExit(EHyojeState type);
 
 
 protected:
@@ -20,5 +35,13 @@ protected:
 	virtual void Finalize() override;
 
 	void BindUIActions() override;
+
+public:
+	HyojeTestScene() = default;
+	~HyojeTestScene() override = default;
+	HyojeTestScene(const HyojeTestScene&) = default;
+	HyojeTestScene& operator=(const HyojeTestScene&) = default;
+	HyojeTestScene(HyojeTestScene&&) = default;
+	HyojeTestScene& operator=(HyojeTestScene&&) = default;
 };
 /// HyojeTestScene.h의 끝
