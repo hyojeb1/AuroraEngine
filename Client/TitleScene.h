@@ -1,9 +1,6 @@
 #pragma once
 #include "SceneBase.h"
 
-namespace {
-	constexpr float kTime4MovingPanel = 2.0f;
-}
 
 class TitleScene : public SceneBase
 {
@@ -14,7 +11,7 @@ class TitleScene : public SceneBase
 	class Panel* Title_letterrbox_up = nullptr;
 
 	float m_time4MovingPanel = 0;
-
+	const float kTime4MovingPanel = 2.0f;
 private:
 	void Initialize() override;
 	void Update() override;

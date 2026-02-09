@@ -132,6 +132,9 @@ void SkinnedModelComponent::Render()
 
 			for (const auto& [model, material] : m_modelsAndMaterials)
 			{
+				//후보1) 이것도 아니었음
+				//m_deviceContext->UpdateSubresource(m_materialFactorConstantBuffer.Get(), 0, nullptr, &material.m_materialFactor, 0, 0);
+
 				for (const Mesh& mesh : model->meshes)
 				{
 					resourceManager.SetPrimitiveTopology(mesh.topology);

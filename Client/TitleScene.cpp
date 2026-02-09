@@ -17,7 +17,7 @@
 
 REGISTER_TYPE(TitleScene);
 
-using
+//using
 
 void TitleScene::Initialize()
 {
