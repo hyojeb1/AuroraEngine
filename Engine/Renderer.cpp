@@ -229,10 +229,10 @@ void Renderer::SetFullscreen(bool enable)
 	hr = m_swapChain->SetFullscreenState(static_cast<BOOL>(enable), nullptr);
 	CheckResult(hr, "전체 화면 모드 전환 실패.");
 
-	m_prevRes = m_curRes;
-
 	if (enable)
 	{
+		m_prevRes = m_curRes;
+
 		com_ptr<IDXGIDevice> dxgiDevice;
 		m_device.As(&dxgiDevice);
 
@@ -262,6 +262,7 @@ void Renderer::SetFullscreen(bool enable)
 			modes.data()
 		);
 		m_swapChain->ResizeTarget(&modes.back()); //max resolution
+
 	}
 	else
 	{
@@ -269,6 +270,8 @@ void Renderer::SetFullscreen(bool enable)
 		windowedMode.Width = m_prevRes.first;
 		windowedMode.Height = m_prevRes.second;
 		windowedMode.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+		m_prevRes = m_curRes;
 
 		m_swapChain->ResizeTarget(&windowedMode);
 	}

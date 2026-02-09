@@ -730,20 +730,6 @@ void SoundManager::UI_Shot(const std::string filename)
 	}
 }
 
-void SoundManager::Pause()
-{
-	FMOD::ChannelGroup* master = nullptr;
-	m_CoreSystem->getMasterChannelGroup(&master);
-	master->setPaused(true);
-}
-
-void SoundManager::Resume()
-{
-	FMOD::ChannelGroup* master = nullptr;
-	m_CoreSystem->getMasterChannelGroup(&master);
-	master->setPaused(false);
-}
-
 void SoundManager::FadeIn(FMOD::Channel* chan, float sec)
 {
 	if (!chan) return;
@@ -844,16 +830,6 @@ void SoundManager::UpdateAudioClock()
 	m_AudioDeltaTime = dt;
 	m_PrevAudioTime = nowF;
 	m_AudioTime = nowF;
-}
-
-void SoundManager::Pause()
-{
-	if (m_isPaused) return;
-
-	m_BGMGroup->getDSPClock(&m_pauseDSP, nullptr);
-	m_MainGroup->setPaused(true);
-
-	m_isPaused = true;
 }
 
 void SoundManager::Resume()
