@@ -46,6 +46,7 @@ namespace Config
 
 		//UI
 		inline constexpr const char* Player_Shoot = "2.Player_Shot";
+		inline constexpr const char* Player_DeadEye_Shoot = "10.DeadEye_Shoot_LV";
 		inline constexpr const char* Player_Reload_Spin = "4.Player_spin";
 
 		inline constexpr const char* Player_Reload_Cocking = "4.Player_cocking";

@@ -846,6 +846,32 @@ void SoundManager::UpdateAudioClock()
 	m_AudioTime = nowF;
 }
 
+void SoundManager::Pause()
+{
+	if (m_isPaused) return;
+
+	m_BGMGroup->getDSPClock(&m_pauseDSP, nullptr);
+	m_MainGroup->setPaused(true);
+
+	m_isPaused = true;
+}
+
+void SoundManager::Resume()
+{
+	if (!m_isPaused) return;
+
+	unsigned long long nowDSP;
+	m_BGMGroup->getDSPClock(&nowDSP, nullptr);
+
+	unsigned long long pausedDuration = nowDSP - m_pauseDSP;
+
+	// 핵심: 시작 기준을 뒤로 밀어줌
+	m_BGMStartDSP += pausedDuration;
+
+	m_MainGroup->setPaused(false);
+	m_isPaused = false;
+}
+
 FMOD_VECTOR SoundManager::ToFMOD(DirectX::XMVECTOR vector)
 {
 	DirectX::XMFLOAT3 pos;

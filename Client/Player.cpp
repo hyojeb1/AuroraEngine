@@ -362,7 +362,7 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
-		SoundManager::GetInstance().SFX_Shot(GetPosition(), "DeadEye_Shoot");
+		SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Player_DeadEye_Shoot);
 
 		m_prevDeadEyePos = m_nextDeadEyePos;
 		m_deadEyeTargets.back().second->Die();

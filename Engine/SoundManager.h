@@ -163,5 +163,8 @@ private:
 	float m_AudioDeltaTime = 0.0f;
 
 	bool  m_AudioClockInited = false;
+
+	unsigned long long m_pauseDSP = 0;
+	bool m_isPaused = false;
 };
 
