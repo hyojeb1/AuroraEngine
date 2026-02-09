@@ -35,6 +35,8 @@ protected:
 	UIBase* m_selectedUI = nullptr;
 	#endif
 
+	std::string m_skyboxFileName = "Skybox.dds"; // 스카이박스 파일 이름
+	com_ptr<ID3D11ShaderResourceView> m_skyboxSRV = nullptr; // 스카이박스 셰이더 리소스 뷰
 	std::string m_environmentMapFileName = "Skybox.dds"; // 환경 맵 파일 이름
 	com_ptr<ID3D11ShaderResourceView> m_environmentMapSRV = nullptr; // 환경 맵 셰이더 리소스 뷰
 

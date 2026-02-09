@@ -646,6 +646,7 @@ constexpr std::array<D3D11_BUFFER_DESC, static_cast<size_t>(PSConstBuffers::Coun
 enum class TextureSlots
 {
 	BackBuffer,
+	Skybox,
 	Environment,
 	DirectionalLightShadow,
 

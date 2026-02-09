@@ -76,18 +76,19 @@ SamplerComparisonState SamplerComparisonBorder : register(s2); // Shadow Map
 // Textures
 // --------------------------------------------------------
 Texture2DArray sceneTexture : register(t0);
-TextureCube environmentMapTexture : register(t1);
-Texture2D directionalShadowMapTexture : register(t2);
+TextureCube skyboxTexture : register(t1);
+TextureCube environmentMapTexture : register(t2);
+Texture2D directionalShadowMapTexture : register(t3);
 
 // PBR 재질
-Texture2D baseColorTexture : register(t3);
-Texture2D ORMTexture : register(t4);
-Texture2D normalTexture : register(t5);
-Texture2D emissionTexture : register(t6);
+Texture2D baseColorTexture : register(t4);
+Texture2D ORMTexture : register(t5);
+Texture2D normalTexture : register(t6);
+Texture2D emissionTexture : register(t7);
 
-Texture2D lutTexture : register(t7);
-Texture2D lut2Texture : register(t8);
-Texture2D noiseTexture : register(t9);
+Texture2D lutTexture : register(t8);
+Texture2D lut2Texture : register(t9);
+Texture2D noiseTexture : register(t10);
 
 // --------------------------------------------------------
 // Input Structures (VS 출력과 매칭되어야 함)
