@@ -8,7 +8,7 @@ class CameraComponent : public ComponentBase
 	float m_fovY = DirectX::XM_PIDIV4; // 수직 시야각 (라디안 단위)
 
 	float m_nearZ = 0.1f; // 근평면
-	float m_farZ = 1000.0f; // 원평면
+	float m_farZ = 500.0f; // 원평면
 
 	DirectX::XMMATRIX m_viewMatrix = DirectX::XMMatrixIdentity(); // 뷰 행렬
 	DirectX::XMMATRIX m_projectionMatrix = DirectX::XMMatrixIdentity(); // 투영 행렬
