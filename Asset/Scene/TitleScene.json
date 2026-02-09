@@ -437,13 +437,13 @@
                 0.0,
                 1.0
             ],
-            "depth": 0.0,
+            "depth": 1.0,
             "fontName": "SuperCrawler",
             "name": "sound",
             "parentIdx": 11,
             "pathIdle": "",
             "pos": [
-                -0.46000000834465027,
+                -0.33000001311302185,
                 -0.019999999552965164
             ],
             "scale": 1.7200000286102295,
@@ -489,7 +489,7 @@
                 0.699999988079071,
                 1.0
             ],
-            "depth": 0.30000001192092896,
+            "depth": 0.4000000059604645,
             "name": "close",
             "parentIdx": 10,
             "pathClicked": "UI_Clicked.png",
@@ -497,10 +497,10 @@
             "pathIdle": "",
             "pathPressed": "UI_Pressed.png",
             "pos": [
-                0.18000000715255737,
-                -0.3499999940395355
+                0.25,
+                -0.3400000035762787
             ],
-            "scale": 0.23000000417232513,
+            "scale": 0.20999999344348907,
             "scaleClicked": 1.0,
             "scaleHover": 1.0,
             "scaleIdle": 1.0,

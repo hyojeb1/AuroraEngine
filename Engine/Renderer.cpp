@@ -64,7 +64,7 @@ void Renderer::RenderTextScreenPosition(const wchar_t* text, XMFLOAT2 position, 
 		XMFLOAT2(0.0f, 0.0f),
 		scale,
 		SpriteEffects_None,
-		0.0f
+		depth
 	);
 }
 
