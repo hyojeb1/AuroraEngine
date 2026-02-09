@@ -15,14 +15,6 @@ using namespace DirectX;
 
 CameraComponent* CameraComponent::s_mainCamera = nullptr;
 
-const BoundingFrustum CameraComponent::GetBoundingFrustum() const
-{	
-	BoundingFrustum frustum = {};
-	m_boundingFrustum.Transform(frustum, m_owner->GetWorldMatrix());
-
-	return frustum;
-}
-
 XMFLOAT2 CameraComponent::WorldToScreenPosition(const XMVECTOR& worldPosition) const
 {
 	const DXGI_SWAP_CHAIN_DESC1& swapChainDesc = Renderer::GetInstance().GetSwapChainDesc();
@@ -102,7 +94,9 @@ void CameraComponent::UpdateViewMatrix()
 void CameraComponent::UpdateProjectionMatrix()
 {
 	m_projectionMatrix = XMMatrixPerspectiveFovLH(m_fovY, Renderer::GetInstance().GetAspectRatio(), m_nearZ, m_farZ);
+
 	m_boundingFrustum = BoundingFrustum(m_projectionMatrix);
+	m_boundingFrustum.Transform(m_transformedBoundingFrustum, m_owner->GetWorldMatrix());
 }
 
 void CameraComponent::Render()

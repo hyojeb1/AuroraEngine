@@ -128,6 +128,10 @@ void WindowManager::Initialize(const wchar_t* windowTitle, int width, int height
 	ResourceManager& rm = ResourceManager::GetInstance();
 	rm.LoadLUTTexture();
 	rm.LoadNoiseTexture();
+
+	#ifdef NDEBUG
+	rm.CacheAllModel();
+	#endif
 }
 
 bool WindowManager::ProcessMessages()

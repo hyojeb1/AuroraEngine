@@ -48,7 +48,7 @@ private:
 
 
 
-	const float kAttackRange = 1.6f;
+	const float kAttackRange = 3.2f;
 	const float kAttackAnticipation = 0.35f; // 선딜
 	const float kAttackTotalTime = 0.9f;     // 전체 모션 시간
 	const int   kDamage = 1;

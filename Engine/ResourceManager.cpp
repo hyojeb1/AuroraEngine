@@ -378,6 +378,25 @@ std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> ResourceManager:
 	return { textureSRV, offset };
 }
 
+void ResourceManager::CacheAllModel()
+{
+	const filesystem::path modelDir = "../Asset/Model/";
+	if (!filesystem::exists(modelDir) || !filesystem::is_directory(modelDir))
+	{
+		cerr << "모델 디렉토리가 존재하지 않거나 디렉토리가 아닙니다: " << modelDir.string() << endl;
+		return;
+	}
+
+	for (const auto& entry : filesystem::directory_iterator(modelDir))
+	{
+		if (entry.is_regular_file())
+		{
+			const string fileName = entry.path().filename().string();
+			LoadModel(fileName);
+		}
+	}
+}
+
 const Model* ResourceManager::LoadModel(const string& fileName)
 {
 	#ifdef NDEBUG

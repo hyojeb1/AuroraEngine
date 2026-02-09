@@ -6,6 +6,8 @@ class TestScene : public SceneBase
 {
 	class Player* m_player = nullptr;
 
+	class GameObjectBase* m_tutorialBox = nullptr;
+
 	float m_spawnInterval = 3.0f;
 	std::vector<DirectX::XMVECTOR> m_spawnPoints = {};
 
@@ -29,6 +31,9 @@ private:
 	nlohmann::json Serialize() override;
 	void Deserialize(const nlohmann::json& jsonData) override;
 
+	void TutorialStep();
+
 	void SpawnEnemy(float deltaTime);
+
 	void RenderSpawnPoints();
 };
