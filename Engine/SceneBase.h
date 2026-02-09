@@ -62,7 +62,6 @@ protected:
 	com_ptr<ID3D11Buffer> m_postProcessingConstantBuffer = nullptr; // 후처리용 상수 버퍼
 
 	bool m_showFPS = true; // FPS 표시 여부
-	DirectX::SpriteFont* m_spriteFont = nullptr; // FPS 표시용 스프라이트 폰트
 
 public:
 	SceneBase() = default;

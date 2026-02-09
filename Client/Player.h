@@ -26,6 +26,11 @@ class Player : public GameObjectBase
 {
 	friend class GameManager;
 
+	int m_playerHitPoint = 3;
+	const float m_invincibilityDuration = 1.0f;
+	float m_invincibilityTimer = 0.0f;
+	float m_redVignetteIntensity = 0.0f;
+
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_lineVertexBufferAndShader = {};
 	com_ptr<ID3D11PixelShader> m_linePixelShader = nullptr;
 	std::deque<std::pair<LineBuffer, float>> m_lineBuffers = {};
@@ -90,6 +95,8 @@ public:
 	Player& operator=(Player&&) = default;
 
 	bool GetActiveDeadEye() const { return m_isDeadEyeActive; }
+
+	void TakeHit();
 
 private:
 	void Initialize() override;

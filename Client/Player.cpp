@@ -13,6 +13,7 @@
 #include "Enemy.h"
 #include "ParticleObject.h"
 #include "NavigationManager.h"
+#include "SceneManager.h"
 
 #include "FSMComponentGun.h"
 
@@ -22,6 +23,20 @@ REGISTER_TYPE(Player)
 
 using namespace std;
 using namespace DirectX;
+
+void Player::TakeHit()
+{
+	if (m_invincibilityTimer > 0.0f) return;
+
+	m_playerHitPoint--;
+
+	if (!m_playerHitPoint) SceneManager::GetInstance().ChangeScene("EndingScene");
+
+	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Vignetting, true);
+	SceneBase::SetVignettingColor({ 1.0f, 0.0f, 0.0f });
+	m_redVignetteIntensity = 0.25f;
+	m_invincibilityTimer = m_invincibilityDuration;
+}
 
 void Player::Initialize()
 {
@@ -92,7 +107,14 @@ void Player::Update()
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
 	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();
-	if (m_enemyHitTimer > 0.0f) m_enemyHitTimer -= deltaTime;
+	if (m_enemyHitTimer > -1.0f) m_enemyHitTimer -= deltaTime;
+	if (m_invincibilityTimer > -1.0f) m_invincibilityTimer -= deltaTime;
+	if (m_redVignetteIntensity > 0.0f)
+	{
+		m_redVignetteIntensity -= deltaTime * 0.25f;
+		SceneBase::SetVignettingIntensity(m_redVignetteIntensity);
+		if (m_redVignetteIntensity <= 0.0f) SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Vignetting, false);
+	}
 
 	if (input.GetKey(KeyCode::LeftBracket))	{ m_bulletUIpos.first += 0.1f * deltaTime; }
 	if (input.GetKey(KeyCode::RightBracket)) { m_bulletUIpos.second += 0.1f * deltaTime; }

@@ -1165,9 +1165,7 @@ void SceneBase::GetResources()
 	m_cameraPositionConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::CameraPosition); 
 	m_globalLightConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::GlobalLight); 
 
-	m_postProcessingConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::PostProcessing); 
-
-	m_spriteFont = resourceManager.GetSpriteFont(L"Gugi");
+	m_postProcessingConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::PostProcessing);
 }
 
 void SceneBase::UpdateConstantBuffers()
