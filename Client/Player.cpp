@@ -141,7 +141,7 @@ void Player::Finalize()
 	TimeManager::GetInstance().SetTimeScale(1.0f);
 }
 
-void Player::TutorialStep()
+void Player::TutorialStep() const
 {
 	switch (GameManager::GetInstance().GetTutorialStep())
 	{
