@@ -139,7 +139,21 @@ void TestScene::RenderSpawnPoints()
 		{
 			pair<com_ptr<ID3D11ShaderResourceView>, XMFLOAT2> spawnPointTextureAndOffset = {};
 			spawnPointTextureAndOffset = ResourceManager::GetInstance().GetTextureAndOffset("Crosshair.png");
-			for (const XMVECTOR& point : m_spawnPoints)
+
+			vector<XMVECTOR> insideViewFrustumSpawnPoints = {};
+			copy_if
+			(
+				m_spawnPoints.begin(),
+				m_spawnPoints.end(),
+				back_inserter(insideViewFrustumSpawnPoints),
+				[](const XMVECTOR& point)
+				{
+					BoundingFrustum frustum = CameraComponent::GetMainCamera().GetBoundingFrustum();
+					return frustum.Contains(point) != DirectX::DISJOINT;
+				}
+			);
+
+			for (const XMVECTOR& point : insideViewFrustumSpawnPoints)
 			{
 				Renderer::GetInstance().RenderImageScreenPosition
 				(

@@ -323,8 +323,6 @@ void Player::PlayerDeadEyeStart()
 		m_cameraSensitivity = 0.01f;
 
 		SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, true);
-		//SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::RadialBlur, true);
-		//SceneBase::SetRadialBlurDist(0.33f);
 
 		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
 		if (m_deadEyeTargets.size() > 6) m_deadEyeTargets.resize(6);
@@ -351,11 +349,9 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 
 	float effectIntensity = min((m_deadEyeDuration / m_deadEyeTotalDuration) * 16.0f, 1.0f);
 	SceneBase::SetGrayScaleIntensity(effectIntensity);
-	//SceneBase::SetRadialBlurStrength(effectIntensity * 2.5f);
 
 	const XMVECTOR& targetPos = m_deadEyeTargets.back().second->GetWorldPosition();
 	m_nextDeadEyePos = m_cameraComponent->WorldToScreenPosition(targetPos);
-	//SceneBase::SetRadialBlurCenter(Renderer::GetInstance().ToUIPosition(m_nextDeadEyePos));
 
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
@@ -398,8 +394,6 @@ void Player::PlayerDeadEyeEnd()
 
 	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, false);
 	SceneBase::SetGrayScaleIntensity(0.0f);
-	//SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::RadialBlur, true);
-	//SceneBase::SetRadialBlurStrength(0.0f);
 
 	SoundManager::GetInstance().ChangeLowpass();
 
