@@ -30,7 +30,7 @@ int main()
 
 	SceneManager& sceneManager = SceneManager::GetInstance();
 	sceneManager.Initialize();
-	sceneManager.ChangeScene("TitleScene");
+	sceneManager.ChangeScene("TestScene");
 
 	RNG::GetInstance().Initialize();
 
@@ -42,7 +42,6 @@ int main()
 
 	while (windowManager.ProcessMessages())
 	{
-		gameManager.Update();
 		soundManager.Update();
 		sceneManager.Run();
 	}

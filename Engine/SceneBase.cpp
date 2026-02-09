@@ -282,6 +282,7 @@ void SceneBase::BaseRender()
 
 			UpdateConstantBuffers();
 
+			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Skybox), 1, m_skyboxSRV.GetAddressOf());
 			m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlots::Environment), 1, m_environmentMapSRV.GetAddressOf());
 			RenderSkybox();
 
@@ -343,10 +344,14 @@ void SceneBase::BaseRenderImGui()
 
 	ImGui::Separator();
 	array<char, 256> skyboxFileNameBuffer = {};
-	strcpy_s(skyboxFileNameBuffer.data(), skyboxFileNameBuffer.size(), m_environmentMapFileName.c_str());
+	strcpy_s(skyboxFileNameBuffer.data(), skyboxFileNameBuffer.size(), m_skyboxFileName.c_str());
+	if (ImGui::InputText("Skybox File Name", skyboxFileNameBuffer.data(), sizeof(skyboxFileNameBuffer))) m_skyboxFileName = skyboxFileNameBuffer.data();
+	if (ImGui::Button("Load Skybox")) m_skyboxSRV = ResourceManager::GetInstance().GetTexture(m_skyboxFileName);
 
-	if (ImGui::InputText("Skybox File Name", skyboxFileNameBuffer.data(), sizeof(skyboxFileNameBuffer))) m_environmentMapFileName = skyboxFileNameBuffer.data();
-	if (ImGui::Button("Load Skybox")) m_environmentMapSRV = ResourceManager::GetInstance().GetTexture(m_environmentMapFileName);
+	array<char, 256> environmentMapFileNameBuffer = {};
+	strcpy_s(environmentMapFileNameBuffer.data(), environmentMapFileNameBuffer.size(), m_environmentMapFileName.c_str());
+	if (ImGui::InputText("Environment Map File Name", environmentMapFileNameBuffer.data(), sizeof(environmentMapFileNameBuffer))) m_environmentMapFileName = environmentMapFileNameBuffer.data();
+	if (ImGui::Button("Load Environment Map")) m_environmentMapSRV = ResourceManager::GetInstance().GetTexture(m_environmentMapFileName);
 
 	ImGui::Separator();
 	ImGui::Text("[Post Processing]");
@@ -988,6 +993,7 @@ nlohmann::json SceneBase::BaseSerialize()
 		{ "lutLerpFactor", m_postProcessingData.lutLerpFactor}
 	};
 
+	jsonData["skyboxFileName"] = m_skyboxFileName;
 	jsonData["environmentMapFileName"] = m_environmentMapFileName;
 
 	nlohmann::json navMeshData = NavigationManager::GetInstance().Serialize();
@@ -1076,6 +1082,7 @@ void SceneBase::BaseDeserialize(const nlohmann::json& jsonData)
 		if (ppData.contains("lutLerpFactor")) m_postProcessingData.lutLerpFactor = ppData["lutLerpFactor"].get<float>();
 	}
 
+	if (jsonData.contains("skyboxFileName")) m_skyboxFileName = jsonData["skyboxFileName"].get<string>();
 	if (jsonData.contains("environmentMapFileName")) m_environmentMapFileName = jsonData["environmentMapFileName"].get<string>();
 
 	NavigationManager::GetInstance().Deserialize(jsonData);
@@ -1148,6 +1155,7 @@ void SceneBase::GetResources()
 	m_debugCoordinatePixelShader = resourceManager.GetPixelShader("PSColor.hlsl"); 
 	#endif
 
+	m_skyboxSRV = resourceManager.GetTexture(m_skyboxFileName);
 	m_environmentMapSRV = resourceManager.GetTexture(m_environmentMapFileName); 
 
 	m_viewProjectionConstantBuffer = resourceManager.GetConstantBuffer(VSConstBuffers::ViewProjection); 
@@ -1157,9 +1165,7 @@ void SceneBase::GetResources()
 	m_cameraPositionConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::CameraPosition); 
 	m_globalLightConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::GlobalLight); 
 
-	m_postProcessingConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::PostProcessing); 
-
-	m_spriteFont = resourceManager.GetSpriteFont(L"Gugi");
+	m_postProcessingConstantBuffer = resourceManager.GetConstantBuffer(PSConstBuffers::PostProcessing);
 }
 
 void SceneBase::UpdateConstantBuffers()

@@ -13,6 +13,8 @@
 #include "Enemy.h"
 #include "ParticleObject.h"
 #include "NavigationManager.h"
+#include "SceneManager.h"
+#include "GameManager.h"
 
 #include "FSMComponentGun.h"
 
@@ -22,6 +24,19 @@ REGISTER_TYPE(Player)
 
 using namespace std;
 using namespace DirectX;
+
+void Player::TakeHit()
+{
+	if (m_invincibilityTimer > 0.0f) return;
+
+	m_playerHitPoint--;
+	GameManager::GetInstance().OnPlayerHit();
+
+	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Vignetting, true);
+	SceneBase::SetVignettingColor({ 1.0f, 0.0f, 0.0f });
+	m_redVignetteIntensity = 0.25f;
+	m_invincibilityTimer = m_invincibilityDuration;
+}
 
 void Player::Initialize()
 {
@@ -34,8 +49,8 @@ void Player::Initialize()
 	m_cameraComponent = GetComponent<CameraComponent>();
 	m_cameraComponent->SetAsMainCamera();
 	m_gunObject = GetChildGameObject("Gun");
-	m_gunFSM = m_gunObject->CreateComponent<FSMComponentGun>();
 
+	m_playerHitPointTextureAndOffset = resourceManager.GetTextureAndOffset("UI_HitPoint.png");
 	m_deadEyeTextureAndOffset = resourceManager.GetTextureAndOffset("Crosshair.png");
 	m_enemyHitTextureAndOffset = resourceManager.GetTextureAndOffset("CrosshairHit.png");
 
@@ -58,6 +73,8 @@ void Player::Update()
 
 	UpdateRotation(input, deltaTime);
 	UpdateMoveDirection(input);
+
+	TutorialStep();
 	
 	if (										   m_ControlState.CanAutoReload && m_bulletCnt == 0 )																	PlayerAutoReload(0);
 	if (input.GetKeyDown(KeyCode::MouseLeft)	&& m_ControlState.CanShoot		&& m_bulletCnt > 0		&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerShoot();
@@ -93,7 +110,16 @@ void Player::Update()
 
 	for_each(m_lineBuffers.begin(), m_lineBuffers.end(), [&](auto& pair) { pair.second -= deltaTime; });
 	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();
-	if (m_enemyHitTimer > 0.0f) m_enemyHitTimer -= deltaTime;
+	if (m_enemyHitTimer > -1.0f) m_enemyHitTimer -= deltaTime;
+	if (m_invincibilityTimer > -1.0f) m_invincibilityTimer -= deltaTime;
+	if (!m_playerHitPoint && m_invincibilityTimer <= 0.0f) SceneManager::GetInstance().ChangeScene("EndingScene");
+
+	if (m_redVignetteIntensity > 0.0f)
+	{
+		m_redVignetteIntensity -= deltaTime * 0.25f;
+		SceneBase::SetVignettingIntensity(m_redVignetteIntensity);
+		if (m_redVignetteIntensity <= 0.0f) SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Vignetting, false);
+	}
 
 	if (input.GetKey(KeyCode::LeftBracket))	{ m_bulletUIpos.first += 0.1f * deltaTime; }
 	if (input.GetKey(KeyCode::RightBracket)) { m_bulletUIpos.second += 0.1f * deltaTime; }
@@ -106,6 +132,7 @@ void Player::Render()
 {
 	Renderer& renderer = Renderer::GetInstance();
 
+	RenderPlayerHitPointUI(renderer);
 	if (!m_lineBuffers.empty()) RenderLineBuffers(renderer);
 	if (!m_deadEyeTargets.empty()) RenderDeadEyeTargetsUI(renderer);
 	if (m_enemyHitTimer > 0.0f) RenderEnemyHitUI(renderer);
@@ -115,6 +142,32 @@ void Player::Render()
 void Player::Finalize()
 {
 	TimeManager::GetInstance().SetTimeScale(1.0f);
+}
+
+void Player::TutorialStep() const
+{
+	switch (GameManager::GetInstance().GetTutorialStep())
+	{
+	case ETutorialStep::Dash:
+		if (m_isDashing) GameManager::GetInstance().SetTutorialStep(ETutorialStep::Shoot);
+		break;
+
+	case ETutorialStep::Shoot:
+		if (m_bulletCnt < m_MaxBullet) GameManager::GetInstance().SetTutorialStep(ETutorialStep::Reload);
+		break;
+
+	case ETutorialStep::Reload:
+		if (m_bulletCnt == m_MaxBullet) GameManager::GetInstance().SetTutorialStep(ETutorialStep::AutoReload);
+		break;
+
+	case ETutorialStep::AutoReload:
+		if (m_bulletCnt == 0) GameManager::GetInstance().SetTutorialStep(ETutorialStep::DeadEye);
+		break;
+
+	case ETutorialStep::DeadEye:
+		if (m_isDeadEyeActive) GameManager::GetInstance().SetTutorialStep(ETutorialStep::End);
+		break;
+	}
 }
 
 void Player::SetAction(Action state, bool enabled)
@@ -323,8 +376,6 @@ void Player::PlayerDeadEyeStart()
 		m_cameraSensitivity = 0.01f;
 
 		SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, true);
-		//SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::RadialBlur, true);
-		//SceneBase::SetRadialBlurDist(0.33f);
 
 		sort(m_deadEyeTargets.begin(), m_deadEyeTargets.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
 		if (m_deadEyeTargets.size() > 6) m_deadEyeTargets.resize(6);
@@ -351,11 +402,9 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 
 	float effectIntensity = min((m_deadEyeDuration / m_deadEyeTotalDuration) * 16.0f, 1.0f);
 	SceneBase::SetGrayScaleIntensity(effectIntensity);
-	//SceneBase::SetRadialBlurStrength(effectIntensity * 2.5f);
 
 	const XMVECTOR& targetPos = m_deadEyeTargets.back().second->GetWorldPosition();
 	m_nextDeadEyePos = m_cameraComponent->WorldToScreenPosition(targetPos);
-	//SceneBase::SetRadialBlurCenter(Renderer::GetInstance().ToUIPosition(m_nextDeadEyePos));
 
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
@@ -398,12 +447,46 @@ void Player::PlayerDeadEyeEnd()
 
 	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Grayscale, false);
 	SceneBase::SetGrayScaleIntensity(0.0f);
-	//SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::RadialBlur, true);
-	//SceneBase::SetRadialBlurStrength(0.0f);
 
 	SoundManager::GetInstance().ChangeLowpass();
 
 	//TriggerLUT(); // 맛이 ?��?��
+}
+
+void Player::RenderPlayerHitPointUI(Renderer& renderer)
+{
+	renderer.UI_RENDER_FUNCTIONS().emplace_back
+	(
+		[&]()
+		{
+			float hitPointRatio = static_cast<float>(m_playerHitPoint) / static_cast<float>(m_maxPlayerHitPoint);
+			LONG width = static_cast<LONG>(m_playerHitPointTextureAndOffset.second.x);
+
+			if (m_playerHitPoint != m_maxPlayerHitPoint)
+			{
+				width = static_cast<LONG>(lerp(m_playerHitPointTextureAndOffset.second.x * hitPointRatio, m_playerHitPointTextureAndOffset.second.x * (m_playerHitPoint + 1) / static_cast<float>(m_maxPlayerHitPoint), max(0.0f, m_invincibilityTimer / m_invincibilityDuration)));
+			}
+
+			RECT hitPointSrcRect =
+			{
+				.left = 0,
+				.top = 0,
+				.right = width,
+				.bottom = static_cast<LONG>(m_playerHitPointTextureAndOffset.second.y)
+			};
+
+			Renderer::GetInstance().RenderImageUIPosition
+			(
+				m_playerHitPointTextureAndOffset.first,
+				{ 0.2f, 0.9f },
+				m_playerHitPointTextureAndOffset.second,
+				1.0f,
+				{ 1.0f - hitPointRatio, hitPointRatio, 0.0f, 1.0f },
+				0.0f,
+				&hitPointSrcRect
+			);
+		}
+	);
 }
 
 void Player::RenderLineBuffers(Renderer& renderer)

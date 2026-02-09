@@ -10,14 +10,14 @@
 class SceneBase : public Base
 {
 protected:
-#ifdef _DEBUG
+	#ifdef _DEBUG
 	std::unique_ptr<DebugCamera> m_debugCamera = nullptr; // 디버그 카메라 게임 오브젝트
 	bool m_isNavMeshCreating = false; // 네비게이션 메시 생성 중 여부
 	float m_navMeshCreationHeight = 0.0f; // 네비게이션 메시 생성 높이
 
 	std::deque<nlohmann::json> m_previousStateInversePatches = {}; // 이전 상태 역패치들
 	nlohmann::json m_lastSavedSnapshot = {}; // 마지막으로 저장된 스냅샷
-#endif
+	#endif
 
 	com_ptr<ID3D11DeviceContext> m_deviceContext = nullptr; // 디바이스 컨텍스트 포인터
 
@@ -27,14 +27,16 @@ protected:
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_skyboxVertexShaderAndInputLayout = {}; // 스카이박스 정점 셰이더
 	com_ptr<ID3D11PixelShader> m_skyboxPixelShader = nullptr; // 스카이박스 픽셀 셰이더
 
-#ifdef _DEBUG
+	#ifdef _DEBUG
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_debugCoordinateVertexShaderAndInputLayout = {}; // 디버그 좌표 정점 셰이더
 	com_ptr<ID3D11PixelShader> m_debugCoordinatePixelShader = nullptr; // 디버그 좌표 픽셀 셰이더
 	bool m_isRenderDebugCoordinates = true; // 디버그 좌표 렌더링 여부
 
 	UIBase* m_selectedUI = nullptr;
-#endif
+	#endif
 
+	std::string m_skyboxFileName = "Skybox.dds"; // 스카이박스 파일 이름
+	com_ptr<ID3D11ShaderResourceView> m_skyboxSRV = nullptr; // 스카이박스 셰이더 리소스 뷰
 	std::string m_environmentMapFileName = "Skybox.dds"; // 환경 맵 파일 이름
 	com_ptr<ID3D11ShaderResourceView> m_environmentMapSRV = nullptr; // 환경 맵 셰이더 리소스 뷰
 
@@ -60,7 +62,6 @@ protected:
 	com_ptr<ID3D11Buffer> m_postProcessingConstantBuffer = nullptr; // 후처리용 상수 버퍼
 
 	bool m_showFPS = true; // FPS 표시 여부
-	DirectX::SpriteFont* m_spriteFont = nullptr; // FPS 표시용 스프라이트 폰트
 
 public:
 	SceneBase() = default;

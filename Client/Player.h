@@ -26,6 +26,14 @@ class Player : public GameObjectBase
 {
 	friend class GameManager;
 
+	int m_playerHitPoint = 3;
+	const int m_maxPlayerHitPoint = 3;
+	const float m_invincibilityDuration = 1.0f;
+	float m_invincibilityTimer = 0.0f;
+	float m_redVignetteIntensity = 0.0f;
+
+	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> m_playerHitPointTextureAndOffset = {};
+
 	std::pair<com_ptr<ID3D11VertexShader>, com_ptr<ID3D11InputLayout>> m_lineVertexBufferAndShader = {};
 	com_ptr<ID3D11PixelShader> m_linePixelShader = nullptr;
 	std::deque<std::pair<LineBuffer, float>> m_lineBuffers = {};
@@ -91,12 +99,15 @@ public:
 
 	bool GetActiveDeadEye() const { return m_isDeadEyeActive; }
 
+	void TakeHit();
+
 private:
 	void Initialize() override;
 	void Update() override;
 	void Render() override;
 	void Finalize() override;
 
+	void TutorialStep() const;
 	void SetAction(Action state, bool enabled);
 
 	void UpdateRotation(class InputManager& input, float deltaTime);
@@ -110,6 +121,7 @@ private:
 	void PlayerDeadEye(float deltaTime, class InputManager& input);
 	void PlayerDeadEyeEnd();
 
+	void RenderPlayerHitPointUI(class Renderer& renderer);
 	void RenderLineBuffers(class Renderer& renderer);
 	void RenderDeadEyeTargetsUI(class Renderer& renderer);
 	void RenderEnemyHitUI(class Renderer& renderer);

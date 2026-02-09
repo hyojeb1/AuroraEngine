@@ -8,6 +8,7 @@
 #include "ResourceManager.h"
 #include "Renderer.h"
 #include "CameraComponent.h"
+#include "GameManager.h"
 
 #include "TestCameraObject.h"
 #include "CamRotObject.h"
@@ -29,14 +30,27 @@ void TestScene::Initialize()
 
 	m_player = dynamic_cast<Player*>(GetRootGameObject("Player"));
 
+	GameManager::GetInstance().OnSceneEnter(EScene::Main);
+	m_tutorialBox = GetRootGameObject("Box");
+
 	SoundManager::GetInstance().Main_BGM_Shot(Config::Main_BGM,1.0f);
 	SoundManager::GetInstance().Ambience_Shot(Config::Ambience);
+
+	for (size_t i = 0; i < 10; ++i)
+	{
+		GameObjectBase* enemy = CreatePrefabRootGameObject("Enemy.json");
+		enemy->SetPosition(XMVectorSet(RNG::GetInstance().Range(-10.0f, 10.0f), 0.0f, RNG::GetInstance().Range(-10.0f, 10.0f), 1.0f));
+		dynamic_cast<Enemy*>(enemy)->SetAsTutorialDummy();
+	}
 }
 
 void TestScene::Update()
 {
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	SpawnEnemy(deltaTime);
+
+	GameManager::GetInstance().OnSceneUpdate();
+	TutorialStep();
 
 	if (InputManager::GetInstance().GetKeyDown(KeyCode::Num0))
 	{
@@ -51,6 +65,8 @@ void TestScene::Update()
 
 void TestScene::Render()
 {
+	GameManager::GetInstance().OnSceneRender();
+
 	RenderSpawnPoints();
 }
 
@@ -61,6 +77,7 @@ void TestScene::RenderImGui()
 	{
 		for (XMVECTOR& point : m_spawnPoints) ImGui::DragFloat3(("Point " + to_string(&point - &m_spawnPoints[0])).c_str(), &point.m128_f32[0], 0.1f);
 		if (ImGui::Button("Add Point")) m_spawnPoints.push_back(XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+		if (!m_spawnPoints.empty() && ImGui::Button("Remove Last Point")) m_spawnPoints.pop_back();
 
 		ImGui::TreePop();
 	}
@@ -69,6 +86,7 @@ void TestScene::RenderImGui()
 
 void TestScene::Finalize()
 {
+	GameManager::GetInstance().OnSceneExit();
 	SoundManager::GetInstance().Stop_ChannelGroup();
 }
 
@@ -101,7 +119,21 @@ void TestScene::Deserialize(const nlohmann::json& jsonData)
 			m_spawnPoints.emplace_back(point);
 		}
 	}
+}
 
+void TestScene::TutorialStep()
+{
+	switch (GameManager::GetInstance().GetTutorialStep())
+	{
+	case ETutorialStep::WASD:
+		constexpr float BOX_DISTANCE_SQ = 8.0f;
+		if (XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(m_player->GetWorldPosition(), m_tutorialBox->GetWorldPosition()))) < BOX_DISTANCE_SQ)
+		{
+			m_tutorialBox->SetAlive(false);
+			GameManager::GetInstance().SetTutorialStep(ETutorialStep::Dash);
+		}
+		break;
+	}
 }
 
 constexpr float SPAWN_ACTIVE_DISTANCE_SQ = 100.0f;
@@ -140,7 +172,21 @@ void TestScene::RenderSpawnPoints()
 		{
 			pair<com_ptr<ID3D11ShaderResourceView>, XMFLOAT2> spawnPointTextureAndOffset = {};
 			spawnPointTextureAndOffset = ResourceManager::GetInstance().GetTextureAndOffset("Crosshair.png");
-			for (const XMVECTOR& point : m_spawnPoints)
+
+			vector<XMVECTOR> insideViewFrustumSpawnPoints = {};
+			copy_if
+			(
+				m_spawnPoints.begin(),
+				m_spawnPoints.end(),
+				back_inserter(insideViewFrustumSpawnPoints),
+				[](const XMVECTOR& point)
+				{
+					BoundingFrustum frustum = CameraComponent::GetMainCamera().GetBoundingFrustum();
+					return frustum.Contains(point) != DirectX::DISJOINT;
+				}
+			);
+
+			for (const XMVECTOR& point : insideViewFrustumSpawnPoints)
 			{
 				Renderer::GetInstance().RenderImageScreenPosition
 				(
@@ -152,6 +198,5 @@ void TestScene::RenderSpawnPoints()
 				);
 			}
 		}
-
 	);
 }

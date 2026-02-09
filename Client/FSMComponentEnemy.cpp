@@ -106,10 +106,8 @@ void FSMComponentEnemy::OnUpdateState(StateID state)
 					if (distSq <= kAttackRange * kAttackRange) {
 					cout << "Player Hit! Damage: " << kDamage << endl;
 
-					if (auto* scene = dynamic_cast<HyojeTestScene*>(SceneManager::GetInstance().GetCurrentScene()))
-					{
-						scene->OnPlayerHit(kDamage);
-					}
+					player_->TakeHit();
+
 					}
 				}
 			}
