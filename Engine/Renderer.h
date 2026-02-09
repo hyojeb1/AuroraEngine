@@ -64,6 +64,9 @@ class Renderer : public Singleton<Renderer>
 	int m_selectedLUTIndex = 0;
 	int m_selectedLUT2Index = 4;
 
+	std::pair<UINT, UINT> m_curRes = { m_swapChainDesc.Width , m_swapChainDesc.Height };
+	std::pair<UINT, UINT> m_prevRes = { 0, 0 };
+
 public:
 	Renderer() = default;
 	~Renderer() = default;

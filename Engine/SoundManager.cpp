@@ -82,6 +82,7 @@ void SoundManager::Initialize()
 
 		m_CoreSystem->createDSPByType(FMOD_DSP_TYPE_LOWPASS, &m_lowpass);
 		m_lowpass->setParameterFloat(FMOD_DSP_LOWPASS_CUTOFF, 22000.0f);
+		m_MainGroup->addDSP(0, m_lowpass);
 
 		m_CurrentTrackName = "";
 		m_CurrentNodeDataName = "";
@@ -110,6 +111,7 @@ void SoundManager::Update()
 	//std::cout << m_rhythmTimerIndex << " : index "
 	//	<< m_NodeData[m_rhythmTimerIndex].first << " : startTime "
 	//	<< m_NodeData[m_rhythmTimerIndex].second << " : EndTime " << std::endl;
+
 }
 
 void SoundManager::Stop_ChannelGroup()
@@ -293,10 +295,8 @@ bool SoundManager::CheckMainBGMBeatver()
 		{
 			return true;
 		}
-		else
-		{
-			return false;
-		}
+		
+		return false;
 	}
 }
 
@@ -630,7 +630,7 @@ void SoundManager::Main_BGM_Shot(const std::string filename, float delay)
 	m_rhythmDestroyIndex = 0;
 
 	m_CoreSystem->playSound(it->second, m_BGMGroup, true, &m_BGMChannel1);
-	m_BGMChannel1->addDSP(0, m_lowpass);
+	m_BGMChannel1->setChannelGroup(m_BGMGroup);
 
 	unsigned long long nowDSP;
 	m_BGMGroup->getDSPClock(&nowDSP, nullptr);

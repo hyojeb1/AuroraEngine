@@ -185,6 +185,9 @@ void Renderer::Resize(UINT width, UINT height)
 
 	m_swapChainDesc.Width = width;
 	m_swapChainDesc.Height = height;
+
+	m_curRes = { width, height };
+
 	m_aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 	 
 	// 스왑 체인 크기 조정
@@ -208,7 +211,13 @@ void Renderer::Resize(UINT width, UINT height)
 	SceneBase* temp = SceneManager::GetInstance().GetCurrentScene();
 	if (temp)
 	{
-		temp->OnResizeEvent();
+		if (m_prevRes.first > 0)
+		{
+			float sx = (float)m_curRes.first / (float)m_prevRes.first;
+			float sy = (float)m_curRes.second / (float)m_prevRes.second;
+
+			temp->OnResizeEvent({ sx,sy });
+		}
 	}
 }
 
@@ -219,6 +228,8 @@ void Renderer::SetFullscreen(bool enable)
 
 	hr = m_swapChain->SetFullscreenState(static_cast<BOOL>(enable), nullptr);
 	CheckResult(hr, "전체 화면 모드 전환 실패.");
+
+	m_prevRes = m_curRes;
 
 	if (enable)
 	{
@@ -250,10 +261,20 @@ void Renderer::SetFullscreen(bool enable)
 			&modeCount,
 			modes.data()
 		);
-			m_swapChain->ResizeTarget(&modes.back()); //max resolution
-}
+		std::cout << m_curRes.first << " : " << m_curRes.second << std::endl;
+		std::cout << m_prevRes.first << " : " << m_prevRes.second << std::endl;
 
-	
+		m_swapChain->ResizeTarget(&modes.back()); //max resolution
+	}
+	else
+	{
+		DXGI_MODE_DESC windowedMode = {};
+		windowedMode.Width = m_prevRes.first;
+		windowedMode.Height = m_prevRes.second;
+		windowedMode.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+		m_swapChain->ResizeTarget(&windowedMode);
+	}
 }
 
 void Renderer::SetViewport(FLOAT Width, FLOAT Height)

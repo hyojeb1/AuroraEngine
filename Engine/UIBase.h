@@ -77,7 +77,7 @@ public:
 	// =========================================================
 	// Serialization
 	// =========================================================
-	virtual void OnResize() { UpdateRect(); }
+	virtual void OnResize(std::pair<float, float> res) { SetScale(res.first); }//UpdateRect(); }
 
 	virtual nlohmann::json Serialize() const;
 	virtual void Deserialize(const nlohmann::json& data);

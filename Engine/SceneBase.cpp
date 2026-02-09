@@ -110,11 +110,11 @@ void SceneBase::Undo()
 	m_lastSavedSnapshot = previousScene;
 }
 #endif
-void SceneBase::OnResizeEvent()
+void SceneBase::OnResizeEvent(std::pair<float,float> res)
 {
 	for (auto& m : m_UIList)
 	{
-		m->OnResize();
+		m->OnResize(res);
 	}
 }
 

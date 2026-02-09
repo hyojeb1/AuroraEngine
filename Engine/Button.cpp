@@ -15,7 +15,8 @@ Button::Button()
 void Button::UpdateRect()
 {
 	const DirectX::XMFLOAT2 windowPos = Renderer::GetInstance().ToScreenPosition(GetWorldPosition());
-	const DirectX::XMFLOAT2 offset = { m_textureIdle.second.x * m_scaleIdle, m_textureIdle.second.y * m_scale };
+	const DirectX::XMFLOAT2 offset = { m_textureIdle.second.x * m_scale * m_scaleIdle,
+		m_textureIdle.second.y * m_scale* m_scaleIdle };
 
 	m_UIRect =
 	{

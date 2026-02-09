@@ -11,12 +11,12 @@ Panel::Panel()
 	m_scale = 0.1f;
 }
 
-void Panel::OnResize()
+void Panel::OnResize(std::pair<float, float> res)
 {
 	UpdateRect();
 
 	for (auto& child : m_children)
-		child->OnResize();
+		child->OnResize(res);
 }
 
 void Panel::RenderUI(Renderer& renderer)

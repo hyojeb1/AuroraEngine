@@ -204,7 +204,7 @@ void WindowManager::ToggleFullscreen()
 // 			mi.rcMonitor.bottom - mi.rcMonitor.top,
 // 			SWP_NOOWNERZORDER | SWP_FRAMECHANGED
 // 		);
-		ShowWindow(m_hWnd, SW_MAXIMIZE);
+		//ShowWindow(m_hWnd, SW_MAXIMIZE);
 		m_isFullscreen = true;
 
 		renderer.Resize

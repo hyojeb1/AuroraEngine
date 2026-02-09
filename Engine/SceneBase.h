@@ -95,7 +95,7 @@ public:
 	GameObjectBase* GetRootGameObject(const std::string& name); // 이름으로 루트 게임 오브젝트 검색 // 없으면 nullptr 반환
 	GameObjectBase* GetGameObjectRecursive(const std::string& name); // 이름으로 게임 오브젝트 재귀 검색 // 없으면 nullptr 반환
 
-	void OnResizeEvent();
+	void OnResizeEvent(std::pair<float, float> res);
 
 #ifdef _DEBUG
 	void SaveState(); // 현재 상태 저장
