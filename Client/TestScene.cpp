@@ -101,7 +101,6 @@ void TestScene::Deserialize(const nlohmann::json& jsonData)
 			m_spawnPoints.emplace_back(point);
 		}
 	}
-
 }
 
 constexpr float SPAWN_ACTIVE_DISTANCE_SQ = 100.0f;
