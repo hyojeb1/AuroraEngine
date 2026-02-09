@@ -42,7 +42,6 @@ int main()
 
 	while (windowManager.ProcessMessages())
 	{
-		gameManager.Update();
 		soundManager.Update();
 		sceneManager.Run();
 	}

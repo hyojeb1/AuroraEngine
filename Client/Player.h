@@ -104,6 +104,7 @@ private:
 	void Render() override;
 	void Finalize() override;
 
+	void TutorialStep();
 	void SetAction(Action state, bool enabled);
 
 	void UpdateRotation(class InputManager& input, float deltaTime);

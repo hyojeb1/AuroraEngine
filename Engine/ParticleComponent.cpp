@@ -37,7 +37,10 @@ void ParticleComponent::Update()
 	if (!m_restartOnFinish)
 	{
 		#ifdef NDEBUG
-		if (m_elapsedTime >= m_particleTotalTime) SetAlive(false);
+		if (m_elapsedTime >= m_particleTotalTime)
+		{
+			SetAlive(false);
+		};
 		#endif
 		m_particleColor.baseColor.w = max(0.0f, 1.0f - powf(progress, 2.0f));
 	}
@@ -48,6 +51,8 @@ void ParticleComponent::Update()
 
 void ParticleComponent::Render()
 {
+	if (GetAlive() == false) return;
+
 	Renderer& renderer = Renderer::GetInstance();
 	const CameraComponent& mainCamera = CameraComponent::GetMainCamera();
 	const XMVECTOR& owner_pos = m_owner->GetPosition();

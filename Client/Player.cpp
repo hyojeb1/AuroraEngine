@@ -14,6 +14,7 @@
 #include "ParticleObject.h"
 #include "NavigationManager.h"
 #include "SceneManager.h"
+#include "GameManager.h"
 
 #include "FSMComponentGun.h"
 
@@ -72,6 +73,8 @@ void Player::Update()
 
 	UpdateRotation(input, deltaTime);
 	UpdateMoveDirection(input);
+
+	TutorialStep();
 	
 	if (										   m_ControlState.CanAutoReload && m_bulletCnt == 0 )																	PlayerAutoReload(0);
 	if (input.GetKeyDown(KeyCode::MouseLeft)	&& m_ControlState.CanShoot		&& m_bulletCnt > 0		&&	sm.CheckRhythm(Config::InputCorrection) < InputType::Miss)	PlayerShoot();
@@ -136,6 +139,32 @@ void Player::Render()
 void Player::Finalize()
 {
 	TimeManager::GetInstance().SetTimeScale(1.0f);
+}
+
+void Player::TutorialStep()
+{
+	switch (GameManager::GetInstance().GetTutorialStep())
+	{
+	case ETutorialStep::Dash:
+		if (m_isDashing) GameManager::GetInstance().SetTutorialStep(ETutorialStep::Shoot);
+		break;
+
+	case ETutorialStep::Shoot:
+		if (m_bulletCnt < m_MaxBullet) GameManager::GetInstance().SetTutorialStep(ETutorialStep::Reload);
+		break;
+
+	case ETutorialStep::Reload:
+		if (m_bulletCnt == m_MaxBullet) GameManager::GetInstance().SetTutorialStep(ETutorialStep::AutoReload);
+		break;
+
+	case ETutorialStep::AutoReload:
+		if (m_bulletCnt == 0) GameManager::GetInstance().SetTutorialStep(ETutorialStep::DeadEye);
+		break;
+
+	case ETutorialStep::DeadEye:
+		if (m_isDeadEyeActive) GameManager::GetInstance().SetTutorialStep(ETutorialStep::End);
+		break;
+	}
 }
 
 void Player::SetAction(Action state, bool enabled)

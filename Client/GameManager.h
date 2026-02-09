@@ -58,7 +58,6 @@ class GameManager : public Singleton<GameManager>
 
 public:
     void Initialize();
-    void Update();
     void Finalize();
 
     Player* GetPlayerPtr();
@@ -66,7 +65,8 @@ public:
 
     void OnSceneEnter(EScene type);
     void OnSceneUpdate();
-    void OnSceneExit(EScene type);
+	void OnSceneRender();
+    void OnSceneExit();
 
 
     void MainSceneControl();
@@ -82,6 +82,12 @@ public:
     void OnPlayerHit();         // Player.cpp - 뭐임
     void OnRhythmMiss();        // 리듬 미스 시 호출 (스택 초기화)
     void ScoreReset();          // 씬 바뀔때?
+
+    ETutorialStep GetTutorialStep() const { return m_TutorialStep; }
+	void SetTutorialStep(ETutorialStep step) { m_TutorialStep = step; }
+
+    //void RenderInfo();
+	std::function<void()> RenderInfo();
 
     const int GetScore() { return m_currentScore; }
     void SetScore(int num) { m_currentScore = num; }

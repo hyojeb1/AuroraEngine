@@ -31,9 +31,17 @@ void TestScene::Initialize()
 	m_player = dynamic_cast<Player*>(GetRootGameObject("Player"));
 
 	GameManager::GetInstance().OnSceneEnter(EScene::Main);
+	m_tutorialBox = GetRootGameObject("Box");
 
 	SoundManager::GetInstance().Main_BGM_Shot(Config::Main_BGM,1.0f);
 	SoundManager::GetInstance().Ambience_Shot(Config::Ambience);
+
+	for (size_t i = 0; i < 10; ++i)
+	{
+		GameObjectBase* enemy = CreatePrefabRootGameObject("Enemy.json");
+		enemy->SetPosition(XMVectorSet(RNG::GetInstance().Range(-10.0f, 10.0f), 0.0f, RNG::GetInstance().Range(-10.0f, 10.0f), 1.0f));
+		dynamic_cast<Enemy*>(enemy)->SetAsTutorialDummy();
+	}
 }
 
 void TestScene::Update()
@@ -41,7 +49,8 @@ void TestScene::Update()
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	SpawnEnemy(deltaTime);
 
-	GameManager::GetInstance().ScoreUpdate();
+	GameManager::GetInstance().OnSceneUpdate();
+	TutorialStep();
 
 	if (InputManager::GetInstance().GetKeyDown(KeyCode::Num0))
 	{
@@ -56,7 +65,7 @@ void TestScene::Update()
 
 void TestScene::Render()
 {
-	RenderScore();
+	GameManager::GetInstance().OnSceneRender();
 
 	RenderSpawnPoints();
 }
@@ -68,6 +77,7 @@ void TestScene::RenderImGui()
 	{
 		for (XMVECTOR& point : m_spawnPoints) ImGui::DragFloat3(("Point " + to_string(&point - &m_spawnPoints[0])).c_str(), &point.m128_f32[0], 0.1f);
 		if (ImGui::Button("Add Point")) m_spawnPoints.push_back(XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+		if (!m_spawnPoints.empty() && ImGui::Button("Remove Last Point")) m_spawnPoints.pop_back();
 
 		ImGui::TreePop();
 	}
@@ -76,6 +86,7 @@ void TestScene::RenderImGui()
 
 void TestScene::Finalize()
 {
+	GameManager::GetInstance().OnSceneExit();
 	SoundManager::GetInstance().Stop_ChannelGroup();
 }
 
@@ -110,6 +121,21 @@ void TestScene::Deserialize(const nlohmann::json& jsonData)
 	}
 }
 
+void TestScene::TutorialStep()
+{
+	switch (GameManager::GetInstance().GetTutorialStep())
+	{
+	case ETutorialStep::WASD:
+		constexpr float BOX_DISTANCE_SQ = 8.0f;
+		if (XMVectorGetX(XMVector3LengthSq(XMVectorSubtract(m_player->GetWorldPosition(), m_tutorialBox->GetWorldPosition()))) < BOX_DISTANCE_SQ)
+		{
+			m_tutorialBox->SetAlive(false);
+			GameManager::GetInstance().SetTutorialStep(ETutorialStep::Dash);
+		}
+		break;
+	}
+}
+
 constexpr float SPAWN_ACTIVE_DISTANCE_SQ = 100.0f;
 
 void TestScene::SpawnEnemy(float deltaTime)
@@ -136,17 +162,6 @@ void TestScene::SpawnEnemy(float deltaTime)
 			spawnTime = 0.0f;
 		}
 	}
-}
-
-void TestScene::RenderScore()
-{
-	Renderer::GetInstance().UI_RENDER_FUNCTIONS().emplace_back
-	(
-		[&]()
-		{
-			Renderer::GetInstance().RenderTextUIPosition((L"Score: " + to_wstring(GameManager::GetInstance().GetScore())).c_str(), XMFLOAT2(0.45f, 0.1f));
-		}
-	);
 }
 
 void TestScene::RenderSpawnPoints()
