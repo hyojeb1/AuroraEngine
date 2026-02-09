@@ -30,5 +30,7 @@ private:
 	void Deserialize(const nlohmann::json& jsonData) override;
 
 	void SpawnEnemy(float deltaTime);
+
+	void RenderScore();
 	void RenderSpawnPoints();
 };

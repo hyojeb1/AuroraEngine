@@ -8,6 +8,7 @@
 #include "ResourceManager.h"
 #include "Renderer.h"
 #include "CameraComponent.h"
+#include "GameManager.h"
 
 #include "TestCameraObject.h"
 #include "CamRotObject.h"
@@ -29,6 +30,8 @@ void TestScene::Initialize()
 
 	m_player = dynamic_cast<Player*>(GetRootGameObject("Player"));
 
+	GameManager::GetInstance().OnSceneEnter(EScene::Main);
+
 	SoundManager::GetInstance().Main_BGM_Shot(Config::Main_BGM,1.0f);
 	SoundManager::GetInstance().Ambience_Shot(Config::Ambience);
 }
@@ -37,6 +40,8 @@ void TestScene::Update()
 {
 	float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 	SpawnEnemy(deltaTime);
+
+	GameManager::GetInstance().ScoreUpdate();
 
 	if (InputManager::GetInstance().GetKeyDown(KeyCode::Num0))
 	{
@@ -51,6 +56,8 @@ void TestScene::Update()
 
 void TestScene::Render()
 {
+	RenderScore();
+
 	RenderSpawnPoints();
 }
 
@@ -131,6 +138,17 @@ void TestScene::SpawnEnemy(float deltaTime)
 	}
 }
 
+void TestScene::RenderScore()
+{
+	Renderer::GetInstance().UI_RENDER_FUNCTIONS().emplace_back
+	(
+		[&]()
+		{
+			Renderer::GetInstance().RenderTextUIPosition((L"Score: " + to_wstring(GameManager::GetInstance().GetScore())).c_str(), XMFLOAT2(0.45f, 0.1f));
+		}
+	);
+}
+
 void TestScene::RenderSpawnPoints()
 {
 	Renderer::GetInstance().UI_RENDER_FUNCTIONS().emplace_back
@@ -165,6 +183,5 @@ void TestScene::RenderSpawnPoints()
 				);
 			}
 		}
-
 	);
 }

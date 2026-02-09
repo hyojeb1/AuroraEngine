@@ -46,7 +46,7 @@ class GameManager : public Singleton<GameManager>
 ///SCORE
     //점수 관련 변수
 	int     m_currentScore = 0;
-	int     m_multiplier = 0;         // 1, 2, 4, 8
+	int     m_multiplier = 1;         // 1, 2, 4, 8
 	int     m_killCountForNextLevel = 0;
 	float   m_lastKillTime = 0.0f;
 	bool    m_isCombatStarted = false;

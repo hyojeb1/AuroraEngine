@@ -139,7 +139,7 @@ void GameManager::ScoreUpdate()
 void GameManager::ScoreReset()
 {
 	m_currentScore = 0;
-	m_multiplier = 0;
+	m_multiplier = 1;
 	m_killCountForNextLevel = 0;
 	m_lastKillTime = 0.0f;
 	m_isCombatStarted = false;
