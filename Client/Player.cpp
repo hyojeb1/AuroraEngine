@@ -34,7 +34,6 @@ void Player::Initialize()
 	m_cameraComponent = GetComponent<CameraComponent>();
 	m_cameraComponent->SetAsMainCamera();
 	m_gunObject = GetChildGameObject("Gun");
-	m_gunFSM = m_gunObject->CreateComponent<FSMComponentGun>();
 
 	m_deadEyeTextureAndOffset = resourceManager.GetTextureAndOffset("Crosshair.png");
 	m_enemyHitTextureAndOffset = resourceManager.GetTextureAndOffset("CrosshairHit.png");
