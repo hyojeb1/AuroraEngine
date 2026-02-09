@@ -31,8 +31,6 @@ void Player::TakeHit()
 
 	m_playerHitPoint--;
 
-	if (!m_playerHitPoint) SceneManager::GetInstance().ChangeScene("EndingScene");
-
 	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Vignetting, true);
 	SceneBase::SetVignettingColor({ 1.0f, 0.0f, 0.0f });
 	m_redVignetteIntensity = 0.25f;
@@ -51,6 +49,7 @@ void Player::Initialize()
 	m_cameraComponent->SetAsMainCamera();
 	m_gunObject = GetChildGameObject("Gun");
 
+	m_playerHitPointTextureAndOffset = resourceManager.GetTextureAndOffset("UI_HitPoint.png");
 	m_deadEyeTextureAndOffset = resourceManager.GetTextureAndOffset("Crosshair.png");
 	m_enemyHitTextureAndOffset = resourceManager.GetTextureAndOffset("CrosshairHit.png");
 
@@ -112,6 +111,8 @@ void Player::Update()
 	if (!m_lineBuffers.empty() && m_lineBuffers.front().second < 0.0f) m_lineBuffers.pop_front();
 	if (m_enemyHitTimer > -1.0f) m_enemyHitTimer -= deltaTime;
 	if (m_invincibilityTimer > -1.0f) m_invincibilityTimer -= deltaTime;
+	if (!m_playerHitPoint && m_invincibilityTimer <= 0.0f) SceneManager::GetInstance().ChangeScene("EndingScene");
+
 	if (m_redVignetteIntensity > 0.0f)
 	{
 		m_redVignetteIntensity -= deltaTime * 0.25f;
@@ -130,6 +131,7 @@ void Player::Render()
 {
 	Renderer& renderer = Renderer::GetInstance();
 
+	RenderPlayerHitPointUI(renderer);
 	if (!m_lineBuffers.empty()) RenderLineBuffers(renderer);
 	if (!m_deadEyeTargets.empty()) RenderDeadEyeTargetsUI(renderer);
 	if (m_enemyHitTimer > 0.0f) RenderEnemyHitUI(renderer);
@@ -448,6 +450,42 @@ void Player::PlayerDeadEyeEnd()
 	SoundManager::GetInstance().ChangeLowpass();
 
 	//TriggerLUT(); // 맛이 ?��?��
+}
+
+void Player::RenderPlayerHitPointUI(Renderer& renderer)
+{
+	renderer.UI_RENDER_FUNCTIONS().emplace_back
+	(
+		[&]()
+		{
+			float hitPointRatio = static_cast<float>(m_playerHitPoint) / static_cast<float>(m_maxPlayerHitPoint);
+			LONG width = static_cast<LONG>(m_playerHitPointTextureAndOffset.second.x);
+
+			if (m_playerHitPoint != m_maxPlayerHitPoint)
+			{
+				width = static_cast<LONG>(lerp(m_playerHitPointTextureAndOffset.second.x * hitPointRatio, m_playerHitPointTextureAndOffset.second.x * (m_playerHitPoint + 1) / static_cast<float>(m_maxPlayerHitPoint), max(0.0f, m_invincibilityTimer / m_invincibilityDuration)));
+			}
+
+			RECT hitPointSrcRect =
+			{
+				.left = 0,
+				.top = 0,
+				.right = width,
+				.bottom = static_cast<LONG>(m_playerHitPointTextureAndOffset.second.y)
+			};
+
+			Renderer::GetInstance().RenderImageUIPosition
+			(
+				m_playerHitPointTextureAndOffset.first,
+				{ 0.2f, 0.9f },
+				m_playerHitPointTextureAndOffset.second,
+				1.0f,
+				{ 1.0f - hitPointRatio, hitPointRatio, 0.0f, 1.0f },
+				0.0f,
+				&hitPointSrcRect
+			);
+		}
+	);
 }
 
 void Player::RenderLineBuffers(Renderer& renderer)
