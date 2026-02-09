@@ -3,6 +3,8 @@
 
 #include "SceneManager.h"
 #include "CameraComponent.h"
+#include "SoundManager.h"
+#include "TimeManager.h"
 
 #include "UIBase.h"
 #include "Button.h"
@@ -10,7 +12,6 @@
 #include "Slider.h"
 #include "Text.h"
 
-#include "SoundManager.h"
 
 #include "Shared/Config/Option.h"
 
@@ -19,6 +20,13 @@ REGISTER_TYPE(TitleScene);
 void TitleScene::Initialize()
 {
 	GetRootGameObject("MainCam")->GetComponent<class CameraComponent>()->SetAsMainCamera();
+
+	if (optionPanel) optionPanel->SetActive(false);
+	if (creditPanel) creditPanel->SetActive(false);
+	if (Titles) Titles->SetActive(true);
+	if (Title_letterrbox_down) Title_letterrbox_down->SetActive(true);
+	if (Title_letterrbox_up) Title_letterrbox_up->SetActive(true);
+
 
 	//float buttonX = 0.85f;
 
@@ -76,6 +84,8 @@ void TitleScene::BindUIActions()
 			if (panel->GetName() == "option") optionPanel = panel;
 			else if (panel->GetName() == "UI_Title_letterrbox_down") Title_letterrbox_down = panel;
 			else if (panel->GetName() == "UI_Title_letterrbox_up") Title_letterrbox_up = panel;
+			else if (panel->GetName() == "credit") creditPanel = panel;
+			else if (panel->GetName() == "Titles") Titles = panel;
 		} else if (auto* text = dynamic_cast<Text*>(uiPtr.get())) {
 			//if (text->GetName() == "result_time") resultTime = text;
 		}
@@ -90,13 +100,17 @@ void TitleScene::BindUIActions()
 			std::string key = btn->GetActionKey();
 
 			if (key == "start_game") {
-				btn->SetOnClick([this]() { });
+				btn->SetOnClick([this]() { SceneManager::GetInstance().ChangeScene("TestScene");  });
 			} else if (key == "quit_game") {
 				btn->SetOnClick([]() { PostQuitMessage(0); });
 			} else if (key == "open_option") {
 				if (optionPanel) btn->SetOnClick([this]() { optionPanel->SetActive(true); });
 			} else if (key == "close_option") {
 				if (optionPanel) btn->SetOnClick([this]() { optionPanel->SetActive(false); });
+			} else if (key == "open_credit") {
+				if (optionPanel) btn->SetOnClick([this]() { creditPanel->SetActive(true); });
+			} else if (key == "close_credit") {
+				if (optionPanel) btn->SetOnClick([this]() { creditPanel->SetActive(false); });
 			}
 		}
 
@@ -119,4 +133,10 @@ void TitleScene::BindUIActions()
 			}
 		}
 	}
+}
+
+
+void TitleScene::MovingPanel(float dt)
+{
+
 }

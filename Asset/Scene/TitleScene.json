@@ -15,7 +15,7 @@
             ],
             "depth": 0.0,
             "name": "buttons",
-            "parentIdx": -1,
+            "parentIdx": 14,
             "pathIdle": "UI__.png",
             "pos": [
                 0.0,
@@ -26,7 +26,7 @@
             "type": "Panel"
         },
         {
-            "actionKey": "startButton",
+            "actionKey": "start_game",
             "active": true,
             "animAutoPlay": true,
             "animCols": 1,
@@ -58,12 +58,12 @@
                 1.0
             ],
             "depth": 0.009999999776482582,
-            "name": "startButton",
+            "name": "start_game",
             "parentIdx": 0,
-            "pathClicked": "UI_Clicked.png",
-            "pathHover": "UI_Hovered.png",
+            "pathClicked": "UI_Button_hover.png",
+            "pathHover": "UI_Button_hover.png",
             "pathIdle": "UI_Button.png",
-            "pathPressed": "UI_Pressed.png",
+            "pathPressed": "UI_Button_hover.png",
             "pos": [
                 0.6000000238418579,
                 0.4399999976158142
@@ -90,7 +90,7 @@
             ],
             "depth": 0.009999999776482582,
             "name": "cha",
-            "parentIdx": -1,
+            "parentIdx": 14,
             "pathIdle": "UI_cha_pose.png",
             "pos": [
                 0.23000000417232513,
@@ -115,7 +115,7 @@
             ],
             "depth": 0.009999999776482582,
             "name": "logo",
-            "parentIdx": -1,
+            "parentIdx": 14,
             "pathIdle": "UI_logo.png",
             "pos": [
                 0.6600000262260437,
@@ -126,6 +126,7 @@
             "type": "Panel"
         },
         {
+            "actionKey": "open_option",
             "active": true,
             "animAutoPlay": true,
             "animCols": 1,
@@ -157,12 +158,12 @@
                 1.0
             ],
             "depth": 0.009999999776482582,
-            "name": "optionButton",
+            "name": "open_option",
             "parentIdx": 0,
-            "pathClicked": "UI_Clicked.png",
-            "pathHover": "UI_Hovered.png",
+            "pathClicked": "UI_Button_hover.png",
+            "pathHover": "UI_Button_hover.png",
             "pathIdle": "UI_Button.png",
-            "pathPressed": "UI_Pressed.png",
+            "pathPressed": "UI_Button_hover.png",
             "pos": [
                 0.6000000238418579,
                 0.5600000023841858
@@ -175,6 +176,7 @@
             "type": "Button"
         },
         {
+            "actionKey": "open_credit",
             "active": true,
             "animAutoPlay": true,
             "animCols": 1,
@@ -206,12 +208,12 @@
                 1.0
             ],
             "depth": 0.009999999776482582,
-            "name": "startButton",
+            "name": "open_credit",
             "parentIdx": 0,
-            "pathClicked": "UI_Clicked.png",
-            "pathHover": "UI_Hovered.png",
+            "pathClicked": "UI_Button_hover.png",
+            "pathHover": "UI_Button_hover.png",
             "pathIdle": "UI_Button.png",
-            "pathPressed": "UI_Pressed.png",
+            "pathPressed": "UI_Button_hover.png",
             "pos": [
                 0.6000000238418579,
                 0.6800000071525574
@@ -224,6 +226,7 @@
             "type": "Button"
         },
         {
+            "actionKey": "quit_game",
             "active": true,
             "animAutoPlay": true,
             "animCols": 1,
@@ -255,12 +258,12 @@
                 1.0
             ],
             "depth": 0.009999999776482582,
-            "name": "startButton",
+            "name": "quit_game",
             "parentIdx": 0,
-            "pathClicked": "UI_Clicked.png",
-            "pathHover": "UI_Hovered.png",
+            "pathClicked": "UI_Button_hover.png",
+            "pathHover": "UI_Button_hover.png",
             "pathIdle": "UI_Button.png",
-            "pathPressed": "UI_Pressed.png",
+            "pathPressed": "UI_Button_hover.png",
             "pos": [
                 0.6000000238418579,
                 0.800000011920929
@@ -287,7 +290,7 @@
             ],
             "depth": 0.0,
             "name": "Title_temp_img",
-            "parentIdx": -1,
+            "parentIdx": 14,
             "pathIdle": "UI_Title_temp_img.png",
             "pos": [
                 0.5,
@@ -348,7 +351,7 @@
             "type": "Panel"
         },
         {
-            "active": true,
+            "active": false,
             "animAutoPlay": true,
             "animCols": 1,
             "animFPS": 8.0,
@@ -363,7 +366,7 @@
             "depth": 0.30000001192092896,
             "name": "option",
             "parentIdx": -1,
-            "pathIdle": "",
+            "pathIdle": "UI__.png",
             "pos": [
                 0.5,
                 0.5
@@ -490,7 +493,7 @@
                 1.0
             ],
             "depth": 0.4000000059604645,
-            "name": "close",
+            "name": "close_option",
             "parentIdx": 10,
             "pathClicked": "UI_Clicked.png",
             "pathHover": "UI_Hovered.png",
@@ -506,6 +509,156 @@
             "scaleIdle": 1.0,
             "scalePressed": 0.949999988079071,
             "type": "Button"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "depth": 0.0,
+            "name": "titles",
+            "parentIdx": -1,
+            "pathIdle": "UI__.png",
+            "pos": [
+                0.0,
+                0.0
+            ],
+            "scale": 0.10000000149011612,
+            "scaleIdle": 1.0,
+            "type": "Panel"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "depth": 0.30000001192092896,
+            "name": "credit",
+            "parentIdx": -1,
+            "pathIdle": "UI_Credits_all.png",
+            "pos": [
+                0.5,
+                0.5
+            ],
+            "scale": 0.8700000047683716,
+            "scaleIdle": 1.0,
+            "type": "Panel"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "depth": 0.028999999165534973,
+            "name": "optionBG",
+            "parentIdx": 15,
+            "pathIdle": "UI_OptionBG.png",
+            "pos": [
+                0.0,
+                0.0
+            ],
+            "scale": 0.6700000166893005,
+            "scaleIdle": 1.0,
+            "type": "Panel"
+        },
+        {
+            "actionKey": "close_credit",
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorClicked": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "colorHover": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421,
+                1.0
+            ],
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "colorPressed": [
+                0.699999988079071,
+                0.699999988079071,
+                0.699999988079071,
+                1.0
+            ],
+            "depth": 0.3100000023841858,
+            "name": "close_credit",
+            "parentIdx": 15,
+            "pathClicked": "UI_Clicked.png",
+            "pathHover": "UI_Hovered.png",
+            "pathIdle": "UI_IDLE.png",
+            "pathPressed": "UI_Pressed.png",
+            "pos": [
+                0.38999998569488525,
+                -0.38999998569488525
+            ],
+            "scale": 0.38999998569488525,
+            "scaleClicked": 1.0,
+            "scaleHover": 1.0,
+            "scaleIdle": 1.0,
+            "scalePressed": 0.949999988079071,
+            "type": "Button"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "depth": 0.28999999165534973,
+            "name": "optionBG",
+            "parentIdx": 10,
+            "pathIdle": "UI_OptionBG.png",
+            "pos": [
+                0.0,
+                0.0
+            ],
+            "scale": 0.6700000166893005,
+            "scaleIdle": 1.0,
+            "type": "Panel"
         }
     ],
     "environmentMapFileName": "Skybox0.dds",

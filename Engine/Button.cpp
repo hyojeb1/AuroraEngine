@@ -27,6 +27,11 @@ void Button::UpdateRect()
 }
 void Button::SetTextureAndOffset(const std::string& idle, const std::string& hoverd, const std::string& pressed)
 {
+	m_pathIdle = idle;
+	m_pathHover = hoverd;
+	m_pathPressed = pressed;
+	m_pathClicked = idle;
+
 	m_textureIdle = m_textureClicked = ResourceManager::GetInstance().GetTextureAndOffset(idle);
 	m_textureHoverd = ResourceManager::GetInstance().GetTextureAndOffset(hoverd);
 	m_texturePressed = ResourceManager::GetInstance().GetTextureAndOffset(pressed);
@@ -35,6 +40,11 @@ void Button::SetTextureAndOffset(const std::string& idle, const std::string& hov
 
 void Button::SetTextureAndOffset(const std::string& idle, const std::string& hoverd, const std::string& pressed, const std::string& clicked)
 {
+	m_pathIdle = idle;
+	m_pathHover = hoverd;
+	m_pathPressed = pressed;
+	m_pathClicked = clicked;
+
 	m_textureIdle = ResourceManager::GetInstance().GetTextureAndOffset(idle);
 	m_textureHoverd = ResourceManager::GetInstance().GetTextureAndOffset(hoverd);
 	m_texturePressed = ResourceManager::GetInstance().GetTextureAndOffset(pressed);
