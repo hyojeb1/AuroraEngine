@@ -1,6 +1,10 @@
 #pragma once
 #include "SceneBase.h"
 
+namespace {
+	constexpr float kTime4MovingPanel = 2.0f;
+}
+
 class TitleScene : public SceneBase
 {
 	class Panel* optionPanel = nullptr;
@@ -8,6 +12,8 @@ class TitleScene : public SceneBase
 	class Panel* Titles = nullptr;
 	class Panel* Title_letterrbox_down = nullptr;
 	class Panel* Title_letterrbox_up = nullptr;
+
+	float m_time4MovingPanel = 0;
 
 private:
 	void Initialize() override;

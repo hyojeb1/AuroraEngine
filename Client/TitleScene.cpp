@@ -17,6 +17,8 @@
 
 REGISTER_TYPE(TitleScene);
 
+using
+
 void TitleScene::Initialize()
 {
 	GetRootGameObject("MainCam")->GetComponent<class CameraComponent>()->SetAsMainCamera();
@@ -74,7 +76,9 @@ void TitleScene::Initialize()
 
 void TitleScene::Update()
 {
+	float dt = TimeManager::GetInstance().GetDeltaTime();
 
+	MovingPanel(dt);
 }
 
 void TitleScene::BindUIActions()
@@ -138,5 +142,8 @@ void TitleScene::BindUIActions()
 
 void TitleScene::MovingPanel(float dt)
 {
+	if (m_time4MovingPanel >= kTime4MovingPanel) return;
 
+	//Title_letterrbox_down->SetLocalPosition((0.5f, ));
+	//Title_letterrbox_up->SetLocalPosition();
 }
