@@ -30,6 +30,7 @@ void Player::TakeHit()
 	if (m_invincibilityTimer > 0.0f) return;
 
 	m_playerHitPoint--;
+	GameManager::GetInstance().OnPlayerHit();
 
 	SceneBase::SetPostProcessingFlag(PostProcessingBuffer::PostProcessingFlag::Vignetting, true);
 	SceneBase::SetVignettingColor({ 1.0f, 0.0f, 0.0f });
