@@ -82,7 +82,7 @@ void SoundManager::Initialize()
 
 		m_CoreSystem->createDSPByType(FMOD_DSP_TYPE_LOWPASS, &m_lowpass);
 		m_lowpass->setParameterFloat(FMOD_DSP_LOWPASS_CUTOFF, 22000.0f);
-		m_MainGroup->addDSP(0, m_lowpass);
+		m_BGMGroup->addDSP(0, m_lowpass);
 
 		m_CurrentTrackName = "";
 		m_CurrentNodeDataName = "";

@@ -214,7 +214,10 @@ void Player::PlayerShoot()
 	if (!m_gunObject || m_isDeadEyeActive) return;
 
 	if (m_gunFSM) m_gunFSM->Fire();
+
 	--m_bulletCnt;
+
+	if(!m_isDeadEyeActive)
 	SoundManager::GetInstance().UI_Shot(Config::Player_Shoot);
 
 	const XMVECTOR& origin = GetPosition();
@@ -359,6 +362,8 @@ void Player::PlayerDeadEye(float deltaTime, InputManager& input)
 
 	if (input.GetKeyDown(KeyCode::MouseLeft))
 	{
+		SoundManager::GetInstance().SFX_Shot(GetPosition(), "DeadEye_Shoot");
+
 		m_prevDeadEyePos = m_nextDeadEyePos;
 		m_deadEyeTargets.back().second->Die();
 		if (m_deadEyeTargets.size() > 1)

@@ -261,9 +261,6 @@ void Renderer::SetFullscreen(bool enable)
 			&modeCount,
 			modes.data()
 		);
-		std::cout << m_curRes.first << " : " << m_curRes.second << std::endl;
-		std::cout << m_prevRes.first << " : " << m_prevRes.second << std::endl;
-
 		m_swapChain->ResizeTarget(&modes.back()); //max resolution
 	}
 	else

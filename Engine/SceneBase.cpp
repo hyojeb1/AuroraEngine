@@ -656,7 +656,7 @@ void SceneBase::RenderImGui_UI()
 				XMStoreFloat4(&c_i, btn->m_colorIdle);
 				ImGui::ColorEdit4("Color##Idle", &c_i.x);
 				btn->m_colorIdle = XMLoadFloat4(&c_i);
-				ImGui::DragFloat("Scale Multi##Idle", &btn->m_scaleIdle, 0.01f, 0.1f, 3.0f);
+				ImGui::DragFloat("Scale Multi##Idle", &btn->m_scale, 0.01f, 0.1f, 3.0f);
 
 				if (pathChanged) btn->SetButtonTextures(btn->m_pathIdle, btn->m_pathHover, btn->m_pathPressed, btn->m_pathClicked);
 				ImGui::TreePop();
@@ -713,7 +713,7 @@ void SceneBase::RenderImGui_UI()
 			ImGui::ColorEdit4("Color", &c.x);
 			panel->m_colorIdle = XMLoadFloat4(&c);
 
-			ImGui::DragFloat("Scale Multi", &panel->m_scaleIdle, 0.01f, 0.1f, 3.0f);
+			ImGui::DragFloat("Scale Multi", &panel->m_scale, 0.01f, 0.1f, 3.0f);
 
 			if (pathChanged) panel->SetTextureAndOffset(panel->m_pathIdle);
 

@@ -27,7 +27,7 @@ void Panel::RenderUI(Renderer& renderer)
 	auto tex = m_textureIdle.first;
 	auto pos = GetWorldPosition();
 	auto offset = m_textureIdle.second;
-	auto scale = m_scale * m_scaleIdle;
+	auto scale = m_scale;
 	auto color = m_colorIdle;
 	auto depth = m_depth;
 
@@ -50,7 +50,7 @@ void Panel::UpdateRect()
 {
 	const DirectX::XMFLOAT2 windowPos = Renderer::GetInstance().ToScreenPosition(GetWorldPosition());
 
-	const float scale = m_scale * m_scaleIdle;
+	const float scale = m_scale;
 	const DirectX::XMFLOAT2 offset =
 	{
 		m_textureIdle.second.x * scale,

@@ -29,7 +29,6 @@ json UIBase::Serialize() const
 
     data["pos"] = { m_localPosition.x, m_localPosition.y };
     data["scale"] = m_scale;
-	data["scaleIdle"] = m_scaleIdle;
 
     data["depth"] = m_depth;
 
@@ -59,7 +58,6 @@ void UIBase::Deserialize(const json& data)
         m_localPosition.y = data["pos"][1];
     }
     if (data.contains("scale")) m_scale = data["scale"];
-	if (data.contains("scaleIdle")) m_scaleIdle = data["scaleIdle"];
     if (data.contains("depth")) m_depth = data["depth"];
     if (data.contains("pathIdle"))
 	{

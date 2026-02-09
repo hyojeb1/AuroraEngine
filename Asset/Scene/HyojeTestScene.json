@@ -22,7 +22,6 @@
                 0.5
             ],
             "scale": 1.0,
-            "scaleIdle": 1.0,
             "type": "Panel"
         },
         {
@@ -73,7 +72,6 @@
                 -0.23000000417232513
             ],
             "scale": 0.9300000071525574,
-            "scaleIdle": 1.0,
             "type": "Slider",
             "value": 0.6713780760765076
         },
@@ -100,7 +98,6 @@
                 -0.019999999552965164
             ],
             "scale": 1.7200000286102295,
-            "scaleIdle": 1.0,
             "text": "Sound1",
             "textColor": [
                 1.0,
@@ -156,7 +153,6 @@
             "scale": 0.23000000417232513,
             "scaleClicked": 1.0,
             "scaleHover": 1.0,
-            "scaleIdle": 1.0,
             "scalePressed": 0.949999988079071,
             "type": "Button"
         },
@@ -182,7 +178,6 @@
                 0.27000001072883606
             ],
             "scale": 0.3799999952316284,
-            "scaleIdle": 1.0,
             "type": "Panel"
         },
         {
@@ -207,7 +202,6 @@
                 0.6200000047683716
             ],
             "scale": 0.5299999713897705,
-            "scaleIdle": 1.0,
             "type": "Panel"
         },
         {
@@ -256,7 +250,6 @@
             "scale": 0.800000011920929,
             "scaleClicked": 1.0,
             "scaleHover": 1.0,
-            "scaleIdle": 1.0,
             "scalePressed": 0.949999988079071,
             "type": "Button"
         },
@@ -282,7 +275,6 @@
                 0.6499999761581421
             ],
             "scale": 0.10000000149011612,
-            "scaleIdle": 1.0,
             "type": "Panel"
         },
         {
@@ -331,7 +323,6 @@
             "scale": 0.800000011920929,
             "scaleClicked": 1.0,
             "scaleHover": 1.0,
-            "scaleIdle": 1.0,
             "scalePressed": 0.949999988079071,
             "type": "Button"
         },
@@ -357,7 +348,6 @@
                 0.0
             ],
             "scale": 0.7200000286102295,
-            "scaleIdle": 1.0,
             "type": "Panel"
         },
         {
@@ -382,7 +372,6 @@
                 0.5
             ],
             "scale": 0.7300000190734863,
-            "scaleIdle": 1.0,
             "type": "Panel"
         },
         {
@@ -431,7 +420,6 @@
             "scale": 0.800000011920929,
             "scaleClicked": 1.0,
             "scaleHover": 1.0,
-            "scaleIdle": 1.0,
             "scalePressed": 0.949999988079071,
             "type": "Button"
         },
@@ -457,7 +445,6 @@
                 0.0
             ],
             "scale": 0.10000000149011612,
-            "scaleIdle": 1.0,
             "type": "Panel"
         },
         {
@@ -482,7 +469,6 @@
                 0.5
             ],
             "scale": 0.9900000095367432,
-            "scaleIdle": 1.0,
             "type": "Panel"
         },
         {
@@ -508,7 +494,6 @@
                 0.25
             ],
             "scale": 3.0,
-            "scaleIdle": 1.0,
             "text": "Text",
             "textColor": [
                 1.0,
@@ -657,6 +642,9 @@
                 },
                 {
                     "type": "CrossHairAndNode"
+                },
+                {
+                    "type": "ListenerComponent"
                 }
             ],
             "name": "Player",

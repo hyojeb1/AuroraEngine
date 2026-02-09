@@ -45,8 +45,6 @@ public:
 	// --- Scale ---
 	void SetScale(float scale) { m_scale = scale; UpdateRect(); }
 	float GetScale() const { return m_scale; }
-	void SetScaleIdle(float scale) { m_scaleIdle = scale; UpdateRect(); }
-	float GetScaleIdle() const { return m_scaleIdle; }
 
 	// --- Color ---
 	void SetColorIdle(const DirectX::XMVECTOR& color) { m_colorIdle = color; }
@@ -104,7 +102,6 @@ protected:
 	UIBase* m_parent = nullptr;
 	DirectX::XMFLOAT2 m_localPosition = {};
 	float m_scale = 1.0f;
-	float m_scaleIdle = 1.0f;
 	DirectX::XMVECTOR m_colorIdle = { 1.0f, 1.0f, 1.0f, 1.0f };
 	float m_depth = 0.0f;
 

@@ -52,7 +52,7 @@ void Enemy::Die()
 	
 	GameManager::GetInstance().AddKill();
 
-	SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Enemy_Die);
+	//SoundManager::GetInstance().SFX_Shot(GetPosition(), Config::Enemy_Die);
 }
 
 void Enemy::Update()
