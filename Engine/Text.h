@@ -31,5 +31,5 @@ private:
 	static std::string WideToUtf8(const std::wstring& text);
 
 	std::string m_textUtf8 = "Text";
-	std::string m_fontNameUtf8 = "Gugi";
+	std::string m_fontNameUtf8 = "SuperCrawler";
 };

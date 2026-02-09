@@ -24,6 +24,18 @@ using namespace DirectX;
 
 REGISTER_TYPE(HyojeTestScene)
 
+namespace
+{
+	void ForceShowCursor(bool show)
+	{
+		if (show) {
+			while (ShowCursor(TRUE) < 0) {}
+		} else {
+			while (ShowCursor(FALSE) >= 0) {}
+		}
+	}
+}
+
 void HyojeTestScene::Initialize()
 {
 	if (titlePanel) titlePanel->SetActive(false);
@@ -73,7 +85,8 @@ void HyojeTestScene::OnHyojeStateEnter(EHyojeState type)
 	switch (type) {
 	case EHyojeState::Title:
 		cout << "[HyojeTestScene] Title State Enter" << endl;
-		ShowCursor(TRUE);
+		//ShowCursor(TRUE);
+		ForceShowCursor(TRUE);
 		if (titlePanel) titlePanel->SetActive(true);
 
 		break;
@@ -82,14 +95,16 @@ void HyojeTestScene::OnHyojeStateEnter(EHyojeState type)
 		m_player_hp = kPlayerHP;
 		m_survivalTime = 0.0f;
 		cout << "[HyojeTestScene] Game Start! HP Reset" << endl;
-		ShowCursor(FALSE);
+		//ShowCursor(FALSE);
+		ForceShowCursor(FALSE);
 		SoundManager::GetInstance().Main_BGM_Shot(Config::Main_BGM, 1.0f);
 		SoundManager::GetInstance().Ambience_Shot(Config::Ambience);
 		break;
 
 	case EHyojeState::Result:
 		cout << "[HyojeTestScene] Game Over / Result Show" << endl;
-		ShowCursor(TRUE);
+		//ShowCursor(TRUE);
+		ForceShowCursor(TRUE);
 		if (resultPanel) resultPanel->SetActive(true);
 		if (resultTime)
 		{
