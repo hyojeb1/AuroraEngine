@@ -80,7 +80,7 @@ void Renderer::RenderImageScreenPosition(com_ptr<ID3D11ShaderResourceView> textu
 
 void Renderer::RenderImageUIPosition(com_ptr<ID3D11ShaderResourceView> texture, XMFLOAT2 position, XMFLOAT2 offset, float scale, const XMVECTOR& color, float depth, const RECT* srcRect)
 {
-	RenderImageScreenPosition(texture, { position.x * static_cast<float>(m_swapChainDesc.Width), position.y * static_cast<float>(m_swapChainDesc.Height) }, offset, scale, color, depth, srcRect);
+	RenderImageScreenPosition(texture, { position.x, position.y }, offset, scale, color, depth, srcRect); //pixel position
 }
 
 void Renderer::EndFrame()
@@ -171,6 +171,7 @@ void Renderer::Resize(UINT width, UINT height)
 	constexpr ID3D11RenderTargetView* nullRTV = nullptr;
 	m_deviceContext->OMSetRenderTargets(1, &nullRTV, nullptr);
 
+	m_deviceContext->ClearState();
 	m_deviceContext->Flush();
 
 	// 백 버퍼 리소스 해제
@@ -213,69 +214,80 @@ void Renderer::Resize(UINT width, UINT height)
 	{
 		if (m_prevRes.first > 0)
 		{
-			float sx = (float)m_curRes.first / (float)m_prevRes.first;
-			float sy = (float)m_curRes.second / (float)m_prevRes.second;
+			float sx = (float)m_curRes.first / (float)m_BaseRes.first;
+			float sy = (float)m_curRes.second / (float)m_BaseRes.second;
 
-			temp->OnResizeEvent({ sx,sy });
+			float s = std::min(sx, sy);
+
+			temp->OnResizeEvent({ sx, sx });
 		}
 	}
 }
 
 void Renderer::SetFullscreen(bool enable)
 {
-	if (m_swapChain == nullptr) return;
-	HRESULT hr = S_OK;
-
-	hr = m_swapChain->SetFullscreenState(static_cast<BOOL>(enable), nullptr);
-	CheckResult(hr, "전체 화면 모드 전환 실패.");
+	if (!m_swapChain) return;
 
 	if (enable)
 	{
-		m_prevRes = m_curRes;
+		{
+			com_ptr<IDXGIDevice> dxgiDevice;
+			m_device.As(&dxgiDevice);
 
-		com_ptr<IDXGIDevice> dxgiDevice;
-		m_device.As(&dxgiDevice);
+			com_ptr<IDXGIAdapter> adapter;
+			dxgiDevice->GetAdapter(&adapter);
 
-		com_ptr<IDXGIAdapter> adapter;
-		dxgiDevice->GetAdapter(&adapter);
+			com_ptr<IDXGIOutput> output;
+			adapter->EnumOutputs(0, &output);
 
-		com_ptr<IDXGIOutput> output;
-		adapter->EnumOutputs(0, &output);
+			DXGI_OUTPUT_DESC desc; output->GetDesc(&desc);
+			UINT modeCount = 0; output->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, 0, &modeCount, nullptr);
 
-		DXGI_OUTPUT_DESC desc;
-		output->GetDesc(&desc);
+			std::vector<DXGI_MODE_DESC> modes(modeCount);
+			output->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, 0, &modeCount, modes.data());
 
-		UINT modeCount = 0;
-		output->GetDisplayModeList(
-			DXGI_FORMAT_R8G8B8A8_UNORM,
-			0,
-			&modeCount,
-			nullptr
+			auto& mode = modes.back();
+
+			m_prevRes = m_curRes;
+			m_curRes = { mode.Width, mode.Height };
+
+			m_swapChain->SetFullscreenState(TRUE, nullptr);
+			m_swapChain->ResizeTarget(&mode);
+		}
+
+		Resize
+		(
+			static_cast<UINT>(m_curRes.first),
+			static_cast<UINT>(m_curRes.second)
 		);
-
-		std::vector<DXGI_MODE_DESC> modes(modeCount);
-
-		output->GetDisplayModeList(
-			DXGI_FORMAT_R8G8B8A8_UNORM,
-			0,
-			&modeCount,
-			modes.data()
-		);
-		m_swapChain->ResizeTarget(&modes.back()); //max resolution
-
 	}
+
 	else
 	{
-		DXGI_MODE_DESC windowedMode = {};
+		DXGI_MODE_DESC windowedMode{};
 		windowedMode.Width = m_prevRes.first;
 		windowedMode.Height = m_prevRes.second;
 		windowedMode.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-		m_prevRes = m_curRes;
+		{
+			DXGI_SWAP_CHAIN_DESC desc;
+			m_swapChain->GetDesc(&desc);
 
-		m_swapChain->ResizeTarget(&windowedMode);
+			m_prevRes = { desc.BufferDesc.Width,desc.BufferDesc.Height };
+			m_curRes = { windowedMode.Width,windowedMode.Height };
+
+			m_swapChain->SetFullscreenState(FALSE, nullptr);
+			m_swapChain->ResizeTarget(&windowedMode);
+		}
+
+		Resize
+		(
+			static_cast<UINT>(windowedMode.Width),
+			static_cast<UINT>(windowedMode.Height)
+		);
 	}
 }
+
 
 void Renderer::SetViewport(FLOAT Width, FLOAT Height)
 {

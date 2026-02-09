@@ -23,7 +23,7 @@ void Text::RenderUI(Renderer& renderer)
 
 	auto pos = GetWorldPosition();
 	auto color = m_colorIdle;
-	auto scale = m_scale;
+	auto scale = GetFinalScale();
 	auto depth = m_depth;
 
 	renderer.UI_RENDER_FUNCTIONS().emplace_back(
@@ -98,8 +98,8 @@ void Text::UpdateRect()
 	XMFLOAT2 sizePixels{};
 	XMStoreFloat2(&sizePixels, size);
 
-	sizePixels.x *= m_scale;
-	sizePixels.y *= m_scale;
+	sizePixels.x *= GetFinalScale();
+	sizePixels.y *= GetFinalScale();
 
 	const XMFLOAT2 screenPos = Renderer::GetInstance().ToScreenPosition(GetWorldPosition());
 

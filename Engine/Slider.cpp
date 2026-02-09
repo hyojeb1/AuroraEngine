@@ -78,7 +78,7 @@ void Slider::RenderUI(Renderer& renderer)
 	auto barTex = m_textureIdle.first;
 	auto barPos = GetWorldPosition();
 	auto barOff = m_textureIdle.second;
-	auto scale = m_scale;
+	auto scale = GetFinalScale();
 	auto color = m_colorIdle;
 	auto depth = m_depth;
 
@@ -94,10 +94,14 @@ void Slider::RenderUI(Renderer& renderer)
 	float t = (range != 0.0f) ? (m_value - m_min) / range : 0.0f;
 	t = std::clamp(t, 0.0f, 1.0f);
 
-	float handleX = m_UIRect.left + t * (m_UIRect.right - m_UIRect.left);
-	float handleY = (m_UIRect.top + m_UIRect.bottom) * 0.5f;
+	auto pos = GetWorldPosition();
 
-	DirectX::XMFLOAT2 handlePos = Renderer::GetInstance().ToUIPosition({ handleX, handleY });
+	DirectX::XMFLOAT2 handlePos =
+	{
+		(m_handleRect.left + m_handleRect.right) * 0.5f,
+		(m_handleRect.top + m_handleRect.bottom) * 0.5f
+	};
+
 
 	std::pair<com_ptr<ID3D11ShaderResourceView>, DirectX::XMFLOAT2> currentTexPair;
 	float currentHandleScaleMult = 1.0f;
@@ -128,76 +132,36 @@ void Slider::RenderUI(Renderer& renderer)
 	auto handleTex = currentTexPair.first;
 	auto handleOff = currentTexPair.second;
 
-	float finalScale = m_scale * currentHandleScaleMult;
+
+	float finalScale = GetFinalScale() * currentHandleScaleMult;
 
 	renderer.UI_RENDER_FUNCTIONS().emplace_back(
 		[handleTex, handlePos, handleOff, finalScale, currentHandleColor, depth]()
 		{
-			Renderer::GetInstance().RenderImageUIPosition(
-				handleTex, handlePos, handleOff, finalScale, currentHandleColor, depth + 0.01f
+			Renderer::GetInstance().RenderImageScreenPosition(
+				handleTex,
+				handlePos,
+				handleOff,
+				finalScale,
+				currentHandleColor,
+				depth + 0.01f
 			);
 		});
-
-	//float barLeft = m_UIRect.left;
-	//float barRight = m_UIRect.right;
-	//float barTop = m_UIRect.top;
-	//float barBot = m_UIRect.bottom;
-
-	//float barWidth = barRight - barLeft;
-	//float barHeight = barBot - barTop;
-
-	//float fillCenterX = barLeft + barWidth * t * 0.5f;
-	//float fillCenterY = (barTop + barBot) * 0.5f;
-
-	//const auto& desc = Renderer::GetInstance().GetSwapChainDesc();
-	//DirectX::XMFLOAT2 fillPos =
-	//{
-	//	fillCenterX / desc.Width,
-	//	fillCenterY / desc.Height
-	//};
-
-	//DirectX::XMFLOAT2 fillScale =
-	//{
-	//	m_scale * t,   
-	//	m_scale        
-	//};
-
-	//auto fillTex = m_fillTexture.first;
-	//auto fillOff = m_fillTexture.second;
-	//auto color = m_color;
-	//auto depth = m_depth + 0.001f;
-
-	//renderer.UI_RENDER_FUNCTIONS().emplace_back(
-	//	[fillTex, fillPos, fillOff, fillScale, color, depth]()
-	//	{
-	//		Renderer::GetInstance().RenderImageUIPosition(
-	//			fillTex,
-	//			fillPos,
-	//			fillOff,
-	//			fillScale,
-	//			color,
-	//			depth
-	//		);
-	//	}
-	//);
 }
 
 void Slider::UpdateRect()
 {
-	const DirectX::XMFLOAT2 windowPos = Renderer::GetInstance().ToScreenPosition(GetWorldPosition());
+	auto pos = GetWorldPosition();
 
-	const DirectX::XMFLOAT2 offset =
-	{
-		m_textureIdle.second.x * m_scale,
-		m_textureIdle.second.y * m_scale
-	};
+	float halfW = m_textureIdle.second.x * 0.5f * GetFinalScale();
+	float halfH = m_textureIdle.second.y * 0.5f * GetFinalScale();
 
 	m_UIRect =
 	{
-		(LONG)(windowPos.x - offset.x),
-		(LONG)(windowPos.y - offset.y),
-		(LONG)(windowPos.x + offset.x),
-		(LONG)(windowPos.y + offset.y)
+		static_cast<LONG>(pos.x - halfW),
+		static_cast<LONG>(pos.y - halfH),
+		static_cast<LONG>(pos.x + halfW),
+		static_cast<LONG>(pos.y + halfH)
 	};
 
 	UpdateHandleRect();
@@ -205,23 +169,30 @@ void Slider::UpdateRect()
 
 void Slider::UpdateHandleRect()
 {
-	const float range = (m_max - m_min);
-	float t = (range != 0.0f) ? (m_value - m_min) / range : 0.0f;
+	float t = (m_value - m_min) / (m_max - m_min);
 	t = std::clamp(t, 0.0f, 1.0f);
 
-	float handleX = m_UIRect.left + t * (m_UIRect.right - m_UIRect.left);
-	float handleY = (m_UIRect.top + m_UIRect.bottom) * 0.5f;
+	float barLeft = m_UIRect.left - m_textureIdle.second.x * 0.5f * GetFinalScale();
+	float barRight = m_UIRect.right + m_textureIdle.second.x * 0.5f * GetFinalScale();
 
-	DirectX::XMFLOAT2 offset = m_handleTexIdle.second;
-	offset.x *= m_scale * m_handleScaleIdle;
-	offset.y *= m_scale * m_handleScaleIdle;
+
+	float scale = GetFinalScale() * m_handleScaleIdle;
+
+	float halfW = m_handleTexIdle.second.x * 0.5f * scale;
+	float halfH = m_handleTexIdle.second.y * 0.5f * scale;
+
+	float minX = barLeft + halfW;
+	float maxX = barRight - halfW;
+
+	float handleX = minX + t * (maxX - minX);
+	float handleY = ((float)m_UIRect.top + (float)m_UIRect.bottom) * 0.5f;
 
 	m_handleRect =
 	{
-		(LONG)(handleX - offset.x),
-		(LONG)(handleY - offset.y),
-		(LONG)(handleX + offset.x),
-		(LONG)(handleY + offset.y)
+		(LONG)(handleX - halfW),
+		(LONG)(handleY - halfH),
+		(LONG)(handleX + halfW),
+		(LONG)(handleY + halfH)
 	};
 }
 
@@ -254,14 +225,21 @@ bool Slider::CheckInput(const POINT& mousePos, bool isMousePressed)
 
 	m_handleState = HandleState::Pressed;
 
-	float t =
-		float(mousePos.x - m_UIRect.left) /
-		float(m_UIRect.right - m_UIRect.left);
+	float scale = GetFinalScale() * m_handleScaleIdle;
+	float halfW = m_handleTexIdle.second.x * 0.5f * scale;
 
+	float barLeft = m_UIRect.left - m_textureIdle.second.x * 0.5f * GetFinalScale();
+	float barRight = m_UIRect.right + m_textureIdle.second.x * 0.5f * GetFinalScale();
+
+	float minX = barLeft + halfW;
+	float maxX = barRight - halfW;
+
+	float t = (mousePos.x - minX) / (maxX - minX);
 	t = std::clamp(t, 0.0f, 1.0f);
-	m_value = m_min + t * (m_max - m_min);
-	UpdateHandleRect();
 
+	m_value = m_min + t * (m_max - m_min);
+
+	UpdateHandleRect();
 	return true;
 }
 

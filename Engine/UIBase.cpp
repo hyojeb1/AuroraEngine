@@ -13,6 +13,26 @@
 
 using namespace nlohmann;
 
+DirectX::XMFLOAT2 UIBase::GetWorldPosition() const
+{
+	auto& rm = Renderer::GetInstance();
+
+    DirectX::XMFLOAT2 pixelPos =
+    {
+        m_localPosition.x * rm.GetCurResolution().first,
+		m_localPosition.y * rm.GetCurResolution().second
+	};
+
+	if (m_parent)
+	{
+		auto parentPos = m_parent->GetWorldPosition();
+		return { parentPos.x + pixelPos.x,
+				 parentPos.y + pixelPos.y };
+	}
+
+	return pixelPos;
+}
+
 void UIBase::SetTextureAndOffset(const std::string& idle)
 {
 	m_pathIdle = idle;
@@ -28,7 +48,7 @@ json UIBase::Serialize() const
     data["active"] = m_isActive;
 
     data["pos"] = { m_localPosition.x, m_localPosition.y };
-    data["scale"] = m_scale;
+    data["scale"] = GetFinalScale();
 
     data["depth"] = m_depth;
 
@@ -57,7 +77,7 @@ void UIBase::Deserialize(const json& data)
         m_localPosition.x = data["pos"][0];
         m_localPosition.y = data["pos"][1];
     }
-    if (data.contains("scale")) m_scale = data["scale"];
+    if (data.contains("scale")) m_designScale = data["scale"];
     if (data.contains("depth")) m_depth = data["depth"];
     if (data.contains("pathIdle"))
 	{

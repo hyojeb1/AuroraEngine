@@ -64,8 +64,9 @@ class Renderer : public Singleton<Renderer>
 	int m_selectedLUTIndex = 0;
 	int m_selectedLUT2Index = 4;
 
+	std::pair<UINT, UINT> m_BaseRes = { m_swapChainDesc.Width , m_swapChainDesc.Height };
 	std::pair<UINT, UINT> m_curRes = { m_swapChainDesc.Width , m_swapChainDesc.Height };
-	std::pair<UINT, UINT> m_prevRes = { 0, 0 };
+	std::pair<UINT, UINT> m_prevRes = { m_swapChainDesc.Width,  m_swapChainDesc.Height };
 
 public:
 	Renderer() = default;
@@ -108,6 +109,15 @@ public:
 			worldPosition.y / static_cast<float>(m_swapChainDesc.Height)
 		};
 	}
+	
+	DirectX::XMFLOAT2 ToBasePosition(const DirectX::XMFLOAT2& worldPosition)
+	{
+		return DirectX::XMFLOAT2
+		{
+			worldPosition.x / static_cast<float>(m_BaseRes.first),
+			worldPosition.y / static_cast<float>(m_BaseRes.second)
+		};
+	}
 	// UI 텍스트 렌더링
 	// 스크린 좌표계
 	void RenderTextScreenPosition(const wchar_t* text, DirectX::XMFLOAT2 position, float depth = 0.0f, const DirectX::XMVECTOR& color = DirectX::XMVECTOR{ 1.0f, 1.0f, 1.0f, 1.0f }, float scale = 1.0f, const std::wstring& fontName = L"Gugi");
@@ -147,6 +157,9 @@ public:
 
 	int& GetSelectedLUTIndex() { return m_selectedLUTIndex; };
 	int& GetSelectedLUT2Index() { return m_selectedLUT2Index; };
+
+	std::pair<UINT, UINT> GetBaseResolution() { return m_BaseRes; }
+	std::pair<UINT, UINT> GetCurResolution() { return m_curRes; }
 
 private:
 	// 초기화 함수

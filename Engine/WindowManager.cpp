@@ -192,9 +192,9 @@ void WindowManager::ToggleFullscreen()
 		style &= ~WS_OVERLAPPEDWINDOW;
 		SetWindowLong(m_hWnd, GWL_STYLE, style);*/
 
-		HMONITOR hMon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
+		/*HMONITOR hMon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
 		MONITORINFO mi = { sizeof(mi) };
-		GetMonitorInfo(hMon, &mi);
+		GetMonitorInfo(hMon, &mi);*/
 
 // 		SetWindowPos
 // 		(
@@ -205,13 +205,8 @@ void WindowManager::ToggleFullscreen()
 // 			SWP_NOOWNERZORDER | SWP_FRAMECHANGED
 // 		);
 		//ShowWindow(m_hWnd, SW_MAXIMIZE);
+		
 		m_isFullscreen = true;
-
-		renderer.Resize
-		(
-			static_cast<UINT>(mi.rcMonitor.right - mi.rcMonitor.left),
-			static_cast<UINT>(mi.rcMonitor.bottom - mi.rcMonitor.top)
-		);
 	}
 	else
 	{
@@ -230,11 +225,5 @@ void WindowManager::ToggleFullscreen()
 
 		//ShowWindow(m_hWnd, SW_NORMAL);
 		m_isFullscreen = false;
-
-		renderer.Resize
-		(
-			static_cast<UINT>(m_windowedRect.right - m_windowedRect.left),
-			static_cast<UINT>(m_windowedRect.bottom - m_windowedRect.top)
-		);
 	}
 }

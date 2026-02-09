@@ -8,11 +8,13 @@
 Panel::Panel()
 {
 	SetTextureAndOffset("UI_Panel.png");
-	m_scale = 0.1f;
+	SetScale(0.1f);
 }
 
 void Panel::OnResize(std::pair<float, float> res)
 {
+	m_resolutionScale = res.first;
+
 	UpdateRect();
 
 	for (auto& child : m_children)
@@ -27,7 +29,7 @@ void Panel::RenderUI(Renderer& renderer)
 	auto tex = m_textureIdle.first;
 	auto pos = GetWorldPosition();
 	auto offset = m_textureIdle.second;
-	auto scale = m_scale;
+	auto scale = GetFinalScale();
 	auto color = m_colorIdle;
 	auto depth = m_depth;
 
@@ -48,21 +50,17 @@ void Panel::RenderUI(Renderer& renderer)
 
 void Panel::UpdateRect()
 {
-	const DirectX::XMFLOAT2 windowPos = Renderer::GetInstance().ToScreenPosition(GetWorldPosition());
+	auto pos = GetWorldPosition();
 
-	const float scale = m_scale;
-	const DirectX::XMFLOAT2 offset =
-	{
-		m_textureIdle.second.x * scale,
-		m_textureIdle.second.y * scale
-	};
+	float halfW = m_textureIdle.second.x * 0.5f * GetFinalScale();
+	float halfH = m_textureIdle.second.y * 0.5f * GetFinalScale();
 
 	m_UIRect =
 	{
-		(LONG)(windowPos.x - offset.x),
-		(LONG)(windowPos.y - offset.y),
-		(LONG)(windowPos.x + offset.x),
-		(LONG)(windowPos.y + offset.y)
+		static_cast<LONG>(pos.x - halfW),
+		static_cast<LONG>(pos.y - halfH),
+		static_cast<LONG>(pos.x + halfW),
+		static_cast<LONG>(pos.y + halfH)
 	};
 }
 

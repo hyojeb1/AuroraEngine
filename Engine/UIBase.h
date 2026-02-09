@@ -34,17 +34,14 @@ public:
 	void SetLocalPosition(const DirectX::XMFLOAT2& pos) { m_localPosition = pos; UpdateRect(); }
 	const DirectX::XMFLOAT2& GetLocalPosition() const { return m_localPosition; }
 
-	DirectX::XMFLOAT2 GetWorldPosition() const {
-		if (m_parent) {
-			DirectX::XMFLOAT2 parentPos = m_parent->GetWorldPosition();
-			return DirectX::XMFLOAT2(parentPos.x + m_localPosition.x, parentPos.y + m_localPosition.y);
-		}
-		return m_localPosition;
-	}
+	DirectX::XMFLOAT2 GetWorldPosition() const;
+	virtual void Resize(float x, float y) { m_resolutionScale = x; UpdateRect(); }
 
 	// --- Scale ---
-	void SetScale(float scale) { m_scale = scale; UpdateRect(); }
-	float GetScale() const { return m_scale; }
+	void SetScale(float scale) { m_designScale = scale; UpdateRect(); }
+	float GetScale() const { return m_designScale; }
+
+	float GetFinalScale() const	{ return m_designScale * m_resolutionScale;	}
 
 	// --- Color ---
 	void SetColorIdle(const DirectX::XMVECTOR& color) { m_colorIdle = color; }
@@ -75,7 +72,7 @@ public:
 	// =========================================================
 	// Serialization
 	// =========================================================
-	virtual void OnResize(std::pair<float, float> res) { SetScale(res.first); }//UpdateRect(); }
+	virtual void OnResize(std::pair<float, float> res) { Resize(res.first, res.second); }
 
 	virtual nlohmann::json Serialize() const;
 	virtual void Deserialize(const nlohmann::json& data);
@@ -101,7 +98,8 @@ protected:
 	bool m_isActive = true;
 	UIBase* m_parent = nullptr;
 	DirectX::XMFLOAT2 m_localPosition = {};
-	float m_scale = 1.0f;
+	float m_designScale = 1.0f;
+	float m_resolutionScale = 1.0f;
 	DirectX::XMVECTOR m_colorIdle = { 1.0f, 1.0f, 1.0f, 1.0f };
 	float m_depth = 0.0f;
 
