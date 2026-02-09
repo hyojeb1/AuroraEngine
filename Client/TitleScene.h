@@ -3,6 +3,10 @@
 
 class TitleScene : public SceneBase
 {
+	class Panel* optionPanel = nullptr;
+	class Panel* Title_letterrbox_down = nullptr;
+	class Panel* Title_letterrbox_up = nullptr;
+
 public:
 	TitleScene() = default;
 	~TitleScene() override = default;
@@ -14,4 +18,6 @@ public:
 private:
 	void Initialize() override;
 	void Update() override;
+
+	void BindUIActions() override;
 };

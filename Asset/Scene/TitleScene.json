@@ -1,4 +1,513 @@
 {
+    "UI": [
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "depth": 0.0,
+            "name": "buttons",
+            "parentIdx": -1,
+            "pathIdle": "UI__.png",
+            "pos": [
+                0.0,
+                0.0
+            ],
+            "scale": 0.10000000149011612,
+            "scaleIdle": 1.0,
+            "type": "Panel"
+        },
+        {
+            "actionKey": "startButton",
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorClicked": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "colorHover": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421,
+                1.0
+            ],
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "colorPressed": [
+                0.699999988079071,
+                0.699999988079071,
+                0.699999988079071,
+                1.0
+            ],
+            "depth": 0.009999999776482582,
+            "name": "startButton",
+            "parentIdx": 0,
+            "pathClicked": "UI_Clicked.png",
+            "pathHover": "UI_Hovered.png",
+            "pathIdle": "UI_Button.png",
+            "pathPressed": "UI_Pressed.png",
+            "pos": [
+                0.6000000238418579,
+                0.4399999976158142
+            ],
+            "scale": 0.6899999976158142,
+            "scaleClicked": 1.0,
+            "scaleHover": 1.0,
+            "scaleIdle": 1.0,
+            "scalePressed": 0.949999988079071,
+            "type": "Button"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "depth": 0.009999999776482582,
+            "name": "cha",
+            "parentIdx": -1,
+            "pathIdle": "UI_cha_pose.png",
+            "pos": [
+                0.23000000417232513,
+                0.47999998927116394
+            ],
+            "scale": 0.6100000143051147,
+            "scaleIdle": 1.0,
+            "type": "Panel"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "depth": 0.009999999776482582,
+            "name": "logo",
+            "parentIdx": -1,
+            "pathIdle": "UI_logo.png",
+            "pos": [
+                0.6600000262260437,
+                0.23000000417232513
+            ],
+            "scale": 0.3199999928474426,
+            "scaleIdle": 1.0,
+            "type": "Panel"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorClicked": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "colorHover": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421,
+                1.0
+            ],
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "colorPressed": [
+                0.699999988079071,
+                0.699999988079071,
+                0.699999988079071,
+                1.0
+            ],
+            "depth": 0.009999999776482582,
+            "name": "optionButton",
+            "parentIdx": 0,
+            "pathClicked": "UI_Clicked.png",
+            "pathHover": "UI_Hovered.png",
+            "pathIdle": "UI_Button.png",
+            "pathPressed": "UI_Pressed.png",
+            "pos": [
+                0.6000000238418579,
+                0.5600000023841858
+            ],
+            "scale": 0.6899999976158142,
+            "scaleClicked": 1.0,
+            "scaleHover": 1.0,
+            "scaleIdle": 1.0,
+            "scalePressed": 0.949999988079071,
+            "type": "Button"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorClicked": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "colorHover": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421,
+                1.0
+            ],
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "colorPressed": [
+                0.699999988079071,
+                0.699999988079071,
+                0.699999988079071,
+                1.0
+            ],
+            "depth": 0.009999999776482582,
+            "name": "startButton",
+            "parentIdx": 0,
+            "pathClicked": "UI_Clicked.png",
+            "pathHover": "UI_Hovered.png",
+            "pathIdle": "UI_Button.png",
+            "pathPressed": "UI_Pressed.png",
+            "pos": [
+                0.6000000238418579,
+                0.6800000071525574
+            ],
+            "scale": 0.6899999976158142,
+            "scaleClicked": 1.0,
+            "scaleHover": 1.0,
+            "scaleIdle": 1.0,
+            "scalePressed": 0.949999988079071,
+            "type": "Button"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorClicked": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "colorHover": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421,
+                1.0
+            ],
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "colorPressed": [
+                0.699999988079071,
+                0.699999988079071,
+                0.699999988079071,
+                1.0
+            ],
+            "depth": 0.009999999776482582,
+            "name": "startButton",
+            "parentIdx": 0,
+            "pathClicked": "UI_Clicked.png",
+            "pathHover": "UI_Hovered.png",
+            "pathIdle": "UI_Button.png",
+            "pathPressed": "UI_Pressed.png",
+            "pos": [
+                0.6000000238418579,
+                0.800000011920929
+            ],
+            "scale": 0.6899999976158142,
+            "scaleClicked": 1.0,
+            "scaleHover": 1.0,
+            "scaleIdle": 1.0,
+            "scalePressed": 0.949999988079071,
+            "type": "Button"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "depth": 0.0,
+            "name": "Title_temp_img",
+            "parentIdx": -1,
+            "pathIdle": "UI_Title_temp_img.png",
+            "pos": [
+                0.5,
+                0.5
+            ],
+            "scale": 0.4699999988079071,
+            "scaleIdle": 1.0,
+            "type": "Panel"
+        },
+        {
+            "active": false,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "depth": 0.009999999776482582,
+            "name": "UI_Title_letterrbox_up",
+            "parentIdx": -1,
+            "pathIdle": "UI_Title_letterrbox_up.png",
+            "pos": [
+                0.5,
+                0.3400000035762787
+            ],
+            "scale": 0.7900000214576721,
+            "scaleIdle": 1.0,
+            "type": "Panel"
+        },
+        {
+            "active": false,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "depth": 0.019999999552965164,
+            "name": "UI_Title_letterrbox_down",
+            "parentIdx": -1,
+            "pathIdle": "UI_Title_letterrbox_down.png",
+            "pos": [
+                0.5,
+                0.9300000071525574
+            ],
+            "scale": 0.7900000214576721,
+            "scaleIdle": 1.0,
+            "type": "Panel"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "depth": 0.30000001192092896,
+            "name": "option",
+            "parentIdx": -1,
+            "pathIdle": "",
+            "pos": [
+                0.5,
+                0.5
+            ],
+            "scale": 1.0,
+            "scaleIdle": 1.0,
+            "type": "Panel"
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "depth": 0.30000001192092896,
+            "handleColorHover": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421,
+                1.0
+            ],
+            "handleColorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "handleColorPressed": [
+                0.699999988079071,
+                0.699999988079071,
+                0.699999988079071,
+                1.0
+            ],
+            "handlePathHover": "UI_Slider.png",
+            "handlePathIdle": "UI_Slider.png",
+            "handlePathPressed": "UI_Slider.png",
+            "handleScaleHover": 1.0,
+            "handleScaleIdle": 1.0,
+            "handleScalePressed": 1.0,
+            "max": 1.0,
+            "min": 0.0,
+            "name": "sound",
+            "parentIdx": 10,
+            "pathIdle": "",
+            "pos": [
+                0.03999999910593033,
+                -0.23000000417232513
+            ],
+            "scale": 0.9300000071525574,
+            "scaleIdle": 1.0,
+            "type": "Slider",
+            "value": 0.6501767039299011
+        },
+        {
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorIdle": [
+                1.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "depth": 0.0,
+            "fontName": "SuperCrawler",
+            "name": "sound",
+            "parentIdx": 11,
+            "pathIdle": "",
+            "pos": [
+                -0.46000000834465027,
+                -0.019999999552965164
+            ],
+            "scale": 1.7200000286102295,
+            "scaleIdle": 1.0,
+            "text": "Sound1",
+            "textColor": [
+                1.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "type": "Text"
+        },
+        {
+            "actionKey": "close_option",
+            "active": true,
+            "animAutoPlay": true,
+            "animCols": 1,
+            "animFPS": 8.0,
+            "animLoop": true,
+            "animRows": 1,
+            "colorClicked": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "colorHover": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421,
+                1.0
+            ],
+            "colorIdle": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "colorPressed": [
+                0.699999988079071,
+                0.699999988079071,
+                0.699999988079071,
+                1.0
+            ],
+            "depth": 0.30000001192092896,
+            "name": "close",
+            "parentIdx": 10,
+            "pathClicked": "UI_Clicked.png",
+            "pathHover": "UI_Hovered.png",
+            "pathIdle": "",
+            "pathPressed": "UI_Pressed.png",
+            "pos": [
+                0.18000000715255737,
+                -0.3499999940395355
+            ],
+            "scale": 0.23000000417232513,
+            "scaleClicked": 1.0,
+            "scaleHover": 1.0,
+            "scaleIdle": 1.0,
+            "scalePressed": 0.949999988079071,
+            "type": "Button"
+        }
+    ],
     "environmentMapFileName": "Skybox0.dds",
     "lightColor": [
         1.0,
@@ -51,6 +560,7 @@
                         "DissolveEdgeWidth": 1.0,
                         "DissolveThreshold": 0.20000000298023224
                     },
+                    "materialFactor": [],
                     "modelAndMaterialFileNames": [],
                     "psShaderName": "PSModel.hlsl",
                     "rasterState": 1,
